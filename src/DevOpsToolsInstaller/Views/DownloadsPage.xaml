@@ -41,7 +41,7 @@
                             <!-- Tool name -->
                             <TextBlock
                                 Grid.Column="0"
-                                Text="{Binding Name}"
+                                Text="{Binding NameWithVersion}"
                                 FontWeight="SemiBold"
                                 Foreground="{ThemeResource TextPrimaryBrush}"
                                 FontSize="15"
@@ -66,10 +66,10 @@
                                 TextWrapping="NoWrap"
                                 TextTrimming="CharacterEllipsis" />
 
-                            <!-- Run installer button -->
+                            <!-- Kind-aware action button -->
                             <Button
                                 Grid.Column="3"
-                                Content="Run Installer"
+                                Content="{Binding ActionLabel, Mode=OneWay}"
                                 Click="RunInstaller_Click"
                                 IsEnabled="{Binding IsDownloaded, Mode=OneWay}"
                                 Style="{StaticResource AccentButtonStyle}"

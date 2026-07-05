@@ -81,7 +81,7 @@
                     <TextBlock Text="1. Browse the catalog grouped by category" Foreground="{ThemeResource TextSecondaryBrush}" />
                     <TextBlock Text="2. Select the tools you need and click Download" Foreground="{ThemeResource TextSecondaryBrush}" />
                     <TextBlock Text="3. Watch real-time progress for each download" Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock Text="4. Click Run Installer to launch the vendor's official setup" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    <TextBlock Text="4. Install, extract, or add to your tools folder — the right action per tool" Foreground="{ThemeResource TextSecondaryBrush}" />
                     <TextBlock
                         Text="Your app never installs anything silently. The vendor installer handles everything, including its own UAC prompt."
                         Foreground="{ThemeResource TextMutedBrush}"

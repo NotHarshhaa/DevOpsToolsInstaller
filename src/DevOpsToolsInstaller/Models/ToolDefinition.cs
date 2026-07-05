@@ -12,6 +12,22 @@ public enum ToolStatus
     Failed
 }
 
+/// <summary>
+/// Describes what a downloaded artifact is, which determines the action the
+/// app takes after download (see <c>ArtifactService</c>).
+/// </summary>
+public enum ArtifactKind
+{
+    /// <summary>Self-contained setup (.exe/.msi) that installs itself.</summary>
+    Installer,
+    /// <summary>Compressed archive (.zip) that must be extracted.</summary>
+    Archive,
+    /// <summary>Standalone executable to be placed on the user's PATH.</summary>
+    Binary,
+    /// <summary>Script (.ps1 etc.) the user should review before running.</summary>
+    Script
+}
+
 public sealed class ToolDefinition : INotifyPropertyChanged
 {
     // ── JSON-serialized catalog properties ───────────────────────────────
@@ -42,6 +58,15 @@ public sealed class ToolDefinition : INotifyPropertyChanged
 
     [JsonPropertyName("launchArgs")]
     public string LaunchArgs { get; set; } = string.Empty;
+
+    [JsonPropertyName("kind")]
+    public string? KindRaw { get; set; }
+
+    [JsonPropertyName("version")]
+    public string Version { get; set; } = string.Empty;
+
+    [JsonPropertyName("homepage")]
+    public string Homepage { get; set; } = string.Empty;
 
     // ── Runtime-only state (not from JSON) ───────────────────────────────
 
@@ -108,6 +133,62 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     public string DisplayName => $"{Name}";
 
     public bool IsDownloaded => Status == ToolStatus.Downloaded;
+
+    /// <summary>
+    /// The artifact kind. Uses the catalog's explicit "kind" when present,
+    /// otherwise infers a sensible default from the file extension so older
+    /// catalogs (without the field) still behave reasonably.
+    /// </summary>
+    [JsonIgnore]
+    public ArtifactKind Kind
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(KindRaw) &&
+                Enum.TryParse<ArtifactKind>(KindRaw, ignoreCase: true, out var parsed))
+            {
+                return parsed;
+            }
+
+            var ext = System.IO.Path.GetExtension(FileName).ToLowerInvariant();
+            return ext switch
+            {
+                ".zip" or ".7z" or ".tar" or ".gz" or ".tgz" => ArtifactKind.Archive,
+                ".ps1" or ".sh" or ".bat" or ".cmd"           => ArtifactKind.Script,
+                ".msi" or ".msix" or ".msixbundle" or ".appx" => ArtifactKind.Installer,
+                _                                              => ArtifactKind.Installer
+            };
+        }
+    }
+
+    /// <summary>Short label describing the kind, for a catalog badge.</summary>
+    [JsonIgnore]
+    public string KindLabel => Kind switch
+    {
+        ArtifactKind.Installer => "Installer",
+        ArtifactKind.Archive   => "Archive",
+        ArtifactKind.Binary    => "Binary",
+        ArtifactKind.Script    => "Script",
+        _                      => "Installer"
+    };
+
+    /// <summary>
+    /// The label shown on the post-download action button, per artifact kind.
+    /// </summary>
+    [JsonIgnore]
+    public string ActionLabel => Kind switch
+    {
+        ArtifactKind.Installer => "Install",
+        ArtifactKind.Archive   => "Extract",
+        ArtifactKind.Binary    => "Add to Tools",
+        ArtifactKind.Script    => "Open Folder",
+        _                      => "Install"
+    };
+
+    /// <summary>Name and version combined for display, e.g. "Terraform 1.9.5".</summary>
+    [JsonIgnore]
+    public string NameWithVersion =>
+        string.IsNullOrWhiteSpace(Version) ? Name : $"{Name}  ·  v{Version}";
 
     private void UpdateStatusText()
     {

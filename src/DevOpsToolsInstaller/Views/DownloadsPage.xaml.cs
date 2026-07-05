@@ -45,14 +45,8 @@ public sealed partial class DownloadsPage : Page
     {
         if (sender is not Button { DataContext: ToolDefinition tool }) return;
 
-        try
-        {
-            LauncherService.Launch(tool, DownloadService.DefaultDownloadsFolder);
-        }
-        catch (Exception ex)
-        {
-            StatusText.Text = $"Failed to launch {tool.Name}: {ex.Message}";
-        }
+        var result = ArtifactService.Perform(tool, DownloadService.DefaultDownloadsFolder);
+        StatusText.Text = result.Message;
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
