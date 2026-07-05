@@ -1,0 +1,74 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Release
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - rid: win-x64
+            platform: x64
+            arch_name: x64
+          - rid: win-arm64
+            platform: Arm64
+            arch_name: arm64
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore NuGet Packages
+        run: dotnet restore src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -r ${{ matrix.rid }}
+
+      - name: Run Tests
+        run: dotnet test src/DevOpsToolsInstaller.sln --configuration Release
+
+      - name: Publish Single-File Executable
+        run: |
+          dotnet publish src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:WindowsAppSDKSelfContained=true -p:Platform=${{ matrix.platform }} -o publish_out
+
+      - name: Rename Executable
+        shell: pwsh
+        run: |
+          Rename-Item -Path "publish_out\DevOpsToolsInstaller.exe" -NewName "DevOpsToolsInstaller_${{ matrix.arch_name }}.exe"
+
+      - name: Determine Release Tag
+        id: get_tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          files: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
