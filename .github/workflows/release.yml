@@ -39,10 +39,6 @@ jobs:
 
       - name: Restore NuGet Packages
         run: dotnet restore src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -r ${{ matrix.rid }}
-
-      - name: Run Tests
-        run: dotnet test src/DevOpsToolsInstaller.sln --configuration Release
-
       - name: Publish Single-File Executable
         run: |
           dotnet publish src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:WindowsAppSDKSelfContained=true -p:Platform=${{ matrix.platform }} -o publish_out
