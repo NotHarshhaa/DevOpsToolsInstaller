@@ -1,43 +1,8 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-
-    <!-- Color palette -->
-    <Color x:Key="AppBackgroundColor">#F3F3F3</Color>
-    <Color x:Key="SidebarColor">#EAEAEA</Color>
-    <Color x:Key="CardColor">#FFFFFF</Color>
-    <Color x:Key="CardBorderColor">#E0E0E0</Color>
-    <Color x:Key="AccentColor">#C29302</Color>
-    <Color x:Key="AccentHoverColor">#E5A900</Color>
-    <Color x:Key="WarningBannerColor">#FFF8E1</Color>
-    <Color x:Key="TextPrimaryColor">#1A1A1A</Color>
-    <Color x:Key="TextSecondaryColor">#4A4A4A</Color>
-    <Color x:Key="TextMutedColor">#808080</Color>
-    <Color x:Key="SuccessColor">#2E7D32</Color>
-    <Color x:Key="ErrorColor">#C62828</Color>
-    <Color x:Key="InfoColor">#1565C0</Color>
-    <Color x:Key="BadgeBackgroundColor">#E5E5E5</Color>
-    <Color x:Key="SecondaryButtonBackgroundColor">#EEEEEE</Color>
-
-    <!-- Brushes -->
-    <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
-    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
-    <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}" />
-    <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource CardBorderColor}" />
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource AccentHoverColor}" />
-    <SolidColorBrush x:Key="WarningBannerBrush" Color="{StaticResource WarningBannerColor}" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
-    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
-    <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}" />
-    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
-    <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="{StaticResource BadgeBackgroundColor}" />
-    <SolidColorBrush x:Key="SecondaryButtonBackgroundBrush" Color="{StaticResource SecondaryButtonBackgroundColor}" />
-
-    <LinearGradientBrush x:Key="WelcomeBannerBrush" StartPoint="0,0" EndPoint="1,0.5">
-        <GradientStop Color="#C29302" Offset="0.0" />
-        <GradientStop Color="#E5A900" Offset="1.0" />
-    </LinearGradientBrush>
+    <!--
+        Obsolete. The app now uses the built-in Fluent theme resources
+        (system accent + Mica), so no custom colour palette is defined here.
+    -->
 </ResourceDictionary>

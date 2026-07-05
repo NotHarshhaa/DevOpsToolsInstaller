@@ -4,25 +4,26 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
-    <Grid x:Name="RootGrid" Background="{ThemeResource AppBackgroundBrush}">
+    <!-- No Background set: the Mica backdrop shows through. -->
+    <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Custom title bar -->
-        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="{ThemeResource SidebarBrush}">
+        <!-- Custom title bar (transparent so Mica shows through) -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="Transparent">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
-                <FontIcon Glyph="&#xE74C;" FontSize="18" Foreground="{ThemeResource AccentBrush}" />
+                <FontIcon Glyph="&#xE74C;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                 <TextBlock
                     Text="DevOps Tools Installer"
-                    Foreground="{ThemeResource TextPrimaryBrush}"
-                    FontWeight="SemiBold" />
-                <TextBlock
-                    Text="v1.1.0"
-                    Foreground="{ThemeResource TextMutedBrush}"
-                    FontSize="12"
+                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                    FontWeight="SemiBold"
+                    FontSize="13"
                     VerticalAlignment="Center" />
+                <Border Style="{StaticResource BadgeStyle}" Padding="8,1" Margin="4,0,0,0">
+                    <TextBlock Text="v1.1.0" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </Border>
             </StackPanel>
         </Grid>
 
@@ -33,23 +34,9 @@
             PaneDisplayMode="Left"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
+            IsPaneToggleButtonVisible="True"
             SelectionChanged="NavView_SelectionChanged"
-            Background="{ThemeResource SidebarBrush}"
-            OpenPaneLength="220">
-
-            <controls:NavigationView.Resources>
-                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource AppBackgroundColor}" />
-                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{ThemeResource SidebarColor}" />
-            </controls:NavigationView.Resources>
-
-            <controls:NavigationView.PaneHeader>
-                <TextBlock
-                    Text="Navigation"
-                    Margin="16,12"
-                    FontSize="12"
-                    FontWeight="SemiBold"
-                    Foreground="{ThemeResource TextMutedBrush}" />
-            </controls:NavigationView.PaneHeader>
+            OpenPaneLength="240">
 
             <controls:NavigationView.MenuItems>
                 <controls:NavigationViewItem Content="Home" Tag="Home">
@@ -77,7 +64,15 @@
                 </controls:NavigationViewItem>
             </controls:NavigationView.FooterMenuItems>
 
-            <Frame x:Name="ContentFrame" Background="{ThemeResource AppBackgroundBrush}" />
+            <!-- Content host: a rounded, layered surface over the Mica backdrop -->
+            <Border
+                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,1,0,0"
+                CornerRadius="8,0,0,0"
+                Margin="0,0,0,0">
+                <Frame x:Name="ContentFrame" Background="Transparent" />
+            </Border>
         </controls:NavigationView>
     </Grid>
 </Window>

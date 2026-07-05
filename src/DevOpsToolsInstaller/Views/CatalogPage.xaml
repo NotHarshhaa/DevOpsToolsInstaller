@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevOpsToolsInstaller.Models">
 
-    <Grid Padding="32" RowSpacing="16">
+    <Grid Padding="32,32,32,0" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -12,32 +12,52 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Tool Catalog" Style="{StaticResource PageTitleStyle}" />
+        <StackPanel Grid.Row="0" Spacing="2">
+            <TextBlock Text="Tool Catalog" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Select the tools you need and download them in one go."
+                       Style="{StaticResource PageSubtitleStyle}" />
+        </StackPanel>
 
-        <!-- Toolbar -->
+        <!-- Command bar -->
         <Grid Grid.Row="1" ColumnSpacing="12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
-                <Button x:Name="SelectAllButton" Content="Select All" Click="SelectAll_Click" />
-                <Button x:Name="ClearButton" Content="Clear" Click="Clear_Click" />
-                <Button x:Name="DownloadButton" Content="Download Selected"
-                        Style="{StaticResource AccentButtonStyle}" Click="Download_Click" />
-                <ProgressRing x:Name="BusyRing" Width="24" Height="24" Visibility="Collapsed" />
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                           Foreground="{ThemeResource TextSecondaryBrush}" />
-            </StackPanel>
-
             <AutoSuggestBox
-                Grid.Column="1"
+                Grid.Column="0"
                 x:Name="SearchBox"
-                PlaceholderText="Search tools..."
+                PlaceholderText="Search tools, categories, descriptions…"
                 QueryIcon="Find"
-                Width="220"
+                MaxWidth="420"
+                HorizontalAlignment="Left"
                 TextChanged="SearchBox_TextChanged" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <ProgressRing x:Name="BusyRing" Width="20" Height="20" Visibility="Collapsed" />
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Button x:Name="SelectAllButton" Click="SelectAll_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE762;" FontSize="14" />
+                        <TextBlock Text="Select all" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="ClearButton" Click="Clear_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE894;" FontSize="14" />
+                        <TextBlock Text="Clear" />
+                    </StackPanel>
+                </Button>
+                <Button x:Name="DownloadButton" Style="{StaticResource AccentButtonStyle}" Click="Download_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE896;" FontSize="14"
+                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                        <TextBlock Text="Download selected" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- Tool list -->
@@ -45,11 +65,20 @@
             x:Name="ToolsList"
             Grid.Row="2"
             SelectionMode="None"
-            IsItemClickEnabled="False">
+            IsItemClickEnabled="False"
+            Padding="0,0,0,24">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource ListViewCardStyle}">
-                        <Grid ColumnSpacing="12">
+                        <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
@@ -63,44 +92,33 @@
                                 MinWidth="0"
                                 VerticalAlignment="Center" />
 
-                            <FontIcon
-                                Grid.Column="1"
-                                Glyph="{Binding IconGlyph}"
-                                FontSize="22"
-                                Foreground="{ThemeResource AccentBrush}"
-                                VerticalAlignment="Center" />
+                            <Border Grid.Column="1" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
+                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            </Border>
 
-                            <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center" Margin="4,0,0,0">
-                                <TextBlock
-                                    Text="{Binding NameWithVersion}"
-                                    FontWeight="SemiBold"
-                                    Foreground="{ThemeResource TextPrimaryBrush}"
-                                    FontSize="15" />
-                                <TextBlock
-                                    Text="{Binding Description}"
-                                    FontSize="12"
-                                    Foreground="{ThemeResource TextSecondaryBrush}"
-                                    TextTrimming="CharacterEllipsis" />
+                            <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding NameWithVersion}"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Text="{Binding Description}"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <Border Background="{ThemeResource BadgeBackgroundBrush}"
-                                        CornerRadius="6"
-                                        Padding="10,5">
-                                    <TextBlock
-                                        Text="{Binding KindLabel}"
-                                        FontSize="11"
-                                        FontWeight="SemiBold"
-                                        Foreground="{ThemeResource AccentBrush}" />
+                                <Border Style="{StaticResource BadgeStyle}">
+                                    <TextBlock Text="{Binding KindLabel}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                                 </Border>
-                                <Border Background="{ThemeResource BadgeBackgroundBrush}"
-                                        CornerRadius="6"
-                                        Padding="10,5">
-                                    <TextBlock
-                                        Text="{Binding Category}"
-                                        FontSize="11"
-                                        FontWeight="SemiBold"
-                                        Foreground="{ThemeResource TextMutedBrush}" />
+                                <Border Style="{StaticResource BadgeStyle}">
+                                    <TextBlock Text="{Binding Category}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Border>
                             </StackPanel>
                         </Grid>

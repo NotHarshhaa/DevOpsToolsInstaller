@@ -1,95 +1,167 @@
 <Page
     x:Class="DevOpsToolsInstaller.Views.HomePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
     <ScrollViewer Padding="32">
-        <StackPanel Spacing="24" MaxWidth="900">
-            <TextBlock Text="Home" Style="{StaticResource PageTitleStyle}" />
+        <StackPanel Spacing="20" MaxWidth="1000">
 
-            <!-- Welcome banner -->
-            <Border Background="{ThemeResource WelcomeBannerBrush}" BorderThickness="0" CornerRadius="12" MinHeight="180" Padding="32,24">
-                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                    <FontIcon Glyph="&#xE74C;" FontSize="48" Foreground="#FFFFFF" />
-                    <TextBlock
-                        Text="DevOps Tools Installer"
-                        FontSize="24"
-                        FontWeight="Bold"
-                        Foreground="#FFFFFF"
-                        TextAlignment="Center" />
-                    <TextBlock
-                        Text="Browse the catalog, download official installers, and launch them — all from one place. No silent installs, no scripts, no admin required."
-                        Foreground="#F0F0F0"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap"
-                        MaxWidth="550" />
-                </StackPanel>
+            <!-- Header -->
+            <StackPanel Spacing="2">
+                <TextBlock Text="Home" Style="{StaticResource PageTitleStyle}" />
+                <TextBlock Text="Everything you need to set up a Windows DevOps workstation."
+                           Style="{StaticResource PageSubtitleStyle}" />
+            </StackPanel>
+
+            <!-- Hero card -->
+            <Border Style="{StaticResource CardStyle}" Padding="24">
+                <Grid ColumnSpacing="20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="56" Height="56" CornerRadius="12"
+                            Background="{ThemeResource AccentFillColorDefaultBrush}"
+                            VerticalAlignment="Top">
+                        <FontIcon Glyph="&#xE74C;" FontSize="26"
+                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                        <TextBlock Text="DevOps Tools Installer"
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        <TextBlock TextWrapping="Wrap"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   Text="Browse a curated catalog of official installers and CLIs, download them with live progress, and let the app take the right action for each tool." />
+                    </StackPanel>
+                </Grid>
             </Border>
 
-            <!-- Stats + Quick links row -->
+            <!-- Safety notice -->
+            <controls:InfoBar
+                IsOpen="True"
+                IsClosable="False"
+                Severity="Success"
+                Title="Safe by design"
+                Message="Nothing is installed silently and no scripts are auto-run. The app downloads official vendor artifacts; you decide when to run them." />
+
+            <!-- Stats -->
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Stats card -->
                 <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Catalog Summary" Style="{StaticResource CardTitleStyle}" />
-                        <Grid ColumnSpacing="16" Margin="0,8,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0" Spacing="4">
-                                <Border Background="{ThemeResource BadgeBackgroundBrush}" CornerRadius="8" Padding="12">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock x:Name="ToolCountText" Text="-" Style="{StaticResource MetricNumberStyle}" />
-                                        <TextBlock x:Name="ToolCountLabel" Text="Loading..." Style="{StaticResource MetricLabelStyle}" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1" Spacing="4">
-                                <Border Background="{ThemeResource BadgeBackgroundBrush}" CornerRadius="8" Padding="12">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock x:Name="DownloadedCountText" Text="0" Style="{StaticResource MetricNumberStyle}" Foreground="{ThemeResource SuccessBrush}" />
-                                        <TextBlock x:Name="DownloadedCountLabel" Text="Downloaded" Style="{StaticResource MetricLabelStyle}" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-                        </Grid>
+                    <StackPanel Spacing="6">
+                        <FontIcon Glyph="&#xE8F1;" FontSize="18" HorizontalAlignment="Left"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock x:Name="ToolCountText" Text="—" Style="{StaticResource MetricNumberStyle}" />
+                        <TextBlock x:Name="ToolCountLabel" Text="Loading…" Style="{StaticResource MetricLabelStyle}" />
                     </StackPanel>
                 </Border>
 
-                <!-- Quick links card -->
                 <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Quick Links" Style="{StaticResource CardTitleStyle}" />
-                        <Button Content="Browse Tool Catalog" Style="{StaticResource QuickLinkButtonStyle}" Click="Catalog_Click" />
-                        <Button Content="View Downloads" Style="{StaticResource QuickLinkButtonStyle}" Click="Downloads_Click" />
+                    <StackPanel Spacing="6">
+                        <FontIcon Glyph="&#xE896;" FontSize="18" HorizontalAlignment="Left"
+                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                        <TextBlock x:Name="DownloadedCountText" Text="0" Style="{StaticResource MetricNumberStyle}" />
+                        <TextBlock x:Name="DownloadedCountLabel" Text="Downloaded" Style="{StaticResource MetricLabelStyle}" />
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- How it works card -->
+            <!-- Quick links -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="How it works" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock Text="1. Browse the catalog grouped by category" Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock Text="2. Select the tools you need and click Download" Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock Text="3. Watch real-time progress for each download" Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock Text="4. Install, extract, or add to your tools folder — the right action per tool" Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <TextBlock
-                        Text="Your app never installs anything silently. The vendor installer handles everything, including its own UAC prompt."
-                        Foreground="{ThemeResource TextMutedBrush}"
-                        FontStyle="Italic"
-                        TextWrapping="Wrap"
-                        Margin="0,8,0,0" />
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Quick links" Style="{StaticResource CardTitleStyle}" />
+
+                    <Button Style="{StaticResource QuickLinkButtonStyle}" Click="Catalog_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE8F1;" FontSize="16" />
+                            <StackPanel>
+                                <TextBlock Text="Browse Tool Catalog" FontWeight="SemiBold" />
+                                <TextBlock Text="Search and select tools to download"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Style="{StaticResource QuickLinkButtonStyle}" Click="Downloads_Click">
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon Glyph="&#xE896;" FontSize="16" />
+                            <StackPanel>
+                                <TextBlock Text="View Downloads" FontWeight="SemiBold" />
+                                <TextBlock Text="Track progress and run installers"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
             </Border>
+
+            <!-- How it works -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="14">
+                    <TextBlock Text="How it works" Style="{StaticResource CardTitleStyle}" />
+
+                    <StackPanel Spacing="12">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                <TextBlock Text="1" FontSize="12" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Browse the catalog grouped by category." />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                <TextBlock Text="2" FontSize="12" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Select the tools you need and download them concurrently." />
+                        </Grid>
+
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="24" Height="24" CornerRadius="12"
+                                    Background="{ThemeResource AccentFillColorDefaultBrush}">
+                                <TextBlock Text="3" FontSize="12" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="Install, extract, or add to your tools folder — the right action per tool." />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

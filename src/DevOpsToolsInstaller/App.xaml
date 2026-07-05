@@ -5,12 +5,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light" Source="Themes/LightTheme.xaml" />
-                <ResourceDictionary x:Key="Dark" Source="Themes/DarkTheme.xaml" />
-                <ResourceDictionary x:Key="Default" Source="Themes/DarkTheme.xaml" />
-            </ResourceDictionary.ThemeDictionaries>
-
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <ResourceDictionary Source="Themes/Styles.xaml" />

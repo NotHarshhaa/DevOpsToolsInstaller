@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevOpsToolsInstaller.Models">
 
-    <Grid Padding="32" RowSpacing="16">
+    <Grid Padding="32,32,32,0" RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -12,70 +12,87 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Downloads" Style="{StaticResource PageTitleStyle}" />
-
-        <!-- Toolbar -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-            <Button Content="Open Downloads Folder" Click="OpenFolder_Click" />
-            <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                       Foreground="{ThemeResource TextSecondaryBrush}" Margin="12,0,0,0" />
+        <StackPanel Grid.Row="0" Spacing="2">
+            <TextBlock Text="Downloads" Style="{StaticResource PageTitleStyle}" />
+            <TextBlock Text="Track progress and take the right action for each tool."
+                       Style="{StaticResource PageSubtitleStyle}" />
         </StackPanel>
+
+        <!-- Command bar -->
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Click="OpenFolder_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE838;" FontSize="14" />
+                    <TextBlock Text="Open downloads folder" />
+                </StackPanel>
+            </Button>
+
+            <TextBlock Grid.Column="1" x:Name="StatusText" VerticalAlignment="Center"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Grid>
 
         <!-- Download list -->
         <ListView
             x:Name="DownloadsList"
             Grid.Row="2"
             SelectionMode="None"
-            IsItemClickEnabled="False">
+            IsItemClickEnabled="False"
+            Padding="0,0,0,24">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Background" Value="Transparent" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource ListViewCardStyle}">
-                        <Grid ColumnSpacing="16">
+                        <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="200" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- Tool name -->
-                            <TextBlock
-                                Grid.Column="0"
-                                Text="{Binding NameWithVersion}"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource TextPrimaryBrush}"
-                                FontSize="15"
-                                VerticalAlignment="Center"
-                                MinWidth="180" />
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
+                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            </Border>
 
-                            <!-- Progress bar -->
-                            <ProgressBar
-                                Grid.Column="1"
-                                Value="{Binding Progress, Mode=OneWay}"
-                                Maximum="100"
-                                VerticalAlignment="Center"
-                                Height="8"
-                                CornerRadius="4" />
+                            <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                                <Grid ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding NameWithVersion}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                    <TextBlock Grid.Column="1" Text="{Binding StatusText, Mode=OneWay}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               VerticalAlignment="Center" />
+                                </Grid>
+                                <ProgressBar Value="{Binding Progress, Mode=OneWay}" Maximum="100"
+                                             Height="4" CornerRadius="2" />
+                            </StackPanel>
 
-                            <!-- Status text -->
-                            <TextBlock
-                                Grid.Column="2"
-                                Text="{Binding StatusText, Mode=OneWay}"
-                                Foreground="{ThemeResource TextSecondaryBrush}"
-                                VerticalAlignment="Center"
-                                TextWrapping="NoWrap"
-                                TextTrimming="CharacterEllipsis" />
-
-                            <!-- Kind-aware action button -->
-                            <Button
-                                Grid.Column="3"
-                                Content="{Binding ActionLabel, Mode=OneWay}"
-                                Click="RunInstaller_Click"
-                                IsEnabled="{Binding IsDownloaded, Mode=OneWay}"
-                                Style="{StaticResource AccentButtonStyle}"
-                                Padding="16,6"
-                                FontSize="12"
-                                VerticalAlignment="Center" />
+                            <Button Grid.Column="2"
+                                    Content="{Binding ActionLabel, Mode=OneWay}"
+                                    Click="RunInstaller_Click"
+                                    IsEnabled="{Binding IsDownloaded, Mode=OneWay}"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    VerticalAlignment="Center"
+                                    MinWidth="120" />
                         </Grid>
                     </Border>
                 </DataTemplate>
@@ -89,19 +106,18 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Spacing="12"
+            MaxWidth="360"
             Visibility="Collapsed">
-            <FontIcon Glyph="&#xE896;" FontSize="48" Foreground="{ThemeResource TextMutedBrush}" />
-            <TextBlock
-                Text="No downloads yet"
-                FontSize="16"
-                Foreground="{ThemeResource TextSecondaryBrush}"
-                TextAlignment="Center" />
-            <TextBlock
-                Text="Go to Tool Catalog to select and download tools."
-                Foreground="{ThemeResource TextMutedBrush}"
-                TextAlignment="Center" />
+            <FontIcon Glyph="&#xE896;" FontSize="40"
+                      Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+            <TextBlock Text="No downloads yet"
+                       Style="{StaticResource SubtitleTextBlockStyle}"
+                       HorizontalAlignment="Center" />
+            <TextBlock Text="Head to the Tool Catalog to select and download tools."
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextAlignment="Center" TextWrapping="Wrap" />
             <Button Content="Browse Catalog" Style="{StaticResource AccentButtonStyle}"
-                    Click="GoToCatalog_Click" Margin="0,8,0,0" />
+                    HorizontalAlignment="Center" Click="GoToCatalog_Click" Margin="0,4,0,0" />
         </StackPanel>
     </Grid>
 </Page>

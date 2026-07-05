@@ -75,6 +75,11 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
+        // Native Windows 11 Mica backdrop (the translucent, desktop-tinted
+        // "blur"). Falls back gracefully to a solid background on OSes that
+        // don't support it.
+        TrySetMicaBackdrop();
+
         ApplyTheme(SettingsService.Theme);
 
         RootGrid.ActualThemeChanged += (s, e) =>
@@ -101,6 +106,29 @@ public sealed partial class MainWindow : Window
         {
             RootGrid.RequestedTheme = elementTheme;
             UpdateTitleBarButtonColors();
+        }
+    }
+
+    /// <summary>
+    /// Applies the Mica system backdrop when the OS supports it. On
+    /// unsupported systems the call is a no-op and the window uses its
+    /// default background.
+    /// </summary>
+    private void TrySetMicaBackdrop()
+    {
+        try
+        {
+            if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
+            {
+                SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop
+                {
+                    Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.Base
+                };
+            }
+        }
+        catch
+        {
+            // Backdrop is a nice-to-have; ignore if unavailable.
         }
     }
 
