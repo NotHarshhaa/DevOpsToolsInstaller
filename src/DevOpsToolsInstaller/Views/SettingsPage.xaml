@@ -4,68 +4,97 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <ScrollViewer Padding="32">
-        <StackPanel Spacing="20" MaxWidth="700">
+        <StackPanel Spacing="16" MaxWidth="750">
             <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}" />
 
             <!-- Downloads folder -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Downloads Folder" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock
-                        x:Name="DownloadPathText"
-                        Foreground="{ThemeResource TextSecondaryBrush}"
-                        TextWrapping="Wrap"
-                        IsTextSelectionEnabled="True" />
-                    <Button Content="Open in Explorer" Click="OpenFolder_Click" />
-                </StackPanel>
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon Grid.Column="0" Glyph="&#xE8B7;" FontSize="24" Foreground="{ThemeResource AccentBrush}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="Downloads Folder" FontWeight="SemiBold" FontSize="15" Foreground="{ThemeResource TextPrimaryBrush}" />
+                        <TextBlock x:Name="DownloadPathText" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Content="Open in Explorer" Click="OpenFolder_Click" VerticalAlignment="Center" />
+                </Grid>
             </Border>
 
             <!-- Theme Settings -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="App Theme" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock
-                        Text="Choose between Light, Dark, or System Default (matches Windows theme settings)."
-                        Foreground="{ThemeResource TextSecondaryBrush}"
-                        TextWrapping="Wrap" />
-                    <ComboBox x:Name="ThemeComboBox" Width="200" SelectionChanged="ThemeComboBox_SelectionChanged">
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon Grid.Column="0" Glyph="&#xE790;" FontSize="24" Foreground="{ThemeResource AccentBrush}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="App Theme" FontWeight="SemiBold" FontSize="15" Foreground="{ThemeResource TextPrimaryBrush}" />
+                        <TextBlock Text="Choose between Light, Dark, or System Default themes." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <ComboBox Grid.Column="2" x:Name="ThemeComboBox" Width="160" SelectionChanged="ThemeComboBox_SelectionChanged" VerticalAlignment="Center">
                         <ComboBoxItem Content="System Default" Tag="Default" />
                         <ComboBoxItem Content="Light" Tag="Light" />
                         <ComboBoxItem Content="Dark" Tag="Dark" />
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Storage -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Storage" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock
-                        x:Name="StorageText"
-                        Foreground="{ThemeResource TextSecondaryBrush}" />
-                    <Button
-                        x:Name="ClearButton"
-                        Content="Clear Downloaded Files"
-                        Click="ClearDownloads_Click" />
-                </StackPanel>
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon Grid.Column="0" Glyph="&#xE74D;" FontSize="24" Foreground="{ThemeResource ErrorBrush}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                        <TextBlock Text="Storage &amp; Cache" FontWeight="SemiBold" FontSize="15" Foreground="{ThemeResource TextPrimaryBrush}" />
+                        <TextBlock x:Name="StorageText" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    </StackPanel>
+
+                    <Button Grid.Column="2" x:Name="ClearButton" Content="Clear Downloads" Click="ClearDownloads_Click" VerticalAlignment="Center" />
+                </Grid>
             </Border>
 
             <!-- About -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="About" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock Foreground="{ThemeResource TextSecondaryBrush}">
-                        <Run Text="DevOps Tools Installer v1.0.0" />
-                    </TextBlock>
-                    <TextBlock
-                        Text="A catalog-based tool downloader for DevOps engineers. Downloads official vendor installers and lets you launch them yourself."
-                        Foreground="{ThemeResource TextSecondaryBrush}"
-                        TextWrapping="Wrap" />
-                    <HyperlinkButton
-                        Content="View on GitHub"
-                        Click="GitHub_Click"
-                        Foreground="{ThemeResource AccentBrush}" />
-                </StackPanel>
+                <Grid ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon Grid.Column="0" Glyph="&#xE946;" FontSize="24" Foreground="{ThemeResource InfoBrush}" VerticalAlignment="Center" />
+
+                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="About DevOps Tools Installer" FontWeight="SemiBold" FontSize="15" Foreground="{ThemeResource TextPrimaryBrush}" />
+                        <TextBlock Text="v1.0.0" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock
+                            Text="A catalog-based tool downloader for DevOps engineers. Downloads official vendor installers and lets you launch them yourself."
+                            FontSize="12"
+                            Foreground="{ThemeResource TextSecondaryBrush}"
+                            TextWrapping="Wrap"
+                            Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <HyperlinkButton Grid.Column="2" Content="View on GitHub" Click="GitHub_Click" Foreground="{ThemeResource AccentBrush}" VerticalAlignment="Center" />
+                </Grid>
             </Border>
         </StackPanel>
     </ScrollViewer>
