@@ -8,21 +8,21 @@
             <TextBlock Text="Home" Style="{StaticResource PageTitleStyle}" />
 
             <!-- Welcome banner -->
-            <Border Style="{StaticResource CardStyle}" MinHeight="160">
+            <Border Background="{ThemeResource WelcomeBannerBrush}" BorderThickness="0" CornerRadius="12" MinHeight="180" Padding="32,24">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                    <FontIcon Glyph="&#xE74C;" FontSize="48" Foreground="{ThemeResource AccentBrush}" />
+                    <FontIcon Glyph="&#xE74C;" FontSize="48" Foreground="#FFFFFF" />
                     <TextBlock
                         Text="DevOps Tools Installer"
-                        FontSize="22"
-                        FontWeight="SemiBold"
-                        Foreground="{ThemeResource TextPrimaryBrush}"
+                        FontSize="24"
+                        FontWeight="Bold"
+                        Foreground="#FFFFFF"
                         TextAlignment="Center" />
                     <TextBlock
                         Text="Browse the catalog, download official installers, and launch them — all from one place. No silent installs, no scripts, no admin required."
-                        Foreground="{ThemeResource TextSecondaryBrush}"
+                        Foreground="#F0F0F0"
                         TextAlignment="Center"
                         TextWrapping="Wrap"
-                        MaxWidth="500" />
+                        MaxWidth="550" />
                 </StackPanel>
             </Border>
 
@@ -36,15 +36,31 @@
                 <!-- Stats card -->
                 <Border Grid.Column="0" Style="{StaticResource CardStyle}">
                     <StackPanel Spacing="12">
-                        <TextBlock Text="Catalog" Style="{StaticResource CardTitleStyle}" />
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8F1;" FontSize="16" Foreground="{ThemeResource AccentBrush}" />
-                            <TextBlock x:Name="ToolCountText" Text="Loading..." Foreground="{ThemeResource TextSecondaryBrush}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE896;" FontSize="16" Foreground="{ThemeResource SuccessBrush}" />
-                            <TextBlock x:Name="DownloadedCountText" Text="0 downloaded" Foreground="{ThemeResource TextSecondaryBrush}" />
-                        </StackPanel>
+                        <TextBlock Text="Catalog Summary" Style="{StaticResource CardTitleStyle}" />
+                        <Grid ColumnSpacing="16" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <Border Background="{ThemeResource BadgeBackgroundBrush}" CornerRadius="8" Padding="12">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock x:Name="ToolCountText" Text="-" Style="{StaticResource MetricNumberStyle}" />
+                                        <TextBlock x:Name="ToolCountLabel" Text="Loading..." Style="{StaticResource MetricLabelStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Spacing="4">
+                                <Border Background="{ThemeResource BadgeBackgroundBrush}" CornerRadius="8" Padding="12">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock x:Name="DownloadedCountText" Text="0" Style="{StaticResource MetricNumberStyle}" Foreground="{ThemeResource SuccessBrush}" />
+                                        <TextBlock x:Name="DownloadedCountLabel" Text="Downloaded" Style="{StaticResource MetricLabelStyle}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </Border>
 

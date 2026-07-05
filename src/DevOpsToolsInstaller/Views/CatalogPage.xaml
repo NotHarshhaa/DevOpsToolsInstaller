@@ -48,49 +48,54 @@
             IsItemClickEnabled="False">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <Grid Padding="8,12" ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource ListViewCardStyle}">
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <CheckBox
-                            Grid.Column="0"
-                            IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                            MinWidth="0" />
+                            <CheckBox
+                                Grid.Column="0"
+                                IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                MinWidth="0"
+                                VerticalAlignment="Center" />
 
-                        <FontIcon
-                            Grid.Column="1"
-                            Glyph="{Binding IconGlyph}"
-                            FontSize="20"
-                            Foreground="{ThemeResource AccentBrush}"
-                            VerticalAlignment="Center" />
+                            <FontIcon
+                                Grid.Column="1"
+                                Glyph="{Binding IconGlyph}"
+                                FontSize="22"
+                                Foreground="{ThemeResource AccentBrush}"
+                                VerticalAlignment="Center" />
 
-                        <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock
-                                Text="{Binding Name}"
-                                FontWeight="SemiBold"
-                                Foreground="{ThemeResource TextPrimaryBrush}" />
-                            <TextBlock
-                                Text="{Binding Description}"
-                                FontSize="12"
-                                Foreground="{ThemeResource TextSecondaryBrush}"
-                                TextTrimming="CharacterEllipsis" />
-                        </StackPanel>
+                            <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center" Margin="4,0,0,0">
+                                <TextBlock
+                                    Text="{Binding Name}"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextPrimaryBrush}"
+                                    FontSize="15" />
+                                <TextBlock
+                                    Text="{Binding Description}"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextSecondaryBrush}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
 
-                        <Border Grid.Column="3"
-                                Background="{ThemeResource BadgeBackgroundBrush}"
-                                CornerRadius="4"
-                                Padding="8,4"
-                                VerticalAlignment="Center">
-                            <TextBlock
-                                Text="{Binding Category}"
-                                FontSize="11"
-                                Foreground="{ThemeResource TextMutedBrush}" />
-                        </Border>
-                    </Grid>
+                            <Border Grid.Column="3"
+                                    Background="{ThemeResource BadgeBackgroundBrush}"
+                                    CornerRadius="6"
+                                    Padding="10,5"
+                                    VerticalAlignment="Center">
+                                <TextBlock
+                                    Text="{Binding Category}"
+                                    FontSize="11"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource TextMutedBrush}" />
+                            </Border>
+                        </Grid>
+                    </Border>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

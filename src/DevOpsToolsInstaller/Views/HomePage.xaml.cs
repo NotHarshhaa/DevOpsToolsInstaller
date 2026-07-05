@@ -41,15 +41,19 @@ public sealed partial class HomePage : Page
             }
             catch
             {
-                ToolCountText.Text = "Failed to load catalog";
+                ToolCountText.Text = "Error";
+                ToolCountLabel.Text = "Failed to load catalog";
                 return;
             }
         }
 
         // Update stats
-        ToolCountText.Text = $"{mw.Tools.Count} tools available";
+        ToolCountText.Text = mw.Tools.Count.ToString();
+        ToolCountLabel.Text = "Tools Available";
+
         var downloaded = mw.Tools.Count(t => t.Status == Models.ToolStatus.Downloaded);
-        DownloadedCountText.Text = $"{downloaded} downloaded";
+        DownloadedCountText.Text = downloaded.ToString();
+        DownloadedCountLabel.Text = "Downloaded";
     }
 
     private void Catalog_Click(object sender, RoutedEventArgs e)

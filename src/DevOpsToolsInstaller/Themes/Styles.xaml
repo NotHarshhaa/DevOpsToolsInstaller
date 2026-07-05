@@ -59,4 +59,29 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Padding" Value="8,4" />
     </Style>
+
+    <!-- Dashboard metric styles -->
+    <Style x:Key="MetricNumberStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="36" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{ThemeResource AccentBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="MetricLabelStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource TextSecondaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Card layout for list items -->
+    <Style x:Key="ListViewCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
 </ResourceDictionary>

@@ -35,4 +35,9 @@
     <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
     <SolidColorBrush x:Key="BadgeBackgroundBrush" Color="{StaticResource BadgeBackgroundColor}" />
     <SolidColorBrush x:Key="SecondaryButtonBackgroundBrush" Color="{StaticResource SecondaryButtonBackgroundColor}" />
+
+    <LinearGradientBrush x:Key="WelcomeBannerBrush" StartPoint="0,0" EndPoint="1,0.5">
+        <GradientStop Color="#C29302" Offset="0.0" />
+        <GradientStop Color="#E5A900" Offset="1.0" />
+    </LinearGradientBrush>
 </ResourceDictionary>
