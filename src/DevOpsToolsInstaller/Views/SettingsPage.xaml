@@ -84,7 +84,7 @@
 
                     <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
                         <TextBlock Text="About DevOps Tools Installer" FontWeight="SemiBold" FontSize="15" Foreground="{ThemeResource TextPrimaryBrush}" />
-                        <TextBlock Text="v1.0.0" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" />
+                        <TextBlock Text="v1.1.0" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" />
                         <TextBlock
                             Text="A catalog-based tool downloader for DevOps engineers. Downloads official vendor installers and lets you launch them yourself."
                             FontSize="12"

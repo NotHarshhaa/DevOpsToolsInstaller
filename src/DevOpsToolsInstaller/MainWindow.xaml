@@ -19,7 +19,7 @@
                     Foreground="{ThemeResource TextPrimaryBrush}"
                     FontWeight="SemiBold" />
                 <TextBlock
-                    Text="v1.0.0"
+                    Text="v1.1.0"
                     Foreground="{ThemeResource TextMutedBrush}"
                     FontSize="12"
                     VerticalAlignment="Center" />
