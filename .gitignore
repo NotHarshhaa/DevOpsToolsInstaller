@@ -1,0 +1,57 @@
+## Ignore Visual Studio / MSBuild temporary and build outputs
+[Db]in/
+[Oo]bj/
+[Rr]elease/
+[Dd]ebug/
+x64/
+x86/
+build/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Mono/VS for Mac
+.DS_Store
+*.pidb
+*.resources
+*.userprefs
+
+# Rider / IntelliJ
+.idea/
+*.iws
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored as they are restored on build
+**/packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Local/User settings
+*.local.json
+
+# Log files
+*.log
+
+# Crash dumps
+*.dmp
+*.dump
+
+# Windows temp files
+Thumbs.db
+ehthumbs.db
+Desktop.ini

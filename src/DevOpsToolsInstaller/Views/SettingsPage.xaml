@@ -1,0 +1,56 @@
+<Page
+    x:Class="DevOpsToolsInstaller.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer Padding="32">
+        <StackPanel Spacing="20" MaxWidth="700">
+            <TextBlock Text="Settings" Style="{StaticResource PageTitleStyle}" />
+
+            <!-- Downloads folder -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Downloads Folder" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock
+                        x:Name="DownloadPathText"
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap"
+                        IsTextSelectionEnabled="True" />
+                    <Button Content="Open in Explorer" Click="OpenFolder_Click" />
+                </StackPanel>
+            </Border>
+
+            <!-- Storage -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Storage" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock
+                        x:Name="StorageText"
+                        Foreground="{StaticResource TextSecondaryBrush}" />
+                    <Button
+                        x:Name="ClearButton"
+                        Content="Clear Downloaded Files"
+                        Click="ClearDownloads_Click" />
+                </StackPanel>
+            </Border>
+
+            <!-- About -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="About" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock Foreground="{StaticResource TextSecondaryBrush}">
+                        <Run Text="DevOps Tools Installer v1.0.0" />
+                    </TextBlock>
+                    <TextBlock
+                        Text="A catalog-based tool downloader for DevOps engineers. Downloads official vendor installers and lets you launch them yourself."
+                        Foreground="{StaticResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <HyperlinkButton
+                        Content="View on GitHub"
+                        Click="GitHub_Click"
+                        Foreground="{StaticResource AccentBrush}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
