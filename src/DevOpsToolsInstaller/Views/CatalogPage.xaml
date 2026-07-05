@@ -28,7 +28,7 @@
                         Style="{StaticResource AccentButtonStyle}" Click="Download_Click" />
                 <ProgressRing x:Name="BusyRing" Width="24" Height="24" Visibility="Collapsed" />
                 <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{ThemeResource TextSecondaryBrush}" />
             </StackPanel>
 
             <AutoSuggestBox
@@ -65,30 +65,30 @@
                             Grid.Column="1"
                             Glyph="{Binding IconGlyph}"
                             FontSize="20"
-                            Foreground="{StaticResource AccentBrush}"
+                            Foreground="{ThemeResource AccentBrush}"
                             VerticalAlignment="Center" />
 
                         <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">
                             <TextBlock
                                 Text="{Binding Name}"
                                 FontWeight="SemiBold"
-                                Foreground="{StaticResource TextPrimaryBrush}" />
+                                Foreground="{ThemeResource TextPrimaryBrush}" />
                             <TextBlock
                                 Text="{Binding Description}"
                                 FontSize="12"
-                                Foreground="{StaticResource TextSecondaryBrush}"
+                                Foreground="{ThemeResource TextSecondaryBrush}"
                                 TextTrimming="CharacterEllipsis" />
                         </StackPanel>
 
                         <Border Grid.Column="3"
-                                Background="#383838"
+                                Background="{ThemeResource BadgeBackgroundBrush}"
                                 CornerRadius="4"
                                 Padding="8,4"
                                 VerticalAlignment="Center">
                             <TextBlock
                                 Text="{Binding Category}"
                                 FontSize="11"
-                                Foreground="{StaticResource TextMutedBrush}" />
+                                Foreground="{ThemeResource TextMutedBrush}" />
                         </Border>
                     </Grid>
                 </DataTemplate>

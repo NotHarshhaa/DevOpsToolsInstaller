@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Windows.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Models;
@@ -32,8 +33,62 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
+        ApplyTheme(SettingsService.Theme);
+
+        RootGrid.ActualThemeChanged += (s, e) =>
+        {
+            UpdateTitleBarButtonColors();
+        };
+
         NavView.SelectedItem = NavView.MenuItems[0];
         ContentFrame.Navigate(typeof(HomePage));
+    }
+
+    public void ApplyTheme(AppTheme theme)
+    {
+        var elementTheme = theme switch
+        {
+            AppTheme.Light => ElementTheme.Light,
+            AppTheme.Dark => ElementTheme.Dark,
+            _ => ElementTheme.Default
+        };
+
+        if (RootGrid != null)
+        {
+            RootGrid.RequestedTheme = elementTheme;
+            UpdateTitleBarButtonColors();
+        }
+    }
+
+    private void UpdateTitleBarButtonColors()
+    {
+        var titleBar = this.AppWindow?.TitleBar;
+        if (titleBar is null || RootGrid is null) return;
+
+        bool isDark = RootGrid.ActualTheme == ElementTheme.Dark;
+
+        if (isDark)
+        {
+            titleBar.ButtonForegroundColor = Microsoft.UI.Colors.White;
+            titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+            titleBar.ButtonHoverForegroundColor = Microsoft.UI.Colors.White;
+            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(25, 255, 255, 255);
+            titleBar.ButtonPressedForegroundColor = Microsoft.UI.Colors.White;
+            titleBar.ButtonPressedBackgroundColor = Color.FromArgb(50, 255, 255, 255);
+            titleBar.ButtonInactiveForegroundColor = Microsoft.UI.Colors.Gray;
+            titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+        }
+        else
+        {
+            titleBar.ButtonForegroundColor = Microsoft.UI.Colors.Black;
+            titleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+            titleBar.ButtonHoverForegroundColor = Microsoft.UI.Colors.Black;
+            titleBar.ButtonHoverBackgroundColor = Color.FromArgb(25, 0, 0, 0);
+            titleBar.ButtonPressedForegroundColor = Microsoft.UI.Colors.Black;
+            titleBar.ButtonPressedBackgroundColor = Color.FromArgb(50, 0, 0, 0);
+            titleBar.ButtonInactiveForegroundColor = Microsoft.UI.Colors.Gray;
+            titleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+        }
     }
 
     private void NavView_SelectionChanged(

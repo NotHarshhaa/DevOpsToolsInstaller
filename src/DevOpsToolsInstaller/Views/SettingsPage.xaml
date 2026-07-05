@@ -13,10 +13,26 @@
                     <TextBlock Text="Downloads Folder" Style="{StaticResource CardTitleStyle}" />
                     <TextBlock
                         x:Name="DownloadPathText"
-                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Foreground="{ThemeResource TextSecondaryBrush}"
                         TextWrapping="Wrap"
                         IsTextSelectionEnabled="True" />
                     <Button Content="Open in Explorer" Click="OpenFolder_Click" />
+                </StackPanel>
+            </Border>
+
+            <!-- Theme Settings -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="App Theme" Style="{StaticResource CardTitleStyle}" />
+                    <TextBlock
+                        Text="Choose between Light, Dark, or System Default (matches Windows theme settings)."
+                        Foreground="{ThemeResource TextSecondaryBrush}"
+                        TextWrapping="Wrap" />
+                    <ComboBox x:Name="ThemeComboBox" Width="200" SelectionChanged="ThemeComboBox_SelectionChanged">
+                        <ComboBoxItem Content="System Default" Tag="Default" />
+                        <ComboBoxItem Content="Light" Tag="Light" />
+                        <ComboBoxItem Content="Dark" Tag="Dark" />
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
@@ -26,7 +42,7 @@
                     <TextBlock Text="Storage" Style="{StaticResource CardTitleStyle}" />
                     <TextBlock
                         x:Name="StorageText"
-                        Foreground="{StaticResource TextSecondaryBrush}" />
+                        Foreground="{ThemeResource TextSecondaryBrush}" />
                     <Button
                         x:Name="ClearButton"
                         Content="Clear Downloaded Files"
@@ -38,17 +54,17 @@
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Text="About" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock Foreground="{StaticResource TextSecondaryBrush}">
+                    <TextBlock Foreground="{ThemeResource TextSecondaryBrush}">
                         <Run Text="DevOps Tools Installer v1.0.0" />
                     </TextBlock>
                     <TextBlock
                         Text="A catalog-based tool downloader for DevOps engineers. Downloads official vendor installers and lets you launch them yourself."
-                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Foreground="{ThemeResource TextSecondaryBrush}"
                         TextWrapping="Wrap" />
                     <HyperlinkButton
                         Content="View on GitHub"
                         Click="GitHub_Click"
-                        Foreground="{StaticResource AccentBrush}" />
+                        Foreground="{ThemeResource AccentBrush}" />
                 </StackPanel>
             </Border>
         </StackPanel>

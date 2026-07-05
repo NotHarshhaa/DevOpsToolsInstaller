@@ -4,23 +4,23 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
-    <Grid Background="{StaticResource AppBackgroundBrush}">
+    <Grid x:Name="RootGrid" Background="{ThemeResource AppBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <!-- Custom title bar -->
-        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="{StaticResource SidebarBrush}">
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="{ThemeResource SidebarBrush}">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
-                <FontIcon Glyph="&#xE74C;" FontSize="18" Foreground="{StaticResource AccentBrush}" />
+                <FontIcon Glyph="&#xE74C;" FontSize="18" Foreground="{ThemeResource AccentBrush}" />
                 <TextBlock
                     Text="DevOps Tools Installer"
-                    Foreground="{StaticResource TextPrimaryBrush}"
+                    Foreground="{ThemeResource TextPrimaryBrush}"
                     FontWeight="SemiBold" />
                 <TextBlock
                     Text="v1.0.0"
-                    Foreground="{StaticResource TextMutedBrush}"
+                    Foreground="{ThemeResource TextMutedBrush}"
                     FontSize="12"
                     VerticalAlignment="Center" />
             </StackPanel>
@@ -34,12 +34,12 @@
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             SelectionChanged="NavView_SelectionChanged"
-            Background="{StaticResource SidebarBrush}"
+            Background="{ThemeResource SidebarBrush}"
             OpenPaneLength="220">
 
             <controls:NavigationView.Resources>
-                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="#1A1A1A" />
-                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="#252525" />
+                <SolidColorBrush x:Key="NavigationViewContentBackground" Color="{ThemeResource AppBackgroundColor}" />
+                <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="{ThemeResource SidebarColor}" />
             </controls:NavigationView.Resources>
 
             <controls:NavigationView.PaneHeader>
@@ -48,7 +48,7 @@
                     Margin="16,12"
                     FontSize="12"
                     FontWeight="SemiBold"
-                    Foreground="{StaticResource TextMutedBrush}" />
+                    Foreground="{ThemeResource TextMutedBrush}" />
             </controls:NavigationView.PaneHeader>
 
             <controls:NavigationView.MenuItems>
@@ -77,7 +77,7 @@
                 </controls:NavigationViewItem>
             </controls:NavigationView.FooterMenuItems>
 
-            <Frame x:Name="ContentFrame" Background="{StaticResource AppBackgroundBrush}" />
+            <Frame x:Name="ContentFrame" Background="{ThemeResource AppBackgroundBrush}" />
         </controls:NavigationView>
     </Grid>
 </Window>

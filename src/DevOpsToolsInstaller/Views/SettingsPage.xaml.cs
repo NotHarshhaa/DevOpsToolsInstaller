@@ -17,6 +17,38 @@ public sealed partial class SettingsPage : Page
         var dlFolder = DownloadService.DefaultDownloadsFolder;
         DownloadPathText.Text = dlFolder;
         UpdateStorageInfo(dlFolder);
+
+        // Set theme selector active value
+        var currentTheme = SettingsService.Theme;
+        foreach (ComboBoxItem item in ThemeComboBox.Items)
+        {
+            if (item.Tag as string == currentTheme.ToString())
+            {
+                ThemeComboBox.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
+    private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ThemeComboBox.SelectedItem is ComboBoxItem selectedItem &&
+            selectedItem.Tag is string tag &&
+            Enum.TryParse<AppTheme>(tag, out var theme))
+        {
+            if (SettingsService.Theme != theme)
+            {
+                SettingsService.Theme = theme;
+                SettingsService.SaveSettings();
+
+                // Apply theme dynamically to the MainWindow
+                var mw = App.MainWindowInstance;
+                if (mw is not null)
+                {
+                    mw.ApplyTheme(theme);
+                }
+            }
+        }
     }
 
     private void UpdateStorageInfo(string folder)

@@ -10,16 +10,16 @@
             <!-- Welcome banner -->
             <Border Style="{StaticResource CardStyle}" MinHeight="160">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="12">
-                    <FontIcon Glyph="&#xE74C;" FontSize="48" Foreground="{StaticResource AccentBrush}" />
+                    <FontIcon Glyph="&#xE74C;" FontSize="48" Foreground="{ThemeResource AccentBrush}" />
                     <TextBlock
                         Text="DevOps Tools Installer"
                         FontSize="22"
                         FontWeight="SemiBold"
-                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Foreground="{ThemeResource TextPrimaryBrush}"
                         TextAlignment="Center" />
                     <TextBlock
                         Text="Browse the catalog, download official installers, and launch them — all from one place. No silent installs, no scripts, no admin required."
-                        Foreground="{StaticResource TextSecondaryBrush}"
+                        Foreground="{ThemeResource TextSecondaryBrush}"
                         TextAlignment="Center"
                         TextWrapping="Wrap"
                         MaxWidth="500" />
@@ -38,12 +38,12 @@
                     <StackPanel Spacing="12">
                         <TextBlock Text="Catalog" Style="{StaticResource CardTitleStyle}" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE8F1;" FontSize="16" Foreground="{StaticResource AccentBrush}" />
-                            <TextBlock x:Name="ToolCountText" Text="Loading..." Foreground="{StaticResource TextSecondaryBrush}" />
+                            <FontIcon Glyph="&#xE8F1;" FontSize="16" Foreground="{ThemeResource AccentBrush}" />
+                            <TextBlock x:Name="ToolCountText" Text="Loading..." Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE896;" FontSize="16" Foreground="{StaticResource SuccessBrush}" />
-                            <TextBlock x:Name="DownloadedCountText" Text="0 downloaded" Foreground="{StaticResource TextSecondaryBrush}" />
+                            <FontIcon Glyph="&#xE896;" FontSize="16" Foreground="{ThemeResource SuccessBrush}" />
+                            <TextBlock x:Name="DownloadedCountText" Text="0 downloaded" Foreground="{ThemeResource TextSecondaryBrush}" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -62,13 +62,13 @@
             <Border Style="{StaticResource CardStyle}">
                 <StackPanel Spacing="8">
                     <TextBlock Text="How it works" Style="{StaticResource CardTitleStyle}" />
-                    <TextBlock Text="1. Browse the catalog grouped by category" Foreground="{StaticResource TextSecondaryBrush}" />
-                    <TextBlock Text="2. Select the tools you need and click Download" Foreground="{StaticResource TextSecondaryBrush}" />
-                    <TextBlock Text="3. Watch real-time progress for each download" Foreground="{StaticResource TextSecondaryBrush}" />
-                    <TextBlock Text="4. Click Run Installer to launch the vendor's official setup" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="1. Browse the catalog grouped by category" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    <TextBlock Text="2. Select the tools you need and click Download" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    <TextBlock Text="3. Watch real-time progress for each download" Foreground="{ThemeResource TextSecondaryBrush}" />
+                    <TextBlock Text="4. Click Run Installer to launch the vendor's official setup" Foreground="{ThemeResource TextSecondaryBrush}" />
                     <TextBlock
                         Text="Your app never installs anything silently. The vendor installer handles everything, including its own UAC prompt."
-                        Foreground="{StaticResource TextMutedBrush}"
+                        Foreground="{ThemeResource TextMutedBrush}"
                         FontStyle="Italic"
                         TextWrapping="Wrap"
                         Margin="0,8,0,0" />
