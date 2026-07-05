@@ -73,6 +73,7 @@ public sealed class DownloadService
             var buffer = new byte[81920]; // 80 KB chunks
             long totalRead = 0;
             int bytesRead;
+            int lastReportedPct = -1;
 
             while ((bytesRead = await stream.ReadAsync(buffer, ct)) > 0)
             {
@@ -82,8 +83,17 @@ public sealed class DownloadService
                 if (totalBytes > 0)
                 {
                     var pct = (double)totalRead / totalBytes * 100;
-                    tool.Progress = pct;
-                    progress?.Report(pct);
+
+                    // Throttle: only push an update when the whole-number
+                    // percentage changes. Each update marshals a PropertyChanged
+                    // to the UI thread, so per-chunk updates would flood it.
+                    var wholePct = (int)pct;
+                    if (wholePct != lastReportedPct)
+                    {
+                        lastReportedPct = wholePct;
+                        tool.Progress = pct;
+                        progress?.Report(pct);
+                    }
                 }
             }
 
@@ -122,8 +132,9 @@ public sealed class DownloadService
             await semaphore.WaitAsync(ct);
             try
             {
-                var progress = new Progress<double>(pct => tool.Progress = pct);
-                await DownloadAsync(tool, destinationFolder, progress, ct);
+                // DownloadAsync already updates tool.Progress directly, so no
+                // extra IProgress wrapper is needed here.
+                await DownloadAsync(tool, destinationFolder, progress: null, ct);
             }
             catch (OperationCanceledException)
             {

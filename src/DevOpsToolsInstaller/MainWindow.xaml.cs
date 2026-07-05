@@ -26,6 +26,48 @@ public sealed partial class MainWindow : Window
     public CatalogService CatalogSvc => _catalog;
     public DownloadService DownloadSvc => _download;
 
+    private readonly SemaphoreSlim _catalogLoadLock = new(1, 1);
+    private bool _catalogLoaded;
+
+    /// <summary>
+    /// Loads the catalog into <see cref="Tools"/> exactly once. Safe to call
+    /// from multiple pages concurrently — the guard ensures a single load and
+    /// prevents duplicate entries.
+    /// </summary>
+    public async Task EnsureCatalogLoadedAsync()
+    {
+        if (_catalogLoaded) return;
+
+        await _catalogLoadLock.WaitAsync();
+        try
+        {
+            if (_catalogLoaded) return;
+
+            var tools = await _catalog.LoadCatalogAsync();
+
+            // Mark already-downloaded tools based on files on disk.
+            var dlFolder = DownloadService.DefaultDownloadsFolder;
+            foreach (var tool in tools)
+            {
+                if (DownloadService.IsAlreadyDownloaded(tool, dlFolder))
+                {
+                    tool.Status = ToolStatus.Downloaded;
+                    tool.Progress = 100;
+                }
+            }
+
+            Tools.Clear();
+            foreach (var tool in tools)
+                Tools.Add(tool);
+
+            _catalogLoaded = true;
+        }
+        finally
+        {
+            _catalogLoadLock.Release();
+        }
+    }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -40,8 +82,10 @@ public sealed partial class MainWindow : Window
             UpdateTitleBarButtonColors();
         };
 
+        // Selecting the first item raises SelectionChanged, which navigates to
+        // HomePage. Do NOT also call ContentFrame.Navigate here — that would
+        // create a second HomePage instance and race the catalog load.
         NavView.SelectedItem = NavView.MenuItems[0];
-        ContentFrame.Navigate(typeof(HomePage));
     }
 
     public void ApplyTheme(AppTheme theme)

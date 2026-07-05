@@ -127,6 +127,12 @@ public sealed class ToolDefinition : INotifyPropertyChanged
 
     private void OnPropertyChanged([CallerMemberName] string? name = null)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        var handler = PropertyChanged;
+        if (handler is null) return;
+
+        // Progress/status are mutated from download worker threads. WinUI
+        // bindings must be notified on the UI thread, so marshal via the
+        // captured dispatcher.
+        Services.UiDispatcher.Run(() => handler(this, new PropertyChangedEventArgs(name)));
     }
 }

@@ -23,23 +23,12 @@ public sealed partial class CatalogPage : Page
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
-        // Load catalog if not yet loaded
         if (mw.Tools.Count == 0)
         {
             SetBusy(true, "Loading catalog...");
             try
             {
-                var tools = await mw.CatalogSvc.LoadCatalogAsync();
-                var dlFolder = DownloadService.DefaultDownloadsFolder;
-                foreach (var tool in tools)
-                {
-                    if (DownloadService.IsAlreadyDownloaded(tool, dlFolder))
-                    {
-                        tool.Status = ToolStatus.Downloaded;
-                        tool.Progress = 100;
-                    }
-                    mw.Tools.Add(tool);
-                }
+                await mw.EnsureCatalogLoadedAsync();
             }
             catch (Exception ex)
             {

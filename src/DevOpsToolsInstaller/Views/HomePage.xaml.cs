@@ -17,34 +17,15 @@ public sealed partial class HomePage : Page
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
-        // Load catalog if not yet loaded
-        if (mw.Tools.Count == 0)
+        try
         {
-            try
-            {
-                var tools = await mw.CatalogSvc.LoadCatalogAsync();
-
-                // Mark already-downloaded tools
-                var dlFolder = DownloadService.DefaultDownloadsFolder;
-                foreach (var tool in tools)
-                {
-                    if (DownloadService.IsAlreadyDownloaded(tool, dlFolder))
-                    {
-                        tool.Status = Models.ToolStatus.Downloaded;
-                        tool.Progress = 100;
-                    }
-                }
-
-                mw.Tools.Clear();
-                foreach (var tool in tools)
-                    mw.Tools.Add(tool);
-            }
-            catch
-            {
-                ToolCountText.Text = "Error";
-                ToolCountLabel.Text = "Failed to load catalog";
-                return;
-            }
+            await mw.EnsureCatalogLoadedAsync();
+        }
+        catch
+        {
+            ToolCountText.Text = "Error";
+            ToolCountLabel.Text = "Failed to load catalog";
+            return;
         }
 
         // Update stats
