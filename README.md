@@ -91,6 +91,26 @@ If a catalog entry omits `kind`, the app infers it from the file extension
 (`.zip` → archive, `.ps1` → script, `.msi`/`.exe` → installer), so older
 catalogs keep working.
 
+### Removing a tool
+
+Every tool you've actioned can be removed again from the **Downloads** screen —
+each row has an `Uninstall` / `Remove` button that does the right thing for the
+tool's kind:
+
+| Kind | Remove action | Button |
+|------|---------------|--------|
+| **Installer** | Finds the tool in the Windows uninstall registry and launches the **vendor's own uninstaller** (it shows its own prompts / UAC — nothing is removed silently) | `Uninstall` |
+| **Archive** | Deletes the extracted `Tools\<tool-id>` folder | `Remove` |
+| **Binary** | Deletes the standalone `.exe` from `Tools\bin` | `Remove` |
+| **Script** | Nothing was installed, so only the cached download is removed | `Delete` |
+
+The button only lights up when there's actually something to remove — the app
+checks for the extracted folder, the copied binary, or a matching Windows
+uninstall entry when the Downloads page loads. Every removal asks for
+confirmation first and, by default, also clears the cached download so you get
+disk space back. Just like installing, the app never elevates itself and never
+runs a vendor uninstaller silently.
+
 ### Where files go
 
 - **Downloads** — `%LOCALAPPDATA%\DevOpsToolsInstaller\Downloads`
@@ -109,7 +129,7 @@ The app has four screens, reachable from the left navigation pane:
   **Download Selected** to fetch them concurrently.
 - **Downloads** — live progress for everything you've queued, with a
   context-aware action button per tool (`Install`, `Extract`, `Add to Tools`,
-  or `Open Folder`).
+  or `Open Folder`) plus an `Uninstall` / `Remove` button to reverse it again.
 - **Settings** — switch between Light / Dark / System themes, see how much
   disk your downloads use, clear the download cache, and open the downloads
   folder.
@@ -146,6 +166,7 @@ if ($user -notlike "*$bin*") {
 
 - 📦 Curated catalog of official DevOps tool and cloud CLI installers, grouped by category
 - 🧠 Artifact-aware actions — installers launch, archives extract, binaries go to a PATH-able folder, scripts open for review
+- ♻️ Reversible — a per-tool `Uninstall` / `Remove` button deletes extracted files and binaries or launches the vendor's own uninstaller (never silent)
 - ⬇️ Concurrent downloads (up to 3 at a time) with real-time per-item progress
 - ✅ Optional SHA-256 verification — a mismatch triggers an automatic re-download
 - 🔎 Instant search across tool names, categories, and descriptions

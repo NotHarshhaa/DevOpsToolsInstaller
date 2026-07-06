@@ -103,7 +103,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
                         <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock Text="Version 1.1.0" Style="{StaticResource CaptionTextBlockStyle}"
+                        <TextBlock Text="Version 1.2.0" Style="{StaticResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         <TextBlock TextWrapping="Wrap" Margin="0,2,0,0"
                                    Style="{StaticResource CaptionTextBlockStyle}"

@@ -128,6 +128,27 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Runtime flag indicating the app has something it can remove for this
+    /// tool (an extracted folder, a copied binary, or a matching Windows
+    /// uninstall entry). Populated by <c>UninstallService.IsInstalled</c>;
+    /// never persisted to the catalog.
+    /// </summary>
+    private bool _isInstalled;
+    [JsonIgnore]
+    public bool IsInstalled
+    {
+        get => _isInstalled;
+        set
+        {
+            if (_isInstalled != value)
+            {
+                _isInstalled = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     // ── Computed helpers ─────────────────────────────────────────────────
 
     public string DisplayName => $"{Name}";
@@ -184,6 +205,28 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         ArtifactKind.Script    => "Open Folder",
         _                      => "Install"
     };
+
+    /// <summary>
+    /// Label for the removal button, matched to how the tool was actioned.
+    /// Installers get their vendor uninstaller; archives/binaries are just
+    /// deleted from the Tools folder.
+    /// </summary>
+    [JsonIgnore]
+    public string UninstallLabel => Kind switch
+    {
+        ArtifactKind.Installer => "Uninstall",
+        ArtifactKind.Archive   => "Remove",
+        ArtifactKind.Binary    => "Remove",
+        ArtifactKind.Script    => "Delete",
+        _                      => "Remove"
+    };
+
+    /// <summary>
+    /// Whether a removal action is meaningful for this kind. Scripts are never
+    /// installed, so there is nothing to uninstall for them.
+    /// </summary>
+    [JsonIgnore]
+    public bool SupportsUninstall => Kind != ArtifactKind.Script;
 
     /// <summary>Name and version combined for display, e.g. "Terraform 1.9.5".</summary>
     [JsonIgnore]

@@ -86,13 +86,23 @@
                                              Height="4" CornerRadius="2" />
                             </StackPanel>
 
-                            <Button Grid.Column="2"
-                                    Content="{Binding ActionLabel, Mode=OneWay}"
-                                    Click="RunInstaller_Click"
-                                    IsEnabled="{Binding IsDownloaded, Mode=OneWay}"
-                                    Style="{StaticResource AccentButtonStyle}"
-                                    VerticalAlignment="Center"
-                                    MinWidth="120" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8"
+                                        VerticalAlignment="Center">
+                                <Button Content="{Binding ActionLabel, Mode=OneWay}"
+                                        Click="RunInstaller_Click"
+                                        IsEnabled="{Binding IsDownloaded, Mode=OneWay}"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        MinWidth="120" />
+                                <Button Click="Uninstall_Click"
+                                        IsEnabled="{Binding IsInstalled, Mode=OneWay}"
+                                        Visibility="{Binding SupportsUninstall, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        ToolTipService.ToolTip="{Binding UninstallLabel, Mode=OneWay}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="14" />
+                                        <TextBlock Text="{Binding UninstallLabel, Mode=OneWay}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </DataTemplate>
