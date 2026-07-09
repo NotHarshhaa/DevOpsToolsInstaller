@@ -68,6 +68,14 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonPropertyName("homepage")]
     public string Homepage { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional URL to the tool's brand logo (SVG or raster). When present the
+    /// catalog renders it in place of the <see cref="IconGlyph"/>. If the image
+    /// fails to load (e.g. offline) the glyph is shown as a graceful fallback.
+    /// </summary>
+    [JsonPropertyName("logoUrl")]
+    public string LogoUrl { get; set; } = string.Empty;
+
     // ── Runtime-only state (not from JSON) ───────────────────────────────
 
     private bool _isSelected;
@@ -232,6 +240,10 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonIgnore]
     public string NameWithVersion =>
         string.IsNullOrWhiteSpace(Version) ? Name : $"{Name}  ·  v{Version}";
+
+    /// <summary>True when a brand logo URL is available for this tool.</summary>
+    [JsonIgnore]
+    public bool HasLogo => !string.IsNullOrWhiteSpace(LogoUrl);
 
     private void UpdateStatusText()
     {

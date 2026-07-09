@@ -75,6 +75,27 @@
                     <Setter Property="Background" Value="Transparent" />
                 </Style>
             </ListView.ItemContainerStyle>
+
+            <ListView.GroupStyle>
+                <GroupStyle HidesIfEmpty="True">
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <Border Padding="2,16,0,6">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Key}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                    <Border Style="{StaticResource BadgeStyle}">
+                                        <TextBlock Text="{Binding Count}"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListView.GroupStyle>
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource ListViewCardStyle}">
@@ -95,8 +116,15 @@
                             <Border Grid.Column="1" Width="40" Height="40" CornerRadius="8"
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                     VerticalAlignment="Center">
-                                <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
-                                          Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <Grid>
+                                    <!-- Glyph shown only when the tool has no brand logo -->
+                                    <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
+                                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                              Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                    <!-- Brand logo shown when a logoUrl is present -->
+                                    <Image Width="24" Height="24" Stretch="Uniform"
+                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}" />
+                                </Grid>
                             </Border>
 
                             <StackPanel Grid.Column="2" Spacing="2" VerticalAlignment="Center">

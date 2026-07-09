@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+            <converters:StringToImageSourceConverter x:Key="StringToImageSourceConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

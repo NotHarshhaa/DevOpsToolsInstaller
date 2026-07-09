@@ -1,20 +1,43 @@
 using System.Collections.ObjectModel;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Data;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
 
+/// <summary>
+/// A category of tools shown under a single header in the catalog. Deriving
+/// from <see cref="List{T}"/> lets a grouped <see cref="CollectionViewSource"/>
+/// treat the group itself as the item collection, while <see cref="Key"/> and
+/// the inherited <c>Count</c> drive the header UI.
+/// </summary>
+public sealed class ToolCategoryGroup : List<ToolDefinition>
+{
+    public ToolCategoryGroup(string key, IEnumerable<ToolDefinition> items) : base(items)
+        => Key = key;
+
+    public string Key { get; }
+}
+
 public sealed partial class CatalogPage : Page
 {
-    private readonly ObservableCollection<ToolDefinition> _filtered = new();
+    private readonly ObservableCollection<ToolCategoryGroup> _groups = new();
+    private readonly CollectionViewSource _groupedView;
     private bool _busy;
 
     public CatalogPage()
     {
         InitializeComponent();
-        ToolsList.ItemsSource = _filtered;
+
+        _groupedView = new CollectionViewSource
+        {
+            IsSourceGrouped = true,
+            Source = _groups
+        };
+        ToolsList.ItemsSource = _groupedView.View;
+
         Loaded += CatalogPage_Loaded;
     }
 
@@ -50,19 +73,27 @@ public sealed partial class CatalogPage : Page
         if (mw is null) return;
 
         var query = SearchBox.Text?.Trim() ?? "";
-        _filtered.Clear();
 
-        foreach (var tool in mw.Tools.OrderBy(t => t.Category).ThenBy(t => t.Name))
-        {
-            if (string.IsNullOrEmpty(query)
-                || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
-                || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase))
-            {
-                _filtered.Add(tool);
-            }
-        }
+        bool Matches(ToolDefinition tool) =>
+            string.IsNullOrEmpty(query)
+            || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+        var grouped = mw.Tools
+            .Where(Matches)
+            .OrderBy(t => t.Category)
+            .ThenBy(t => t.Name)
+            .GroupBy(t => t.Category)
+            .Select(g => new ToolCategoryGroup(g.Key, g));
+
+        _groups.Clear();
+        foreach (var group in grouped)
+            _groups.Add(group);
     }
+
+    /// <summary>Every tool currently visible across all category groups.</summary>
+    private IEnumerable<ToolDefinition> VisibleTools => _groups.SelectMany(g => g);
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -72,12 +103,12 @@ public sealed partial class CatalogPage : Page
 
     private void SelectAll_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var item in _filtered) item.IsSelected = true;
+        foreach (var item in VisibleTools) item.IsSelected = true;
     }
 
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
-        foreach (var item in _filtered) item.IsSelected = false;
+        foreach (var item in VisibleTools) item.IsSelected = false;
     }
 
     private async void Download_Click(object sender, RoutedEventArgs e)
@@ -85,7 +116,7 @@ public sealed partial class CatalogPage : Page
         var mw = App.MainWindowInstance;
         if (mw is null || _busy) return;
 
-        var selected = _filtered.Where(t => t.IsSelected && t.Status != ToolStatus.Downloaded).ToList();
+        var selected = VisibleTools.Where(t => t.IsSelected && t.Status != ToolStatus.Downloaded).ToList();
         if (selected.Count == 0)
         {
             StatusText.Text = "Select at least one tool to download.";
