@@ -65,6 +65,15 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonPropertyName("version")]
     public string Version { get; set; } = string.Empty;
 
+    [JsonPropertyName("previousVersions")]
+    public System.Collections.Generic.List<string>? PreviousVersions { get; set; }
+
+    [JsonPropertyName("versionTemplate")]
+    public string? VersionTemplate { get; set; }
+
+    [JsonPropertyName("fileNameTemplate")]
+    public string? FileNameTemplate { get; set; }
+
     [JsonPropertyName("homepage")]
     public string Homepage { get; set; } = string.Empty;
 
@@ -366,10 +375,142 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonIgnore]
     public bool SupportsUninstall => Kind != ArtifactKind.Script;
 
+    private string? _originalVersion;
+    private string? _originalDownloadUrl;
+    private string? _originalFileName;
+
+    private string? _selectedVersion;
+    [JsonIgnore]
+    public string SelectedVersion
+    {
+        get => _selectedVersion ?? Version;
+        set
+        {
+            if (_selectedVersion != value)
+            {
+                _selectedVersion = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayVersion));
+                OnPropertyChanged(nameof(NameWithVersion));
+                OnPropertyChanged(nameof(IsPreviousVersionSelected));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public bool IsPreviousVersionSelected =>
+        !string.IsNullOrWhiteSpace(_selectedVersion) &&
+        !string.Equals(_selectedVersion, _originalVersion ?? Version, StringComparison.OrdinalIgnoreCase);
+
+    [JsonIgnore]
+    public string DisplayVersion =>
+        !string.IsNullOrWhiteSpace(SelectedVersion) ? $"v{SelectedVersion}" : "Latest";
+
+    [JsonIgnore]
+    public System.Collections.Generic.List<string> AllAvailableVersions
+    {
+        get
+        {
+            var list = new System.Collections.Generic.List<string>();
+            var defaultVer = _originalVersion ?? Version;
+            if (!string.IsNullOrWhiteSpace(defaultVer))
+            {
+                list.Add($"{defaultVer} (Latest)");
+            }
+            if (PreviousVersions != null)
+            {
+                foreach (var pv in PreviousVersions)
+                {
+                    if (!string.IsNullOrWhiteSpace(pv) && !list.Contains(pv) && pv != defaultVer)
+                    {
+                        list.Add(pv);
+                    }
+                }
+            }
+            return list;
+        }
+    }
+
+    /// <summary>
+    /// Updates the tool to target a specific version, recalculating the download URL and file name.
+    /// </summary>
+    public void SetVersion(string newVersion)
+    {
+        if (string.IsNullOrWhiteSpace(newVersion)) return;
+
+        // Cache original values on first switch
+        _originalVersion ??= Version;
+        _originalDownloadUrl ??= DownloadUrl;
+        _originalFileName ??= FileName;
+
+        var cleanTarget = newVersion.Trim().TrimStart('v', 'V');
+        var cleanOriginal = _originalVersion.Trim().TrimStart('v', 'V');
+
+        SelectedVersion = cleanTarget;
+
+        if (string.Equals(cleanTarget, cleanOriginal, StringComparison.OrdinalIgnoreCase))
+        {
+            // Restoring latest
+            DownloadUrl = _originalDownloadUrl;
+            FileName = _originalFileName;
+            Version = _originalVersion;
+        }
+        else
+        {
+            // 1. If explicit VersionTemplate exists
+            if (!string.IsNullOrWhiteSpace(VersionTemplate))
+            {
+                DownloadUrl = VersionTemplate.Replace("{version}", cleanTarget);
+            }
+            else if (!string.IsNullOrWhiteSpace(cleanOriginal) && _originalDownloadUrl.Contains(cleanOriginal))
+            {
+                DownloadUrl = _originalDownloadUrl.Replace(cleanOriginal, cleanTarget);
+            }
+            else if (_originalDownloadUrl.Contains("/releases/latest/download/"))
+            {
+                DownloadUrl = _originalDownloadUrl.Replace(
+                    "/releases/latest/download/", $"/releases/download/v{cleanTarget}/");
+            }
+            else if (_originalDownloadUrl.Contains("/releases/download/"))
+            {
+                // Replace release tag in URL
+                DownloadUrl = System.Text.RegularExpressions.Regex.Replace(
+                    _originalDownloadUrl,
+                    @"/releases/download/[^/]+/",
+                    $"/releases/download/v{cleanTarget}/");
+            }
+
+            // 2. Adjust FileName
+            if (!string.IsNullOrWhiteSpace(FileNameTemplate))
+            {
+                FileName = FileNameTemplate.Replace("{version}", cleanTarget);
+            }
+            else if (!string.IsNullOrWhiteSpace(cleanOriginal) && _originalFileName.Contains(cleanOriginal))
+            {
+                FileName = _originalFileName.Replace(cleanOriginal, cleanTarget);
+            }
+        }
+
+        // Reset download state so user can download the new version
+        Status = ToolStatus.NotDownloaded;
+        Progress = 0;
+        SignatureResult = null;
+        OnPropertyChanged(nameof(DownloadUrl));
+        OnPropertyChanged(nameof(FileName));
+        OnPropertyChanged(nameof(NameWithVersion));
+    }
+
     /// <summary>Name and version combined for display, e.g. "Terraform 1.9.5".</summary>
     [JsonIgnore]
-    public string NameWithVersion =>
-        string.IsNullOrWhiteSpace(Version) ? Name : $"{Name}  ·  v{Version}";
+    public string NameWithVersion
+    {
+        get
+        {
+            var ver = SelectedVersion;
+            if (string.IsNullOrWhiteSpace(ver)) return Name;
+            return IsPreviousVersionSelected ? $"{Name}  ·  v{ver} (custom)" : $"{Name}  ·  v{ver}";
+        }
+    }
 
     /// <summary>True when a brand logo URL is available for this tool.</summary>
     [JsonIgnore]

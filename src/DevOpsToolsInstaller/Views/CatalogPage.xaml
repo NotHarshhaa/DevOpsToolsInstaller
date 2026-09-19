@@ -342,6 +342,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <!-- Favorite star button -->
@@ -378,12 +379,21 @@
                                 </Grid>
                             </Border>
 
-                            <!-- Tool name + description -->
+                            <!-- Tool name + version badge + description -->
                             <StackPanel Grid.Column="3" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding NameWithVersion}"
-                                           Style="{StaticResource BodyStrongTextBlockStyle}"
-                                           FontSize="13"
-                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding NameWithVersion}"
+                                               Style="{StaticResource BodyStrongTextBlockStyle}"
+                                               FontSize="13"
+                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                    <Border Style="{StaticResource BadgeStyle}" ToolTipService.ToolTip="Target release version">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding DisplayVersion}" FontSize="10"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
                                 <TextBlock Text="{Binding Description}"
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -414,8 +424,21 @@
                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Button>
 
+                            <!-- Versions button -->
+                            <Button Grid.Column="6" Click="VersionPicker_Click"
+                                    ToolTipService.ToolTip="Select specific or previous release version"
+                                    Padding="6,5" VerticalAlignment="Center"
+                                    CornerRadius="4">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="12"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="Version" FontSize="11"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Button>
+
                             <!-- Details button -->
-                            <Button Grid.Column="6" Click="ToolDetails_Click"
+                            <Button Grid.Column="7" Click="ToolDetails_Click"
                                     ToolTipService.ToolTip="Inspect tool specifications"
                                     Padding="6,5" VerticalAlignment="Center"
                                     CornerRadius="4">

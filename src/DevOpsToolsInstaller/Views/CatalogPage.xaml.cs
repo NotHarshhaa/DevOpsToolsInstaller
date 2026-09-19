@@ -539,8 +539,7 @@ public sealed partial class CatalogPage : Page
         metaStack.Children.Add(new TextBlock { Text = $"File: {tool.FileName}", FontSize = 12 });
         metaStack.Children.Add(new TextBlock { Text = $"Deployment: {tool.ActionLabel}", FontSize = 12 });
         metaStack.Children.Add(new TextBlock { Text = $"Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        if (!string.IsNullOrWhiteSpace(tool.Version))
-            metaStack.Children.Add(new TextBlock { Text = $"Version: {tool.Version}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"Version: {tool.SelectedVersion} ({(tool.IsPreviousVersionSelected ? "Custom Selection" : "Latest Stable")})", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         if (!string.IsNullOrWhiteSpace(tool.Sha256))
         {
             metaStack.Children.Add(new TextBlock { Text = $"SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
@@ -552,6 +551,13 @@ public sealed partial class CatalogPage : Page
 
         // Action buttons row
         var actionPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right };
+
+        // Switch version button
+        var switchVerBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
+        var switchVerStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        switchVerStack.Children.Add(new FontIcon { Glyph = "\uE8EC", FontSize = 13 });
+        switchVerStack.Children.Add(new TextBlock { Text = "Switch Version" });
+        switchVerBtn.Content = switchVerStack;
 
         // Copy CLI name button
         var copyNameBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
@@ -582,6 +588,7 @@ public sealed partial class CatalogPage : Page
             StatusText.Text = $"Copied download URL for {tool.Name}";
         };
         actionPanel.Children.Add(copyCmdBtn);
+        actionPanel.Children.Add(switchVerBtn);
 
         panel.Children.Add(actionPanel);
 
@@ -593,6 +600,12 @@ public sealed partial class CatalogPage : Page
             CloseButtonText = "Close",
             DefaultButton = ContentDialogButton.Close,
             XamlRoot = this.XamlRoot
+        };
+
+        switchVerBtn.Click += async (_, _) =>
+        {
+            dialog.Hide();
+            await ShowVersionPickerDialogAsync(tool);
         };
 
         if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(tool.Homepage))
@@ -613,6 +626,115 @@ public sealed partial class CatalogPage : Page
         PresetsButton.IsEnabled = !busy;
         ProfileButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
+    }
+
+    private async void VersionPicker_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        await ShowVersionPickerDialogAsync(tool);
+    }
+
+    private async Task ShowVersionPickerDialogAsync(ToolDefinition tool)
+    {
+        var panel = new StackPanel { Spacing = 12, MaxWidth = 480 };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"Choose a specific release version of {tool.Name}. You can select from known releases or enter a custom version tag.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        });
+
+        // Curated versions combo box
+        var combo = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            PlaceholderText = "Select known version…"
+        };
+        foreach (var v in tool.AllAvailableVersions)
+        {
+            combo.Items.Add(v);
+        }
+
+        var customBox = new TextBox
+        {
+            PlaceholderText = "Or enter custom version (e.g. 1.8.5)",
+            Text = tool.IsPreviousVersionSelected ? tool.SelectedVersion : ""
+        };
+
+        var previewBox = new TextBlock
+        {
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        };
+
+        void UpdatePreview(string v)
+        {
+            var clean = v.Trim().TrimStart('v', 'V');
+            if (clean.EndsWith("(Latest)")) clean = clean.Replace("(Latest)", "").Trim();
+
+            previewBox.Text = $"Target version: v{clean}\nFile: {tool.FileName}";
+        }
+
+        combo.SelectionChanged += (s, ev) =>
+        {
+            if (combo.SelectedItem is string sel)
+            {
+                var v = sel.Replace("(Latest)", "").Trim();
+                customBox.Text = v;
+                UpdatePreview(v);
+            }
+        };
+
+        customBox.TextChanged += (s, ev) =>
+        {
+            if (!string.IsNullOrWhiteSpace(customBox.Text))
+            {
+                UpdatePreview(customBox.Text);
+            }
+        };
+
+        UpdatePreview(tool.SelectedVersion);
+
+        panel.Children.Add(new TextBlock { Text = "Available Releases:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        panel.Children.Add(combo);
+        panel.Children.Add(new TextBlock { Text = "Custom Version:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 0) });
+        panel.Children.Add(customBox);
+        panel.Children.Add(previewBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = $"{tool.Name} Version Selection",
+            Content = panel,
+            PrimaryButtonText = "Apply Version",
+            SecondaryButtonText = tool.IsPreviousVersionSelected ? "Reset to Latest" : "",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot
+        };
+
+        var result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            var chosen = customBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(chosen) && combo.SelectedItem is string sel)
+            {
+                chosen = sel.Replace("(Latest)", "").Trim();
+            }
+
+            if (!string.IsNullOrWhiteSpace(chosen))
+            {
+                tool.SetVersion(chosen);
+                StatusText.Text = $"Updated {tool.Name} to version v{tool.SelectedVersion}.";
+            }
+        }
+        else if (result == ContentDialogResult.Secondary)
+        {
+            // Reset to latest
+            tool.SetVersion(tool.Version);
+            StatusText.Text = $"Reset {tool.Name} to latest version (v{tool.Version}).";
+        }
     }
 
     // ── Logo fallback ───────────────────────────────────────────────────
