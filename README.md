@@ -39,7 +39,6 @@ no background scripts modifying your system.
 - [Features](#features)
 - [Security & privacy](#security--privacy)
 - [Installation](#installation)
-- [Build from source](#build-from-source)
 - [Tech stack](#tech-stack)
 - [Catalog format](#catalog-format)
 - [Adding a tool to the catalog](#adding-a-tool-to-the-catalog)
@@ -119,30 +118,33 @@ runs a vendor uninstaller silently.
 
 ## A quick tour
 
-The app has four screens, reachable from the left navigation pane:
+The app is built around four primary sections, accessible via the left navigation pane:
 
-- **Home** — a summary of how many tools are in the catalog and how many
-  you've already downloaded, plus quick links into the rest of the app.
-- **Tool Catalog** — the full, searchable list grouped by category. Each row
-  shows the tool's name and version, a **kind** badge (Installer / Archive /
-  Binary / Script), and its category. Select any number of tools and hit
-  **Download Selected** to fetch them concurrently.
-- **Downloads** — live progress for everything you've queued, with a
-  context-aware action button per tool (`Install`, `Extract`, `Add to Tools`,
-  or `Open Folder`) plus an `Uninstall` / `Remove` button to reverse it again.
-- **Settings** — switch between Light / Dark / System themes, see how much
-  disk your downloads use, clear the download cache, and open the downloads
-  folder.
+- **Home** — a dashboard showing catalog metrics (total tools available, downloaded tools count, and storage used), quick action links (Browse Catalog, View Downloads, Open Tools Folder), and featured preset stacks for rapid onboarding.
+- **Tool Catalog** — the interactive directory of 47+ tools:
+  - **Dynamic Search & Filtering**: Real-time search across tool names, categories, and descriptions; category filter chips with tool counts; and a "Downloaded only" toggle.
+  - **Sort & Organize**: Sort alphabetically (A→Z, Z→A), by category, by kind, by downloaded status, or by your personal favorites.
+  - **Favorites**: Star (☆/★) frequently used tools to keep them pinned and prioritized.
+  - **Curated Preset Stacks**: One-click selection of specialized stacks (Kubernetes Core, Cloud Foundation, DevOps Essentials, Security & Scanning, CI/CD & Git, Infrastructure as Code).
+  - **Profile Import & Export**: Export your tool selections to a `.json` profile file to share with teammates or replicate setups across workstations; import anytime to select tools automatically.
+  - **Tool Specifications Modal**: Click info on any tool card to inspect technical specifications, copy official download URLs, and launch vendor documentation.
+  - **Adaptive Responsive CommandBar**: Automatically reorganizes its controls across wide, laptop, snapped half-screen, and compact window sizes using an intelligent custom `WrapPanel` so options and search are never clipped.
+- **Downloads** — live download and installation manager:
+  - Concurrent downloads (up to 3 simultaneous items) with real-time speed, ETA, and progress metrics.
+  - Context-aware post-download actions (`Install`, `Extract`, `Add to Tools`, or `Open Folder`).
+  - Safe uninstallation and removal (`Uninstall` via vendor uninstaller, or `Remove` for extracted folders and binaries) with disk cleanup prompts.
+- **Settings** — customize themes (Light / Dark / System Default), monitor disk usage, clear download caches, open local storage folders, verify user `PATH` configuration, and check catalog sync status.
 
 ## Categories covered
 
 - **Cloud provider CLIs** — AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI
 - **Containerization** — Docker Desktop, Podman Desktop
 - **Kubernetes** — kubectl, Helm, k9s, kind, minikube
-- **Infrastructure as Code** — Terraform, Pulumi, Ansible
-- **CI/CD & Version Control** — Git, GitHub CLI, GitLab CLI
+- **Infrastructure as Code** — Terraform, OpenTofu, Pulumi, Ansible
+- **CI/CD & Version Control** — Git, GitHub CLI, GitLab CLI, ArgoCD CLI
+- **Security & Scanning** — Trivy, Grype, Syft, Cosign, Snyk CLI
 - **Editors & Terminals** — VS Code, Windows Terminal
-- **Utilities** — jq, yq, Postman
+- **Utilities** — jq, yq, Postman, curl
 
 (Full, up-to-date list lives in [`catalog/catalog.json`](catalog/catalog.json).)
 
@@ -164,16 +166,47 @@ if ($user -notlike "*$bin*") {
 
 ## Features
 
-- 📦 Curated catalog of official DevOps tool and cloud CLI installers, grouped by category
-- 🧠 Artifact-aware actions — installers launch, archives extract, binaries go to a PATH-able folder, scripts open for review
-- ♻️ Reversible — a per-tool `Uninstall` / `Remove` button deletes extracted files and binaries or launches the vendor's own uninstaller (never silent)
-- ⬇️ Concurrent downloads (up to 3 at a time) with real-time per-item progress
-- ✅ Optional SHA-256 verification — a mismatch triggers an automatic re-download
-- 🔎 Instant search across tool names, categories, and descriptions
-- 🌗 Light / Dark / System-default themes, remembered between sessions
-- 🔄 Catalog updates independently of the app — no reinstall needed for new tools (fetched from GitHub, with an offline embedded fallback)
-- 🧊 No bundled installers, no silent execution, no telemetry
-- 🖥️ Native Windows 11 look and feel (WinUI 3), for both x64 and arm64
+### 📦 Curated & Verified Catalog
+- **47+ Official DevOps Tools**: Complete coverage of cloud CLIs, container engines, Kubernetes tooling, IaC frameworks, CI/CD runners, security scanners, editors, and CLI utilities.
+- **Direct Vendor Downloads**: All artifacts are fetched directly from official release URLs (GitHub releases, vendor CDNs, official MSI packages) — zero repackaging or proxied files.
+- **Independent Catalog Updates**: Fetches the newest catalog directly from GitHub on startup with an embedded offline fallback when disconnected.
+
+### 🎯 Smart Selection & Preset Stacks
+- **Curated Presets**: Quick-select battle-tested stacks with one click:
+  - *Kubernetes Core*: kubectl, Helm, k9s, kind, minikube
+  - *Cloud Foundation*: AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI
+  - *DevOps Essentials*: Git, Docker Desktop, Terraform, VS Code, jq
+  - *Security & Scanning*: Trivy, Grype, Syft, Cosign, Snyk CLI
+  - *CI/CD & Git*: Git, GitHub CLI, GitLab CLI, ArgoCD CLI
+  - *Infrastructure as Code*: Terraform, OpenTofu, Pulumi, Ansible
+- **Profile Import & Export**: Save your exact tool selection as a portable JSON profile (`.json`) to standardize team environments or restore setups on new machines.
+- **Favorites System**: Pin preferred tools with a single click (☆/★) to sort or filter favorites first.
+- **Bulk Selection Controls**: Instant "Select All" and "Clear" controls.
+
+### ⚡ Intelligent Download & Lifecycle Management
+- **Concurrent Download Engine**: Downloads up to 3 artifacts simultaneously with per-item progress, transfer speed, and ETA tracking.
+- **Artifact-Aware Actions**:
+  - *Installers (`.msi`, `.exe`)*: Launches the official vendor installer with its standard UAC prompt.
+  - *Archives (`.zip`)*: Extracts directly into `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\<tool-id>`.
+  - *Standalone Binaries (`.exe`)*: Copies the CLI executable into `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`.
+  - *Scripts (`.ps1`, `.sh`)*: Safely opens the folder for user inspection before execution.
+- **Safe, Reversible Uninstallation**: Cleanly removes tools from within the app:
+  - Launches the vendor's official uninstaller via Windows Registry detection.
+  - Deletes extracted archive folders and standalone binaries.
+  - Prompts to clean up cached installer files to reclaim disk space.
+- **SHA-256 Checksum Verification**: Automatically validates downloaded file integrity against catalog hashes.
+
+### 🔍 Search, Sorting & Inspection
+- **Instant Search**: Real-time filtering across tool names, categories, and descriptions.
+- **Flexible Sorting**: Sort by Name (A→Z, Z→A), Category, Artifact Kind, Downloaded Status, or Favorites.
+- **Detailed Tool Specs**: Inspect full tool metadata, copy download links to clipboard, and open official documentation sites.
+
+### 💻 Modern Windows 11 Native Experience
+- **Fluent Design & WinUI 3**: Native controls adhering to Windows 11 styling guidelines, clean typography, theme resources, and no distracting neon badges.
+- **Adaptive Layout**: Custom `WrapPanel` and dynamic responsive breakpoints that adjust search bars, buttons, and icons smoothly from 4K monitors down to snapped half-screen windows.
+- **Light / Dark / System Themes**: Instant theme switching remembered across restarts.
+- **Self-Contained & Lightweight**: Native x64 and ARM64 executables with zero runtime dependencies.
+- **Zero Telemetry**: No analytics, no tracking, and no background services.
 
 ## Security & privacy
 
@@ -195,30 +228,6 @@ if ($user -notlike "*$bin*") {
 Download the latest release from the [Releases](../../releases) page and run
 the `.exe`. No installation required — it's a single self-contained binary.
 Builds are published for both **x64** and **arm64**.
-
-## Build from source
-
-Requires the **.NET 8 SDK** on Windows 10/11.
-
-```powershell
-# Release build (self-contained folder output)
-.\build.ps1
-
-# Build and launch
-.\build.ps1 -Run
-
-# Single-file executable
-.\build.ps1 -SingleFile
-
-# Clean all build artifacts
-.\build.ps1 -Clean
-```
-
-Or with the SDK directly:
-
-```powershell
-dotnet build src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -c Release
-```
 
 ## Tech stack
 
