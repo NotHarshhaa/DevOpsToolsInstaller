@@ -173,7 +173,7 @@
                     </Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10"
                             VerticalAlignment="Center">
-                        <Image Source="Assets/app.png" Width="36" Height="36" Stretch="Uniform"
+                        <Image x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="36" Height="36" Stretch="Uniform"
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
@@ -216,13 +216,9 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
-                            BorderThickness="2" BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                            BorderThickness="2" BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
                             VerticalAlignment="Center">
-                        <controls:PersonPicture DisplayName="HARSHHAA" Initials="H" Width="52" Height="52">
-                            <controls:PersonPicture.ProfilePicture>
-                                <BitmapImage UriSource="https://avatars.githubusercontent.com/u/112948305?v=4" />
-                            </controls:PersonPicture.ProfilePicture>
-                        </controls:PersonPicture>
+                        <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="52" Height="52" />
                     </Border>
 
                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
@@ -243,7 +239,7 @@
                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                             <HyperlinkButton Click="AuthorGitHub_Click" Padding="0">
                                 <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                             </HyperlinkButton>
                         </StackPanel>
 

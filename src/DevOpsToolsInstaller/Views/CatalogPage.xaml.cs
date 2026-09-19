@@ -117,7 +117,7 @@ public sealed partial class CatalogPage : Page
             if (child is Button btn)
             {
                 var isSelected = (btn.Tag as string) == tag;
-                btn.Style = (Style)Application.Current.Resources[isSelected ? "AccentButtonStyle" : "CategoryChipStyle"];
+                btn.Style = (Style)Application.Current.Resources[isSelected ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
                 btn.CornerRadius = new CornerRadius(14);
             }
         }

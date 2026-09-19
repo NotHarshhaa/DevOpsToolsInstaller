@@ -30,9 +30,14 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- App Icon Graphic -->
-                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="16"
-                            VerticalAlignment="Center">
-                        <Image Source="Assets/app.png" Stretch="Uniform" />
+                    <Border Grid.Column="0" Width="68" Height="68" CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                            BorderThickness="1"
+                            VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image x:Name="HeroLogoImage" Source="ms-appx:///Assets/app.png"
+                               Width="56" Height="56" Stretch="Uniform"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
 
                     <!-- Text description -->
@@ -44,7 +49,7 @@
                                        Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                             <Border Style="{StaticResource AccentBadgeStyle}">
                                 <TextBlock Text="Verified Safe" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                             </Border>
                         </StackPanel>
                         <TextBlock TextWrapping="Wrap"

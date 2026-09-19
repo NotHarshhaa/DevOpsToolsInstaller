@@ -3,10 +3,138 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Native Windows 11 / Fluent 2 styling.
-        Built on system theme resources shipped with WinUI (XamlControlsResources).
-        Adapts dynamically to Light / Dark and Mica backdrops.
+        Native Windows 11 / Fluent 2 styling with tailored Dark & Light mode palettes.
+        Eliminates legacy Windows blue with modern, curated Cyan/Sky accents & glowing badges.
     -->
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Default">
+            <!-- Modern Dark Mode Colors (Default) -->
+            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="#075985" />
+            <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
+
+            <!-- Luminous, ultra-clean badge palette for Dark Mode -->
+            <SolidColorBrush x:Key="CustomAccentBadgeBackgroundBrush" Color="#0A233F" />
+            <SolidColorBrush x:Key="CustomAccentBadgeBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="CustomAccentBadgeTextBrush" Color="#38BDF8" />
+
+            <SolidColorBrush x:Key="CustomNeutralBadgeBackgroundBrush" Color="#1E293B" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeBorderBrush" Color="#334155" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeTextBrush" Color="#CBD5E1" />
+
+            <SolidColorBrush x:Key="CustomSuccessBadgeBackgroundBrush" Color="#064E3B" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeBorderBrush" Color="#059669" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeTextBrush" Color="#34D399" />
+
+            <SolidColorBrush x:Key="CustomWarningBadgeBackgroundBrush" Color="#451A03" />
+            <SolidColorBrush x:Key="CustomWarningBadgeBorderBrush" Color="#D97706" />
+            <SolidColorBrush x:Key="CustomWarningBadgeTextBrush" Color="#FBBF24" />
+
+            <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#1E3A5F" />
+
+            <!-- Override WinUI system accent brushes so controls never fall back to legacy OS blue -->
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#075985" />
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#38BDF8" />
+
+            <SolidColorBrush x:Key="AccentButtonBackground" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#075985" />
+            <SolidColorBrush x:Key="AccentButtonForeground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#E2E8F0" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrush" Color="#38BDF8" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPointerOver" Color="#7DD3FC" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPressed" Color="#0284C7" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Dark">
+            <!-- Modern Dark Mode Colors -->
+            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="#075985" />
+            <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
+
+            <!-- Luminous, ultra-clean badge palette for Dark Mode -->
+            <SolidColorBrush x:Key="CustomAccentBadgeBackgroundBrush" Color="#0A233F" />
+            <SolidColorBrush x:Key="CustomAccentBadgeBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="CustomAccentBadgeTextBrush" Color="#38BDF8" />
+
+            <SolidColorBrush x:Key="CustomNeutralBadgeBackgroundBrush" Color="#1E293B" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeBorderBrush" Color="#334155" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeTextBrush" Color="#CBD5E1" />
+
+            <SolidColorBrush x:Key="CustomSuccessBadgeBackgroundBrush" Color="#064E3B" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeBorderBrush" Color="#059669" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeTextBrush" Color="#34D399" />
+
+            <SolidColorBrush x:Key="CustomWarningBadgeBackgroundBrush" Color="#451A03" />
+            <SolidColorBrush x:Key="CustomWarningBadgeBorderBrush" Color="#D97706" />
+            <SolidColorBrush x:Key="CustomWarningBadgeTextBrush" Color="#FBBF24" />
+
+            <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#1E3A5F" />
+
+            <!-- Override WinUI system accent brushes so controls never fall back to legacy OS blue -->
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#075985" />
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#38BDF8" />
+
+            <SolidColorBrush x:Key="AccentButtonBackground" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#075985" />
+            <SolidColorBrush x:Key="AccentButtonForeground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#E2E8F0" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrush" Color="#38BDF8" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPointerOver" Color="#7DD3FC" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPressed" Color="#0284C7" />
+        </ResourceDictionary>
+
+        <ResourceDictionary x:Key="Light">
+            <!-- Modern Light Mode Colors -->
+            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="#075985" />
+            <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
+
+            <SolidColorBrush x:Key="CustomAccentBadgeBackgroundBrush" Color="#E0F2FE" />
+            <SolidColorBrush x:Key="CustomAccentBadgeBorderBrush" Color="#BAE6FD" />
+            <SolidColorBrush x:Key="CustomAccentBadgeTextBrush" Color="#0369A1" />
+
+            <SolidColorBrush x:Key="CustomNeutralBadgeBackgroundBrush" Color="#F1F5F9" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeBorderBrush" Color="#CBD5E1" />
+            <SolidColorBrush x:Key="CustomNeutralBadgeTextBrush" Color="#475569" />
+
+            <SolidColorBrush x:Key="CustomSuccessBadgeBackgroundBrush" Color="#DCFCE7" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeBorderBrush" Color="#86EFAC" />
+            <SolidColorBrush x:Key="CustomSuccessBadgeTextBrush" Color="#15803D" />
+
+            <SolidColorBrush x:Key="CustomWarningBadgeBackgroundBrush" Color="#FEF3C7" />
+            <SolidColorBrush x:Key="CustomWarningBadgeBorderBrush" Color="#FDE68A" />
+            <SolidColorBrush x:Key="CustomWarningBadgeTextBrush" Color="#B45309" />
+
+            <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#BAE6FD" />
+
+            <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#075985" />
+            <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#0284C7" />
+
+            <SolidColorBrush x:Key="AccentButtonBackground" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPointerOver" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentButtonBackgroundPressed" Color="#075985" />
+            <SolidColorBrush x:Key="AccentButtonForeground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPointerOver" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="AccentButtonForegroundPressed" Color="#F8FAFC" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPointerOver" Color="#0369A1" />
+            <SolidColorBrush x:Key="AccentButtonBorderBrushPressed" Color="#075985" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
 
     <!-- Standard content card -->
     <Style x:Key="CardStyle" TargetType="Border">
@@ -20,7 +148,7 @@
     <!-- Prominent Hero Card with subtle accent depth -->
     <Style x:Key="HeroCardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomHeroBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="24" />
@@ -67,8 +195,8 @@
 
     <!-- Pill badge background (neutral) -->
     <Style x:Key="BadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CustomNeutralBadgeBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomNeutralBadgeBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="10,3" />
@@ -77,12 +205,43 @@
 
     <!-- Accent badge (colored highlight) -->
     <Style x:Key="AccentBadgeStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource AccentFillColorTertiaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorSecondaryBrush}" />
+        <Setter Property="Background" Value="{ThemeResource CustomAccentBadgeBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomAccentBadgeBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="10,3" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Success badge (green highlight) -->
+    <Style x:Key="SuccessBadgeStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CustomSuccessBadgeBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomSuccessBadgeBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Warning badge (amber highlight) -->
+    <Style x:Key="WarningBadgeStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CustomWarningBadgeBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomWarningBadgeBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Modern Curated Accent Button Style -->
+    <Style x:Key="AccentButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource CustomAccentPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource CustomAccentForegroundBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomAccentBadgeBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <!-- Full-width secondary/navigation button -->
@@ -93,13 +252,28 @@
         <Setter Property="CornerRadius" Value="8" />
     </Style>
 
-    <!-- Interactive category filter chip -->
+    <!-- Interactive category filter chip (Unselected) -->
     <Style x:Key="CategoryChipStyle" TargetType="Button">
         <Setter Property="CornerRadius" Value="14" />
         <Setter Property="Padding" Value="12,5" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- Interactive category filter chip (Selected) -->
+    <Style x:Key="SelectedCategoryChipStyle" TargetType="Button">
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+        <Setter Property="Background" Value="{ThemeResource CustomAccentPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomAccentBadgeBorderBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource CustomAccentForegroundBrush}" />
     </Style>
 
 </ResourceDictionary>

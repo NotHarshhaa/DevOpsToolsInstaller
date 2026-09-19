@@ -28,9 +28,14 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="16"
-                            VerticalAlignment="Center">
-                        <Image Source="Assets/app.png" Stretch="Uniform" />
+                    <Border Grid.Column="0" Width="68" Height="68" CornerRadius="16"
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                            BorderThickness="1"
+                            VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Image x:Name="ToolLogoImage" Source="ms-appx:///Assets/app.png"
+                               Width="56" Height="56" Stretch="Uniform"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
 
                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
@@ -42,7 +47,7 @@
                             </Border>
                             <Border Style="{StaticResource AccentBadgeStyle}">
                                 <TextBlock Text="WinUI 3 • .NET 8" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                             </Border>
                         </StackPanel>
                         <TextBlock TextWrapping="Wrap"
@@ -73,17 +78,14 @@
 
                     <!-- Author Avatar (GitHub Avatar) -->
                     <Border Grid.Column="0" Width="76" Height="76" CornerRadius="38"
-                            BorderThickness="2" BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                            BorderThickness="2" BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
                             VerticalAlignment="Center">
                         <controls:PersonPicture
+                            x:Name="AuthorPicture"
                             DisplayName="HARSHHAA"
                             Initials="H"
                             Width="72"
-                            Height="72">
-                            <controls:PersonPicture.ProfilePicture>
-                                <BitmapImage UriSource="https://avatars.githubusercontent.com/u/112948305?v=4" />
-                            </controls:PersonPicture.ProfilePicture>
-                        </controls:PersonPicture>
+                            Height="72" />
                     </Border>
 
                     <!-- Author Details -->
@@ -92,15 +94,15 @@
                             <TextBlock Text="HARSHHAA" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
                             <Border Style="{StaticResource AccentBadgeStyle}">
                                 <TextBlock Text="Lead Maintainer" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                             </Border>
                         </StackPanel>
 
                         <HyperlinkButton Click="AuthorGitHub_Click" Padding="0" Margin="0,0,0,2">
                             <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE774;" FontSize="12" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                <FontIcon Glyph="&#xE774;" FontSize="12" Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                                 <TextBlock Text="https://github.com/NotHarshhaa" FontSize="13"
-                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                             </StackPanel>
                         </HyperlinkButton>
 

@@ -100,7 +100,7 @@
                                                    Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                                         <Border Style="{StaticResource BadgeStyle}" Padding="7,1">
                                             <TextBlock Text="{Binding KindLabel}" FontSize="11"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                       Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
                                         </Border>
                                     </StackPanel>
 

@@ -119,7 +119,7 @@
                       VerticalScrollBarVisibility="Disabled"
                       VerticalScrollMode="Disabled">
             <StackPanel x:Name="CategoryChipsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,0,4">
-                <Button Content="All Tools" Tag="All" Click="CategoryChip_Click" Style="{StaticResource AccentButtonStyle}" CornerRadius="14" Padding="12,5" FontSize="12" />
+                <Button Content="All Tools" Tag="All" Click="CategoryChip_Click" Style="{StaticResource SelectedCategoryChipStyle}" />
                 <Button Content="Cloud CLIs" Tag="Cloud CLIs" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 <Button Content="Containerization" Tag="Containerization" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 <Button Content="Kubernetes" Tag="Kubernetes" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
@@ -224,12 +224,12 @@
                                     <TextBlock Text="{Binding KindLabel}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                FontWeight="SemiBold"
-                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                               Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                                 </Border>
                                 <Border Style="{StaticResource BadgeStyle}">
                                     <TextBlock Text="{Binding Category}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                               Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
                                 </Border>
                             </StackPanel>
 

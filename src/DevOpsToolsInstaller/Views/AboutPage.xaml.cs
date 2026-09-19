@@ -13,6 +13,8 @@ public sealed partial class AboutPage : Page
     public AboutPage()
     {
         InitializeComponent();
+        ToolLogoImage.Source = Services.AppLogoHelper.GetLogoImage();
+        AuthorPicture.ProfilePicture = Services.AppLogoHelper.GetAuthorImage();
     }
 
     private async void ToolGitHub_Click(object sender, RoutedEventArgs e)

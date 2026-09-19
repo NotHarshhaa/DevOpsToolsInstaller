@@ -9,6 +9,7 @@ public sealed partial class HomePage : Page
     public HomePage()
     {
         InitializeComponent();
+        HeroLogoImage.Source = AppLogoHelper.GetLogoImage();
         Loaded += HomePage_Loaded;
     }
 

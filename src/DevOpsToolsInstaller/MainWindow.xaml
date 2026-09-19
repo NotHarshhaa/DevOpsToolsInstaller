@@ -15,7 +15,7 @@
         <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="Transparent">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
                 <Border Width="24" Height="24" CornerRadius="6" VerticalAlignment="Center">
-                    <Image Source="Assets/app.png" Stretch="Uniform" />
+                    <Image x:Name="AppTitleBarLogo" Source="ms-appx:///Assets/app.png" Width="20" Height="20" Stretch="Uniform" />
                 </Border>
                 <TextBlock
                     Text="DevOps Tools Installer"

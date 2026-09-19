@@ -87,6 +87,8 @@ public sealed partial class MainWindow : Window
             AppWindow?.SetIcon(iconPath);
         }
 
+        AppTitleBarLogo.Source = AppLogoHelper.GetLogoImage();
+
         ApplyTheme(SettingsService.Theme);
 
         RootGrid.ActualThemeChanged += (s, e) =>

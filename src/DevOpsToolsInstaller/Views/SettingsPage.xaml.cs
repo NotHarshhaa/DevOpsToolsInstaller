@@ -11,6 +11,8 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
+        SettingsLogoImage.Source = AppLogoHelper.GetLogoImage();
+        SettingsAuthorPicture.ProfilePicture = AppLogoHelper.GetAuthorImage();
         Loaded += SettingsPage_Loaded;
     }
 
