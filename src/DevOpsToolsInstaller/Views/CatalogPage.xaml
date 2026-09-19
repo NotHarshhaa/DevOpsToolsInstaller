@@ -20,7 +20,7 @@
                 </TransitionCollection>
             </StackPanel.ChildrenTransitions>
             <TextBlock Text="Tool Catalog" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="Select the tools you need and download them in one go."
+            <TextBlock Text="Select the tools you need or pick a curated stack preset to download in one go."
                        Style="{StaticResource PageSubtitleStyle}" />
         </StackPanel>
 
@@ -44,6 +44,44 @@
                 <ProgressRing x:Name="BusyRing" Width="20" Height="20" Visibility="Collapsed" />
                 <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="0,0,6,0"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                <!-- Presets dropdown -->
+                <DropDownButton x:Name="PresetsButton">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE71D;" FontSize="13" />
+                        <TextBlock Text="Presets" />
+                    </StackPanel>
+                    <DropDownButton.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Kubernetes Core" Tag="k8s" Click="Preset_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE7B8;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Cloud Foundation" Tag="cloud" Click="Preset_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE753;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Infrastructure as Code" Tag="iac" Click="Preset_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8F1;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Security &amp; Secrets" Tag="sec" Click="Preset_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE72E;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Modern Terminal &amp; CLI" Tag="cli" Click="Preset_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE756;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </DropDownButton.Flyout>
+                </DropDownButton>
+
                 <Button x:Name="SelectAllButton" Click="SelectAll_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE762;" FontSize="13" />
@@ -56,6 +94,15 @@
                         <TextBlock Text="Clear" />
                     </StackPanel>
                 </Button>
+
+                <!-- Cancel Button when active -->
+                <Button x:Name="CancelButton" Visibility="Collapsed" Click="CancelDownload_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                        <TextBlock Text="Cancel" />
+                    </StackPanel>
+                </Button>
+
                 <Button x:Name="DownloadButton" Style="{StaticResource AccentButtonStyle}" Click="Download_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <FontIcon Glyph="&#xE896;" FontSize="13"
@@ -138,6 +185,7 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
                             <CheckBox
@@ -152,11 +200,9 @@
                                     BorderThickness="1"
                                     VerticalAlignment="Center">
                                 <Grid>
-                                    <!-- Glyph shown when tool has no brand logo, or when logo fails to load -->
                                     <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                               Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                    <!-- Brand logo shown when a logoUrl is present -->
                                     <Image Width="26" Height="26" Stretch="Uniform"
                                            Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
                                            ImageFailed="LogoImage_ImageFailed" />
@@ -186,6 +232,13 @@
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Border>
                             </StackPanel>
+
+                            <!-- Tool Inspector Details Button -->
+                            <Button Grid.Column="4" Click="ToolDetails_Click"
+                                    ToolTipService.ToolTip="Inspect tool specifications and documentation"
+                                    Padding="7" VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE946;" FontSize="13" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
                         </Grid>
                     </Border>
                 </DataTemplate>

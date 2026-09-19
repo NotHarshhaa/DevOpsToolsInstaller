@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
@@ -8,10 +12,7 @@ using DevOpsToolsInstaller.Services;
 namespace DevOpsToolsInstaller.Views;
 
 /// <summary>
-/// A category of tools shown under a single header in the catalog. Deriving
-/// from <see cref="List{T}"/> lets a grouped <see cref="CollectionViewSource"/>
-/// treat the group itself as the item collection, while <see cref="Key"/> and
-/// the inherited <c>Count</c> drive the header UI.
+/// A category of tools shown under a single header in the catalog.
 /// </summary>
 public sealed class ToolCategoryGroup : List<ToolDefinition>
 {
@@ -26,6 +27,8 @@ public sealed partial class CatalogPage : Page
     private readonly ObservableCollection<ToolCategoryGroup> _groups = new();
     private readonly CollectionViewSource _groupedView;
     private bool _busy;
+    private CancellationTokenSource? _downloadCts;
+    private string _selectedCategory = "All";
 
     public CatalogPage()
     {
@@ -66,8 +69,6 @@ public sealed partial class CatalogPage : Page
         ApplyFilter();
         StatusText.Text = $"{mw.Tools.Count} tools available";
     }
-
-    private string _selectedCategory = "All";
 
     private void ApplyFilter()
     {
@@ -133,6 +134,31 @@ public sealed partial class CatalogPage : Page
             ApplyFilter();
     }
 
+    private void Preset_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem item || item.Tag is not string tag) return;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var targetIds = tag switch
+        {
+            "k8s"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "kubectl", "helm", "k9s", "minikube", "kind", "skaffold" },
+            "cloud" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "awscli", "azure-cli", "gcloud-cli", "doctl", "oci-cli" },
+            "iac"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "terraform", "opentofu", "terragrunt", "pulumi", "packer", "ansible" },
+            "sec"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "trivy", "sops", "gitleaks" },
+            "cli"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "windows-terminal", "vscode", "lazygit", "lazydocker", "jq", "yq" },
+            _       => new HashSet<string>()
+        };
+
+        foreach (var tool in mw.Tools)
+        {
+            tool.IsSelected = targetIds.Contains(tool.Id);
+        }
+
+        var selectedCount = mw.Tools.Count(t => t.IsSelected);
+        StatusText.Text = $"Selected {selectedCount} tools for preset: {item.Text}";
+    }
+
     private void SelectAll_Click(object sender, RoutedEventArgs e)
     {
         foreach (var item in VisibleTools) item.IsSelected = true;
@@ -161,6 +187,8 @@ public sealed partial class CatalogPage : Page
             return;
         }
 
+        _downloadCts = new CancellationTokenSource();
+        CancelButton.Visibility = Visibility.Visible;
         SetBusy(true, $"Downloading {selected.Count} tool(s)...");
 
         // Add to download queue for the DownloadsPage to track
@@ -173,11 +201,15 @@ public sealed partial class CatalogPage : Page
         try
         {
             var dlFolder = DownloadService.DefaultDownloadsFolder;
-            await mw.DownloadSvc.DownloadBatchAsync(selected, dlFolder, maxConcurrency: 3);
+            await mw.DownloadSvc.DownloadBatchAsync(selected, dlFolder, maxConcurrency: 3, ct: _downloadCts.Token);
 
             var succeeded = selected.Count(t => t.Status == ToolStatus.Downloaded);
             var failed = selected.Count(t => t.Status == ToolStatus.Failed);
             StatusText.Text = $"Done - {succeeded} succeeded, {failed} failed";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Downloads cancelled.";
         }
         catch (Exception ex)
         {
@@ -185,7 +217,87 @@ public sealed partial class CatalogPage : Page
         }
         finally
         {
+            CancelButton.Visibility = Visibility.Collapsed;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
             SetBusy(false);
+        }
+    }
+
+    private void CancelDownload_Click(object sender, RoutedEventArgs e)
+    {
+        _downloadCts?.Cancel();
+        StatusText.Text = "Cancelling downloads...";
+    }
+
+    private async void ToolDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+
+        var panel = new StackPanel { Spacing = 14, MaxWidth = 480 };
+
+        var headerGrid = new Grid { ColumnSpacing = 14 };
+        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+        var iconBorder = new Border
+        {
+            Width = 44,
+            Height = 44,
+            CornerRadius = new CornerRadius(10),
+            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"]
+        };
+        var glyph = new FontIcon
+        {
+            Glyph = tool.IconGlyph,
+            FontSize = 20,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        iconBorder.Child = glyph;
+        Grid.SetColumn(iconBorder, 0);
+        headerGrid.Children.Add(iconBorder);
+
+        var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
+        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 16 });
+        titleStack.Children.Add(new TextBlock { Text = $"{tool.Category} • {tool.KindLabel}", Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"], FontSize = 12 });
+        Grid.SetColumn(titleStack, 1);
+        headerGrid.Children.Add(titleStack);
+        panel.Children.Add(headerGrid);
+
+        panel.Children.Add(new TextBlock { Text = tool.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) });
+
+        var metaBorder = new Border
+        {
+            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
+            CornerRadius = new CornerRadius(8),
+            Padding = new Thickness(14)
+        };
+        var metaStack = new StackPanel { Spacing = 6 };
+        metaStack.Children.Add(new TextBlock { Text = $"File Name: {tool.FileName}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"Deployment: {tool.ActionLabel}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"Current Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        if (!string.IsNullOrWhiteSpace(tool.Sha256))
+        {
+            metaStack.Children.Add(new TextBlock { Text = $"SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap });
+        }
+        metaBorder.Child = metaStack;
+        panel.Children.Add(metaBorder);
+
+        var dialog = new ContentDialog
+        {
+            Title = "Tool Specifications",
+            Content = panel,
+            PrimaryButtonText = !string.IsNullOrWhiteSpace(tool.Homepage) ? "Open Documentation" : "",
+            CloseButtonText = "Close",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(tool.Homepage))
+        {
+            LauncherService.OpenUrl(tool.Homepage);
         }
     }
 
@@ -196,6 +308,7 @@ public sealed partial class CatalogPage : Page
         DownloadButton.IsEnabled = !busy;
         SelectAllButton.IsEnabled = !busy;
         ClearButton.IsEnabled = !busy;
+        PresetsButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
     }
 

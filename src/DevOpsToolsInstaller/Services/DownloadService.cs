@@ -20,23 +20,13 @@ public sealed class DownloadService
             Timeout = TimeSpan.FromMinutes(30)
         };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "DevOpsToolsInstaller/1.2.0 (Windows NT 10.0; Win64; x64)");
+            "DevOpsToolsInstaller/1.5.0 (Windows NT 10.0; Win64; x64)");
     }
 
     /// <summary>
-    /// Default download folder: %LOCALAPPDATA%\DevOpsToolsInstaller\Downloads
+    /// Current download folder configured by the user, defaulting to %LOCALAPPDATA%\DevOpsToolsInstaller\Downloads.
     /// </summary>
-    public static string DefaultDownloadsFolder
-    {
-        get
-        {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DevOpsToolsInstaller", "Downloads");
-            Directory.CreateDirectory(folder);
-            return folder;
-        }
-    }
+    public static string DefaultDownloadsFolder => SettingsService.DownloadsFolder;
 
     /// <summary>
     /// Downloads a single tool's installer with progress reporting.

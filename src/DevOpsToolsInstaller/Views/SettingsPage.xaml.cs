@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Services;
@@ -18,6 +20,7 @@ public sealed partial class SettingsPage : Page
         DownloadPathText.Text = dlFolder;
         ToolsPathText.Text = ArtifactService.BinFolder;
         UpdateStorageInfo(dlFolder);
+        UpdatePathStatus();
 
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
@@ -28,6 +31,80 @@ public sealed partial class SettingsPage : Page
                 ThemeComboBox.SelectedItem = item;
                 break;
             }
+        }
+    }
+
+    private void UpdatePathStatus()
+    {
+        var onPath = SettingsService.IsFolderOnUserPath(ArtifactService.BinFolder);
+        if (onPath)
+        {
+            PathStatusText.Text = "On User PATH";
+            AddToPathButton.IsEnabled = false;
+        }
+        else
+        {
+            PathStatusText.Text = "Not on PATH";
+            AddToPathButton.IsEnabled = true;
+        }
+    }
+
+    private void AddToPath_Click(object sender, RoutedEventArgs e)
+    {
+        var binFolder = ArtifactService.BinFolder;
+        var added = SettingsService.AddToUserPath(binFolder);
+        UpdatePathStatus();
+
+        NoticeInfoBar.IsOpen = true;
+        if (added)
+        {
+            NoticeInfoBar.Severity = InfoBarSeverity.Success;
+            NoticeInfoBar.Title = "PATH Updated";
+            NoticeInfoBar.Message = $"{binFolder} was successfully added to your User PATH. Any newly opened terminals can run installed CLI tools directly.";
+        }
+        else
+        {
+            NoticeInfoBar.Severity = InfoBarSeverity.Informational;
+            NoticeInfoBar.Title = "Already on PATH";
+            NoticeInfoBar.Message = $"{binFolder} is already present in your PATH.";
+        }
+    }
+
+    private async void ChangeFolder_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Downloads;
+            picker.FileTypeFilter.Add("*");
+
+            if (App.MainWindowInstance != null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            }
+
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder is not null)
+            {
+                SettingsService.DownloadsFolder = folder.Path;
+                SettingsService.SaveSettings();
+
+                DownloadPathText.Text = folder.Path;
+                UpdateStorageInfo(folder.Path);
+
+                NoticeInfoBar.IsOpen = true;
+                NoticeInfoBar.Severity = InfoBarSeverity.Success;
+                NoticeInfoBar.Title = "Downloads Directory Changed";
+                NoticeInfoBar.Message = $"Installers will now be saved to: {folder.Path}";
+            }
+        }
+        catch (Exception ex)
+        {
+            NoticeInfoBar.IsOpen = true;
+            NoticeInfoBar.Severity = InfoBarSeverity.Error;
+            NoticeInfoBar.Title = "Folder Selection Failed";
+            NoticeInfoBar.Message = ex.Message;
         }
     }
 
