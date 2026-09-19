@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using DevOpsToolsInstaller.Models;
 
@@ -5,13 +6,22 @@ namespace DevOpsToolsInstaller.Services;
 
 public sealed class DownloadService
 {
-    private static readonly HttpClient Http = new(new HttpClientHandler
+    private static readonly HttpClient Http;
+    private static readonly ConcurrentDictionary<string, Task> ActiveDownloads = new();
+
+    static DownloadService()
     {
-        AllowAutoRedirect = true
-    })
-    {
-        Timeout = TimeSpan.FromMinutes(30)
-    };
+        var handler = new HttpClientHandler
+        {
+            AllowAutoRedirect = true
+        };
+        Http = new HttpClient(handler)
+        {
+            Timeout = TimeSpan.FromMinutes(30)
+        };
+        Http.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "DevOpsToolsInstaller/1.2.0 (Windows NT 10.0; Win64; x64)");
+    }
 
     /// <summary>
     /// Default download folder: %LOCALAPPDATA%\DevOpsToolsInstaller\Downloads
@@ -30,7 +40,8 @@ public sealed class DownloadService
 
     /// <summary>
     /// Downloads a single tool's installer with progress reporting.
-    /// Skips if the file already exists and SHA256 matches.
+    /// Skips if the file already exists, has non-zero size, and SHA256 matches.
+    /// Deduplicates concurrent download requests for the same tool.
     /// </summary>
     public async Task DownloadAsync(
         ToolDefinition tool,
@@ -38,21 +49,45 @@ public sealed class DownloadService
         IProgress<double>? progress = null,
         CancellationToken ct = default)
     {
+        var downloadTask = ActiveDownloads.GetOrAdd(
+            tool.Id,
+            _ => ExecuteDownloadAsync(tool, destinationFolder, progress, ct));
+
+        try
+        {
+            await downloadTask;
+        }
+        finally
+        {
+            ActiveDownloads.TryRemove(tool.Id, out _);
+        }
+    }
+
+    private static async Task ExecuteDownloadAsync(
+        ToolDefinition tool,
+        string destinationFolder,
+        IProgress<double>? progress,
+        CancellationToken ct)
+    {
         var destPath = Path.Combine(destinationFolder, tool.FileName);
 
-        // Skip if already downloaded and hash matches
+        // Skip if already downloaded, non-empty, and hash matches
         if (File.Exists(destPath))
         {
-            if (string.IsNullOrEmpty(tool.Sha256) || await VerifyHashAsync(destPath, tool.Sha256, ct))
+            var fileInfo = new FileInfo(destPath);
+            if (fileInfo.Length > 0)
             {
-                tool.Progress = 100;
-                tool.Status = ToolStatus.Downloaded;
-                progress?.Report(100);
-                return;
+                if (string.IsNullOrEmpty(tool.Sha256) || await VerifyHashAsync(destPath, tool.Sha256, ct))
+                {
+                    tool.Progress = 100;
+                    tool.Status = ToolStatus.Downloaded;
+                    progress?.Report(100);
+                    return;
+                }
             }
 
-            // Hash mismatch — re-download
-            File.Delete(destPath);
+            // 0-byte file or hash mismatch — re-download
+            CleanupPartial(destPath);
         }
 
         tool.Status = ToolStatus.Downloading;
@@ -67,34 +102,47 @@ public sealed class DownloadService
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-            await using var stream = await response.Content.ReadAsStreamAsync(ct);
-            await using var fileStream = File.Create(destPath);
-
-            var buffer = new byte[81920]; // 80 KB chunks
-            long totalRead = 0;
-            int bytesRead;
-            int lastReportedPct = -1;
-
-            while ((bytesRead = await stream.ReadAsync(buffer, ct)) > 0)
+            await using (var stream = await response.Content.ReadAsStreamAsync(ct))
+            await using (var fileStream = File.Create(destPath))
             {
-                await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct);
-                totalRead += bytesRead;
+                var buffer = new byte[81920]; // 80 KB chunks
+                long totalRead = 0;
+                int bytesRead;
+                int lastReportedPct = -1;
 
-                if (totalBytes > 0)
+                while ((bytesRead = await stream.ReadAsync(buffer, ct)) > 0)
                 {
-                    var pct = (double)totalRead / totalBytes * 100;
+                    await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct);
+                    totalRead += bytesRead;
 
-                    // Throttle: only push an update when the whole-number
-                    // percentage changes. Each update marshals a PropertyChanged
-                    // to the UI thread, so per-chunk updates would flood it.
-                    var wholePct = (int)pct;
-                    if (wholePct != lastReportedPct)
+                    if (totalBytes > 0)
                     {
-                        lastReportedPct = wholePct;
-                        tool.Progress = pct;
-                        progress?.Report(pct);
+                        var pct = (double)totalRead / totalBytes * 100;
+
+                        // Throttle UI notification to whole-number changes
+                        var wholePct = (int)pct;
+                        if (wholePct != lastReportedPct)
+                        {
+                            lastReportedPct = wholePct;
+                            tool.Progress = pct;
+                            progress?.Report(pct);
+                        }
                     }
                 }
+
+                // Verify download was not cut short
+                if (totalBytes > 0 && totalRead < totalBytes)
+                {
+                    throw new IOException(
+                        $"Download ended prematurely ({totalRead} of {totalBytes} bytes received).");
+                }
+            }
+
+            // Verify hash if specified
+            if (!string.IsNullOrEmpty(tool.Sha256) && !await VerifyHashAsync(destPath, tool.Sha256, ct))
+            {
+                CleanupPartial(destPath);
+                throw new CryptographicException("SHA256 checksum verification failed.");
             }
 
             tool.Progress = 100;
@@ -107,10 +155,11 @@ public sealed class DownloadService
             tool.Progress = 0;
             throw;
         }
-        catch
+        catch (Exception ex)
         {
             CleanupPartial(destPath);
             tool.Status = ToolStatus.Failed;
+            tool.StatusText = $"Failed: {ex.Message}";
             tool.Progress = 0;
             throw;
         }
@@ -129,21 +178,30 @@ public sealed class DownloadService
 
         var tasks = tools.Select(async tool =>
         {
-            await semaphore.WaitAsync(ct);
             try
             {
-                // DownloadAsync already updates tool.Progress directly, so no
-                // extra IProgress wrapper is needed here.
+                await semaphore.WaitAsync(ct);
+            }
+            catch (OperationCanceledException)
+            {
+                tool.Status = ToolStatus.NotDownloaded;
+                tool.Progress = 0;
+                return;
+            }
+
+            try
+            {
                 await DownloadAsync(tool, destinationFolder, progress: null, ct);
             }
             catch (OperationCanceledException)
             {
-                // Propagated — batch will cancel
+                tool.Status = ToolStatus.NotDownloaded;
+                tool.Progress = 0;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 tool.Status = ToolStatus.Failed;
-                tool.StatusText = "Download failed";
+                tool.StatusText = $"Failed: {ex.Message}";
             }
             finally
             {
@@ -174,20 +232,30 @@ public sealed class DownloadService
     }
 
     /// <summary>
-    /// Removes a partially-downloaded file.
+    /// Removes a partially-downloaded file safely.
     /// </summary>
     private static void CleanupPartial(string path)
     {
-        try { if (File.Exists(path)) File.Delete(path); } catch { /* best effort */ }
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            /* best effort */
+        }
     }
 
     /// <summary>
-    /// Checks whether a tool's installer has already been downloaded.
+    /// Checks whether a tool's installer has already been downloaded and is non-empty.
     /// </summary>
     public static bool IsAlreadyDownloaded(ToolDefinition tool, string destinationFolder)
     {
         var path = Path.Combine(destinationFolder, tool.FileName);
-        return File.Exists(path);
+        return File.Exists(path) && new FileInfo(path).Length > 0;
     }
 
     /// <summary>
@@ -205,7 +273,10 @@ public sealed class DownloadService
                 freed += new FileInfo(file).Length;
                 File.Delete(file);
             }
-            catch { /* skip locked files */ }
+            catch
+            {
+                /* skip locked files */
+            }
         }
         return freed;
     }

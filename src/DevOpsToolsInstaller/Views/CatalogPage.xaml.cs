@@ -116,10 +116,16 @@ public sealed partial class CatalogPage : Page
         var mw = App.MainWindowInstance;
         if (mw is null || _busy) return;
 
-        var selected = VisibleTools.Where(t => t.IsSelected && t.Status != ToolStatus.Downloaded).ToList();
+        var selected = VisibleTools
+            .Where(t => t.IsSelected && t.Status != ToolStatus.Downloaded && t.Status != ToolStatus.Downloading)
+            .ToList();
+
         if (selected.Count == 0)
         {
-            StatusText.Text = "Select at least one tool to download.";
+            var anySelected = VisibleTools.Any(t => t.IsSelected);
+            StatusText.Text = anySelected
+                ? "Selected tool(s) are already downloaded or currently downloading."
+                : "Select at least one tool to download.";
             return;
         }
 
@@ -159,5 +165,20 @@ public sealed partial class CatalogPage : Page
         SelectAllButton.IsEnabled = !busy;
         ClearButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
+    }
+
+    private void LogoImage_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+    {
+        if (sender is Image img && img.Parent is Grid parent)
+        {
+            img.Visibility = Visibility.Collapsed;
+            foreach (var child in parent.Children)
+            {
+                if (child is FontIcon icon)
+                {
+                    icon.Visibility = Visibility.Visible;
+                }
+            }
+        }
     }
 }

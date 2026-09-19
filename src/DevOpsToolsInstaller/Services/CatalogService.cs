@@ -14,10 +14,17 @@ public sealed class CatalogService
         PropertyNameCaseInsensitive = true
     };
 
-    private static readonly HttpClient Http = new()
+    private static readonly HttpClient Http;
+
+    static CatalogService()
     {
-        Timeout = TimeSpan.FromSeconds(15)
-    };
+        Http = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(15)
+        };
+        Http.DefaultRequestHeaders.UserAgent.ParseAdd(
+            "DevOpsToolsInstaller/1.2.0 (Windows NT 10.0; Win64; x64)");
+    }
 
     /// <summary>
     /// Loads the tool catalog. Tries the remote GitHub URL first;
@@ -44,11 +51,11 @@ public sealed class CatalogService
 
     /// <summary>
     /// Loads the catalog that was copied into the output directory at build time.
+    /// Uses AppContext.BaseDirectory so single-file deployments can locate the file.
     /// </summary>
     private static List<ToolDefinition> LoadEmbeddedCatalog()
     {
-        var exeDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
-        var catalogPath = Path.Combine(exeDir, "Assets", "catalog.json");
+        var catalogPath = Path.Combine(AppContext.BaseDirectory, "Assets", "catalog.json");
 
         if (!File.Exists(catalogPath))
             return new List<ToolDefinition>();

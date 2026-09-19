@@ -114,11 +114,15 @@ public static class UninstallService
     private static UninstallResult RemoveExtracted(ToolDefinition tool)
     {
         var target = Path.Combine(ArtifactService.ToolsRoot, tool.Id);
-        if (!Directory.Exists(target))
-            return new UninstallResult(true, $"{tool.Name} has no extracted folder.");
+        if (Directory.Exists(target))
+        {
+            Directory.Delete(target, recursive: true);
+        }
 
-        Directory.Delete(target, recursive: true);
-        return new UninstallResult(true, $"Deleted extracted files for {tool.Name}.");
+        // Also clean up any binary copied to Tools\bin from this archive
+        ArtifactService.RemoveArchiveBinaries(tool);
+
+        return new UninstallResult(true, $"Removed extracted files for {tool.Name}.");
     }
 
     private static UninstallResult LaunchVendorUninstaller(ToolDefinition tool)
@@ -137,6 +141,12 @@ public static class UninstallService
         {
             return new UninstallResult(
                 false, $"Couldn't parse the uninstaller for {tool.Name}.");
+        }
+
+        // If msiexec is invoked with /I (install/modify), change to /X (uninstall)
+        if (Path.GetFileNameWithoutExtension(exe).Equals("msiexec", StringComparison.OrdinalIgnoreCase))
+        {
+            args = System.Text.RegularExpressions.Regex.Replace(args, @"(?i)(^|\s)/I(\s|{)", "$1/X$2");
         }
 
         // UseShellExecute lets the vendor uninstaller surface its own UI / UAC
@@ -233,33 +243,87 @@ public static class UninstallService
     }
 
     /// <summary>
-    /// Heuristic match between a registry DisplayName and the catalog tool.
-    /// Compares against the tool's name (and its individual words) to tolerate
-    /// vendor suffixes like "Microsoft Azure CLI" or "Git version 2.x".
+    /// Safe matching between a registry DisplayName and the catalog tool.
+    /// Prevents substring false-positives (e.g. "Go" matching "Google Chrome",
+    /// "Git" matching "Logitech G HUB", or "act" matching "Action!") by enforcing
+    /// word boundary matching and handling aliases.
     /// </summary>
-    private static bool NameMatches(string displayName, ToolDefinition tool)
+    internal static bool NameMatches(string displayName, ToolDefinition tool)
     {
+        if (string.IsNullOrWhiteSpace(displayName)) return false;
+
         var name = tool.Name.Trim();
         if (name.Length == 0) return false;
 
-        if (displayName.Contains(name, StringComparison.OrdinalIgnoreCase))
+        // 1. Direct case-insensitive equality
+        if (string.Equals(displayName.Trim(), name, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        // Fall back to the significant words of the tool name (ignore short
-        // filler words) so "AWS Command Line Interface v2" matches "AWS CLI".
-        var words = name
-            .Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(w => w.Length >= 3)
-            .ToArray();
+        // 2. Known vendor aliases
+        if (MatchesKnownAlias(displayName, tool.Id))
+            return true;
 
-        return words.Length > 0 &&
-               words.All(w => displayName.Contains(w, StringComparison.OrdinalIgnoreCase));
+        // 3. Extract sub-phrases if name has parentheses, e.g. "doctl (DigitalOcean CLI)" -> ["doctl", "DigitalOcean CLI"]
+        var phrases = ExtractPhrases(name);
+
+        foreach (var phrase in phrases)
+        {
+            if (phrase.Length < 2) continue;
+
+            // Use regex word boundaries (\b) so "Go" only matches the whole word "Go", not "Google"
+            var escaped = System.Text.RegularExpressions.Regex.Escape(phrase);
+            var pattern = $@"\b{escaped}\b";
+            if (System.Text.RegularExpressions.Regex.IsMatch(displayName, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool MatchesKnownAlias(string displayName, string toolId)
+    {
+        return toolId.ToLowerInvariant() switch
+        {
+            "awscli" => displayName.Contains("AWS Command Line Interface", StringComparison.OrdinalIgnoreCase)
+                     || displayName.Contains("AWS CLI", StringComparison.OrdinalIgnoreCase),
+            "azure-cli" => displayName.Contains("Azure CLI", StringComparison.OrdinalIgnoreCase)
+                        || displayName.Contains("Microsoft Azure CLI", StringComparison.OrdinalIgnoreCase),
+            "gcloud-cli" => displayName.Contains("Google Cloud SDK", StringComparison.OrdinalIgnoreCase)
+                         || displayName.Contains("Google Cloud CLI", StringComparison.OrdinalIgnoreCase),
+            "github-cli" => displayName.Contains("GitHub CLI", StringComparison.OrdinalIgnoreCase),
+            "git" => displayName.StartsWith("Git", StringComparison.OrdinalIgnoreCase)
+                  && System.Text.RegularExpressions.Regex.IsMatch(displayName, @"\bGit\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+            "ansible" => displayName.StartsWith("Python 3", StringComparison.OrdinalIgnoreCase),
+            _ => false
+        };
+    }
+
+    private static System.Collections.Generic.List<string> ExtractPhrases(string name)
+    {
+        var list = new System.Collections.Generic.List<string>();
+
+        // Remove trailing parenthesized parts or split by parens
+        var parenMatch = System.Text.RegularExpressions.Regex.Match(name, @"^([^()]+)\s*\(([^()]+)\)");
+        if (parenMatch.Success)
+        {
+            var p1 = parenMatch.Groups[1].Value.Trim();
+            var p2 = parenMatch.Groups[2].Value.Trim();
+            if (!string.IsNullOrEmpty(p1)) list.Add(p1);
+            if (!string.IsNullOrEmpty(p2)) list.Add(p2);
+        }
+        else
+        {
+            list.Add(name);
+        }
+
+        return list;
     }
 
     /// <summary>
     /// Splits an uninstall command line into an executable path and its
-    /// arguments, handling both quoted paths and bare tokens (e.g.
-    /// <c>MsiExec.exe /X{GUID}</c>).
+    /// arguments, handling both quoted paths and bare tokens.
     /// </summary>
     private static bool TryParseCommand(string command, out string exe, out string args)
     {
@@ -274,7 +338,7 @@ public static class UninstallService
             var end = command.IndexOf('"', 1);
             if (end < 0) return false;
 
-            exe = command.Substring(1, end - 1);
+            exe = command.Substring(1, end - 1).Trim();
             args = command[(end + 1)..].Trim();
             return exe.Length > 0;
         }

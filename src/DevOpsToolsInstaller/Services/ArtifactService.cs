@@ -101,8 +101,61 @@ public static class ArtifactService
         Directory.CreateDirectory(target);
         ZipFile.ExtractToDirectory(sourcePath, target, overwriteFiles: true);
 
+        // Copy any contained executables to Tools\bin so users only need Tools\bin on PATH
+        var bin = BinFolder;
+        var exes = Directory.GetFiles(target, "*.exe", SearchOption.AllDirectories);
+        var copiedNames = new System.Collections.Generic.List<string>();
+
+        foreach (var exePath in exes)
+        {
+            var fileName = Path.GetFileName(exePath);
+            try
+            {
+                var dest = Path.Combine(bin, fileName);
+                File.Copy(exePath, dest, overwrite: true);
+                copiedNames.Add(fileName);
+            }
+            catch
+            {
+                // Best effort copying to bin
+            }
+        }
+
         LauncherService.OpenDownloadsFolder(target);
-        return new ArtifactActionResult(true, $"{tool.Name} extracted to {target}");
+
+        var onPath = IsOnUserPath(bin);
+        var pathHint = onPath
+            ? "Executable(s) ready in Tools\\bin on your PATH."
+            : "Executable(s) copied to Tools\\bin (add it to your PATH to use anywhere).";
+
+        var extraInfo = copiedNames.Count > 0 ? $" {pathHint}" : "";
+        return new ArtifactActionResult(true, $"{tool.Name} extracted to Tools\\{tool.Id}.{extraInfo}");
+    }
+
+    /// <summary>
+    /// Removes executables associated with an extracted archive from Tools\bin.
+    /// </summary>
+    public static void RemoveArchiveBinaries(ToolDefinition tool)
+    {
+        try
+        {
+            var target = Path.Combine(ToolsRoot, tool.Id);
+            if (Directory.Exists(target))
+            {
+                foreach (var exePath in Directory.GetFiles(target, "*.exe", SearchOption.AllDirectories))
+                {
+                    var binPath = Path.Combine(BinFolder, Path.GetFileName(exePath));
+                    if (File.Exists(binPath))
+                    {
+                        try { File.Delete(binPath); } catch { }
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // Best effort
+        }
     }
 
     private static ArtifactActionResult InstallBinary(ToolDefinition tool, string sourcePath)

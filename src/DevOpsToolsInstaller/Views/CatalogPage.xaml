@@ -117,13 +117,14 @@
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                     VerticalAlignment="Center">
                                 <Grid>
-                                    <!-- Glyph shown only when the tool has no brand logo -->
+                                    <!-- Glyph shown when tool has no brand logo, or when logo fails to load -->
                                     <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                               Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                     <!-- Brand logo shown when a logoUrl is present -->
                                     <Image Width="24" Height="24" Stretch="Uniform"
-                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}" />
+                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                           ImageFailed="LogoImage_ImageFailed" />
                                 </Grid>
                             </Border>
 

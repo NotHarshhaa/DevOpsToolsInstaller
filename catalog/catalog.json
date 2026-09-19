@@ -406,9 +406,9 @@
   },
   {
     "id": "ansible",
-    "name": "Ansible (via pip)",
+    "name": "Python 3 (for Ansible)",
     "category": "Infrastructure as Code",
-    "description": "Agentless IT automation platform (install via Python pip on Windows)",
+    "description": "Python runtime required to run Ansible and DevOps automation tooling via pip on Windows",
     "iconGlyph": "\uE74C",
     "logoUrl": "https://cdn.simpleicons.org/ansible",
     "kind": "installer",

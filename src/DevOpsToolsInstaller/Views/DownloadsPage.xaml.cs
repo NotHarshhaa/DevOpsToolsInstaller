@@ -13,10 +13,12 @@ public sealed partial class DownloadsPage : Page
         Loaded += DownloadsPage_Loaded;
     }
 
-    private void DownloadsPage_Loaded(object sender, RoutedEventArgs e)
+    private async void DownloadsPage_Loaded(object sender, RoutedEventArgs e)
     {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
+
+        await mw.EnsureCatalogLoadedAsync();
 
         // Also include any already-downloaded tools from the catalog
         var dlFolder = DownloadService.DefaultDownloadsFolder;
@@ -81,6 +83,7 @@ public sealed partial class DownloadsPage : Page
     {
         if (sender is not Button { DataContext: ToolDefinition tool }) return;
 
+        var mw = App.MainWindowInstance;
         var dlFolder = DownloadService.DefaultDownloadsFolder;
 
         var (title, body, primary) = tool.Kind switch
@@ -124,17 +127,18 @@ public sealed partial class DownloadsPage : Page
 
         if (result.Success)
         {
-            // Reflect that the artifact is gone: reset download status and
-            // re-check installed state (installer uninstalls run async in the
-            // vendor UI, so their entry may linger until that finishes).
-            if (tool.Kind != ArtifactKind.Installer)
-            {
-                tool.Status = ToolStatus.NotDownloaded;
-                tool.Progress = 0;
-            }
+            // The cached file was deleted: reset download status so UI doesn't claim it's ready to install
+            tool.Status = ToolStatus.NotDownloaded;
+            tool.Progress = 0;
 
             RefreshInstalledStates(
                 new System.Collections.Generic.List<ToolDefinition> { tool }, dlFolder);
+
+            if (mw is not null)
+            {
+                var completed = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Downloaded);
+                StatusText.Text = $"{result.Message} ({completed}/{mw.DownloadQueue.Count} ready to install)";
+            }
         }
     }
 
