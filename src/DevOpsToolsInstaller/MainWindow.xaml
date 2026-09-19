@@ -38,6 +38,7 @@
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             IsPaneToggleButtonVisible="True"
+            IsTabStop="False"
             SelectionChanged="NavView_SelectionChanged"
             OpenPaneLength="240">
 

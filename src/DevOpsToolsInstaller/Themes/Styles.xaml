@@ -286,10 +286,10 @@
     <!-- Standard category filter button (Unselected) -->
     <Style x:Key="CategoryChipStyle" TargetType="Button">
         <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="Padding" Value="12,6" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Normal" />
-        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="Margin" Value="0" />
         <Setter Property="Background" Value="{ThemeResource ControlFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
@@ -298,10 +298,10 @@
     <!-- Standard category filter button (Selected) -->
     <Style x:Key="SelectedCategoryChipStyle" TargetType="Button">
         <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="Padding" Value="12,6" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="Margin" Value="0" />
         <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />

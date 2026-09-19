@@ -72,6 +72,7 @@ public sealed partial class CatalogPage : Page
 
         ApplyFilter();
         StatusText.Text = $"{mw.Tools.Count} tools available";
+        UpdateScrollButtons();
     }
 
     private void ApplyFilter()
@@ -152,13 +153,98 @@ public sealed partial class CatalogPage : Page
             }
         }
 
+        // Bring clicked chip into view smoothly
+        clickedBtn.StartBringIntoView();
+
         ApplyFilter();
+    }
+
+    private void ScrollLeft_Click(object sender, RoutedEventArgs e)
+    {
+        var target = Math.Max(0, ChipsScrollViewer.HorizontalOffset - 220);
+        ChipsScrollViewer.ChangeView(target, null, null, false);
+    }
+
+    private void ScrollRight_Click(object sender, RoutedEventArgs e)
+    {
+        var target = Math.Min(ChipsScrollViewer.ScrollableWidth, ChipsScrollViewer.HorizontalOffset + 220);
+        ChipsScrollViewer.ChangeView(target, null, null, false);
+    }
+
+    private void ChipsScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs? e)
+    {
+        UpdateScrollButtons();
+    }
+
+    private void ChipsScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        UpdateScrollButtons();
+    }
+
+    private void UpdateScrollButtons()
+    {
+        if (ChipsScrollViewer == null || ScrollLeftButton == null || ScrollRightButton == null) return;
+        ScrollLeftButton.Visibility = ChipsScrollViewer.HorizontalOffset > 5 ? Visibility.Visible : Visibility.Collapsed;
+        ScrollRightButton.Visibility = ChipsScrollViewer.HorizontalOffset < (ChipsScrollViewer.ScrollableWidth - 5)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     /// <summary>Every tool currently visible across all category groups.</summary>
     private IEnumerable<ToolDefinition> VisibleTools => _groups.SelectMany(g => g);
 
-    // ── Search ──────────────────────────────────────────────────────────
+    // ── Search & Command Bar Layout ──────────────────────────────────────
+
+    private void CommandBar_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        var width = e.NewSize.Width;
+
+        // When container is very wide (>= 1220px), place Search and Toolbar on the same line.
+        // Otherwise, Search takes Row 0 (full width) and Toolbar takes Row 1.
+        bool isTwoRows = width < 1220;
+
+        if (isTwoRows)
+        {
+            SecondRowDef.Height = GridLength.Auto;
+            Grid.SetRow(ToolbarPanel, 1);
+            Grid.SetColumn(ToolbarPanel, 0);
+            Grid.SetColumnSpan(ToolbarPanel, 2);
+            SearchBox.MaxWidth = double.PositiveInfinity;
+        }
+        else
+        {
+            SecondRowDef.Height = new GridLength(0);
+            Grid.SetRow(ToolbarPanel, 0);
+            Grid.SetColumn(ToolbarPanel, 1);
+            Grid.SetColumnSpan(ToolbarPanel, 1);
+            SearchBox.MaxWidth = 360;
+        }
+
+        // Dynamically adjust button labels based on available width:
+        // When width is compact (< 880px), collapse text on secondary buttons so they display as compact icon buttons with ToolTips.
+        // When width is very compact (< 620px), shorten the CTA button text to "Download".
+        bool isCompact = width < 880;
+        bool isVeryCompact = width < 620;
+
+        var labelVisibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
+        var sepVisibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
+
+        if (SortButtonText != null) SortButtonText.Visibility = labelVisibility;
+        if (DownloadedToggleText != null) DownloadedToggleText.Visibility = labelVisibility;
+        if (PresetsButtonText != null) PresetsButtonText.Visibility = labelVisibility;
+        if (SelectAllButtonText != null) SelectAllButtonText.Visibility = labelVisibility;
+        if (ClearButtonText != null) ClearButtonText.Visibility = labelVisibility;
+        if (ProfileButtonText != null) ProfileButtonText.Visibility = labelVisibility;
+
+        if (Separator1 != null) Separator1.Visibility = sepVisibility;
+        if (Separator2 != null) Separator2.Visibility = sepVisibility;
+        if (Separator3 != null) Separator3.Visibility = sepVisibility;
+
+        if (DownloadButtonText != null)
+        {
+            DownloadButtonText.Text = isVeryCompact ? "Download" : "Download selected";
+        }
+    }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {

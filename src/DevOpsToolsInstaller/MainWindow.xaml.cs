@@ -103,6 +103,17 @@ public sealed partial class MainWindow : Window
         // HomePage. Do NOT also call ContentFrame.Navigate here — that would
         // create a second HomePage instance and race the catalog load.
         NavView.SelectedItem = NavView.MenuItems[0];
+
+        NavView.Loaded += (s, e) =>
+        {
+            RemoveTogglePaneButtonFocusVisual(NavView);
+            ContentFrame.Focus(FocusState.Programmatic);
+        };
+
+        Activated += (s, e) =>
+        {
+            RemoveTogglePaneButtonFocusVisual(NavView);
+        };
     }
 
     public void ApplyTheme(AppTheme theme)
@@ -215,6 +226,27 @@ public sealed partial class MainWindow : Window
             {
                 NavView.SelectedItem = item;
                 return;
+            }
+        }
+    }
+
+    private static void RemoveTogglePaneButtonFocusVisual(DependencyObject parent)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
+            if (child is Button btn && (btn.Name == "TogglePaneButton" || btn.Name == "PaneToggleButton"))
+            {
+                btn.IsTabStop = false;
+                btn.FocusVisualPrimaryThickness = new Thickness(0);
+                btn.FocusVisualSecondaryThickness = new Thickness(0);
+                btn.FocusVisualPrimaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                btn.FocusVisualSecondaryBrush = new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(0, 0, 0, 0));
+            }
+            else
+            {
+                RemoveTogglePaneButtonFocusVisual(child);
             }
         }
     }
