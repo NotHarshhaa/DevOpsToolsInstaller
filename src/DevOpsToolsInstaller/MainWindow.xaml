@@ -69,6 +69,11 @@
                         <FontIcon Glyph="&#xE713;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="About" Tag="About">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE946;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
             </controls:NavigationView.FooterMenuItems>
 
             <!-- Content host: a rounded, layered surface over the Mica backdrop -->

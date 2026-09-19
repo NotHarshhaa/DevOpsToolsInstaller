@@ -175,6 +175,7 @@ public sealed partial class MainWindow : Window
             "Catalog"   => typeof(CatalogPage),
             "Downloads" => typeof(DownloadsPage),
             "Settings"  => typeof(SettingsPage),
+            "About"     => typeof(AboutPage),
             _           => typeof(HomePage)
         };
 

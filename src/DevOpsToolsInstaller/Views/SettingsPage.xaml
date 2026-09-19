@@ -160,10 +160,8 @@
                         </StackPanel>
                     </Button>
                 </Grid>
-            </Border>
-
-            <!-- About -->
-            <TextBlock Text="About" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
+            </Border>            <!-- About -->
+            <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
             <Border Style="{StaticResource CardStyle}" Padding="20">
                 <Grid ColumnSpacing="18">
                     <Grid.ColumnDefinitions>
@@ -171,27 +169,59 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="12"
-                            Background="{ThemeResource AccentFillColorDefaultBrush}" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE74C;" FontSize="24"
-                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                    <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
+                            BorderThickness="2" BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                            VerticalAlignment="Center">
+                        <controls:PersonPicture DisplayName="HARSHHAA" Initials="H" Width="52" Height="52">
+                            <controls:PersonPicture.ProfilePicture>
+                                <BitmapImage UriSource="https://avatars.githubusercontent.com/u/112948305?v=4" />
+                            </controls:PersonPicture.ProfilePicture>
+                        </controls:PersonPicture>
                     </Border>
+
                     <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                        <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock Text="Version 1.5.0 • WinUI 3 + .NET 8 • x64/arm64" Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <Border Style="{StaticResource BadgeStyle}" Padding="6,1">
+                                <TextBlock Text="v1.5.0" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="Created &amp; Maintained by" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock Text="HARSHHAA" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            <TextBlock Text="•" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                            <HyperlinkButton Click="AuthorGitHub_Click" Padding="0">
+                                <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                            </HyperlinkButton>
+                        </StackPanel>
+
                         <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                    Text="A modern catalog-based package and binary installer for DevOps and cloud engineers on Windows. Fetches official vendor artifacts, verifies integrity, and integrates CLI tools seamlessly into your PATH." />
                     </StackPanel>
-                    <HyperlinkButton Grid.Column="2" Click="GitHub_Click" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE774;" FontSize="14" />
-                            <TextBlock Text="GitHub Repo" />
-                        </StackPanel>
-                    </HyperlinkButton>
+
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
+                        <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE946;" FontSize="13" />
+                                <TextBlock Text="About &amp; Use Cases" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                        <HyperlinkButton Click="GitHub_Click" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE774;" FontSize="13" />
+                                <TextBlock Text="GitHub Repo" />
+                            </StackPanel>
+                        </HyperlinkButton>
+                    </StackPanel>
                 </Grid>
             </Border>
 

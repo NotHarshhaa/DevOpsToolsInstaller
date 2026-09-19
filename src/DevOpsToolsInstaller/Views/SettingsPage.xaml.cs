@@ -196,4 +196,14 @@ public sealed partial class SettingsPage : Page
     {
         LauncherService.OpenUrl("https://github.com/NotHarshhaa/DevOpsToolsInstaller");
     }
+
+    private void AuthorGitHub_Click(object sender, RoutedEventArgs e)
+    {
+        LauncherService.OpenUrl("https://github.com/NotHarshhaa");
+    }
+
+    private void ViewAboutPage_Click(object sender, RoutedEventArgs e)
+    {
+        App.MainWindowInstance?.NavigateTo("About");
+    }
 }
