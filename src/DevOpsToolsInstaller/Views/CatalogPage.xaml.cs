@@ -148,7 +148,7 @@ public sealed partial class CatalogPage : Page
             {
                 var isSelected = (btn.Tag as string) == tag;
                 btn.Style = (Style)Application.Current.Resources[isSelected ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-                btn.CornerRadius = new CornerRadius(14);
+                btn.CornerRadius = new CornerRadius(4);
             }
         }
 
@@ -388,11 +388,11 @@ public sealed partial class CatalogPage : Page
 
         var iconBorder = new Border
         {
-            Width = 56,
-            Height = 56,
-            CornerRadius = new CornerRadius(14),
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
-            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CustomAccentBadgeBorderBrush"],
+            Width = 48,
+            Height = 48,
+            CornerRadius = new CornerRadius(4),
+            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
+            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
             BorderThickness = new Thickness(1)
         };
         var logoSource = Services.ToolLogoService.GetLogo(tool.LogoUrl);
@@ -401,8 +401,8 @@ public sealed partial class CatalogPage : Page
             iconBorder.Child = new Image
             {
                 Source = logoSource,
-                Width = 36,
-                Height = 36,
+                Width = 32,
+                Height = 32,
                 Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
@@ -413,8 +413,8 @@ public sealed partial class CatalogPage : Page
             iconBorder.Child = new FontIcon
             {
                 Glyph = tool.IconGlyph,
-                FontSize = 24,
-                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
+                FontSize = 20,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
@@ -423,13 +423,13 @@ public sealed partial class CatalogPage : Page
         headerGrid.Children.Add(iconBorder);
 
         var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 4 };
-        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 18 });
+        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 16 });
 
         var badgeStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
         badgeStack.Children.Add(new TextBlock { Text = $"{tool.Category}  •  {tool.KindLabel}", Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"], FontSize = 12 });
         if (tool.IsFavorite)
         {
-            badgeStack.Children.Add(new FontIcon { Glyph = "\uE735", FontSize = 14, Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CustomWarningBadgeTextBrush"] });
+            badgeStack.Children.Add(new FontIcon { Glyph = "\uE735", FontSize = 13, Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
         }
         titleStack.Children.Add(badgeStack);
 
@@ -438,27 +438,29 @@ public sealed partial class CatalogPage : Page
         panel.Children.Add(headerGrid);
 
         // Description
-        panel.Children.Add(new TextBlock { Text = tool.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) });
+        panel.Children.Add(new TextBlock { Text = tool.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
 
         // Metadata grid
         var metaBorder = new Border
         {
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(16)
+            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
+            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(14)
         };
-        var metaStack = new StackPanel { Spacing = 7 };
-        metaStack.Children.Add(new TextBlock { Text = $"📦  File: {tool.FileName}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"🔧  Deployment: {tool.ActionLabel}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"📊  Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        var metaStack = new StackPanel { Spacing = 6 };
+        metaStack.Children.Add(new TextBlock { Text = $"File: {tool.FileName}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"Deployment: {tool.ActionLabel}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         if (!string.IsNullOrWhiteSpace(tool.Version))
-            metaStack.Children.Add(new TextBlock { Text = $"🏷️  Version: {tool.Version}", FontSize = 12 });
+            metaStack.Children.Add(new TextBlock { Text = $"Version: {tool.Version}", FontSize = 12 });
         if (!string.IsNullOrWhiteSpace(tool.Sha256))
         {
-            metaStack.Children.Add(new TextBlock { Text = $"🔒  SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
+            metaStack.Children.Add(new TextBlock { Text = $"SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
         }
         if (!string.IsNullOrWhiteSpace(tool.Homepage))
-            metaStack.Children.Add(new TextBlock { Text = $"🌐  Homepage: {tool.Homepage}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
+            metaStack.Children.Add(new TextBlock { Text = $"Homepage: {tool.Homepage}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
         metaBorder.Child = metaStack;
         panel.Children.Add(metaBorder);
 
@@ -523,8 +525,7 @@ public sealed partial class CatalogPage : Page
         SelectAllButton.IsEnabled = !busy;
         ClearButton.IsEnabled = !busy;
         PresetsButton.IsEnabled = !busy;
-        ExportButton.IsEnabled = !busy;
-        ImportButton.IsEnabled = !busy;
+        ProfileButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
     }
 
