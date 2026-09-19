@@ -4,8 +4,9 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevOpsToolsInstaller.Models">
 
-    <Grid Padding="32,32,32,0" RowSpacing="16">
+    <Grid Padding="32,28,32,0" RowSpacing="14">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -13,6 +14,11 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Spacing="2">
+            <StackPanel.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
+                </TransitionCollection>
+            </StackPanel.ChildrenTransitions>
             <TextBlock Text="Tool Catalog" Style="{StaticResource PageTitleStyle}" />
             <TextBlock Text="Select the tools you need and download them in one go."
                        Style="{StaticResource PageSubtitleStyle}" />
@@ -36,37 +42,64 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <ProgressRing x:Name="BusyRing" Width="20" Height="20" Visibility="Collapsed" />
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="0,0,6,0"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 <Button x:Name="SelectAllButton" Click="SelectAll_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE762;" FontSize="14" />
+                        <FontIcon Glyph="&#xE762;" FontSize="13" />
                         <TextBlock Text="Select all" />
                     </StackPanel>
                 </Button>
                 <Button x:Name="ClearButton" Click="Clear_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE894;" FontSize="14" />
+                        <FontIcon Glyph="&#xE894;" FontSize="13" />
                         <TextBlock Text="Clear" />
                     </StackPanel>
                 </Button>
                 <Button x:Name="DownloadButton" Style="{StaticResource AccentButtonStyle}" Click="Download_Click">
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE896;" FontSize="14"
+                        <FontIcon Glyph="&#xE896;" FontSize="13"
                                   Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                        <TextBlock Text="Download selected" />
+                        <TextBlock Text="Download selected" FontWeight="SemiBold" />
                     </StackPanel>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Tool list -->
+        <!-- Category Filter Chips Bar -->
+        <ScrollViewer Grid.Row="2" HorizontalScrollBarVisibility="Auto"
+                      HorizontalScrollMode="Enabled"
+                      VerticalScrollBarVisibility="Disabled"
+                      VerticalScrollMode="Disabled">
+            <StackPanel x:Name="CategoryChipsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,0,4">
+                <Button Content="All Tools" Tag="All" Click="CategoryChip_Click" Style="{StaticResource AccentButtonStyle}" CornerRadius="14" Padding="12,5" FontSize="12" />
+                <Button Content="Cloud CLIs" Tag="Cloud CLIs" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Containerization" Tag="Containerization" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Kubernetes" Tag="Kubernetes" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Infrastructure as Code" Tag="Infrastructure as Code" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="CI/CD" Tag="CI/CD and Version Control" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Monitoring" Tag="Monitoring and Observability" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Security" Tag="Security" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Terminals &amp; Editors" Tag="Editors and Terminals" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                <Button Content="Utilities" Tag="Utilities" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Tool list with fluid staggered transitions -->
         <ListView
             x:Name="ToolsList"
-            Grid.Row="2"
+            Grid.Row="3"
             SelectionMode="None"
             IsItemClickEnabled="False"
-            Padding="0,0,0,24">
+            Padding="0,4,0,28">
+            <ListView.ItemContainerTransitions>
+                <TransitionCollection>
+                    <AddDeleteThemeTransition />
+                    <ContentThemeTransition />
+                    <ReorderThemeTransition />
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
+                </TransitionCollection>
+            </ListView.ItemContainerTransitions>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
                     <Setter Property="Padding" Value="0" />
@@ -113,8 +146,10 @@
                                 MinWidth="0"
                                 VerticalAlignment="Center" />
 
-                            <Border Grid.Column="1" Width="40" Height="40" CornerRadius="8"
+                            <Border Grid.Column="1" Width="42" Height="42" CornerRadius="10"
                                     Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
                                     VerticalAlignment="Center">
                                 <Grid>
                                     <!-- Glyph shown when tool has no brand logo, or when logo fails to load -->
@@ -122,7 +157,7 @@
                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                               Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                     <!-- Brand logo shown when a logoUrl is present -->
-                                    <Image Width="24" Height="24" Stretch="Uniform"
+                                    <Image Width="26" Height="26" Stretch="Uniform"
                                            Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
                                            ImageFailed="LogoImage_ImageFailed" />
                                 </Grid>
@@ -139,9 +174,10 @@
                             </StackPanel>
 
                             <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <Border Style="{StaticResource BadgeStyle}">
+                                <Border Style="{StaticResource AccentBadgeStyle}">
                                     <TextBlock Text="{Binding KindLabel}"
                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                               FontWeight="SemiBold"
                                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
                                 </Border>
                                 <Border Style="{StaticResource BadgeStyle}">

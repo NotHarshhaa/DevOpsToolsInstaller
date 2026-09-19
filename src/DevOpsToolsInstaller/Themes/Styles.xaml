@@ -3,27 +3,35 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Native Windows 11 / Fluent styling. Everything here is built on the
-        system theme resources shipped with WinUI (XamlControlsResources), so
-        it adapts automatically to Light / Dark and to the Mica backdrop, and
-        uses the user's system accent colour instead of a custom palette.
+        Native Windows 11 / Fluent 2 styling.
+        Built on system theme resources shipped with WinUI (XamlControlsResources).
+        Adapts dynamically to Light / Dark and Mica backdrops.
     -->
 
-    <!-- Standard content card (Settings-app style) -->
+    <!-- Standard content card -->
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="20" />
     </Style>
 
-    <!-- Card used as a list item -->
+    <!-- Prominent Hero Card with subtle accent depth -->
+    <Style x:Key="HeroCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="24" />
+    </Style>
+
+    <!-- Card used as a list item with rounded squircle feel -->
     <Style x:Key="ListViewCardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="16,12" />
         <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
@@ -31,6 +39,7 @@
     <!-- Page heading -->
     <Style x:Key="PageTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <!-- Page subheading under the title -->
@@ -42,11 +51,13 @@
     <!-- Title inside a card -->
     <Style x:Key="CardTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
     <!-- Dashboard metric number -->
     <Style x:Key="MetricNumberStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleLargeTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
     <!-- Dashboard metric caption -->
@@ -54,10 +65,20 @@
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
     </Style>
 
-    <!-- Pill badge background -->
+    <!-- Pill badge background (neutral) -->
     <Style x:Key="BadgeStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource ControlStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="10,3" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Accent badge (colored highlight) -->
+    <Style x:Key="AccentBadgeStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="10,3" />
@@ -68,7 +89,17 @@
     <Style x:Key="QuickLinkButtonStyle" TargetType="Button">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="Padding" Value="14,12" />
+        <Setter Property="Padding" Value="16,14" />
+        <Setter Property="CornerRadius" Value="8" />
+    </Style>
+
+    <!-- Interactive category filter chip -->
+    <Style x:Key="CategoryChipStyle" TargetType="Button">
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Margin" Value="0,0,6,0" />
     </Style>
 
 </ResourceDictionary>

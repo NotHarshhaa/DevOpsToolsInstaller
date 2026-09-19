@@ -67,6 +67,8 @@ public sealed partial class CatalogPage : Page
         StatusText.Text = $"{mw.Tools.Count} tools available";
     }
 
+    private string _selectedCategory = "All";
+
     private void ApplyFilter()
     {
         var mw = App.MainWindowInstance;
@@ -74,11 +76,18 @@ public sealed partial class CatalogPage : Page
 
         var query = SearchBox.Text?.Trim() ?? "";
 
-        bool Matches(ToolDefinition tool) =>
-            string.IsNullOrEmpty(query)
-            || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+        bool Matches(ToolDefinition tool)
+        {
+            var textMatch = string.IsNullOrEmpty(query)
+                || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
+                || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+            var categoryMatch = _selectedCategory == "All"
+                || string.Equals(tool.Category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
+
+            return textMatch && categoryMatch;
+        }
 
         var grouped = mw.Tools
             .Where(Matches)
@@ -90,6 +99,29 @@ public sealed partial class CatalogPage : Page
         _groups.Clear();
         foreach (var group in grouped)
             _groups.Add(group);
+
+        var count = VisibleTools.Count();
+        StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
+    }
+
+    private void CategoryChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button clickedBtn) return;
+        var tag = clickedBtn.Tag as string ?? "All";
+        _selectedCategory = tag;
+
+        // Visual update on chips
+        foreach (var child in CategoryChipsPanel.Children)
+        {
+            if (child is Button btn)
+            {
+                var isSelected = (btn.Tag as string) == tag;
+                btn.Style = (Style)Application.Current.Resources[isSelected ? "AccentButtonStyle" : "CategoryChipStyle"];
+                btn.CornerRadius = new CornerRadius(14);
+            }
+        }
+
+        ApplyFilter();
     }
 
     /// <summary>Every tool currently visible across all category groups.</summary>

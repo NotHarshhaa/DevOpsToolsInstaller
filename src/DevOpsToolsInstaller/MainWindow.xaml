@@ -14,15 +14,22 @@
         <!-- Custom title bar (transparent so Mica shows through) -->
         <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="Transparent">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
-                <FontIcon Glyph="&#xE74C;" FontSize="16" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <Border Width="26" Height="26" CornerRadius="6"
+                        Background="{ThemeResource AccentFillColorTertiaryBrush}"
+                        BorderBrush="{ThemeResource AccentFillColorSecondaryBrush}"
+                        BorderThickness="1">
+                    <FontIcon Glyph="&#xE74C;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
                 <TextBlock
                     Text="DevOps Tools Installer"
                     Foreground="{ThemeResource TextFillColorPrimaryBrush}"
                     FontWeight="SemiBold"
                     FontSize="13"
                     VerticalAlignment="Center" />
-                <Border Style="{StaticResource BadgeStyle}" Padding="8,1" Margin="4,0,0,0">
-                    <TextBlock Text="v1.2.0" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                <Border Style="{StaticResource BadgeStyle}" Padding="7,1" Margin="2,0,0,0">
+                    <TextBlock Text="v1.2.0" FontSize="11" FontWeight="SemiBold"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </Border>
             </StackPanel>
         </Grid>
@@ -69,9 +76,19 @@
                 Background="{ThemeResource LayerFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,1,0,0"
-                CornerRadius="8,0,0,0"
+                CornerRadius="10,0,0,0"
                 Margin="0,0,0,0">
-                <Frame x:Name="ContentFrame" Background="Transparent" />
+                <Frame x:Name="ContentFrame" Background="Transparent">
+                    <Frame.ContentTransitions>
+                        <TransitionCollection>
+                            <NavigationThemeTransition>
+                                <NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                                    <EntranceNavigationTransitionInfo />
+                                </NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                            </NavigationThemeTransition>
+                        </TransitionCollection>
+                    </Frame.ContentTransitions>
+                </Frame>
             </Border>
         </controls:NavigationView>
     </Grid>

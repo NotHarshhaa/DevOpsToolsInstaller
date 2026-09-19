@@ -35,6 +35,9 @@ public sealed partial class HomePage : Page
         var downloaded = mw.Tools.Count(t => t.Status == Models.ToolStatus.Downloaded);
         DownloadedCountText.Text = downloaded.ToString();
         DownloadedCountLabel.Text = "Downloaded";
+
+        var categories = mw.Tools.Select(t => t.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Count();
+        CategoriesCountText.Text = categories.ToString();
     }
 
     private void Catalog_Click(object sender, RoutedEventArgs e)

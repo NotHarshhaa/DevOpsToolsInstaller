@@ -16,6 +16,7 @@ public sealed partial class SettingsPage : Page
     {
         var dlFolder = DownloadService.DefaultDownloadsFolder;
         DownloadPathText.Text = dlFolder;
+        ToolsPathText.Text = ArtifactService.BinFolder;
         UpdateStorageInfo(dlFolder);
 
         // Set theme selector active value
@@ -73,6 +74,11 @@ public sealed partial class SettingsPage : Page
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder);
+    }
+
+    private void OpenToolsFolder_Click(object sender, RoutedEventArgs e)
+    {
+        LauncherService.OpenDownloadsFolder(ArtifactService.BinFolder);
     }
 
     private async void ClearDownloads_Click(object sender, RoutedEventArgs e)
