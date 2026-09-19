@@ -7,16 +7,16 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g., v1.0.0)'
+        description: 'Version tag (e.g., v1.5.0)'
         required: true
-        default: 'v1.0.0'
+        default: 'v1.5.0'
 
 permissions:
   contents: write
 
 jobs:
   build:
-    name: Build & Release
+    name: Build (${{ matrix.arch_name }})
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -40,6 +40,7 @@ jobs:
 
       - name: Restore NuGet Packages
         run: dotnet restore src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -r ${{ matrix.rid }}
+
       - name: Publish Single-File Executable
         run: |
           dotnet publish src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -c Release -r ${{ matrix.rid }} --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:WindowsAppSDKSelfContained=true -p:Platform=${{ matrix.platform }} -o publish_out
@@ -48,6 +49,21 @@ jobs:
         shell: pwsh
         run: |
           Rename-Item -Path "publish_out\DevOpsToolsInstaller.exe" -NewName "DevOpsToolsInstaller_${{ matrix.arch_name }}.exe"
+
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.arch_name }}
+          path: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}.exe
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Determine Release Tag
         id: get_tag
@@ -59,13 +75,29 @@ jobs:
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload Release Asset
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: Generate Checksums and Release Notes
+        shell: pwsh
+        run: |
+          .\.github\workflows\generate-release-notes.ps1 -Tag "${{ steps.get_tag.outputs.tag }}" -AssetsDir "release_assets" -OutputFile "release_notes.md"
+
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.get_tag.outputs.tag }}
           name: Release ${{ steps.get_tag.outputs.tag }}
-          files: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}.exe
+          body_path: release_notes.md
+          files: |
+            release_assets/DevOpsToolsInstaller_x64.exe
+            release_assets/DevOpsToolsInstaller_arm64.exe
+            release_assets/SHA256SUMS.txt
           draft: false
           prerelease: false
+          generate_release_notes: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
