@@ -83,7 +83,7 @@
                                     <FontIcon Glyph="{Binding IconGlyph}" FontSize="20"
                                               Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
                                               Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                    <Image Width="26" Height="26" Stretch="Uniform"
+                                    <Image Width="28" Height="28" Stretch="Uniform"
                                            Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}" />
                                 </Grid>
                             </Border>

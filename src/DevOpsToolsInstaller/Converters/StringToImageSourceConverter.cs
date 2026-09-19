@@ -18,17 +18,7 @@ public sealed class StringToImageSourceConverter : IValueConverter
         if (value is not string url || string.IsNullOrWhiteSpace(url))
             return null;
 
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            return null;
-
-        var isSvg = url.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
-                    || uri.Host.Contains("simpleicons", StringComparison.OrdinalIgnoreCase);
-
-        // A failed download/parse simply renders nothing, leaving the glyph
-        // beneath the Image visible — so no error handling is required here.
-        return isSvg
-            ? new SvgImageSource(uri)
-            : new BitmapImage(uri);
+        return Services.ToolLogoService.GetLogo(url);
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, string language)

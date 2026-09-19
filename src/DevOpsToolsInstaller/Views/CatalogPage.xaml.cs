@@ -242,20 +242,36 @@ public sealed partial class CatalogPage : Page
 
         var iconBorder = new Border
         {
-            Width = 44,
-            Height = 44,
-            CornerRadius = new CornerRadius(10),
+            Width = 48,
+            Height = 48,
+            CornerRadius = new CornerRadius(12),
             Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"]
         };
-        var glyph = new FontIcon
+        var logoSource = Services.ToolLogoService.GetLogo(tool.LogoUrl);
+        if (logoSource is not null)
         {
-            Glyph = tool.IconGlyph,
-            FontSize = 20,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        iconBorder.Child = glyph;
+            iconBorder.Child = new Image
+            {
+                Source = logoSource,
+                Width = 32,
+                Height = 32,
+                Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+        }
+        else
+        {
+            var glyph = new FontIcon
+            {
+                Glyph = tool.IconGlyph,
+                FontSize = 22,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            iconBorder.Child = glyph;
+        }
         Grid.SetColumn(iconBorder, 0);
         headerGrid.Children.Add(iconBorder);
 
