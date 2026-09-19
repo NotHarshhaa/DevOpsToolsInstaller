@@ -58,7 +58,10 @@ public sealed partial class MainWindow : Window
 
             Tools.Clear();
             foreach (var tool in tools)
+            {
+                tool.IsFavorite = FavoritesService.IsFavorite(tool.Id);
                 Tools.Add(tool);
+            }
 
             _catalogLoaded = true;
         }
@@ -183,6 +186,7 @@ public sealed partial class MainWindow : Window
             "Home"      => typeof(HomePage),
             "Catalog"   => typeof(CatalogPage),
             "Downloads" => typeof(DownloadsPage),
+            "Installed" => typeof(InstalledPage),
             "Settings"  => typeof(SettingsPage),
             "About"     => typeof(AboutPage),
             _           => typeof(HomePage)

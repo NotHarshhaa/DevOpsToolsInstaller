@@ -6,6 +6,8 @@ using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage.Pickers;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
@@ -29,6 +31,8 @@ public sealed partial class CatalogPage : Page
     private bool _busy;
     private CancellationTokenSource? _downloadCts;
     private string _selectedCategory = "All";
+    private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
+    private bool _downloadedOnly;
 
     public CatalogPage()
     {
@@ -84,17 +88,41 @@ public sealed partial class CatalogPage : Page
                 || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
 
-            var categoryMatch = _selectedCategory == "All"
-                || string.Equals(tool.Category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
+            bool categoryMatch;
+            if (_selectedCategory == "All")
+                categoryMatch = true;
+            else if (_selectedCategory == "Favorites")
+                categoryMatch = tool.IsFavorite;
+            else
+                categoryMatch = string.Equals(tool.Category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
 
-            return textMatch && categoryMatch;
+            var downloadedMatch = !_downloadedOnly || tool.Status == ToolStatus.Downloaded;
+
+            return textMatch && categoryMatch && downloadedMatch;
         }
 
-        var grouped = mw.Tools
-            .Where(Matches)
-            .OrderBy(t => t.Category)
-            .ThenBy(t => t.Name)
-            .GroupBy(t => t.Category)
+        var filtered = mw.Tools.Where(Matches);
+
+        // Apply sort
+        var sorted = _sortMode switch
+        {
+            "az" => filtered.OrderBy(t => t.Name),
+            "za" => filtered.OrderByDescending(t => t.Name),
+            "kind" => filtered.OrderBy(t => t.KindLabel).ThenBy(t => t.Name),
+            "downloaded" => filtered.OrderByDescending(t => t.Status == ToolStatus.Downloaded).ThenBy(t => t.Name),
+            "favorites" => filtered.OrderByDescending(t => t.IsFavorite).ThenBy(t => t.Category).ThenBy(t => t.Name),
+            _ => filtered.OrderBy(t => t.Category).ThenBy(t => t.Name), // "category" (default)
+        };
+
+        // Group by category for list display
+        var groupKey = _sortMode switch
+        {
+            "kind" => (Func<ToolDefinition, string>)(t => t.KindLabel),
+            _ => t => t.Category
+        };
+
+        var grouped = sorted
+            .GroupBy(groupKey)
             .Select(g => new ToolCategoryGroup(g.Key, g));
 
         _groups.Clear();
@@ -104,6 +132,8 @@ public sealed partial class CatalogPage : Page
         var count = VisibleTools.Count();
         StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
     }
+
+    // ── Category Chips ──────────────────────────────────────────────────
 
     private void CategoryChip_Click(object sender, RoutedEventArgs e)
     {
@@ -128,11 +158,66 @@ public sealed partial class CatalogPage : Page
     /// <summary>Every tool currently visible across all category groups.</summary>
     private IEnumerable<ToolDefinition> VisibleTools => _groups.SelectMany(g => g);
 
+    // ── Search ──────────────────────────────────────────────────────────
+
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
             ApplyFilter();
     }
+
+    // ── Sort & Filter ───────────────────────────────────────────────────
+
+    private void Sort_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem item || item.Tag is not string tag) return;
+        _sortMode = tag;
+        ApplyFilter();
+    }
+
+    private void DownloadedOnly_Click(object sender, RoutedEventArgs e)
+    {
+        _downloadedOnly = DownloadedOnlyToggle.IsChecked == true;
+        ApplyFilter();
+    }
+
+    // ── Favorites ───────────────────────────────────────────────────────
+
+    private void ToggleFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        tool.IsFavorite = FavoritesService.Toggle(tool.Id);
+    }
+
+    // ── Copy Install Command ────────────────────────────────────────────
+
+    private void CopyCommand_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+
+        var commands = new List<string>();
+
+        // Build a useful clipboard block
+        commands.Add($"# {tool.Name} v{tool.Version}");
+        commands.Add($"# Direct download URL:");
+        commands.Add($"curl -LO \"{tool.DownloadUrl}\"");
+
+        if (!string.IsNullOrWhiteSpace(tool.Sha256))
+        {
+            commands.Add($"# SHA256: {tool.Sha256}");
+        }
+
+        var text = string.Join(Environment.NewLine, commands);
+
+        var dp = new DataPackage();
+        dp.SetText(text);
+        Clipboard.SetContent(dp);
+
+        // Provide feedback
+        StatusText.Text = $"Copied install command for {tool.Name}";
+    }
+
+    // ── Presets ──────────────────────────────────────────────────────────
 
     private void Preset_Click(object sender, RoutedEventArgs e)
     {
@@ -159,6 +244,8 @@ public sealed partial class CatalogPage : Page
         StatusText.Text = $"Selected {selectedCount} tools for preset: {item.Text}";
     }
 
+    // ── Select / Clear ──────────────────────────────────────────────────
+
     private void SelectAll_Click(object sender, RoutedEventArgs e)
     {
         foreach (var item in VisibleTools) item.IsSelected = true;
@@ -168,6 +255,62 @@ public sealed partial class CatalogPage : Page
     {
         foreach (var item in VisibleTools) item.IsSelected = false;
     }
+
+    // ── Export / Import ─────────────────────────────────────────────────
+
+    private async void Export_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var selectedCount = mw.Tools.Count(t => t.IsSelected);
+        if (selectedCount == 0)
+        {
+            StatusText.Text = "Select at least one tool before exporting.";
+            return;
+        }
+
+        var savePicker = new FileSavePicker();
+
+        // Get the HWND from the current window
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance!);
+        WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+        savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+        savePicker.SuggestedFileName = "devops-tool-profile";
+        savePicker.FileTypeChoices.Add("JSON Profile", new List<string> { ".json" });
+
+        var file = await savePicker.PickSaveFileAsync();
+        if (file is null) return;
+
+        var json = ProfileService.Export(mw.Tools);
+        await Windows.Storage.FileIO.WriteTextAsync(file, json);
+        StatusText.Text = $"Exported {selectedCount} tool(s) to {file.Name}";
+    }
+
+    private async void Import_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var openPicker = new FileOpenPicker();
+
+        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance!);
+        WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hwnd);
+
+        openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+        openPicker.FileTypeFilter.Add(".json");
+
+        var file = await openPicker.PickSingleFileAsync();
+        if (file is null) return;
+
+        var json = await Windows.Storage.FileIO.ReadTextAsync(file);
+        var count = ProfileService.Import(json, mw.Tools);
+        ApplyFilter();
+        StatusText.Text = $"Imported profile — {count} tool(s) selected from {file.Name}";
+    }
+
+    // ── Download ────────────────────────────────────────────────────────
 
     private async void Download_Click(object sender, RoutedEventArgs e)
     {
@@ -230,22 +373,27 @@ public sealed partial class CatalogPage : Page
         StatusText.Text = "Cancelling downloads...";
     }
 
+    // ── Tool Detail Dialog ──────────────────────────────────────────────
+
     private async void ToolDetails_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: ToolDefinition tool }) return;
 
-        var panel = new StackPanel { Spacing = 14, MaxWidth = 480 };
+        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
 
+        // Header with icon + name
         var headerGrid = new Grid { ColumnSpacing = 14 };
         headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
         var iconBorder = new Border
         {
-            Width = 48,
-            Height = 48,
-            CornerRadius = new CornerRadius(12),
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"]
+            Width = 56,
+            Height = 56,
+            CornerRadius = new CornerRadius(14),
+            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
+            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CustomAccentBadgeBorderBrush"],
+            BorderThickness = new Thickness(1)
         };
         var logoSource = Services.ToolLogoService.GetLogo(tool.LogoUrl);
         if (logoSource is not null)
@@ -253,8 +401,8 @@ public sealed partial class CatalogPage : Page
             iconBorder.Child = new Image
             {
                 Source = logoSource,
-                Width = 32,
-                Height = 32,
+                Width = 36,
+                Height = 36,
                 Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
@@ -262,44 +410,92 @@ public sealed partial class CatalogPage : Page
         }
         else
         {
-            var glyph = new FontIcon
+            iconBorder.Child = new FontIcon
             {
                 Glyph = tool.IconGlyph,
-                FontSize = 22,
+                FontSize = 24,
                 Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentTextFillColorPrimaryBrush"],
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            iconBorder.Child = glyph;
         }
         Grid.SetColumn(iconBorder, 0);
         headerGrid.Children.Add(iconBorder);
 
-        var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
-        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 16 });
-        titleStack.Children.Add(new TextBlock { Text = $"{tool.Category} • {tool.KindLabel}", Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"], FontSize = 12 });
+        var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 4 };
+        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 18 });
+
+        var badgeStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        badgeStack.Children.Add(new TextBlock { Text = $"{tool.Category}  •  {tool.KindLabel}", Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"], FontSize = 12 });
+        if (tool.IsFavorite)
+        {
+            badgeStack.Children.Add(new FontIcon { Glyph = "\uE735", FontSize = 14, Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CustomWarningBadgeTextBrush"] });
+        }
+        titleStack.Children.Add(badgeStack);
+
         Grid.SetColumn(titleStack, 1);
         headerGrid.Children.Add(titleStack);
         panel.Children.Add(headerGrid);
 
+        // Description
         panel.Children.Add(new TextBlock { Text = tool.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0) });
 
+        // Metadata grid
         var metaBorder = new Border
         {
             Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorSecondaryBrush"],
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(14)
+            CornerRadius = new CornerRadius(10),
+            Padding = new Thickness(16)
         };
-        var metaStack = new StackPanel { Spacing = 6 };
-        metaStack.Children.Add(new TextBlock { Text = $"File Name: {tool.FileName}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"Deployment: {tool.ActionLabel}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"Current Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        var metaStack = new StackPanel { Spacing = 7 };
+        metaStack.Children.Add(new TextBlock { Text = $"📦  File: {tool.FileName}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"🔧  Deployment: {tool.ActionLabel}", FontSize = 12 });
+        metaStack.Children.Add(new TextBlock { Text = $"📊  Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        if (!string.IsNullOrWhiteSpace(tool.Version))
+            metaStack.Children.Add(new TextBlock { Text = $"🏷️  Version: {tool.Version}", FontSize = 12 });
         if (!string.IsNullOrWhiteSpace(tool.Sha256))
         {
-            metaStack.Children.Add(new TextBlock { Text = $"SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap });
+            metaStack.Children.Add(new TextBlock { Text = $"🔒  SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
         }
+        if (!string.IsNullOrWhiteSpace(tool.Homepage))
+            metaStack.Children.Add(new TextBlock { Text = $"🌐  Homepage: {tool.Homepage}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
         metaBorder.Child = metaStack;
         panel.Children.Add(metaBorder);
+
+        // Action buttons row
+        var actionPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right };
+
+        // Copy CLI name button
+        var copyNameBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
+        var copyNameStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        copyNameStack.Children.Add(new FontIcon { Glyph = "\uE8C8", FontSize = 13 });
+        copyNameStack.Children.Add(new TextBlock { Text = "Copy CLI name" });
+        copyNameBtn.Content = copyNameStack;
+        copyNameBtn.Click += (_, _) =>
+        {
+            var dp = new DataPackage();
+            dp.SetText(tool.Id);
+            Clipboard.SetContent(dp);
+            StatusText.Text = $"Copied '{tool.Id}' to clipboard";
+        };
+        actionPanel.Children.Add(copyNameBtn);
+
+        // Copy command button
+        var copyCmdBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
+        var copyCmdStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+        copyCmdStack.Children.Add(new FontIcon { Glyph = "\uE756", FontSize = 13 });
+        copyCmdStack.Children.Add(new TextBlock { Text = "Copy download URL" });
+        copyCmdBtn.Content = copyCmdStack;
+        copyCmdBtn.Click += (_, _) =>
+        {
+            var dp = new DataPackage();
+            dp.SetText(tool.DownloadUrl);
+            Clipboard.SetContent(dp);
+            StatusText.Text = $"Copied download URL for {tool.Name}";
+        };
+        actionPanel.Children.Add(copyCmdBtn);
+
+        panel.Children.Add(actionPanel);
 
         var dialog = new ContentDialog
         {
@@ -317,6 +513,8 @@ public sealed partial class CatalogPage : Page
         }
     }
 
+    // ── Busy state ──────────────────────────────────────────────────────
+
     private void SetBusy(bool busy, string? status = null)
     {
         _busy = busy;
@@ -325,8 +523,12 @@ public sealed partial class CatalogPage : Page
         SelectAllButton.IsEnabled = !busy;
         ClearButton.IsEnabled = !busy;
         PresetsButton.IsEnabled = !busy;
+        ExportButton.IsEnabled = !busy;
+        ImportButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
     }
+
+    // ── Logo fallback ───────────────────────────────────────────────────
 
     private void LogoImage_ImageFailed(object sender, ExceptionRoutedEventArgs e)
     {

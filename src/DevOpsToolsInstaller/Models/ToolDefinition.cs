@@ -157,6 +157,30 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Whether the user has starred/favorited this tool.
+    /// Persisted via <c>FavoritesService</c>.
+    /// </summary>
+    private bool _isFavorite;
+    [JsonIgnore]
+    public bool IsFavorite
+    {
+        get => _isFavorite;
+        set
+        {
+            if (_isFavorite != value)
+            {
+                _isFavorite = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(FavoriteGlyph));
+            }
+        }
+    }
+
+    /// <summary>Star icon glyph: filled when favorited, outlined otherwise.</summary>
+    [JsonIgnore]
+    public string FavoriteGlyph => IsFavorite ? "\uE735" : "\uE734";
+
     // ── Computed helpers ─────────────────────────────────────────────────
 
     public string DisplayName => $"{Name}";

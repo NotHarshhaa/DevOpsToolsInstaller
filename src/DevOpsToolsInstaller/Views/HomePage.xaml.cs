@@ -6,6 +6,8 @@ namespace DevOpsToolsInstaller.Views;
 
 public sealed partial class HomePage : Page
 {
+    private string? _updateUrl;
+
     public HomePage()
     {
         InitializeComponent();
@@ -39,6 +41,36 @@ public sealed partial class HomePage : Page
 
         var categories = mw.Tools.Select(t => t.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Count();
         CategoriesCountText.Text = categories.ToString();
+
+        // Check for updates (fire-and-forget, non-blocking)
+        _ = CheckForUpdatesAsync();
+    }
+
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var result = await UpdateCheckerService.CheckAsync();
+            if (result is { IsUpdateAvailable: true })
+            {
+                _updateUrl = result.ReleaseUrl;
+                UpdateInfoBar.Title = $"Update Available — v{result.LatestVersion}";
+                UpdateInfoBar.Message = string.IsNullOrWhiteSpace(result.ReleaseNotes)
+                    ? "A newer version of DevOps Tools Installer is available on GitHub."
+                    : result.ReleaseNotes;
+                UpdateInfoBar.IsOpen = true;
+            }
+        }
+        catch
+        {
+            // Silently ignore — update check is best-effort
+        }
+    }
+
+    private void UpdateLink_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(_updateUrl))
+            LauncherService.OpenUrl(_updateUrl);
     }
 
     private void Catalog_Click(object sender, RoutedEventArgs e)

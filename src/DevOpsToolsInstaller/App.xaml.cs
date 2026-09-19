@@ -19,6 +19,7 @@ public partial class App : Application
         UiDispatcher.Queue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
         SettingsService.LoadSettings();
+        FavoritesService.Load();
         MainWindowInstance = new MainWindow();
         MainWindowInstance.Activate();
     }

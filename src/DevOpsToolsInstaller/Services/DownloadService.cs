@@ -81,6 +81,7 @@ public sealed class DownloadService
         }
 
         tool.Status = ToolStatus.Downloading;
+        ActivityLogService.Info(tool.Name, "Download started");
 
         try
         {
@@ -137,12 +138,14 @@ public sealed class DownloadService
 
             tool.Progress = 100;
             tool.Status = ToolStatus.Downloaded;
+            ActivityLogService.Success(tool.Name, "Download completed successfully");
         }
         catch (OperationCanceledException)
         {
             CleanupPartial(destPath);
             tool.Status = ToolStatus.NotDownloaded;
             tool.Progress = 0;
+            ActivityLogService.Warn(tool.Name, "Download cancelled by user");
             throw;
         }
         catch (Exception ex)
@@ -151,6 +154,7 @@ public sealed class DownloadService
             tool.Status = ToolStatus.Failed;
             tool.StatusText = $"Failed: {ex.Message}";
             tool.Progress = 0;
+            ActivityLogService.Error(tool.Name, $"Download failed: {ex.Message}");
             throw;
         }
     }

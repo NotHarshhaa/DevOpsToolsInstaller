@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Models;
@@ -11,6 +13,7 @@ public sealed partial class DownloadsPage : Page
     {
         InitializeComponent();
         Loaded += DownloadsPage_Loaded;
+        LogList.ItemsSource = ActivityLogService.Entries;
     }
 
     private async void DownloadsPage_Loaded(object sender, RoutedEventArgs e)
@@ -39,10 +42,28 @@ public sealed partial class DownloadsPage : Page
         if (hasItems)
         {
             var completed = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Downloaded);
+            var downloading = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Downloading);
             StatusText.Text = $"{completed}/{mw.DownloadQueue.Count} ready to install";
+            ActiveCountBadge.Text = downloading > 0 ? $"{downloading} active" : $"{completed} ready";
 
             RefreshInstalledStates(mw.DownloadQueue.ToList(), dlFolder);
         }
+        else
+        {
+            ActiveCountBadge.Text = "0 items";
+        }
+    }
+
+    private void LogToggle_Click(object sender, RoutedEventArgs e)
+    {
+        var isVisible = LogToggle.IsChecked == true;
+        LogPanel.Visibility = isVisible ? Visibility.Visible : Visibility.Collapsed;
+        LogRow.Height = isVisible ? new GridLength(240) : new GridLength(0);
+    }
+
+    private void ClearLog_Click(object sender, RoutedEventArgs e)
+    {
+        ActivityLogService.Clear();
     }
 
     /// <summary>

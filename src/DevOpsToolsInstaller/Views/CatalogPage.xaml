@@ -29,7 +29,6 @@
                 </StackPanel.ChildrenTransitions>
                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                     <TextBlock Text="Tool Catalog" Style="{StaticResource PageTitleStyle}" />
-                    <!-- Live count badge -->
                     <Border Style="{StaticResource AccentBadgeStyle}" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <FontIcon Glyph="&#xE8F1;" FontSize="10"
@@ -80,8 +79,41 @@
                     <Border Width="1" Height="22" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
                             VerticalAlignment="Center" Margin="2,0" />
 
+                    <!-- Sort dropdown -->
+                    <DropDownButton x:Name="SortButton" CornerRadius="8" Padding="10,7">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon Glyph="&#xE8CB;" FontSize="13" />
+                            <TextBlock Text="Sort" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="A → Z" Tag="az" Click="Sort_Click" />
+                                <MenuFlyoutItem Text="Z → A" Tag="za" Click="Sort_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="By Category" Tag="category" Click="Sort_Click" />
+                                <MenuFlyoutItem Text="By Kind" Tag="kind" Click="Sort_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Downloaded first" Tag="downloaded" Click="Sort_Click" />
+                                <MenuFlyoutItem Text="Favorites first" Tag="favorites" Click="Sort_Click" />
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+
+                    <!-- Downloaded-only toggle -->
+                    <ToggleButton x:Name="DownloadedOnlyToggle" Click="DownloadedOnly_Click"
+                                  CornerRadius="8" Padding="10,7">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                            <FontIcon Glyph="&#xE896;" FontSize="13" />
+                            <TextBlock Text="Downloaded" />
+                        </StackPanel>
+                    </ToggleButton>
+
+                    <!-- Separator -->
+                    <Border Width="1" Height="22" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            VerticalAlignment="Center" Margin="2,0" />
+
                     <!-- Presets dropdown -->
-                    <DropDownButton x:Name="PresetsButton" CornerRadius="8" Padding="12,7">
+                    <DropDownButton x:Name="PresetsButton" CornerRadius="8" Padding="10,7">
                         <StackPanel Orientation="Horizontal" Spacing="7">
                             <FontIcon Glyph="&#xE71D;" FontSize="13" />
                             <TextBlock Text="Presets" FontWeight="SemiBold" />
@@ -117,13 +149,13 @@
                         </DropDownButton.Flyout>
                     </DropDownButton>
 
-                    <Button x:Name="SelectAllButton" Click="SelectAll_Click" CornerRadius="8" Padding="11,7">
+                    <Button x:Name="SelectAllButton" Click="SelectAll_Click" CornerRadius="8" Padding="10,7">
                         <StackPanel Orientation="Horizontal" Spacing="7">
                             <FontIcon Glyph="&#xE762;" FontSize="13" />
                             <TextBlock Text="Select all" />
                         </StackPanel>
                     </Button>
-                    <Button x:Name="ClearButton" Click="Clear_Click" CornerRadius="8" Padding="11,7">
+                    <Button x:Name="ClearButton" Click="Clear_Click" CornerRadius="8" Padding="10,7">
                         <StackPanel Orientation="Horizontal" Spacing="7">
                             <FontIcon Glyph="&#xE894;" FontSize="13" />
                             <TextBlock Text="Clear" />
@@ -134,9 +166,29 @@
                     <Border Width="1" Height="22" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
                             VerticalAlignment="Center" Margin="2,0" />
 
+                    <!-- Export / Import -->
+                    <Button x:Name="ExportButton" Click="Export_Click" CornerRadius="8" Padding="10,7"
+                            ToolTipService.ToolTip="Export current selection as a profile">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xEDE1;" FontSize="13" />
+                            <TextBlock Text="Export" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="ImportButton" Click="Import_Click" CornerRadius="8" Padding="10,7"
+                            ToolTipService.ToolTip="Import a profile to re-select tools">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE8E5;" FontSize="13" />
+                            <TextBlock Text="Import" />
+                        </StackPanel>
+                    </Button>
+
+                    <!-- Separator -->
+                    <Border Width="1" Height="22" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
+                            VerticalAlignment="Center" Margin="2,0" />
+
                     <!-- Cancel Button when active -->
                     <Button x:Name="CancelButton" Visibility="Collapsed" Click="CancelDownload_Click"
-                            CornerRadius="8" Padding="11,7">
+                            CornerRadius="8" Padding="10,7">
                         <StackPanel Orientation="Horizontal" Spacing="6">
                             <FontIcon Glyph="&#xE711;" FontSize="12"
                                       Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
@@ -166,6 +218,7 @@
                       VerticalScrollMode="Disabled">
             <StackPanel x:Name="CategoryChipsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,0,4">
                 <Button Content="⚡  All Tools"   Tag="All"                        Click="CategoryChip_Click" Style="{StaticResource SelectedCategoryChipStyle}" />
+                <Button Content="⭐  Favorites"   Tag="Favorites"                  Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 <Button Content="☁️  Cloud CLIs"  Tag="Cloud CLIs"                 Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 <Button Content="🐳  Containers"  Tag="Containerization"           Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 <Button Content="⎈  Kubernetes"  Tag="Kubernetes"                 Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
@@ -215,7 +268,6 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <!-- Accent left bar -->
                                     <Border Grid.Column="0" Width="4" Height="22" CornerRadius="2"
                                             Background="{ThemeResource SectionAccentLineBrush}"
                                             VerticalAlignment="Center" />
@@ -239,35 +291,47 @@
                 </GroupStyle>
             </ListView.GroupStyle>
 
-            <!-- Tool item template — premium row card with left hover affordance -->
+            <!-- Tool item template with star + copy buttons -->
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Border Style="{StaticResource ListViewCardStyle}">
                         <Grid>
-                            <!-- Subtle left accent indicator (always visible as thin strip) -->
+                            <!-- Left accent indicator -->
                             <Border Width="3" CornerRadius="12,0,0,12"
                                     Background="{ThemeResource CustomAccentBadgeBorderBrush}"
                                     HorizontalAlignment="Left"
                                     Opacity="0.45" />
 
-                            <Grid ColumnSpacing="14" Margin="14,13,14,13">
+                            <Grid ColumnSpacing="10" Margin="14,13,14,13">
                                 <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
+
+                                <!-- Favorite star button -->
+                                <Button Grid.Column="0" Click="ToggleFavorite_Click"
+                                        Padding="5" VerticalAlignment="Center"
+                                        Background="Transparent" BorderThickness="0"
+                                        CornerRadius="6"
+                                        ToolTipService.ToolTip="Toggle favorite">
+                                    <FontIcon Glyph="{Binding FavoriteGlyph}" FontSize="16"
+                                              Foreground="{ThemeResource CustomWarningBadgeTextBrush}" />
+                                </Button>
 
                                 <!-- Checkbox -->
                                 <CheckBox
-                                    Grid.Column="0"
+                                    Grid.Column="1"
                                     IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                     MinWidth="0"
                                     VerticalAlignment="Center" />
 
-                                <!-- Tool icon with glow border -->
-                                <Border Grid.Column="1" Width="48" Height="48" CornerRadius="12"
+                                <!-- Tool icon -->
+                                <Border Grid.Column="2" Width="48" Height="48" CornerRadius="12"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
                                         BorderThickness="1"
@@ -284,7 +348,7 @@
                                 </Border>
 
                                 <!-- Tool name + description -->
-                                <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
+                                <StackPanel Grid.Column="3" Spacing="3" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding NameWithVersion}"
                                                Style="{StaticResource BodyStrongTextBlockStyle}"
                                                FontSize="14"
@@ -295,8 +359,8 @@
                                                TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
 
-                                <!-- Badges: Kind + Category -->
-                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6"
+                                <!-- Badges -->
+                                <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="6"
                                             VerticalAlignment="Center">
                                     <Border Style="{StaticResource AccentBadgeStyle}">
                                         <TextBlock Text="{Binding KindLabel}"
@@ -311,10 +375,19 @@
                                     </Border>
                                 </StackPanel>
 
-                                <!-- Tool Inspector Details Button -->
-                                <Button Grid.Column="4" Click="ToolDetails_Click"
-                                        ToolTipService.ToolTip="Inspect tool specifications and documentation"
-                                        Padding="8" VerticalAlignment="Center"
+                                <!-- Copy command button -->
+                                <Button Grid.Column="5" Click="CopyCommand_Click"
+                                        ToolTipService.ToolTip="Copy install command to clipboard"
+                                        Padding="7" VerticalAlignment="Center"
+                                        CornerRadius="8">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="13"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+
+                                <!-- Details button -->
+                                <Button Grid.Column="6" Click="ToolDetails_Click"
+                                        ToolTipService.ToolTip="Inspect tool specifications"
+                                        Padding="7" VerticalAlignment="Center"
                                         CornerRadius="8">
                                     <StackPanel Orientation="Horizontal" Spacing="5">
                                         <FontIcon Glyph="&#xE946;" FontSize="13"
