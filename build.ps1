@@ -149,6 +149,7 @@ $publishArgs = [System.Collections.Generic.List[string]]@(
 if ($SingleFile) {
     $publishArgs.Add('-p:PublishSingleFile=true')
     $publishArgs.Add('-p:IncludeNativeLibrariesForSelfExtract=true')
+    $publishArgs.Add('-p:EnableCompressionInSingleFile=true')
     Write-Warn "Single-file: Windows App SDK runtime may still extract DLLs on first run"
 }
 
