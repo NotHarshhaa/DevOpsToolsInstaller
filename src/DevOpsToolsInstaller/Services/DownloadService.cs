@@ -20,7 +20,7 @@ public sealed class DownloadService
             Timeout = TimeSpan.FromMinutes(30)
         };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "DevOpsToolsInstaller/1.5.0 (Windows NT 10.0; Win64; x64)");
+            "DevOpsToolsInstaller/2.0.0 (Windows NT 10.0; Win64; x64)");
     }
 
     /// <summary>
