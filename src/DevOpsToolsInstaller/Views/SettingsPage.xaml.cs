@@ -206,4 +206,43 @@ public sealed partial class SettingsPage : Page
     {
         App.MainWindowInstance?.NavigateTo("About");
     }
+
+    private void ShowNotice(string message, InfoBarSeverity severity = InfoBarSeverity.Success)
+    {
+        NoticeInfoBar.Message = message;
+        NoticeInfoBar.Severity = severity;
+        NoticeInfoBar.IsOpen = true;
+    }
+
+    private void DesktopShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        var ok = SettingsService.CreateDesktopShortcut();
+        if (ok)
+        {
+            ShortcutStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            ShortcutStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+            ShortcutStatusText.Text = "Desktop Shortcut Created";
+            ShowNotice("Desktop shortcut created with official logo.", InfoBarSeverity.Success);
+        }
+        else
+        {
+            ShowNotice("Could not create desktop shortcut.", InfoBarSeverity.Error);
+        }
+    }
+
+    private void StartMenuShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        var ok = SettingsService.CreateStartMenuShortcut();
+        if (ok)
+        {
+            ShortcutStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            ShortcutStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+            ShortcutStatusText.Text = "Start Menu Shortcut Created";
+            ShowNotice("Start Menu shortcut created with official logo.", InfoBarSeverity.Success);
+        }
+        else
+        {
+            ShowNotice("Could not create Start Menu shortcut.", InfoBarSeverity.Error);
+        }
+    }
 }

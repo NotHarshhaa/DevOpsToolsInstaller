@@ -80,6 +80,13 @@ public sealed partial class MainWindow : Window
         // don't support it.
         TrySetMicaBackdrop();
 
+        // Set taskbar and window icon
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+        if (System.IO.File.Exists(iconPath))
+        {
+            AppWindow?.SetIcon(iconPath);
+        }
+
         ApplyTheme(SettingsService.Theme);
 
         RootGrid.ActualThemeChanged += (s, e) =>

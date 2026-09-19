@@ -31,11 +31,8 @@
 
                     <!-- App Icon Graphic -->
                     <Border Grid.Column="0" Width="64" Height="64" CornerRadius="16"
-                            Background="{ThemeResource AccentFillColorDefaultBrush}"
                             VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE74C;" FontSize="28"
-                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image Source="Assets/app.png" Stretch="Uniform" />
                     </Border>
 
                     <!-- Text description -->

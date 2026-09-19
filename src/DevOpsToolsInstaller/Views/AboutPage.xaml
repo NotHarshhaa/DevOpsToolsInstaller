@@ -29,11 +29,8 @@
                     </Grid.ColumnDefinitions>
 
                     <Border Grid.Column="0" Width="64" Height="64" CornerRadius="16"
-                            Background="{ThemeResource AccentFillColorDefaultBrush}"
                             VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE74C;" FontSize="30"
-                                  Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Image Source="Assets/app.png" Stretch="Uniform" />
                     </Border>
 
                     <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">

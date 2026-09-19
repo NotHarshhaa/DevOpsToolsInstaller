@@ -14,12 +14,8 @@
         <!-- Custom title bar (transparent so Mica shows through) -->
         <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="Transparent">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
-                <Border Width="26" Height="26" CornerRadius="6"
-                        Background="{ThemeResource AccentFillColorTertiaryBrush}"
-                        BorderBrush="{ThemeResource AccentFillColorSecondaryBrush}"
-                        BorderThickness="1">
-                    <FontIcon Glyph="&#xE74C;" FontSize="13" Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
-                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Border Width="24" Height="24" CornerRadius="6" VerticalAlignment="Center">
+                    <Image Source="Assets/app.png" Stretch="Uniform" />
                 </Border>
                 <TextBlock
                     Text="DevOps Tools Installer"

@@ -181,4 +181,60 @@ public static class SettingsService
             return false;
         }
     }
+
+    // ── Desktop & Start Menu Shortcuts ────────────────────────────────────
+
+    public static string DesktopShortcutPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory),
+        "DevOps Tools Installer.lnk");
+
+    public static string StartMenuShortcutPath => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.Programs),
+        "DevOps Tools Installer.lnk");
+
+    public static bool HasDesktopShortcut() => File.Exists(DesktopShortcutPath);
+    public static bool HasStartMenuShortcut() => File.Exists(StartMenuShortcutPath);
+
+    public static bool CreateDesktopShortcut() => CreateShortcut(DesktopShortcutPath);
+    public static bool CreateStartMenuShortcut() => CreateShortcut(StartMenuShortcutPath);
+
+    private static bool CreateShortcut(string shortcutPath)
+    {
+        try
+        {
+            var exePath = Environment.ProcessPath;
+            if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))
+            {
+                exePath = Path.Combine(AppContext.BaseDirectory, "DevOpsToolsInstaller.exe");
+            }
+
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+            if (!File.Exists(iconPath))
+            {
+                iconPath = exePath;
+            }
+
+            var escapedShortcut = shortcutPath.Replace("'", "''");
+            var escapedTarget = exePath.Replace("'", "''");
+            var escapedWorking = (Path.GetDirectoryName(exePath) ?? "").Replace("'", "''");
+            var escapedIcon = iconPath.Replace("'", "''");
+
+            var psCommand = $"$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('{escapedShortcut}'); $s.TargetPath = '{escapedTarget}'; $s.WorkingDirectory = '{escapedWorking}'; $s.IconLocation = '{escapedIcon},0'; $s.Description = 'DevOps Tools Installer'; $s.Save()";
+
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -NonInteractive -Command \"{psCommand}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            using var proc = System.Diagnostics.Process.Start(psi);
+            proc?.WaitForExit(3000);
+            return File.Exists(shortcutPath);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }

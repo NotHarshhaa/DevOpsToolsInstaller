@@ -16,6 +16,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationTitle>DevOps Tools Installer</ApplicationTitle>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>DevOpsToolsInstaller</AssemblyName>
     <Version>1.5.0</Version>
     <AssemblyVersion>1.5.0.0</AssemblyVersion>
@@ -31,6 +32,12 @@
   <ItemGroup>
     <Content Include="..\..\catalog\catalog.json">
       <Link>Assets\catalog.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\app.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
