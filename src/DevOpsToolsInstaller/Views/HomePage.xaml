@@ -5,71 +5,119 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
     <ScrollViewer Padding="32,28,32,36">
-        <StackPanel Spacing="22" MaxWidth="1020">
+        <StackPanel Spacing="22" MaxWidth="1060">
             <StackPanel.ChildrenTransitions>
                 <TransitionCollection>
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="24" />
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="28" />
                     <RepositionThemeTransition />
                 </TransitionCollection>
             </StackPanel.ChildrenTransitions>
 
-            <!-- Header -->
-            <StackPanel Spacing="3">
+            <!-- ══════════════════════════════════ -->
+            <!--  PAGE HEADER                       -->
+            <!-- ══════════════════════════════════ -->
+            <StackPanel Spacing="4">
                 <TextBlock Text="DevOps Workstation Hub" Style="{StaticResource PageTitleStyle}" />
                 <TextBlock Text="Curated tools, zero-fuss installation, and automatic PATH setup for Windows engineers."
                            Style="{StaticResource PageSubtitleStyle}" />
             </StackPanel>
 
-            <!-- Hero Banner -->
-            <Border Style="{StaticResource HeroCardStyle}" Padding="26">
-                <Grid ColumnSpacing="24">
+            <!-- ══════════════════════════════════ -->
+            <!--  HERO BANNER                       -->
+            <!-- ══════════════════════════════════ -->
+            <Border Style="{StaticResource HeroCardStyle}">
+                <Grid ColumnSpacing="20">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- App Icon Graphic -->
-                    <Border Grid.Column="0" Width="68" Height="68" CornerRadius="16"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                            BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
-                            BorderThickness="1"
-                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Image x:Name="HeroLogoImage" Source="ms-appx:///Assets/app.png"
-                               Width="56" Height="56" Stretch="Uniform"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
+                    <!-- App Icon with glow ring -->
+                    <Grid Grid.Column="0" VerticalAlignment="Center">
+                        <!-- Outer glow ring -->
+                        <Border Width="88" Height="88" CornerRadius="22"
+                                Background="{ThemeResource CustomAccentBadgeBackgroundBrush}"
+                                BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                                BorderThickness="2" />
+                        <!-- Inner icon container -->
+                        <Border Width="76" Height="76" CornerRadius="18"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CustomGlowBorderBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image x:Name="HeroLogoImage" Source="ms-appx:///Assets/app.png"
+                                   Width="52" Height="52" Stretch="Uniform"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </Grid>
 
                     <!-- Text description -->
-                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <TextBlock Text="Ready to configure your machine?"
                                        Style="{StaticResource SubtitleTextBlockStyle}"
-                                       FontWeight="SemiBold"
+                                       FontWeight="Bold"
                                        Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                             <Border Style="{StaticResource AccentBadgeStyle}">
-                                <TextBlock Text="Verified Safe" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE8A9;" FontSize="10"
+                                              Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
+                                    <TextBlock Text="Verified Safe" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
+                                </StackPanel>
                             </Border>
                         </StackPanel>
                         <TextBlock TextWrapping="Wrap"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                   FontSize="13"
                                    Text="Browse and download official DevOps installers and CLIs. Extracted CLI tools are automatically placed in your Tools\bin folder so you're ready to code immediately." />
+                        <!-- Feature pills -->
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,2,0,0">
+                            <Border Style="{StaticResource BadgeStyle}" Padding="8,3">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE896;" FontSize="10" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                    <TextBlock Text="Batch install" FontSize="11" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource BadgeStyle}" Padding="8,3">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE756;" FontSize="10" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                    <TextBlock Text="Auto PATH" FontSize="11" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource BadgeStyle}" Padding="8,3">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE72E;" FontSize="10" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                    <TextBlock Text="Official binaries" FontSize="11" Foreground="{ThemeResource CustomNeutralBadgeTextBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
 
-                    <!-- Primary Quick Action -->
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
-                        <Button Style="{StaticResource AccentButtonStyle}" Click="Catalog_Click" Padding="18,10">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                    <!-- Primary Quick Actions -->
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="10" MinWidth="160">
+                        <Button Style="{StaticResource AccentButtonStyle}" Click="Catalog_Click"
+                                Padding="20,11" HorizontalAlignment="Stretch">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
                                 <FontIcon Glyph="&#xE8F1;" FontSize="15" />
                                 <TextBlock Text="Browse Catalog" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="Downloads_Click" Padding="20,9"
+                                HorizontalAlignment="Stretch" CornerRadius="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <FontIcon Glyph="&#xE896;" FontSize="15" />
+                                <TextBlock Text="View Downloads" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Safety notice -->
+            <!-- ══════════════════════════════════ -->
+            <!--  SAFETY NOTICE                     -->
+            <!-- ══════════════════════════════════ -->
             <controls:InfoBar
                 IsOpen="True"
                 IsClosable="False"
@@ -77,8 +125,10 @@
                 Title="Transparent &amp; Safe"
                 Message="No silent background installations and no unreviewed scripts. The app downloads official vendor binaries and gives you full control." />
 
-            <!-- Stats Grid -->
-            <Grid ColumnSpacing="16">
+            <!-- ══════════════════════════════════ -->
+            <!--  STATS GRID                        -->
+            <!-- ══════════════════════════════════ -->
+            <Grid ColumnSpacing="14">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
@@ -86,192 +136,332 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Available Tools -->
-                <Border Grid.Column="0" Style="{StaticResource CardStyle}">
-                    <Grid ColumnSpacing="14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE8F1;" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <Border Grid.Column="0" Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Icon with blue tint -->
+                        <Border Width="48" Height="48" CornerRadius="12"
+                                Background="{ThemeResource StatIconBlueBrush}"
+                                BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Left">
+                            <FontIcon Glyph="&#xE8F1;" FontSize="22"
+                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <StackPanel Spacing="2">
                             <TextBlock x:Name="ToolCountText" Text="—" Style="{StaticResource MetricNumberStyle}" />
                             <TextBlock x:Name="ToolCountLabel" Text="Loading catalog…" Style="{StaticResource MetricLabelStyle}" />
                         </StackPanel>
-                    </Grid>
+                        <!-- Subtle bottom label -->
+                        <Border Style="{StaticResource AccentBadgeStyle}" HorizontalAlignment="Left" Padding="8,2">
+                            <TextBlock Text="Available" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
+                        </Border>
+                    </StackPanel>
                 </Border>
 
                 <!-- Downloaded Tools -->
-                <Border Grid.Column="1" Style="{StaticResource CardStyle}">
-                    <Grid ColumnSpacing="14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE896;" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <Border Grid.Column="1" Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Icon with green tint -->
+                        <Border Width="48" Height="48" CornerRadius="12"
+                                Background="{ThemeResource StatIconGreenBrush}"
+                                BorderBrush="{ThemeResource CustomSuccessBadgeBorderBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Left">
+                            <FontIcon Glyph="&#xE896;" FontSize="22"
+                                      Foreground="{ThemeResource CustomSuccessBadgeTextBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <StackPanel Spacing="2">
                             <TextBlock x:Name="DownloadedCountText" Text="0" Style="{StaticResource MetricNumberStyle}" />
                             <TextBlock x:Name="DownloadedCountLabel" Text="Downloaded" Style="{StaticResource MetricLabelStyle}" />
                         </StackPanel>
-                    </Grid>
+                        <Border Style="{StaticResource SuccessBadgeStyle}" HorizontalAlignment="Left" Padding="8,2">
+                            <TextBlock Text="Installed" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
+                        </Border>
+                    </StackPanel>
                 </Border>
 
                 <!-- Categories -->
-                <Border Grid.Column="2" Style="{StaticResource CardStyle}">
-                    <Grid ColumnSpacing="14">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Width="44" Height="44" CornerRadius="10"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE8EC;" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                <Border Grid.Column="2" Style="{StaticResource StatCardStyle}">
+                    <StackPanel Spacing="14">
+                        <!-- Icon with amber tint -->
+                        <Border Width="48" Height="48" CornerRadius="12"
+                                Background="{ThemeResource StatIconAmberBrush}"
+                                BorderBrush="{ThemeResource CustomWarningBadgeBorderBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Left">
+                            <FontIcon Glyph="&#xE8EC;" FontSize="22"
+                                      Foreground="{ThemeResource CustomWarningBadgeTextBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                        <StackPanel Spacing="2">
                             <TextBlock x:Name="CategoriesCountText" Text="7" Style="{StaticResource MetricNumberStyle}" />
                             <TextBlock Text="Categories" Style="{StaticResource MetricLabelStyle}" />
                         </StackPanel>
-                    </Grid>
+                        <Border Style="{StaticResource WarningBadgeStyle}" HorizontalAlignment="Left" Padding="8,2">
+                            <TextBlock Text="Tool groups" FontSize="10" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource CustomWarningBadgeTextBrush}" />
+                        </Border>
+                    </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- Quick Links -->
+            <!-- ══════════════════════════════════ -->
+            <!--  QUICK ACTIONS                     -->
+            <!-- ══════════════════════════════════ -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="14">
-                    <TextBlock Text="Quick Actions" Style="{StaticResource CardTitleStyle}" />
+                <StackPanel Spacing="16">
+                    <!-- Section header with accent decoration -->
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Width="4" Height="20" CornerRadius="2"
+                                    Background="{ThemeResource SectionAccentLineBrush}"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="Quick Actions" Style="{StaticResource CardTitleStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="Jump directly to the section you need"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   Margin="14,0,0,0" />
+                    </StackPanel>
 
-                    <Grid ColumnSpacing="14">
+                    <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Style="{StaticResource QuickLinkButtonStyle}" Click="Catalog_Click">
-                            <Grid ColumnSpacing="14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8"
-                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                        VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE8F1;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="Explore Tool Catalog" FontWeight="SemiBold" />
-                                    <TextBlock Text="Search, filter, and batch download tools"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </StackPanel>
-                                <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="12"
-                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                          VerticalAlignment="Center" />
+                        <!-- Catalog action card -->
+                        <Button Grid.Column="0" Style="{StaticResource QuickActionCardStyle}"
+                                Click="Catalog_Click">
+                            <Grid>
+                                <!-- Blue left stripe -->
+                                <Border Width="5" CornerRadius="12,0,0,12"
+                                        Background="{ThemeResource StepOneBorderBrush}"
+                                        HorizontalAlignment="Left" />
+                                <Grid Margin="18,16,16,16" ColumnSpacing="14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10"
+                                            Background="{ThemeResource StatIconBlueBrush}"
+                                            BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                                            BorderThickness="1"
+                                            VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8F1;" FontSize="18"
+                                                  Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                        <TextBlock Text="Explore Tool Catalog" FontWeight="SemiBold" FontSize="14" />
+                                        <TextBlock Text="Search, filter, and batch download tools"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                              VerticalAlignment="Center" />
+                                </Grid>
                             </Grid>
                         </Button>
 
-                        <Button Grid.Column="1" Style="{StaticResource QuickLinkButtonStyle}" Click="Downloads_Click">
-                            <Grid ColumnSpacing="14">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8"
-                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                        VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE896;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="Manage Downloads" FontWeight="SemiBold" />
-                                    <TextBlock Text="Track progress and run or remove installers"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </StackPanel>
-                                <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="12"
-                                          Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                          VerticalAlignment="Center" />
+                        <!-- Downloads action card -->
+                        <Button Grid.Column="1" Style="{StaticResource QuickActionCardStyle}"
+                                Click="Downloads_Click">
+                            <Grid>
+                                <!-- Green left stripe -->
+                                <Border Width="5" CornerRadius="12,0,0,12"
+                                        Background="{ThemeResource StepThreeBorderBrush}"
+                                        HorizontalAlignment="Left" />
+                                <Grid Margin="18,16,16,16" ColumnSpacing="14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0" Width="42" Height="42" CornerRadius="10"
+                                            Background="{ThemeResource StatIconGreenBrush}"
+                                            BorderBrush="{ThemeResource CustomSuccessBadgeBorderBrush}"
+                                            BorderThickness="1"
+                                            VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE896;" FontSize="18"
+                                                  Foreground="{ThemeResource CustomSuccessBadgeTextBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
+                                        <TextBlock Text="Manage Downloads" FontWeight="SemiBold" FontSize="14" />
+                                        <TextBlock Text="Track progress and run or remove installers"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                    <FontIcon Grid.Column="2" Glyph="&#xE76C;" FontSize="14"
+                                              Foreground="{ThemeResource CustomSuccessBadgeTextBrush}"
+                                              VerticalAlignment="Center" />
+                                </Grid>
                             </Grid>
                         </Button>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- How it works -->
+            <!-- ══════════════════════════════════ -->
+            <!--  HOW IT WORKS — WORKFLOW STEPS     -->
+            <!-- ══════════════════════════════════ -->
             <Border Style="{StaticResource CardStyle}">
-                <StackPanel Spacing="16">
-                    <TextBlock Text="Streamlined Workflow" Style="{StaticResource CardTitleStyle}" />
+                <StackPanel Spacing="18">
+                    <!-- Section header -->
+                    <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Width="4" Height="20" CornerRadius="2"
+                                    Background="{ThemeResource StepTwoBorderBrush}"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="Streamlined Workflow" Style="{StaticResource CardTitleStyle}" />
+                        </StackPanel>
+                        <TextBlock Text="Three simple steps from zero to fully configured workstation"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                   Margin="14,0,0,0" />
+                    </StackPanel>
 
-                    <Grid ColumnSpacing="16">
+                    <Grid ColumnSpacing="14">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Step 1 -->
-                        <Border Grid.Column="0" Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                CornerRadius="8" Padding="16">
-                            <StackPanel Spacing="8">
-                                <Border Width="28" Height="28" CornerRadius="14"
-                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                        HorizontalAlignment="Left">
-                                    <TextBlock Text="1" FontSize="13" FontWeight="Bold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                                </Border>
-                                <TextBlock Text="Select Your Stack" FontWeight="SemiBold" />
-                                <TextBlock Text="Filter by categories like Kubernetes, Cloud CLIs, or IaC to pick tools."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
+                        <Border Grid.Column="0" CornerRadius="12"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                Padding="0">
+                            <Grid>
+                                <!-- Blue left accent bar -->
+                                <Border Width="4" CornerRadius="12,0,0,12"
+                                        Background="{ThemeResource StepOneBorderBrush}"
+                                        HorizontalAlignment="Left" />
+                                <StackPanel Margin="18,16,14,16" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="16"
+                                                Background="{ThemeResource CustomAccentBadgeBackgroundBrush}"
+                                                BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                                                BorderThickness="1">
+                                            <TextBlock Text="1" FontSize="14" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
+                                        </Border>
+                                        <Border Width="36" Height="36" CornerRadius="9"
+                                                Background="{ThemeResource StatIconBlueBrush}"
+                                                BorderBrush="{ThemeResource CustomAccentBadgeBorderBrush}"
+                                                BorderThickness="1">
+                                            <FontIcon Glyph="&#xE71D;" FontSize="16"
+                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Select Your Stack" FontWeight="SemiBold" FontSize="13" />
+                                    <TextBlock Text="Filter by categories like Kubernetes, Cloud CLIs, or IaC to pick the exact tools you need."
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
                         </Border>
+
+                        <!-- Connector arrow 1→2 -->
+                        <FontIcon Grid.Column="1" Glyph="&#xE76C;" FontSize="16"
+                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                  VerticalAlignment="Center" />
 
                         <!-- Step 2 -->
-                        <Border Grid.Column="1" Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                CornerRadius="8" Padding="16">
-                            <StackPanel Spacing="8">
-                                <Border Width="28" Height="28" CornerRadius="14"
-                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                        HorizontalAlignment="Left">
-                                    <TextBlock Text="2" FontSize="13" FontWeight="Bold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                                </Border>
-                                <TextBlock Text="Batch Download" FontWeight="SemiBold" />
-                                <TextBlock Text="Concurrent downloads with real-time progress and integrity verification."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
+                        <Border Grid.Column="2" CornerRadius="12"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                Padding="0">
+                            <Grid>
+                                <!-- Purple left accent bar -->
+                                <Border Width="4" CornerRadius="12,0,0,12"
+                                        Background="{ThemeResource StepTwoBorderBrush}"
+                                        HorizontalAlignment="Left" />
+                                <StackPanel Margin="18,16,14,16" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="16"
+                                                Background="#2D1A4A"
+                                                BorderBrush="{ThemeResource StepTwoBorderBrush}"
+                                                BorderThickness="1">
+                                            <TextBlock Text="2" FontSize="14" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="#C084FC" />
+                                        </Border>
+                                        <Border Width="36" Height="36" CornerRadius="9"
+                                                Background="{ThemeResource StatIconPurpleBrush}"
+                                                BorderBrush="{ThemeResource StepTwoBorderBrush}"
+                                                BorderThickness="1">
+                                            <FontIcon Glyph="&#xE896;" FontSize="16"
+                                                      Foreground="#C084FC"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Batch Download" FontWeight="SemiBold" FontSize="13" />
+                                    <TextBlock Text="Concurrent downloads with real-time progress tracking and integrity verification."
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
                         </Border>
 
+                        <!-- Connector arrow 2→3 -->
+                        <FontIcon Grid.Column="3" Glyph="&#xE76C;" FontSize="16"
+                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                  VerticalAlignment="Center" />
+
                         <!-- Step 3 -->
-                        <Border Grid.Column="2" Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                CornerRadius="8" Padding="16">
-                            <StackPanel Spacing="8">
-                                <Border Width="28" Height="28" CornerRadius="14"
-                                        Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                        HorizontalAlignment="Left">
-                                    <TextBlock Text="3" FontSize="13" FontWeight="Bold"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                                </Border>
-                                <TextBlock Text="Ready on PATH" FontWeight="SemiBold" />
-                                <TextBlock Text="Installers launch vendor UIs; archives and binaries deploy straight to Tools\bin."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
+                        <Border Grid.Column="4" CornerRadius="12"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                Padding="0">
+                            <Grid>
+                                <!-- Green left accent bar -->
+                                <Border Width="4" CornerRadius="12,0,0,12"
+                                        Background="{ThemeResource StepThreeBorderBrush}"
+                                        HorizontalAlignment="Left" />
+                                <StackPanel Margin="18,16,14,16" Spacing="10">
+                                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                        <Border Width="32" Height="32" CornerRadius="16"
+                                                Background="{ThemeResource CustomSuccessBadgeBackgroundBrush}"
+                                                BorderBrush="{ThemeResource CustomSuccessBadgeBorderBrush}"
+                                                BorderThickness="1">
+                                            <TextBlock Text="3" FontSize="14" FontWeight="Bold"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
+                                        </Border>
+                                        <Border Width="36" Height="36" CornerRadius="9"
+                                                Background="{ThemeResource StatIconGreenBrush}"
+                                                BorderBrush="{ThemeResource CustomSuccessBadgeBorderBrush}"
+                                                BorderThickness="1">
+                                            <FontIcon Glyph="&#xE756;" FontSize="16"
+                                                      Foreground="{ThemeResource CustomSuccessBadgeTextBrush}"
+                                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Ready on PATH" FontWeight="SemiBold" FontSize="13" />
+                                    <TextBlock Text="Installers launch vendor UIs; archives and binaries deploy straight to Tools\bin automatically."
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
                 </StackPanel>

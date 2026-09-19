@@ -4,7 +4,8 @@
 
     <!--
         Native Windows 11 / Fluent 2 styling with tailored Dark & Light mode palettes.
-        Eliminates legacy Windows blue with modern, curated Cyan/Sky accents & glowing badges.
+        Premium upgraded design: glassmorphism cards, glow accents, gradient heroes, 
+        status-stripe download cards, and vivid category chips.
     -->
 
     <ResourceDictionary.ThemeDictionaries>
@@ -33,6 +34,31 @@
             <SolidColorBrush x:Key="CustomWarningBadgeTextBrush" Color="#FBBF24" />
 
             <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#1E3A5F" />
+
+            <!-- Glow / glass effects -->
+            <SolidColorBrush x:Key="CustomGlowBorderBrush" Color="#3B82F6" />
+            <SolidColorBrush x:Key="CustomGlassBackgroundBrush" Color="#0F172A" />
+            <SolidColorBrush x:Key="CustomHeroGradientBrush" Color="#0C1E35" />
+
+            <!-- Stat card tints -->
+            <SolidColorBrush x:Key="StatIconBlueBrush" Color="#0C2340" />
+            <SolidColorBrush x:Key="StatIconGreenBrush" Color="#052E16" />
+            <SolidColorBrush x:Key="StatIconAmberBrush" Color="#2D1A00" />
+            <SolidColorBrush x:Key="StatIconPurpleBrush" Color="#1E0A38" />
+
+            <!-- Step card left border accents -->
+            <SolidColorBrush x:Key="StepOneBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="StepTwoBorderBrush" Color="#7C3AED" />
+            <SolidColorBrush x:Key="StepThreeBorderBrush" Color="#059669" />
+
+            <!-- Download status stripe colors -->
+            <SolidColorBrush x:Key="DownloadStripeIdleBrush" Color="#334155" />
+            <SolidColorBrush x:Key="DownloadStripeActiveBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="DownloadStripeDoneBrush" Color="#059669" />
+            <SolidColorBrush x:Key="DownloadStripeErrorBrush" Color="#DC2626" />
+
+            <!-- Section header decoration -->
+            <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#0284C7" />
 
             <!-- Override WinUI system accent brushes so controls never fall back to legacy OS blue -->
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
@@ -77,6 +103,31 @@
 
             <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#1E3A5F" />
 
+            <!-- Glow / glass effects -->
+            <SolidColorBrush x:Key="CustomGlowBorderBrush" Color="#3B82F6" />
+            <SolidColorBrush x:Key="CustomGlassBackgroundBrush" Color="#0F172A" />
+            <SolidColorBrush x:Key="CustomHeroGradientBrush" Color="#0C1E35" />
+
+            <!-- Stat card tints -->
+            <SolidColorBrush x:Key="StatIconBlueBrush" Color="#0C2340" />
+            <SolidColorBrush x:Key="StatIconGreenBrush" Color="#052E16" />
+            <SolidColorBrush x:Key="StatIconAmberBrush" Color="#2D1A00" />
+            <SolidColorBrush x:Key="StatIconPurpleBrush" Color="#1E0A38" />
+
+            <!-- Step card left border accents -->
+            <SolidColorBrush x:Key="StepOneBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="StepTwoBorderBrush" Color="#7C3AED" />
+            <SolidColorBrush x:Key="StepThreeBorderBrush" Color="#059669" />
+
+            <!-- Download status stripe colors -->
+            <SolidColorBrush x:Key="DownloadStripeIdleBrush" Color="#334155" />
+            <SolidColorBrush x:Key="DownloadStripeActiveBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="DownloadStripeDoneBrush" Color="#059669" />
+            <SolidColorBrush x:Key="DownloadStripeErrorBrush" Color="#DC2626" />
+
+            <!-- Section header decoration -->
+            <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#0284C7" />
+
             <!-- Override WinUI system accent brushes so controls never fall back to legacy OS blue -->
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
             <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#0369A1" />
@@ -119,6 +170,31 @@
 
             <SolidColorBrush x:Key="CustomHeroBorderBrush" Color="#BAE6FD" />
 
+            <!-- Glow / glass effects -->
+            <SolidColorBrush x:Key="CustomGlowBorderBrush" Color="#60A5FA" />
+            <SolidColorBrush x:Key="CustomGlassBackgroundBrush" Color="#F0F9FF" />
+            <SolidColorBrush x:Key="CustomHeroGradientBrush" Color="#E0F2FE" />
+
+            <!-- Stat card tints -->
+            <SolidColorBrush x:Key="StatIconBlueBrush" Color="#DBEAFE" />
+            <SolidColorBrush x:Key="StatIconGreenBrush" Color="#DCFCE7" />
+            <SolidColorBrush x:Key="StatIconAmberBrush" Color="#FEF9C3" />
+            <SolidColorBrush x:Key="StatIconPurpleBrush" Color="#F3E8FF" />
+
+            <!-- Step card left border accents -->
+            <SolidColorBrush x:Key="StepOneBorderBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="StepTwoBorderBrush" Color="#7C3AED" />
+            <SolidColorBrush x:Key="StepThreeBorderBrush" Color="#059669" />
+
+            <!-- Download status stripe colors -->
+            <SolidColorBrush x:Key="DownloadStripeIdleBrush" Color="#CBD5E1" />
+            <SolidColorBrush x:Key="DownloadStripeActiveBrush" Color="#0284C7" />
+            <SolidColorBrush x:Key="DownloadStripeDoneBrush" Color="#059669" />
+            <SolidColorBrush x:Key="DownloadStripeErrorBrush" Color="#DC2626" />
+
+            <!-- Section header decoration -->
+            <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#0284C7" />
+
             <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#0284C7" />
             <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#0369A1" />
             <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#075985" />
@@ -136,22 +212,53 @@
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  CARD STYLES                                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
     <!-- Standard content card -->
     <Style x:Key="CardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="20" />
     </Style>
 
-    <!-- Prominent Hero Card with subtle accent depth -->
+    <!-- Prominent Hero Card with gradient depth and glowing accent border -->
     <Style x:Key="HeroCardStyle" TargetType="Border">
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorSecondaryBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CustomHeroBorderBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomAccentBadgeBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="16" />
+        <Setter Property="Padding" Value="28" />
+    </Style>
+
+    <!-- Glass-morphism card for premium sections -->
+    <Style x:Key="GlassCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource LayerFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CustomGlowBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="24" />
+        <Setter Property="Padding" Value="22" />
+    </Style>
+
+    <!-- Stat tile card — compact with larger corner radius -->
+    <Style x:Key="StatCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="18,16" />
+    </Style>
+
+    <!-- Step card — used in workflow section with colored left accent bar -->
+    <Style x:Key="StepCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource ControlFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="0" />
     </Style>
 
     <!-- Card used as a list item with rounded squircle feel -->
@@ -159,25 +266,57 @@
         <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Setter Property="Padding" Value="16,12" />
-        <Setter Property="Margin" Value="0,0,0,6" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,8" />
     </Style>
+
+    <!-- Download item card — uses left stripe coloring via inner content -->
+    <Style x:Key="DownloadItemCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <!-- Quick action navigation card — full width, interactive -->
+    <Style x:Key="QuickActionCardStyle" TargetType="Button">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  TEXT STYLES                                                -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
 
     <!-- Page heading -->
     <Style x:Key="PageTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontWeight" Value="Bold" />
     </Style>
 
     <!-- Page subheading under the title -->
     <Style x:Key="PageSubtitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-        <Setter Property="Margin" Value="0,2,0,0" />
+        <Setter Property="Margin" Value="0,3,0,0" />
     </Style>
 
     <!-- Title inside a card -->
     <Style x:Key="CardTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyStrongTextBlockStyle}">
+        <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="15" />
+    </Style>
+
+    <!-- Section header (bold heading with accent left bar) -->
+    <Style x:Key="SectionHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource SubtitleTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
@@ -186,12 +325,17 @@
     <Style x:Key="MetricNumberStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleLargeTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
         <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="32" />
     </Style>
 
     <!-- Dashboard metric caption -->
     <Style x:Key="MetricLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
         <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
     </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  BADGE STYLES                                               -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
 
     <!-- Pill badge background (neutral) -->
     <Style x:Key="BadgeStyle" TargetType="Border">
@@ -233,6 +377,10 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  BUTTON STYLES                                              -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
     <!-- Modern Curated Accent Button Style -->
     <Style x:Key="AccentButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{ThemeResource CustomAccentPrimaryBrush}" />
@@ -240,7 +388,7 @@
         <Setter Property="BorderBrush" Value="{ThemeResource CustomAccentBadgeBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Padding" Value="16,8" />
+        <Setter Property="Padding" Value="16,9" />
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
@@ -249,13 +397,13 @@
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Padding" Value="16,14" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="10" />
     </Style>
 
     <!-- Interactive category filter chip (Unselected) -->
     <Style x:Key="CategoryChipStyle" TargetType="Button">
-        <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="14,6" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Margin" Value="0,0,6,0" />
@@ -266,8 +414,8 @@
 
     <!-- Interactive category filter chip (Selected) -->
     <Style x:Key="SelectedCategoryChipStyle" TargetType="Button">
-        <Setter Property="CornerRadius" Value="14" />
-        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="CornerRadius" Value="20" />
+        <Setter Property="Padding" Value="14,6" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0,0,6,0" />
