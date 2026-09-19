@@ -23,6 +23,7 @@ public sealed partial class SettingsPage : Page
         ToolsPathText.Text = ArtifactService.BinFolder;
         UpdateStorageInfo(dlFolder);
         UpdatePathStatus();
+        UpdateCompletionStatus();
 
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
@@ -34,6 +35,12 @@ public sealed partial class SettingsPage : Page
                 break;
             }
         }
+    }
+
+    private void UpdateCompletionStatus()
+    {
+        var inProfile = ShellCompletionService.IsSnippetInProfile();
+        CompletionStatusText.Text = inProfile ? "Configured in $PROFILE" : "Not configured";
     }
 
     private void UpdatePathStatus()
@@ -246,5 +253,111 @@ public sealed partial class SettingsPage : Page
         {
             ShowNotice("Could not create Start Menu shortcut.", InfoBarSeverity.Error);
         }
+    }
+
+    private async void GenerateCompletion_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        var tools = mw?.Tools.Where(t => t.IsInstalled).ToList() ?? new System.Collections.Generic.List<Models.ToolDefinition>();
+
+        var psSnippet = ShellCompletionService.GeneratePowerShellSnippet(tools, includeAllSupported: tools.Count == 0);
+        var bashSnippet = ShellCompletionService.GenerateBashSnippet(tools, includeAllSupported: tools.Count == 0);
+
+        var snippetBox = new TextBox
+        {
+            Text = psSnippet,
+            IsReadOnly = true,
+            AcceptsReturn = true,
+            TextWrapping = TextWrapping.Wrap,
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas"),
+            FontSize = 12,
+            Height = 220
+        };
+
+        var statusLabel = new TextBlock
+        {
+            Text = ShellCompletionService.IsSnippetInProfile()
+                ? "Active in your PowerShell profile ($PROFILE)"
+                : "Not yet configured in your PowerShell profile",
+            FontSize = 12,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        };
+
+        var psRadio = new RadioButton { Content = "PowerShell ($PROFILE)", IsChecked = true, Margin = new Thickness(0, 0, 12, 0) };
+        var bashRadio = new RadioButton { Content = "Bash / Zsh (WSL / Git Bash)" };
+
+        var radioPanel = new StackPanel { Orientation = Orientation.Horizontal };
+        radioPanel.Children.Add(psRadio);
+        radioPanel.Children.Add(bashRadio);
+
+        var saveProfileBtn = new Button
+        {
+            Content = "Append to $PROFILE",
+            Style = (Style)Application.Current.Resources["AccentButtonStyle"],
+            CornerRadius = new CornerRadius(4)
+        };
+        saveProfileBtn.Click += (s, ev) =>
+        {
+            var (success, msg) = ShellCompletionService.ApplyToPowerShellProfile(psSnippet);
+            statusLabel.Text = msg;
+            if (success)
+            {
+                saveProfileBtn.IsEnabled = false;
+                saveProfileBtn.Content = "Saved to $PROFILE";
+                UpdateCompletionStatus();
+            }
+        };
+
+        psRadio.Checked += (s, ev) =>
+        {
+            snippetBox.Text = psSnippet;
+            saveProfileBtn.Visibility = Visibility.Visible;
+        };
+        bashRadio.Checked += (s, ev) =>
+        {
+            snippetBox.Text = bashSnippet;
+            saveProfileBtn.Visibility = Visibility.Collapsed;
+        };
+
+        var copyBtn = new Button { Content = "Copy to Clipboard", CornerRadius = new CornerRadius(4) };
+        copyBtn.Click += (s, ev) =>
+        {
+            var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            dataPackage.SetText(snippetBox.Text);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+            copyBtn.Content = "Copied!";
+        };
+
+        var actionPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 10,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        actionPanel.Children.Add(copyBtn);
+        actionPanel.Children.Add(saveProfileBtn);
+
+        var root = new StackPanel { Spacing = 12, MaxWidth = 540 };
+        root.Children.Add(new TextBlock
+        {
+            Text = "Enable instant tab completion for tools installed on your workstation.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        });
+        root.Children.Add(radioPanel);
+        root.Children.Add(snippetBox);
+        root.Children.Add(statusLabel);
+        root.Children.Add(actionPanel);
+
+        var dialog = new ContentDialog
+        {
+            Title = "Terminal Shell Autocompletion",
+            Content = root,
+            CloseButtonText = "Done",
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = this.XamlRoot
+        };
+
+        await dialog.ShowAsync();
     }
 }

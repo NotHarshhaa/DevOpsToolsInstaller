@@ -181,6 +181,112 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonIgnore]
     public string FavoriteGlyph => IsFavorite ? "\uE735" : "\uE734";
 
+    private string? _detectedVersion;
+    [JsonIgnore]
+    public string? DetectedVersion
+    {
+        get => _detectedVersion;
+        set
+        {
+            if (_detectedVersion != value)
+            {
+                _detectedVersion = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(HasUpdate));
+                OnPropertyChanged(nameof(DisplayDetectedVersion));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public string DisplayDetectedVersion =>
+        string.IsNullOrWhiteSpace(DetectedVersion) ? "Unknown version" : $"v{DetectedVersion}";
+
+    [JsonIgnore]
+    public bool HasUpdate
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(DetectedVersion) || string.IsNullOrWhiteSpace(Version))
+                return false;
+
+            var cleanDet = CleanVersion(DetectedVersion);
+            var cleanCat = CleanVersion(Version);
+
+            if (System.Version.TryParse(cleanDet, out var vDet) &&
+                System.Version.TryParse(cleanCat, out var vCat))
+            {
+                return vCat > vDet;
+            }
+
+            return false;
+        }
+    }
+
+    private static string CleanVersion(string v)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(v, @"\b(\d+(\.\d+){1,3})\b");
+        return match.Success ? match.Groups[1].Value : v.Trim().TrimStart('v', 'V');
+    }
+
+    private string _healthStatus = "Not Tested";
+    [JsonIgnore]
+    public string HealthStatus
+    {
+        get => _healthStatus;
+        set
+        {
+            if (_healthStatus != value)
+            {
+                _healthStatus = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsHealthSuccess));
+            }
+        }
+    }
+
+    private string _healthOutput = string.Empty;
+    [JsonIgnore]
+    public string HealthOutput
+    {
+        get => _healthOutput;
+        set
+        {
+            if (_healthOutput != value)
+            {
+                _healthOutput = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public bool IsHealthSuccess => HealthStatus == "Healthy";
+
+    private Services.AuthenticodeResult? _signatureResult;
+    [JsonIgnore]
+    public Services.AuthenticodeResult? SignatureResult
+    {
+        get => _signatureResult;
+        set
+        {
+            if (_signatureResult != value)
+            {
+                _signatureResult = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(SignatureSummary));
+                OnPropertyChanged(nameof(HasValidSignature));
+            }
+        }
+    }
+
+    [JsonIgnore]
+    public string SignatureSummary =>
+        SignatureResult?.Summary ?? (Kind == ArtifactKind.Archive ? "Archive (no signature check)" : "Not verified");
+
+    [JsonIgnore]
+    public bool HasValidSignature => SignatureResult?.IsValid == true;
+
     // ── Computed helpers ─────────────────────────────────────────────────
 
     public string DisplayName => $"{Name}";

@@ -155,6 +155,16 @@
                                                 <TextBlock Text="{Binding KindLabel}" FontSize="11"
                                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                             </Border>
+                                            <Border Style="{StaticResource BadgeStyle}"
+                                                    Visibility="{Binding IsDownloaded, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    ToolTipService.ToolTip="{Binding SignatureSummary}">
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon Glyph="{Binding SignatureResult.Glyph, FallbackValue='&#xE9CE;'}" FontSize="10"
+                                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding SignatureResult.StatusBadge, FallbackValue='Checking signature…'}" FontSize="11"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
+                                            </Border>
                                         </StackPanel>
 
                                         <!-- Status label -->

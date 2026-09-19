@@ -32,12 +32,15 @@
         </StackPanel>
 
         <!-- Command bar -->
+        <!-- Command bar -->
         <Border Grid.Row="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1" CornerRadius="8" Padding="12,8">
-            <Grid ColumnSpacing="10">
+            <Grid ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
@@ -51,15 +54,29 @@
                     </StackPanel>
                 </Button>
 
-                <Border Grid.Column="1" Width="1" Height="20"
+                <Button Grid.Column="1" Click="RunAllHealthChecks_Click" CornerRadius="4" Padding="10,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="13" />
+                        <TextBlock Text="Check All CLIs" />
+                    </StackPanel>
+                </Button>
+
+                <Button Grid.Column="2" Click="ShellCompletion_Click" CornerRadius="4" Padding="10,6">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE756;" FontSize="13" />
+                        <TextBlock Text="Shell Completion" />
+                    </StackPanel>
+                </Button>
+
+                <Border Grid.Column="3" Width="1" Height="20"
                         Background="{ThemeResource DividerStrokeColorDefaultBrush}"
                         VerticalAlignment="Center" />
 
-                <TextBlock Grid.Column="2" x:Name="StatusText" VerticalAlignment="Center"
+                <TextBlock Grid.Column="4" x:Name="StatusText" VerticalAlignment="Center"
                            Margin="4,0,0,0" FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                <Button Grid.Column="3" Click="OpenToolsFolder_Click" CornerRadius="4" Padding="10,6">
+                <Button Grid.Column="5" Click="OpenToolsFolder_Click" CornerRadius="4" Padding="10,6">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                         <FontIcon Glyph="&#xE838;" FontSize="13" />
                         <TextBlock Text="Open Tools folder" />
@@ -128,8 +145,18 @@
                                         <TextBlock Text="Installed" FontSize="10"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Border>
-                                    <Border Style="{StaticResource BadgeStyle}">
-                                        <TextBlock Text="{Binding KindLabel}" FontSize="10"
+                                    <Border Style="{StaticResource BadgeStyle}" ToolTipService.ToolTip="Active version detected">
+                                        <TextBlock Text="{Binding DisplayDetectedVersion}" FontSize="10"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                    <Border Style="{StaticResource BadgeStyle}"
+                                            Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            ToolTipService.ToolTip="A newer version is listed in the catalog">
+                                        <TextBlock Text="Update available" FontSize="10"
+                                                   Foreground="{ThemeResource SystemAccentColor}" FontWeight="SemiBold" />
+                                    </Border>
+                                    <Border Style="{StaticResource BadgeStyle}" ToolTipService.ToolTip="{Binding HealthOutput}">
+                                        <TextBlock Text="{Binding HealthStatus}" FontSize="10"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Border>
                                     <Border Style="{StaticResource BadgeStyle}">
@@ -144,19 +171,29 @@
                                        Style="{StaticResource CaptionTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                        TextTrimming="CharacterEllipsis"
-                                       MaxWidth="220"
+                                       MaxWidth="200"
                                        VerticalAlignment="Center" />
 
-                            <!-- Remove button -->
-                            <Button Grid.Column="3" Click="Remove_Click"
-                                    CornerRadius="4" Padding="10,6"
-                                    VerticalAlignment="Center"
-                                    ToolTipService.ToolTip="{Binding UninstallLabel}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                    <TextBlock Text="{Binding UninstallLabel}" />
-                                </StackPanel>
-                            </Button>
+                            <!-- Action buttons -->
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Click="TestCli_Click"
+                                        CornerRadius="4" Padding="10,6"
+                                        ToolTipService.ToolTip="Run CLI health check (--version)">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE9D9;" FontSize="12" />
+                                        <TextBlock Text="Test CLI" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button Click="Remove_Click"
+                                        CornerRadius="4" Padding="10,6"
+                                        ToolTipService.ToolTip="{Binding UninstallLabel}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                        <TextBlock Text="{Binding UninstallLabel}" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
                         </Grid>
                     </Border>
                 </DataTemplate>

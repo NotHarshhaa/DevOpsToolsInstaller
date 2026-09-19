@@ -47,6 +47,7 @@ public sealed partial class DownloadsPage : Page
             ActiveCountBadge.Text = downloading > 0 ? $"{downloading} active" : $"{completed} ready";
 
             RefreshInstalledStates(mw.DownloadQueue.ToList(), dlFolder);
+            RefreshSignatures(mw.DownloadQueue.ToList(), dlFolder);
         }
         else
         {
@@ -87,16 +88,66 @@ public sealed partial class DownloadsPage : Page
         });
     }
 
-    private void RunInstaller_Click(object sender, RoutedEventArgs e)
+    private static void RefreshSignatures(
+        System.Collections.Generic.List<ToolDefinition> tools, string downloadsFolder)
+    {
+        _ = Task.Run(() =>
+        {
+            foreach (var tool in tools)
+            {
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var filePath = System.IO.Path.Combine(downloadsFolder, tool.FileName);
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        var sig = AuthenticodeService.VerifyFile(filePath);
+                        tool.SignatureResult = sig;
+                    }
+                }
+            }
+        });
+    }
+
+    private async void RunInstaller_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: ToolDefinition tool }) return;
 
-        var result = ArtifactService.Perform(tool, DownloadService.DefaultDownloadsFolder);
+        var dlFolder = DownloadService.DefaultDownloadsFolder;
+        var filePath = System.IO.Path.Combine(dlFolder, tool.FileName);
+
+        // For installers, check Authenticode signature before launching
+        if (tool.Kind == ArtifactKind.Installer)
+        {
+            if (tool.SignatureResult is null && System.IO.File.Exists(filePath))
+            {
+                tool.SignatureResult = AuthenticodeService.VerifyFile(filePath);
+            }
+
+            if (tool.SignatureResult is not null && !tool.SignatureResult.IsValid)
+            {
+                var warningDialog = new ContentDialog
+                {
+                    Title = "Digital Signature Warning",
+                    Content = $"The installer for '{tool.Name}' does not have a verified digital signature from a trusted certificate authority.\n\n" +
+                              $"Status: {tool.SignatureResult.StatusBadge}\n" +
+                              $"Details: {tool.SignatureResult.Summary}\n\n" +
+                              "DevOpsToolsInstaller checks signatures to protect your workstation. Do you still wish to launch this vendor installer?",
+                    PrimaryButtonText = "Launch Installer",
+                    CloseButtonText = "Cancel",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = this.XamlRoot
+                };
+
+                if (await warningDialog.ShowAsync() != ContentDialogResult.Primary)
+                    return;
+            }
+        }
+
+        var result = ArtifactService.Perform(tool, dlFolder);
         StatusText.Text = result.Message;
 
         // The action may have just created what we can later remove
         // (extracted folder / copied binary), so re-check its state.
-        var dlFolder = DownloadService.DefaultDownloadsFolder;
         RefreshInstalledStates(new System.Collections.Generic.List<ToolDefinition> { tool }, dlFolder);
     }
 

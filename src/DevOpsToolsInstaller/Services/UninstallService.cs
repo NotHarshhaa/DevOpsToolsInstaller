@@ -12,7 +12,11 @@ public sealed record UninstallResult(bool Success, string Message);
 /// <summary>
 /// Describes an installed program discovered in the Windows uninstall registry.
 /// </summary>
-public sealed record InstalledProgram(string DisplayName, string UninstallCommand, bool IsQuietCapable);
+public sealed record InstalledProgram(
+    string DisplayName,
+    string UninstallCommand,
+    bool IsQuietCapable,
+    string? DisplayVersion = null);
 
 /// <summary>
 /// Reverses whatever <see cref="ArtifactService"/> did for a tool, matched to
@@ -226,12 +230,13 @@ public static class UninstallService
 
                 var quiet = sub.GetValue("QuietUninstallString") as string;
                 var normal = sub.GetValue("UninstallString") as string;
+                var displayVersion = sub.GetValue("DisplayVersion") as string;
 
                 var command = !string.IsNullOrWhiteSpace(quiet) ? quiet : normal;
                 if (string.IsNullOrWhiteSpace(command)) continue;
 
                 return new InstalledProgram(
-                    displayName!, command!, IsQuietCapable: !string.IsNullOrWhiteSpace(quiet));
+                    displayName!, command!, IsQuietCapable: !string.IsNullOrWhiteSpace(quiet), DisplayVersion: displayVersion);
             }
         }
         catch
@@ -240,6 +245,14 @@ public static class UninstallService
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Reads the installed version for an installer-based tool from the Windows uninstall registry.
+    /// </summary>
+    public static string? GetInstalledVersion(ToolDefinition tool)
+    {
+        return FindInstalledProgram(tool)?.DisplayVersion;
     }
 
     /// <summary>
