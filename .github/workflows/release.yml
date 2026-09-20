@@ -62,6 +62,23 @@ jobs:
           & $iscc "/DSourceDir=publish_out" "/DOutputBaseFilename=DevOpsToolsInstaller_x64_Setup" "installer/setup.iss"
           Move-Item -Path "dist\DevOpsToolsInstaller_x64_Setup.exe" -Destination "publish_out\"
 
+      - name: Sign Binaries & Setup Wizard (Authenticode)
+        shell: pwsh
+        env:
+          SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          if (-not $env:SIGNING_CERTIFICATE) {
+            Write-Host "SIGNING_CERTIFICATE secret is not set. Binaries will not be code-signed." -ForegroundColor Yellow
+            Write-Host "To enable code signing, add base64-encoded PFX to repository secret 'SIGNING_CERTIFICATE'." -ForegroundColor Gray
+          } else {
+            $toSign = @("publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}.exe")
+            if (Test-Path "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe") {
+              $toSign += "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe"
+            }
+            .\scripts\sign-binaries.ps1 -Files $toSign -Base64Cert "$env:SIGNING_CERTIFICATE" -Password "$env:SIGNING_PASSWORD"
+          }
+
       - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4
         with:

@@ -337,6 +337,12 @@ Please review [CONTRIBUTING.md](CONTRIBUTING.md) before submitting pull requests
 
 ---
 
+## Acknowledgements
+
+- Free code signing provided by the [SignPath Foundation](https://about.signpath.io/open-source/).
+
+---
+
 ## License
 
 This project is licensed under the [Apache-2.0 License](LICENSE).  
