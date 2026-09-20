@@ -5,11 +5,13 @@
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:controls="using:DevOpsToolsInstaller.Controls">
 
-    <Grid Padding="32,24,32,0" RowSpacing="16">
+    <Grid Padding="32,20,32,0" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- ══════════════════════════════════ -->
@@ -21,21 +23,21 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Spacing="4">
+            <StackPanel Grid.Column="0" Spacing="2">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="Curated Tool Stacks" Style="{StaticResource PageTitleStyle}" />
+                    <TextBlock Text="Stacks &amp; Bundles" Style="{StaticResource PageTitleStyle}" />
                     <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
                         <TextBlock x:Name="HeaderCountBadge" Text="12 Presets"
                                    FontSize="11"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </Border>
                 </StackPanel>
-                <TextBlock Text="1-click pre-configured toolsets. Install complete workflows at once, or customize them in the catalog."
+                <TextBlock Text="Pre-configured toolsets for common DevOps workflows. Install entire stacks in 1-click, or customize them in the catalog."
                            Style="{StaticResource PageSubtitleStyle}" />
             </StackPanel>
 
@@ -43,13 +45,13 @@
                     CornerRadius="4" Padding="14,7" VerticalAlignment="Center">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                    <TextBlock Text="Explore All 90 Tools" FontSize="12" />
+                    <TextBlock Text="Explore All Tools" FontSize="12" />
                 </StackPanel>
             </Button>
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  COMMAND BAR                       -->
+        <!--  COMMAND BAR / SEARCH              -->
         <!-- ══════════════════════════════════ -->
         <Border Grid.Row="1"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -64,7 +66,7 @@
                 <AutoSuggestBox
                     Grid.Column="0"
                     x:Name="SearchBox"
-                    PlaceholderText="Filter stacks by name, tool (e.g. kubectl, terraform), or role…"
+                    PlaceholderText="Search stacks, included tools (e.g. docker, terraform, k8s), or workflows…"
                     QueryIcon="Find"
                     MaxWidth="450"
                     HorizontalAlignment="Left"
@@ -80,127 +82,256 @@
         </Border>
 
         <!-- ══════════════════════════════════ -->
-        <!--  STACKS LIST                       -->
+        <!--  CATEGORY FILTER CHIPS             -->
         <!-- ══════════════════════════════════ -->
-        <ScrollViewer Grid.Row="2" Padding="0,0,0,24">
-            <ItemsControl x:Name="StacksList">
-                <ItemsControl.ItemContainerTransitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
-                        <RepositionThemeTransition />
-                    </TransitionCollection>
-                </ItemsControl.ItemContainerTransitions>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="0,0,0,14" Style="{StaticResource CardStyle}">
-                            <Grid RowSpacing="14">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+        <Grid Grid.Row="2" ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                                <!-- Top Row: Icon, Info, Actions -->
-                                <Grid Grid.Row="0" ColumnSpacing="16">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+            <!-- Scroll Left Button -->
+            <Button Grid.Column="0" x:Name="ScrollLeftButton" Click="ScrollLeft_Click"
+                    CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
+                    Visibility="Collapsed"
+                    ToolTipService.ToolTip="Scroll left">
+                <FontIcon Glyph="&#xE76B;" FontSize="11" />
+            </Button>
 
-                                    <!-- Stack Icon -->
-                                    <Border Grid.Column="0" Width="48" Height="48" CornerRadius="10"
-                                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                            BorderThickness="1"
-                                            VerticalAlignment="Center">
-                                        <FontIcon Glyph="{Binding Glyph}" FontSize="22"
-                                                  Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
+            <!-- Scrollable Chips Container -->
+            <ScrollViewer Grid.Column="1" x:Name="ChipsScrollViewer"
+                          HorizontalScrollBarVisibility="Hidden"
+                          HorizontalScrollMode="Enabled"
+                          VerticalScrollBarVisibility="Disabled"
+                          VerticalScrollMode="Disabled"
+                          ViewChanged="ChipsScrollViewer_ViewChanged"
+                          SizeChanged="ChipsScrollViewer_SizeChanged">
+                <StackPanel x:Name="CategoryChipsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,0,2">
+                    <Button Content="All Stacks"         Tag="All"              Click="CategoryChip_Click" Style="{StaticResource SelectedCategoryChipStyle}" />
+                    <Button Content="Containerization"  Tag="Containerization" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="CI/CD"             Tag="CI/CD"            Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Cloud"             Tag="Cloud"            Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Security"          Tag="Security"         Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Monitoring"        Tag="Monitoring"       Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="IaC"               Tag="IaC"              Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Terminal"          Tag="Terminal"         Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Workstation"       Tag="Workstation"      Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Networking"        Tag="Networking"       Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                </StackPanel>
+            </ScrollViewer>
 
-                                    <!-- Title, tags, description -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="15"
-                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                            <Border Style="{StaticResource BadgeStyle}">
-                                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                                    <FontIcon Glyph="&#xE8F1;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                    <TextBlock Text="{Binding TotalCount}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                    <TextBlock Text="tools" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                </StackPanel>
-                                            </Border>
-                                            <Border Style="{StaticResource BadgeStyle}">
-                                                <TextBlock Text="{Binding StatusBadgeText}" FontSize="11"
-                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            </Border>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Description}"
-                                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
+            <!-- Scroll Right Button -->
+            <Button Grid.Column="2" x:Name="ScrollRightButton" Click="ScrollRight_Click"
+                    CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
+                    ToolTipService.ToolTip="Scroll right">
+                <FontIcon Glyph="&#xE76C;" FontSize="11" />
+            </Button>
+        </Grid>
 
-                                    <!-- Clear, Actionable Buttons -->
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <!-- Customize in Catalog button -->
-                                        <Button Click="CustomizeInCatalog_Click" Tag="{Binding Id}"
-                                                Padding="14,8" CornerRadius="4"
-                                                ToolTipService.ToolTip="Filter catalog to show only this stack's tools">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                                                <TextBlock Text="Customize in Catalog" FontSize="12" />
-                                            </StackPanel>
-                                        </Button>
+        <!-- ══════════════════════════════════ -->
+        <!--  STACKS GRID (3-COLUMN RESPONSIVE) -->
+        <!-- ══════════════════════════════════ -->
+        <GridView
+            x:Name="StacksGridView"
+            Grid.Row="3"
+            SelectionMode="None"
+            IsItemClickEnabled="False"
+            Padding="0,6,0,8"
+            HorizontalAlignment="Stretch"
+            SizeChanged="StacksGridView_SizeChanged">
+            <GridView.ItemContainerTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
+                    <RepositionThemeTransition />
+                </TransitionCollection>
+            </GridView.ItemContainerTransitions>
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid x:Name="StacksWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="245" />
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+            <GridView.ItemContainerStyle>
+                <Style TargetType="GridViewItem">
+                    <Setter Property="Margin" Value="6" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
+                </Style>
+            </GridView.ItemContainerStyle>
+            <GridView.ItemTemplate>
+                <DataTemplate>
+                    <!-- Standard Windows 11 Fluent Card matching prototype UI -->
+                    <Border Style="{StaticResource CardStyle}" Padding="18,16">
+                        <Grid RowSpacing="10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="38" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                                        <!-- Direct Install Stack button -->
-                                        <Button Style="{StaticResource AccentButtonStyle}"
-                                                Click="InstallStack_Click" Tag="{Binding Id}"
-                                                Padding="16,8" CornerRadius="4"
-                                                IsEnabled="{Binding CanDownload}"
-                                                ToolTipService.ToolTip="Batch download and install all tools in this stack">
-                                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                                <FontIcon Glyph="{Binding DownloadButtonGlyph}" FontSize="13" />
-                                                <TextBlock Text="{Binding DownloadButtonText}" FontWeight="SemiBold" FontSize="12" />
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
+                            <!-- ROW 0: Title & Category / Tool Count Badge -->
+                            <Grid Grid.Row="0" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                                <!-- Bottom Row: Individual Tool Badges with Status -->
-                                <Border Grid.Row="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1" CornerRadius="6" Padding="12,10">
-                                    <StackPanel Spacing="8">
-                                        <TextBlock Text="Tools included in this stack:" FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        <ItemsControl ItemsSource="{Binding ToolItems}">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <controls:WrapPanel HorizontalSpacing="6" VerticalSpacing="6" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Style="{StaticResource BadgeStyle}" Padding="8,4">
-                                                        <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Name}" FontSize="12"
-                                                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                                            <FontIcon Glyph="&#xE73E;" FontSize="11"
-                                                                      Foreground="{ThemeResource CustomAccentPrimaryBrush}"
-                                                                      Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                        </StackPanel>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
+                                <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                           FontSize="15" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+
+                                <Border Grid.Column="1" Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding ToolsCountBadgeText}"
+                                               FontSize="11" FontWeight="Medium"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Border>
                             </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+
+                            <!-- ROW 1: Description (2 Lines Ellipsis) -->
+                            <TextBlock Grid.Row="1" Text="{Binding Description}"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextWrapping="Wrap"
+                                       MaxLines="2"
+                                       TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Top" />
+
+                            <!-- ROW 2: Tool Logo Tiles Row (Horizontal preview of 4 tools + remaining count) -->
+                            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ItemsControl ItemsSource="{Binding PreviewTools}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="8" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Width="42" Height="42" CornerRadius="8"
+                                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    ToolTipService.ToolTip="{Binding Name}">
+                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <!-- Fallback glyph if no logo -->
+                                                    <FontIcon Glyph="{Binding IconGlyph}" FontSize="18"
+                                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                                    <!-- Brand SVG / PNG logo -->
+                                                    <Image Width="26" Height="26" Stretch="Uniform"
+                                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <!-- +N Remaining tools tile if > 4 -->
+                                <Border Width="42" Height="42" CornerRadius="8"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                        BorderThickness="1"
+                                        Visibility="{Binding HasRemainingTools, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        ToolTipService.ToolTip="{Binding RemainingToolsTooltip}">
+                                    <TextBlock Text="{Binding RemainingToolsText}"
+                                               FontSize="12" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </StackPanel>
+
+                            <!-- ROW 3: Status info badge (if any tools installed) -->
+                            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <Border Style="{StaticResource BadgeStyle}" Visibility="{Binding HasInstalledTools, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="{Binding StatusBadgeText}" FontSize="11"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Spacer in Row 4 -->
+
+                            <!-- ROW 5: Bottom Action Buttons -->
+                            <Grid Grid.Row="5" ColumnSpacing="8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Install Stack Button (When not fully installed) -->
+                                <Button Grid.Column="0"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Click="InstallStack_Click" Tag="{Binding Id}"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="14,8" CornerRadius="6"
+                                        Visibility="{Binding CanDownload, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        ToolTipService.ToolTip="Download and install all tools in this stack">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE896;" FontSize="13" />
+                                        <TextBlock Text="{Binding DownloadButtonText}" FontWeight="SemiBold" FontSize="12" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- All Installed Button (When 100% installed) -->
+                                <Button Grid.Column="0"
+                                        HorizontalAlignment="Stretch"
+                                        Padding="14,8" CornerRadius="6"
+                                        IsEnabled="False"
+                                        Visibility="{Binding IsFullyInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                        <FontIcon Glyph="&#xE73E;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="All Installed" FontWeight="SemiBold" FontSize="12" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Customize in Catalog Button -->
+                                <Button Grid.Column="1"
+                                        Click="CustomizeInCatalog_Click" Tag="{Binding Id}"
+                                        Padding="10,8" CornerRadius="6"
+                                        ToolTipService.ToolTip="Open in Tool Catalog to inspect and customize individual tools">
+                                    <FontIcon Glyph="&#xE8F1;" FontSize="13" />
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </GridView.ItemTemplate>
+        </GridView>
+
+        <!-- ══════════════════════════════════ -->
+        <!--  FOOTER STATUS BAR                 -->
+        <!-- ══════════════════════════════════ -->
+        <Border Grid.Row="4"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="6" Padding="12,6" Margin="0,4,0,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <FontIcon Glyph="&#xE71D;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    <TextBlock x:Name="FooterStatusText" Text="12 Stacks Available  •  DevOps Tools Installer"
+                               FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="Windows 11 Fluent" FontSize="11"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
+            </Grid>
+        </Border>
     </Grid>
 </Page>
