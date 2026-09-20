@@ -19,9 +19,9 @@
     <ApplicationTitle>DevOps Tools Installer</ApplicationTitle>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>DevOpsToolsInstaller</AssemblyName>
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
+    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+    <FileVersion>2.1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

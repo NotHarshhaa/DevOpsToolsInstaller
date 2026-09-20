@@ -49,7 +49,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <TextBlock Text="DevOps Tools Installer" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
                             <Border Style="{StaticResource BadgeStyle}">
-                                <TextBlock Text="v2.0.0" FontSize="11"
+                                <TextBlock Text="v2.1.0" FontSize="11"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
                             <Border Style="{StaticResource BadgeStyle}">

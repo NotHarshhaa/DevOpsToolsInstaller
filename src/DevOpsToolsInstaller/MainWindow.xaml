@@ -24,7 +24,7 @@
                     FontSize="13"
                     VerticalAlignment="Center" />
                 <Border Style="{StaticResource BadgeStyle}" Padding="7,1" Margin="2,0,0,0">
-                    <TextBlock Text="v2.0.0" FontSize="11" FontWeight="SemiBold"
+                    <TextBlock Text="v2.1.0" FontSize="11" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </Border>
             </StackPanel>

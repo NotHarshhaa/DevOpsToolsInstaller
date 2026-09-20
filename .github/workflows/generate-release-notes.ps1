@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v2.0.0",
+    [string]$Tag = "v2.1.0",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -26,52 +26,75 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__
 
 Welcome to the **__TAG__** milestone release of **DevOps Tools Installer**!
-This major 2.0 release brings enterprise-grade security with native Authenticode digital signature verification, deep CLI health checks and installed version probing, one-click shell autocompletion snippet generator, rich multi-version catalog management with previous release downloads, dynamic WrapPanel layouts, official vector branding across 45+ DevOps tools, desktop shortcut integration, and an all-new About page.
+This major release transforms DevOps Tools Installer with a completely redesigned **WinUI 3 Gallery aesthetic** featuring **Mica Alt** translucent materials, doubles the catalog from 47 to **90 curated tools** across 10 categories (including 3 brand-new categories), introduces **Curated Stacks** for one-click workstation provisioning and live stack filtering, adds **100% official vector SVG branding**, integrates an **in-app GitHub auto-updater service**, embeds **global sidebar search**, and establishes comprehensive **Security Disclosures and Behavioral Precautions**.
 
 ---
 
 ### ✨ Major Features & What's New
 
-#### ⏪ Tool Catalog Version Management & Previous Releases
-- **Multi-Version Selector**: Select and install specific previous versions of major DevOps tools (e.g., Terraform, Kubectl, Helm, OpenTofu, Ansible) directly from tool cards.
-- **Dynamic Artifact URL Resolution**: Automatically retargets download endpoints and asset filenames when selecting alternative versions.
-- **Latest Version Display**: All 47 cataloged tools now display verified latest versions alongside installation statuses.
+#### 🎨 WinUI 3 Gallery Redesign & Translucent Mica Alt Backdrop
+- **Mica Alt Window Material**: Modernized the application canvas with Windows 11 translucent Mica Alt backdrop styling and custom titlebar bleed-through.
+- **Segoe Fluent Icons**: Replaced emojis across all pages, navigation items, and stack cards with clean, native Segoe Fluent Icons (`\uE...`) for a crisp, enterprise-grade feel.
+- **Polished Card & Chip Styling**: Refined category filter chips, badge containers, and hover states with smooth micro-animations.
 
-#### 🛡️ Authenticode Digital Signature Verification
-- **Win32 WinVerifyTrust Integration**: Automatically inspects downloaded `.exe` and `.msi` vendor installers for valid cryptographic signatures prior to execution.
-- **Tampering & Malware Protection**: Validates certificate chains against Windows Trusted Root Certification Authorities to ensure vendor authenticity.
-- **Publisher Verification**: Extracts and logs publisher certificate subjects for full security audit transparency.
+#### 📦 Catalog Expanded to 90 Tools with 3 Brand-New Categories
+- **Expanded Coverage**: The catalog has nearly doubled from 47 to **90 essential DevOps, cloud, and engineering tools**.
+- **Three New Categories**:
+  - **🌐 Networking & Tunneling**: `ngrok`, `cloudflared`, `tailscale`, `wireshark`, `nmap`, `ctop`, `k9s`, etc.
+  - **🛡️ Policy, Governance & Compliance**: `trivy`, `checkov`, `tfsec`, `syft`, `grype`, `cosign`, `opa`, etc.
+  - **🗄️ Database & Data DevOps**: `flyway`, `liquibase`, `pgcli`, `mycli`, `usql`, `redis-cli`, etc.
+- **Updated & Verified Endpoints**: All tool download URLs, checksums, and version manifests refreshed and validated.
 
-#### 🩺 CLI Health Checks & Installed Version Probing (`--version`)
-- **Real-Time Version Probing**: Directly executes installed tool binaries (`--version` / `-v` / `version`) to determine the exact runtime version active on your machine.
-- **Latency & Status Metrics**: Measures CLI process execution response times in milliseconds, reporting immediate Healthy, Degraded, or Missing statuses.
-- **Batch Verification**: Run comprehensive health checks across all installed DevOps tools to confirm PATH readiness and functionality.
+#### 🖼️ 100% Official Vector SVG Logos
+- Added high-fidelity, scalable official vector SVG logos for **all 90 cataloged tools** in `Assets/logos/`.
+- Crisp rendering across all DPI scaling levels and display resolutions (AWS CLI, Azure CLI, Google Cloud SDK, Terraform, Podman, Trivy, Prometheus, Grafana, Ansible, Git, Docker, and more).
 
-#### ⚡ Shell Completion Snippet Generator
-- **PowerShell & Bash Autocompletions**: Generates ready-to-use completion snippets for major CLIs (`kubectl`, `helm`, `gh`, `docker`, `terraform`, `podman`, etc.).
-- **One-Click PowerShell `$PROFILE` Insertion**: Automatically appends completion initialization commands to your PowerShell profile without manual editing.
+#### 🚀 Curated Stacks & Workstation Presets
+- **Dedicated Full-Page Stacks Navigation**: Replaced popup dialogs with a dedicated **Curated Stacks** view (`StacksPage`) accessible directly from the sidebar.
+- **12 Role-Based Presets**: Ready-to-use bundles including *Kubernetes Platform Engineer*, *Cloud Infrastructure Architect*, *GitOps Specialist*, *SecOps & Compliance Auditor*, *Full-Stack DevOps*, *Linux SysAdmin*, *Observability Specialist*, and more.
+- **Dual-Action Workflow**:
+  - **Install Stack**: Queue and batch-install all tools in a bundle with a single click.
+  - **Select Stack**: Live-filter the Catalog to only show tools matching the chosen stack, accompanied by an interactive active stack banner and quick-clear action.
+- **Per-Tool Status Indicators**: Visual checkmarks and live indicators directly on tool chips within each stack card.
 
-#### 🎨 Modern Windows 11 Fluent UI, Responsive WrapPanel & Branding
-- **Dynamic WrapPanel Control**: Replaces rigid grid structures with a smooth, responsive wrapping layout that automatically adapts to any window size or monitor resolution.
-- **Vector SVG & Brand Logos**: Integrated 45+ crisp official vendor logos for tools like AWS CLI, Azure CLI, Google Cloud SDK, Terraform, ArgoCD, Prometheus, Grafana, and more.
-- **Application Icon & Shortcuts**: Windows taskbar and title bar branding with one-click Desktop and Start Menu shortcut creation in Settings.
+#### 🔍 Global Sidebar Search (AutoSuggestBox)
+- Integrated an **AutoSuggestBox** directly into the left navigation pane.
+- Allows instant searching from anywhere in the application with automatic navigation and live query forwarding into the Catalog view.
 
-#### ⭐ Favorites & Real-Time Activity Logging
-- **Tool Favoriting**: Pin preferred or frequently installed tools to quickly filter your essential stack.
-- **Activity Feed**: Real-time logging of downloads, installations, cancellations, path modifications, and health inspections with exportable audit logs.
+#### 🔄 In-App GitHub Auto-Updater Service
+- **Automatic & Manual Checks**: Automatically queries the GitHub Releases API on startup, with a manual **"Check for Updates"** button in Settings.
+- **Interactive Update Dialog**: Displays release notes, asset sizes, and a real-time progress bar during download.
+- **Safe Staging & Restart**: Downloads the latest release, verifies checksums, safely stages the new executable, and restarts seamlessly.
 
-#### ℹ️ All-New About & Architecture View
-- Detailed system architecture insights (WinUI 3, Windows App SDK 1.6, .NET 8 runtime).
-- Direct links to GitHub repository, documentation, bug tracker, and maintainer profile.
+#### 🛡️ Security Disclosures, Behavioral Precautions & Disclaimers
+- **Transparent Behavioral Disclosures**: Added dedicated disclosures detailing:
+  - UAC privilege escalation requirements for vendor `.exe`/`.msi` installers.
+  - User and System `PATH` modifications with idempotency guarantees.
+  - Isolated tool sandbox storage in `%LOCALAPPDATA%\DevOpsToolsInstaller\`.
+  - Cryptographic Authenticode signature and SHA-256 hash validation before execution.
+  - Zero telemetry, zero analytics, and zero personal data collection.
+- **Independent Open-Source Disclaimer**: Clearly states third-party tool ownership and vendor software trademarks.
+- **Home Page Quick Access**: Dedicated security card on the Home page deep-linking directly into About page disclosures.
+
+#### ⚡ Portable Single-File Compression
+- Enabled `<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>` in the build configuration, drastically reducing the distribution executable size without sacrificing startup performance.
 
 ---
 
-### 🛡️ Improvements & Bug Fixes
+### 📋 Full Commit Changelog (from v2.0.0 to v2.1.0)
 
-- **Uninstaller Safety**: Word-boundary regex matching prevents accidental uninstalls of similarly named software; corrected MSI uninstallation command arguments (`/X`).
-- **Download Integrity**: Enforces Content-Length validation and guarantees non-zero byte payloads before marking downloads complete.
-- **Archive Extraction**: Automated scanning and extraction of `.zip` and `.tar.gz` binaries directly into `Tools\bin`.
-- **Single-File Deployment**: Hardened path resolution using `AppContext.BaseDirectory` for zero-dependency single-file portable builds.
+- `dac0c1f` - **feat**: Enhance About and Home pages with security disclosures and transparency features
+- `bec6fd7` - **feat**: Enhance Catalog and Stacks pages with curated stack functionality
+- `8a6053b` - **feat**: Introduce Stacks page and enhance tool bundle navigation
+- `49791d9` - **feat**: Enhance navigation and search functionality in MainWindow
+- `9eb3c26` - **feat**: Add SVG logos for new tools in DevOpsToolsInstaller
+- `0961116` - **feat**: Introduce curated tool bundles and enhance catalog functionality
+- `2ac29f3` - **feat**: Add new bundles and tools to catalog
+- `cb11390` - **feat**: Add new logos for various tools in DevOpsToolsInstaller
+- `cc7d5c7` - **fix**: Update download URLs and version numbers in catalog.json
+- `ecc3b54` - **refactor**: Remove unused AccentButtonStyle and update SelectedCategoryChipStyle
+- `6473cf2` - **feat**: Implement update checking and dialog for application updates
+- `21656f0` - **feat**: Enable compression for single-file publishing
 
 ---
 
