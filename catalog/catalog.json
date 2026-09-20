@@ -1,4 +1,4 @@
-﻿[
+[
     {
         "id":  "awscli",
         "name":  "AWS CLI",
@@ -125,7 +125,7 @@
         "kind":  "installer",
         "version":  "1.16.2",
         "homepage":  "https://podman-desktop.io/",
-        "downloadUrl":  "https://github.com/containers/podman-desktop/releases/latest/download/podman-desktop-1.16.2-setup.exe",
+        "downloadUrl":  "https://github.com/containers/podman-desktop/releases/download/v1.16.2/podman-desktop-1.16.2-setup.exe",
         "fileName":  "PodmanDesktopSetup.exe",
         "sha256":  "",
         "launchArgs":  "",
@@ -569,7 +569,7 @@
         "kind":  "installer",
         "version":  "2.54.0",
         "homepage":  "https://cli.github.com/",
-        "downloadUrl":  "https://github.com/cli/cli/releases/latest/download/gh_2.54.0_windows_amd64.msi",
+        "downloadUrl":  "https://github.com/cli/cli/releases/download/v2.54.0/gh_2.54.0_windows_amd64.msi",
         "fileName":  "gh_windows_amd64.msi",
         "sha256":  "",
         "launchArgs":  "",
@@ -742,9 +742,9 @@
         "iconGlyph":  "",
         "logoUrl":  "ms-appx:///Assets/logos/windows-terminal.svg",
         "kind":  "installer",
-        "version":  "1.21.2361.0",
+        "version":  "1.24.11911.0",
         "homepage":  "https://learn.microsoft.com/windows/terminal/",
-        "downloadUrl":  "https://github.com/microsoft/terminal/releases/latest/download/Microsoft.WindowsTerminal_Win11_1.21.2361.0_8wekyb3d8bbwe.msixbundle",
+        "downloadUrl":  "https://github.com/microsoft/terminal/releases/download/v1.24.11911.0/Microsoft.WindowsTerminal_1.24.11911.0_8wekyb3d8bbwe.msixbundle",
         "fileName":  "WindowsTerminal.msixbundle",
         "sha256":  "",
         "launchArgs":  ""
