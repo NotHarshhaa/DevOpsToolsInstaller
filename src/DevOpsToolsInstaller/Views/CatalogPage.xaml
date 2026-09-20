@@ -38,6 +38,22 @@
                 </StackPanel>
                 <TextBlock Text="Select the tools you need or pick a curated stack preset to download in one go."
                            Style="{StaticResource PageSubtitleStyle}" />
+
+                <!-- Active Curated Stack InfoBar -->
+                <InfoBar
+                    x:Name="ActiveStackInfoBar"
+                    IsOpen="False"
+                    IsClosable="True"
+                    Severity="Informational"
+                    Title="Stack Filter Active"
+                    Message="Showing only tools belonging to this curated stack. All tools in this stack are pre-selected for installation."
+                    Margin="0,8,0,0"
+                    CornerRadius="6"
+                    Closed="ActiveStackInfoBar_Closed">
+                    <InfoBar.ActionButton>
+                        <Button Content="Show All 90 Tools" Click="ClearStackFilter_Click" Padding="12,5" CornerRadius="4" />
+                    </InfoBar.ActionButton>
+                </InfoBar>
             </StackPanel>
         </Grid>
 

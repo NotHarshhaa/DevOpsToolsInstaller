@@ -33,6 +33,7 @@ public sealed partial class CatalogPage : Page
     private string _selectedCategory = "All";
     private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
     private bool _downloadedOnly;
+    private ToolBundle? _activeBundle;
 
     public CatalogPage()
     {
@@ -111,6 +112,9 @@ public sealed partial class CatalogPage : Page
 
         bool Matches(ToolDefinition tool)
         {
+            if (_activeBundle != null && !_activeBundle.Tools.Contains(tool.Id, StringComparer.OrdinalIgnoreCase))
+                return false;
+
             var textMatch = string.IsNullOrEmpty(query)
                 || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
                 || tool.Category.Contains(query, StringComparison.OrdinalIgnoreCase)
@@ -375,9 +379,34 @@ public sealed partial class CatalogPage : Page
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
+        _activeBundle = bundle;
         int selectedCount = mw.SelectBundle(bundle);
-        StatusText.Text = $"Selected {selectedCount} tools from {bundle.Name}";
+
+        ActiveStackInfoBar.Title = $"Stack Filter: {bundle.Name} ({bundle.Tools.Count} tools)";
+        ActiveStackInfoBar.Message = $"Showing only tools included in {bundle.Name}. All {selectedCount} tools are pre-selected. Click 'Download' to install them, or customize your selection.";
+        ActiveStackInfoBar.IsOpen = true;
+
+        HeaderCountBadge.Text = $"{bundle.Name} ({bundle.Tools.Count} tools)";
+        StatusText.Text = $"Showing {selectedCount} tools from {bundle.Name}";
+
+        ApplyFilter();
     }
+
+    private void ClearStackFilter_Click(object sender, RoutedEventArgs e)
+    {
+        _activeBundle = null;
+        ActiveStackInfoBar.IsOpen = false;
+        HeaderCountBadge.Text = "All tools";
+        ApplyFilter();
+    }
+
+    private void ActiveStackInfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args)
+    {
+        _activeBundle = null;
+        HeaderCountBadge.Text = "All tools";
+        ApplyFilter();
+    }
+
 
     // ── Select / Clear ──────────────────────────────────────────────────
 
