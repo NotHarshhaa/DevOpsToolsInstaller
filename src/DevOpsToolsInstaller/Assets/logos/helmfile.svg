@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="hfGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F1689"/>
+      <stop offset="100%" stop-color="#0A74DA"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#hfGrad)"/>
+  <!-- File / Document Sheet -->
+  <path d="M 38 28 L 74 28 L 90 44 L 90 98 L 38 98 Z" fill="#FFFFFF" opacity="0.95"/>
+  <path d="M 74 28 L 74 44 L 90 44 Z" fill="#DCE7FA"/>
+  <!-- Helm Wheel Silhouette inside Document -->
+  <circle cx="64" cy="70" r="16" fill="none" stroke="#0F1689" stroke-width="4"/>
+  <circle cx="64" cy="70" r="5" fill="#0F1689"/>
+  <line x1="64" y1="46" x2="64" y2="54" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="64" y1="86" x2="64" y2="94" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="40" y1="70" x2="48" y2="70" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="80" y1="70" x2="88" y2="70" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="47" y1="53" x2="53" y2="59" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="75" y1="81" x2="81" y2="87" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="81" y1="53" x2="75" y2="59" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+  <line x1="53" y1="81" x2="47" y2="87" stroke="#0F1689" stroke-width="4" stroke-linecap="round"/>
+</svg>

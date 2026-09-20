@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="fdGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00C9A7"/>
+      <stop offset="100%" stop-color="#008B74"/>
+    </linearGradient>
+  </defs>
+  <!-- Search Magnifier Ring -->
+  <path fill="url(#fdGrad)" d="M52 8a44 44 0 0 0-31 75.1L5.5 98.6a8 8 0 0 0 0 11.3l12.6 12.6a8 8 0 0 0 11.3 0l15.5-15.5A44 44 0 1 0 52 8zm0 16a28 28 0 1 1 0 56 28 28 0 0 1 0-56z"/>
+  <!-- File Directory Folder Icon inside Glass -->
+  <path fill="#FFFFFF" d="M36 44 L46 44 L51 49 L68 49 A 3 3 0 0 1 71 52 L71 70 A 3 3 0 0 1 68 73 L36 73 A 3 3 0 0 1 33 70 L33 47 A 3 3 0 0 1 36 44 Z"/>
+  <path fill="#00C9A7" d="M38 53 L66 53 L66 69 L38 69 Z"/>
+  <text x="52" y="65" font-family="Consolas, monospace" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">fd</text>
+</svg>

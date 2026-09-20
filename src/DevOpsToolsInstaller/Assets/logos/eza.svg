@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="ezaBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#24283B"/>
+      <stop offset="100%" stop-color="#1A1B26"/>
+    </linearGradient>
+  </defs>
+  <!-- Modern Terminal Window Shield -->
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#ezaBg)" stroke="#414868" stroke-width="2"/>
+  <!-- File Tree & Directory Lines (eza modern ls aesthetics) -->
+  <!-- Folder -->
+  <path d="M 28 36 L 44 36 L 50 42 L 66 42 A 2 2 0 0 1 68 44 L 68 54 A 2 2 0 0 1 66 56 L 28 56 A 2 2 0 0 1 26 54 L 26 38 A 2 2 0 0 1 28 36 Z" fill="#7AA2F7"/>
+  <rect x="74" y="42" width="28" height="6" rx="2" fill="#C0CAF5"/>
+  <!-- Executable / Binary with gear -->
+  <circle cx="36" cy="72" r="7" fill="#9ECE6A"/>
+  <rect x="52" y="69" width="46" height="6" rx="2" fill="#9ECE6A"/>
+  <!-- File / Config with icon -->
+  <rect x="29" y="88" width="14" height="18" rx="2" fill="#BB9AF7"/>
+  <rect x="52" y="94" width="34" height="6" rx="2" fill="#C0CAF5" opacity="0.8"/>
+  <!-- Git Modified indicator star/pill -->
+  <circle cx="102" cy="72" r="3.5" fill="#E0AF68"/>
+  <circle cx="94" cy="97" r="3.5" fill="#F7768E"/>
+</svg>
