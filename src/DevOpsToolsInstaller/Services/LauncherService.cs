@@ -45,6 +45,28 @@ public sealed class LauncherService
     }
 
     /// <summary>
+    /// Opens Windows Explorer with the specific file selected/highlighted.
+    /// </summary>
+    public static void OpenFileInFolder(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "explorer.exe",
+                Arguments = $"/select,\"{filePath}\"",
+                UseShellExecute = true
+            });
+        }
+        else
+        {
+            var dir = Path.GetDirectoryName(filePath);
+            if (!string.IsNullOrWhiteSpace(dir))
+                OpenDownloadsFolder(dir);
+        }
+    }
+
+    /// <summary>
     /// Opens a URL in the default browser.
     /// </summary>
     public static void OpenUrl(string url)
