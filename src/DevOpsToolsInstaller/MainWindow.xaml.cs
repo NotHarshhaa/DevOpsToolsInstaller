@@ -115,6 +115,15 @@ public sealed partial class MainWindow : Window
         NavigateTo("Catalog");
     }
 
+    /// <summary>
+    /// Navigates to the Catalog page and pre-populates the search query.
+    /// </summary>
+    public void NavigateToCatalogWithSearch(string query)
+    {
+        PendingCatalogSearchQuery = query;
+        NavigateTo("Catalog");
+    }
+
     public MainWindow()
     {
         InitializeComponent();
@@ -177,9 +186,13 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
-    /// Applies the Mica system backdrop when the OS supports it. On
-    /// unsupported systems the call is a no-op and the window uses its
-    /// default background.
+    /// Holds a pending search query to apply when navigating to the Tool Catalog.
+    /// </summary>
+    public string? PendingCatalogSearchQuery { get; set; }
+
+    /// <summary>
+    /// Applies the Mica Alt system backdrop when the OS supports it.
+    /// Falls back to DesktopAcrylic on Windows 10/unsupported versions.
     /// </summary>
     private void TrySetMicaBackdrop()
     {
@@ -189,8 +202,12 @@ public sealed partial class MainWindow : Window
             {
                 SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop
                 {
-                    Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.Base
+                    Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt
                 };
+            }
+            else if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
+            {
+                SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
             }
         }
         catch
@@ -236,6 +253,12 @@ public sealed partial class MainWindow : Window
         if (args.SelectedItem is not NavigationViewItem item) return;
         if (item.Tag is not string tag) return;
 
+        if (tag == "Stacks")
+        {
+            _ = OpenCuratedStacksDialogAsync();
+            return;
+        }
+
         var pageType = tag switch
         {
             "Home"      => typeof(HomePage),
@@ -248,6 +271,48 @@ public sealed partial class MainWindow : Window
         };
 
         ContentFrame.Navigate(pageType);
+    }
+
+    public async Task OpenCuratedStacksDialogAsync()
+    {
+        await EnsureCatalogLoadedAsync();
+        if (ContentFrame.XamlRoot is null) return;
+        var selected = await Controls.BundleSelectionDialog.ShowAsync(ContentFrame.XamlRoot, Bundles, Tools);
+        if (selected != null)
+        {
+            NavigateToCatalogWithBundle(selected.Id);
+        }
+    }
+
+    private void NavSearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        var query = args.QueryText?.Trim();
+        if (!string.IsNullOrEmpty(query))
+        {
+            PendingCatalogSearchQuery = query;
+            NavigateTo("Catalog");
+        }
+    }
+
+    private void NavSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            var text = sender.Text?.Trim();
+            if (string.IsNullOrEmpty(text))
+            {
+                sender.ItemsSource = null;
+                return;
+            }
+
+            var matches = Tools
+                .Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                            t.Category.Contains(text, StringComparison.OrdinalIgnoreCase))
+                .Take(5)
+                .Select(t => t.Name)
+                .ToList();
+            sender.ItemsSource = matches;
+        }
     }
 
     /// <summary>

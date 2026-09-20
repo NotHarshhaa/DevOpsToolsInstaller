@@ -70,6 +70,13 @@ public sealed partial class CatalogPage : Page
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(mw.PendingCatalogSearchQuery))
+        {
+            var query = mw.PendingCatalogSearchQuery;
+            mw.PendingCatalogSearchQuery = null;
+            SearchBox.Text = query;
+        }
+
         ApplyFilter();
         PopulatePresetsMenu();
 

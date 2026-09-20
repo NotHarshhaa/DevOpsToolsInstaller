@@ -236,6 +236,9 @@
                     <Button Content="CI/CD &amp; Version Control" Tag="CI/CD and Version Control"   Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                     <Button Content="Monitoring &amp; Observability" Tag="Monitoring and Observability" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                     <Button Content="Security"                   Tag="Security"                     Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Networking"                 Tag="Networking"                   Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Policy &amp; Compliance"    Tag="Policy and Compliance"        Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
+                    <Button Content="Database &amp; Data"        Tag="Database and Data"            Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                     <Button Content="Editors &amp; Terminals"    Tag="Editors and Terminals"       Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                     <Button Content="Utilities"                  Tag="Utilities"                    Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
                 </StackPanel>

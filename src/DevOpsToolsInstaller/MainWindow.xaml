@@ -40,7 +40,16 @@
             IsPaneToggleButtonVisible="True"
             IsTabStop="False"
             SelectionChanged="NavView_SelectionChanged"
-            OpenPaneLength="240">
+            OpenPaneLength="250">
+
+            <controls:NavigationView.AutoSuggestBox>
+                <AutoSuggestBox x:Name="NavSearchBox"
+                                QueryIcon="Find"
+                                PlaceholderText="Search tools…"
+                                QuerySubmitted="NavSearchBox_QuerySubmitted"
+                                TextChanged="NavSearchBox_TextChanged"
+                                Margin="0,0,12,0" />
+            </controls:NavigationView.AutoSuggestBox>
 
             <controls:NavigationView.MenuItems>
                 <controls:NavigationViewItem Content="Home" Tag="Home">
@@ -51,6 +60,11 @@
                 <controls:NavigationViewItem Content="Tool Catalog" Tag="Catalog">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8F1;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Curated Stacks" Tag="Stacks">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE71D;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Downloads" Tag="Downloads">

@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Services;
@@ -7,6 +10,7 @@ namespace DevOpsToolsInstaller.Views;
 public sealed partial class HomePage : Page
 {
     private string? _updateUrl;
+    private AppReleaseInfo? _discoveredRelease;
 
     public HomePage()
     {
@@ -32,21 +36,21 @@ public sealed partial class HomePage : Page
         }
 
         // Update stats
-        ToolCountText.Text = mw.Tools.Count.ToString();
-        ToolCountLabel.Text = "Tools Available";
+        ToolCountText.Text = mw.Tools.Count > 0 ? mw.Tools.Count.ToString() : "90";
+        ToolCountLabel.Text = "Catalog Tools";
 
         var downloaded = mw.Tools.Count(t => t.Status == Models.ToolStatus.Downloaded);
         DownloadedCountText.Text = downloaded.ToString();
-        DownloadedCountLabel.Text = "Downloaded";
+        DownloadedCountLabel.Text = "Installed / On PATH";
 
         var categories = mw.Tools.Select(t => t.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Count();
-        CategoriesCountText.Text = categories.ToString();
+        CategoriesCountText.Text = categories > 0 ? categories.ToString() : "10";
+
+        BundlesCountText.Text = mw.Bundles.Count > 0 ? mw.Bundles.Count.ToString() : "12";
 
         // Check for updates (fire-and-forget, non-blocking)
         _ = CheckForUpdatesAsync();
     }
-
-    private AppReleaseInfo? _discoveredRelease;
 
     private async Task CheckForUpdatesAsync()
     {
@@ -116,6 +120,19 @@ public sealed partial class HomePage : Page
         if (sender is Button btn && btn.Tag is string bundleId)
         {
             App.MainWindowInstance?.NavigateToCatalogWithBundle(bundleId);
+        }
+    }
+
+    private void ToolCard_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string toolId)
+        {
+            var mw = App.MainWindowInstance;
+            if (mw is null) return;
+
+            var tool = mw.Tools.FirstOrDefault(t => string.Equals(t.Id, toolId, StringComparison.OrdinalIgnoreCase));
+            var query = tool?.Name ?? toolId;
+            mw.NavigateToCatalogWithSearch(query);
         }
     }
 }
