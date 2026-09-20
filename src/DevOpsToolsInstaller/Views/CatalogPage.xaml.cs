@@ -26,25 +26,20 @@ public sealed class ToolCategoryGroup : List<ToolDefinition>
 
 public sealed partial class CatalogPage : Page
 {
-    private readonly ObservableCollection<ToolCategoryGroup> _groups = new();
-    private readonly CollectionViewSource _groupedView;
+    private readonly ObservableCollection<ToolDefinition> _filteredTools = new();
     private bool _busy;
     private CancellationTokenSource? _downloadCts;
     private string _selectedCategory = "All";
     private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
     private bool _downloadedOnly;
     private ToolBundle? _activeBundle;
+    private DateTime _lastCatalogSync = DateTime.Now;
 
     public CatalogPage()
     {
         InitializeComponent();
 
-        _groupedView = new CollectionViewSource
-        {
-            IsSourceGrouped = true,
-            Source = _groups
-        };
-        ToolsList.ItemsSource = _groupedView.View;
+        ToolsGridView.ItemsSource = _filteredTools;
 
         Loaded += CatalogPage_Loaded;
     }
@@ -100,6 +95,23 @@ public sealed partial class CatalogPage : Page
             StatusText.Text = $"{mw.Tools.Count} tools available";
         }
 
+        // Background check for installed tools so "Installed" badges appear accurately
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            try
+            {
+                var dlFolder = DownloadService.DefaultDownloadsFolder;
+                foreach (var tool in mw.Tools)
+                {
+                    if (!tool.IsInstalled && UninstallService.IsInstalled(tool, dlFolder))
+                    {
+                        _ = DispatcherQueue.TryEnqueue(() => tool.IsInstalled = true);
+                    }
+                }
+            }
+            catch { }
+        });
+
         UpdateScrollButtons();
     }
 
@@ -128,7 +140,7 @@ public sealed partial class CatalogPage : Page
             else
                 categoryMatch = string.Equals(tool.Category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
 
-            var downloadedMatch = !_downloadedOnly || tool.Status == ToolStatus.Downloaded;
+            var downloadedMatch = !_downloadedOnly || tool.IsDownloadedOrInstalled;
 
             return textMatch && categoryMatch && downloadedMatch;
         }
@@ -141,28 +153,21 @@ public sealed partial class CatalogPage : Page
             "az" => filtered.OrderBy(t => t.Name),
             "za" => filtered.OrderByDescending(t => t.Name),
             "kind" => filtered.OrderBy(t => t.KindLabel).ThenBy(t => t.Name),
-            "downloaded" => filtered.OrderByDescending(t => t.Status == ToolStatus.Downloaded).ThenBy(t => t.Name),
+            "downloaded" => filtered.OrderByDescending(t => t.IsDownloadedOrInstalled).ThenBy(t => t.Name),
             "favorites" => filtered.OrderByDescending(t => t.IsFavorite).ThenBy(t => t.Category).ThenBy(t => t.Name),
             _ => filtered.OrderBy(t => t.Category).ThenBy(t => t.Name), // "category" (default)
         };
 
-        // Group by category for list display
-        var groupKey = _sortMode switch
-        {
-            "kind" => (Func<ToolDefinition, string>)(t => t.KindLabel),
-            _ => t => t.Category
-        };
+        _filteredTools.Clear();
+        foreach (var tool in sorted)
+            _filteredTools.Add(tool);
 
-        var grouped = sorted
-            .GroupBy(groupKey)
-            .Select(g => new ToolCategoryGroup(g.Key, g));
-
-        _groups.Clear();
-        foreach (var group in grouped)
-            _groups.Add(group);
-
-        var count = VisibleTools.Count();
+        var count = _filteredTools.Count;
         StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
+        if (FooterStatusText != null)
+        {
+            FooterStatusText.Text = $"{count} Tools Available | Last Sync: {GetLastSyncText()}";
+        }
     }
 
     // ── Category Chips ──────────────────────────────────────────────────
@@ -221,8 +226,8 @@ public sealed partial class CatalogPage : Page
             : Visibility.Collapsed;
     }
 
-    /// <summary>Every tool currently visible across all category groups.</summary>
-    private IEnumerable<ToolDefinition> VisibleTools => _groups.SelectMany(g => g);
+    /// <summary>Every tool currently visible in the catalog grid.</summary>
+    private IEnumerable<ToolDefinition> VisibleTools => _filteredTools;
 
     // ── Search & Command Bar Layout ──────────────────────────────────────
 
@@ -830,5 +835,136 @@ public sealed partial class CatalogPage : Page
                 }
             }
         }
+    }
+
+    // ── Responsive Grid Sizing ──────────────────────────────────────────
+
+    private void ToolsGridView_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        if (ToolsGridView.ItemsPanelRoot is ItemsWrapGrid wrapGrid)
+        {
+            var width = e.NewSize.Width - 24;
+            if (width > 200)
+            {
+                int columns = width >= 1080 ? 3 : (width >= 700 ? 2 : 1);
+                wrapGrid.ItemWidth = Math.Floor(width / columns);
+            }
+        }
+    }
+
+    // ── 1-Click Install Button on Card ──────────────────────────────────
+
+    private async void InstallSingleTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        var mw = App.MainWindowInstance;
+        if (mw is null || _busy) return;
+
+        if (tool.IsDownloadedOrInstalled || tool.Status == ToolStatus.Downloading) return;
+
+        _downloadCts = new CancellationTokenSource();
+        CancelButton.Visibility = Visibility.Visible;
+        SetBusy(true, $"Installing {tool.Name}...");
+
+        if (!mw.DownloadQueue.Contains(tool))
+            mw.DownloadQueue.Add(tool);
+
+        try
+        {
+            var dlFolder = DownloadService.DefaultDownloadsFolder;
+            await mw.DownloadSvc.DownloadBatchAsync(new[] { tool }, dlFolder, maxConcurrency: 1, ct: _downloadCts.Token);
+
+            if (tool.Status == ToolStatus.Downloaded)
+            {
+                StatusText.Text = $"{tool.Name} downloaded successfully.";
+                var res = ArtifactService.Perform(tool, dlFolder);
+                if (!string.IsNullOrWhiteSpace(res.Message))
+                {
+                    StatusText.Text = res.Message;
+                }
+            }
+            else
+            {
+                StatusText.Text = $"{tool.Name} download failed.";
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            StatusText.Text = "Installation cancelled.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            CancelButton.Visibility = Visibility.Collapsed;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
+            SetBusy(false);
+        }
+    }
+
+    // ── Installed Card Button Action Menu ────────────────────────────────
+
+    private void InstalledAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button btn || btn.DataContext is not ToolDefinition tool) return;
+
+        var flyout = new MenuFlyout();
+
+        var specsItem = new MenuFlyoutItem
+        {
+            Text = $"{tool.Name} Specifications…",
+            Icon = new FontIcon { Glyph = "\uE946" }
+        };
+        specsItem.Click += (_, _) => ToolDetails_Click(btn, e);
+        flyout.Items.Add(specsItem);
+
+        var verItem = new MenuFlyoutItem
+        {
+            Text = $"Switch Version (Current: {tool.DisplayVersionWithV})…",
+            Icon = new FontIcon { Glyph = "\uE8EC" }
+        };
+        verItem.Click += (_, _) => VersionPicker_Click(btn, e);
+        flyout.Items.Add(verItem);
+
+        var copyItem = new MenuFlyoutItem
+        {
+            Text = "Copy Install Command",
+            Icon = new FontIcon { Glyph = "\uE8C8" }
+        };
+        copyItem.Click += (_, _) => CopyCommand_Click(btn, e);
+        flyout.Items.Add(copyItem);
+
+        if (!string.IsNullOrWhiteSpace(tool.Homepage))
+        {
+            var docsItem = new MenuFlyoutItem
+            {
+                Text = "Open Documentation / Homepage",
+                Icon = new FontIcon { Glyph = "\uE8A7" }
+            };
+            docsItem.Click += (_, _) => LauncherService.OpenUrl(tool.Homepage);
+            flyout.Items.Add(docsItem);
+        }
+
+        flyout.ShowAt(btn);
+    }
+
+    // ── Footer Refresh & Sync ───────────────────────────────────────────
+
+    private void RefreshCatalog_Click(object sender, RoutedEventArgs e)
+    {
+        _lastCatalogSync = DateTime.Now;
+        ApplyFilter();
+        StatusText.Text = "Catalog refreshed.";
+    }
+
+    private string GetLastSyncText()
+    {
+        var elapsed = DateTime.Now - _lastCatalogSync;
+        if (elapsed.TotalMinutes < 1) return "Just now";
+        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes} mins ago";
+        return $"{(int)elapsed.TotalHours} hours ago";
     }
 }

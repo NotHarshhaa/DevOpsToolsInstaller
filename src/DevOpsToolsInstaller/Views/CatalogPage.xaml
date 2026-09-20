@@ -5,12 +5,13 @@
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:controls="using:DevOpsToolsInstaller.Controls">
 
-    <Grid Padding="32,24,32,0" RowSpacing="12">
+    <Grid Padding="32,20,32,0" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- ══════════════════════════════════ -->
@@ -269,178 +270,221 @@
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  TOOL LIST                         -->
+        <!--  REDESIGNED TOOL CARDS GRID        -->
         <!-- ══════════════════════════════════ -->
-        <ListView
-            x:Name="ToolsList"
+        <GridView
+            x:Name="ToolsGridView"
             Grid.Row="3"
             SelectionMode="None"
             IsItemClickEnabled="False"
-            Padding="0,2,0,20">
-            <ListView.ItemContainerTransitions>
+            Padding="0,6,0,8"
+            HorizontalAlignment="Stretch"
+            SizeChanged="ToolsGridView_SizeChanged">
+            <GridView.ItemContainerTransitions>
                 <TransitionCollection>
-                    <AddDeleteThemeTransition />
-                    <ContentThemeTransition />
-                    <ReorderThemeTransition />
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
+                    <RepositionThemeTransition />
                 </TransitionCollection>
-            </ListView.ItemContainerTransitions>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
+            </GridView.ItemContainerTransitions>
+            <GridView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsWrapGrid x:Name="ToolsItemsWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="155" />
+                </ItemsPanelTemplate>
+            </GridView.ItemsPanel>
+            <GridView.ItemContainerStyle>
+                <Style TargetType="GridViewItem">
+                    <Setter Property="Margin" Value="6" />
                     <Setter Property="Padding" Value="0" />
-                    <Setter Property="Margin" Value="0" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="VerticalContentAlignment" Value="Stretch" />
                     <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="0" />
                 </Style>
-            </ListView.ItemContainerStyle>
-
-            <!-- Group headers -->
-            <ListView.GroupStyle>
-                <GroupStyle HidesIfEmpty="True">
-                    <GroupStyle.HeaderTemplate>
-                        <DataTemplate>
-                            <Border Padding="0,14,0,4">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Key}"
-                                               Style="{StaticResource BodyStrongTextBlockStyle}"
-                                               FontSize="13"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                    <Border Style="{StaticResource BadgeStyle}">
-                                        <TextBlock Text="{Binding Count}"
-                                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </GroupStyle.HeaderTemplate>
-                </GroupStyle>
-            </ListView.GroupStyle>
-
-            <!-- Tool item template -->
-            <ListView.ItemTemplate>
+            </GridView.ItemContainerStyle>
+            <GridView.ItemTemplate>
                 <DataTemplate>
-                    <Border Style="{StaticResource ListViewCardStyle}">
-                        <Grid ColumnSpacing="10" Margin="12,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+                    <Grid MinHeight="145" MaxHeight="155">
+                        <Grid.ContextFlyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE946;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Switch Version…" Click="VersionPicker_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8EC;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Copy Install Command" Click="CopyCommand_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8C8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Toggle Favorite" Click="ToggleFavorite_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="{Binding FavoriteGlyph}" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </Grid.ContextFlyout>
 
-                            <!-- Favorite star button -->
-                            <Button Grid.Column="0" Click="ToggleFavorite_Click"
-                                    Padding="4" VerticalAlignment="Center"
-                                    Background="Transparent" BorderThickness="0"
-                                    CornerRadius="4"
-                                    ToolTipService.ToolTip="Toggle favorite">
-                                <FontIcon Glyph="{Binding FavoriteGlyph}" FontSize="15"
-                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Button>
+                        <!-- Card Background Surface (Midnight slate in Dark, White in Light) -->
+                        <Border CornerRadius="12"
+                                Background="{ThemeResource CatalogCardBackgroundBrush}" />
 
-                            <!-- Checkbox -->
-                            <CheckBox
-                                Grid.Column="1"
-                                IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                MinWidth="0"
-                                VerticalAlignment="Center" />
+                        <!-- Cyan Glowing Border -->
+                        <Border CornerRadius="12"
+                                BorderThickness="1.5"
+                                BorderBrush="{ThemeResource CatalogCardBorderCyanBrush}"
+                                IsHitTestVisible="False"
+                                Visibility="{Binding IsAccentPurple, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
 
-                            <!-- Tool icon -->
-                            <Border Grid.Column="2" Width="40" Height="40" CornerRadius="4"
-                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                    BorderThickness="1"
-                                    VerticalAlignment="Center">
-                                <Grid>
-                                    <FontIcon Glyph="{Binding IconGlyph}" FontSize="18"
-                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                              HorizontalAlignment="Center" VerticalAlignment="Center"
-                                              Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                    <Image Width="28" Height="28" Stretch="Uniform"
-                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
-                                           ImageFailed="LogoImage_ImageFailed" />
-                                </Grid>
-                            </Border>
+                        <!-- Purple Glowing Border -->
+                        <Border CornerRadius="12"
+                                BorderThickness="1.5"
+                                BorderBrush="{ThemeResource CatalogCardBorderPurpleBrush}"
+                                IsHitTestVisible="False"
+                                Visibility="{Binding IsAccentPurple, Converter={StaticResource BoolToVisibilityConverter}}" />
 
-                            <!-- Tool name + version badge + description -->
-                            <StackPanel Grid.Column="3" Spacing="2" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding NameWithVersion}"
-                                               Style="{StaticResource BodyStrongTextBlockStyle}"
-                                               FontSize="13"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                    <Border Style="{StaticResource BadgeStyle}" ToolTipService.ToolTip="Target release version">
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            <TextBlock Text="{Binding DisplayVersion}" FontSize="10"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
+                        <!-- Card Content Grid -->
+                        <Grid Padding="18,16,18,14">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- TOP SECTION: Logo + Title/Category + Glowing Tech Cube -->
+                            <Grid Grid.Row="0" ColumnSpacing="14">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Tool Brand Logo -->
+                                <Border Grid.Column="0" Width="44" Height="44" VerticalAlignment="Top">
+                                    <Grid>
+                                        <FontIcon Glyph="{Binding IconGlyph}" FontSize="24"
+                                                  Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                  Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                        <Image Width="44" Height="44" Stretch="Uniform"
+                                               Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                               ImageFailed="LogoImage_ImageFailed" />
+                                    </Grid>
+                                </Border>
+
+                                <!-- Tool Name & Category Pill Badge -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Top" Spacing="5">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="16"
+                                               FontWeight="Bold"
+                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+
+                                    <!-- Category Pill Badge -->
+                                    <Border CornerRadius="10"
+                                            Background="{ThemeResource CatalogCategoryPillBackgroundBrush}"
+                                            BorderBrush="{ThemeResource CatalogCategoryPillBorderBrush}"
+                                            BorderThickness="1"
+                                            Padding="9,2"
+                                            HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding Category}"
+                                                   FontSize="11"
+                                                   Foreground="{ThemeResource CatalogCategoryPillForegroundBrush}" />
                                     </Border>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Description}"
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           TextTrimming="CharacterEllipsis" />
-                            </StackPanel>
 
-                            <!-- Badges -->
-                            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="4"
-                                        VerticalAlignment="Center">
-                                <Border Style="{StaticResource BadgeStyle}">
-                                    <TextBlock Text="{Binding KindLabel}"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                                <Border Style="{StaticResource BadgeStyle}">
-                                    <TextBlock Text="{Binding Category}"
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
+                                <!-- Glowing Tech Cube in top-right corner (Interactive specifications launcher) -->
+                                <Button Grid.Column="2" VerticalAlignment="Top"
+                                        Background="Transparent" BorderThickness="0" Padding="4"
+                                        Click="ToolDetails_Click"
+                                        ToolTipService.ToolTip="View tool specifications &amp; details">
+                                    <Grid>
+                                        <FontIcon Glyph="&#xF158;" FontSize="15"
+                                                  Foreground="{ThemeResource CatalogCubeGlyphCyanBrush}"
+                                                  Visibility="{Binding IsAccentPurple, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                        <FontIcon Glyph="&#xF158;" FontSize="15"
+                                                  Foreground="{ThemeResource CatalogCubeGlyphPurpleBrush}"
+                                                  Visibility="{Binding IsAccentPurple, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </Grid>
+                                </Button>
+                            </Grid>
 
-                            <!-- Copy command button -->
-                            <Button Grid.Column="5" Click="CopyCommand_Click"
-                                    ToolTipService.ToolTip="Copy install command to clipboard"
-                                    Padding="6" VerticalAlignment="Center"
-                                    CornerRadius="4">
-                                <FontIcon Glyph="&#xE8C8;" FontSize="12"
-                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Button>
+                            <!-- BOTTOM SECTION: Version Tag (Left) + Action Button (Right) -->
+                            <Grid Grid.Row="1" Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                            <!-- Versions button -->
-                            <Button Grid.Column="6" Click="VersionPicker_Click"
-                                    ToolTipService.ToolTip="Select specific or previous release version"
-                                    Padding="6,5" VerticalAlignment="Center"
-                                    CornerRadius="4">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <FontIcon Glyph="&#xE8EC;" FontSize="12"
-                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <TextBlock Text="Version" FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                <!-- Version Tag (Clickable to switch versions) -->
+                                <HyperlinkButton Grid.Column="0"
+                                                 Padding="0"
+                                                 VerticalAlignment="Center"
+                                                 HorizontalAlignment="Left"
+                                                 Click="VersionPicker_Click"
+                                                 ToolTipService.ToolTip="Click to change or select release version">
+                                    <TextBlock Text="{Binding DisplayVersionWithV}"
+                                               FontSize="12"
+                                               Foreground="{ThemeResource CatalogVersionForegroundBrush}" />
+                                </HyperlinkButton>
+
+                                <!-- Action Button Area -->
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <!-- Downloading Progress Indicator -->
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                                                Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <ProgressRing Width="16" Height="16" IsActive="True" />
+                                        <TextBlock Text="Installing…" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+
+                                    <!-- 1-Click Install Button (Solid Cyan in Dark, Solid Azure in Light) -->
+                                    <Button Style="{StaticResource CatalogInstallButtonStyle}"
+                                            Click="InstallSingleTool_Click"
+                                            ToolTipService.ToolTip="Download and install this tool"
+                                            Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                        <TextBlock Text="Install" />
+                                    </Button>
+
+                                    <!-- Installed Button (Purple Pill matching Helm & Git in screenshot) -->
+                                    <Button Style="{StaticResource CatalogInstalledButtonStyle}"
+                                            Click="InstalledAction_Click"
+                                            ToolTipService.ToolTip="Tool is installed. Click for options."
+                                            Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <TextBlock Text="Installed" />
+                                    </Button>
                                 </StackPanel>
-                            </Button>
-
-                            <!-- Details button -->
-                            <Button Grid.Column="7" Click="ToolDetails_Click"
-                                    ToolTipService.ToolTip="Inspect tool specifications"
-                                    Padding="6,5" VerticalAlignment="Center"
-                                    CornerRadius="4">
-                                <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <FontIcon Glyph="&#xE946;" FontSize="12"
-                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <TextBlock Text="Details" FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </StackPanel>
-                            </Button>
+                            </Grid>
                         </Grid>
-                    </Border>
+                    </Grid>
                 </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+            </GridView.ItemTemplate>
+        </GridView>
+
+        <!-- ══════════════════════════════════ -->
+        <!--  FOOTER STATUS BAR                 -->
+        <!-- ══════════════════════════════════ -->
+        <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       x:Name="FooterStatusText"
+                       Text="90 Tools Available | Last Sync: Just now"
+                       FontSize="12"
+                       Foreground="{ThemeResource CatalogFooterForegroundBrush}"
+                       VerticalAlignment="Center" />
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <HyperlinkButton Content="Refresh Catalog" Click="RefreshCatalog_Click"
+                                 FontSize="11" Padding="4,2"
+                                 Foreground="{ThemeResource CatalogFooterForegroundBrush}" />
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

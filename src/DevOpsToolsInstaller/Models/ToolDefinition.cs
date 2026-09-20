@@ -126,6 +126,9 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 _status = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDownloaded));
+                OnPropertyChanged(nameof(IsDownloadedOrInstalled));
+                OnPropertyChanged(nameof(IsDownloading));
+                OnPropertyChanged(nameof(ActionStatusText));
                 UpdateStatusText();
             }
         }
@@ -162,6 +165,8 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             {
                 _isInstalled = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(IsDownloadedOrInstalled));
+                OnPropertyChanged(nameof(ActionStatusText));
             }
         }
     }
@@ -391,6 +396,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 _selectedVersion = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(DisplayVersion));
+                OnPropertyChanged(nameof(DisplayVersionWithV));
                 OnPropertyChanged(nameof(NameWithVersion));
                 OnPropertyChanged(nameof(IsPreviousVersionSelected));
             }
@@ -405,6 +411,41 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     [JsonIgnore]
     public string DisplayVersion =>
         !string.IsNullOrWhiteSpace(SelectedVersion) ? $"v{SelectedVersion}" : "Latest";
+
+    [JsonIgnore]
+    public string DisplayVersionWithV
+    {
+        get
+        {
+            var raw = string.IsNullOrWhiteSpace(SelectedVersion) ? Version : SelectedVersion;
+            if (string.IsNullOrWhiteSpace(raw)) return "v1.0.0";
+            raw = raw.Trim();
+            return raw.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? raw : $"v{raw}";
+        }
+    }
+
+    [JsonIgnore]
+    public bool IsDownloadedOrInstalled => IsInstalled || Status == ToolStatus.Downloaded;
+
+    [JsonIgnore]
+    public bool IsDownloading => Status == ToolStatus.Downloading;
+
+    [JsonIgnore]
+    public string ActionStatusText => IsDownloadedOrInstalled ? "Installed" : "Install";
+
+    [JsonIgnore]
+    public bool IsAccentPurple =>
+        Category.Contains("Infrastructure", StringComparison.OrdinalIgnoreCase) ||
+        Category.Contains("CI/CD", StringComparison.OrdinalIgnoreCase) ||
+        Category.Contains("Package", StringComparison.OrdinalIgnoreCase) ||
+        Category.Contains("Security", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("terraform", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("helm", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("git", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("sops", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("vault", StringComparison.OrdinalIgnoreCase) ||
+        Id.Equals("trivy", StringComparison.OrdinalIgnoreCase) ||
+        (Math.Abs(Id.GetHashCode()) % 4 == 1);
 
     [JsonIgnore]
     public System.Collections.Generic.List<string> AllAvailableVersions
