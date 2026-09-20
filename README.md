@@ -16,7 +16,8 @@
 
 A high-performance, native Windows 11 desktop application designed to provision cloud, container, Kubernetes, IaC, security, database, and terminal tools on a fresh workstation in minutes.
 
-DevOpsToolsInstaller does **not** install anything silently. It downloads official vendor artifacts directly from upstream release endpoints with a real-time progress bar, validates cryptographic Authenticode digital signatures and SHA-256 hashes, and triggers the appropriate context-aware action — launching the vendor's setup wizard, unpacking an archive, or placing a standalone CLI into an isolated user tools folder.
+> [!NOTE]  
+> DevOpsToolsInstaller does **not** install anything silently. It downloads official vendor artifacts directly from upstream release endpoints with a real-time progress bar, validates cryptographic Authenticode digital signatures and SHA-256 hashes, and triggers the appropriate context-aware action — launching the vendor's setup wizard, unpacking an archive, or placing a standalone CLI into an isolated user tools folder.
 
 ---
 
@@ -166,6 +167,9 @@ The **Curated Stacks** section offers 12 opinionated, battle-tested bundles desi
 - **Install Stack**: Queues and batch-downloads every tool in the stack.
 - **Select Stack**: Applies a live filter to the Catalog, enabling you to review, customize, or selectively install tools in the stack.
 
+> [!TIP]
+> Use **"Select Stack"** to preview tools in the catalog and customize your installation with selective checkboxes before queueing downloads.
+
 ---
 
 ## What Happens After Download
@@ -178,6 +182,9 @@ Every tool in the catalog is assigned a **kind**, dictating the post-download ac
 | **Archive** | `.zip` | Extracts cleanly into per-tool sandbox (`Tools\<tool-id>`) and opens folder | `Extract` |
 | **Binary** | `.exe` | Places the standalone binary directly into `Tools\bin` | `Add to Tools` |
 | **Script** | `.ps1`, `.sh` | Opens folder for manual inspection — **scripts are never executed automatically** | `Open Folder` |
+
+> [!CAUTION]
+> Vendor setup scripts (`.ps1`, `.sh`) are never executed automatically by the app. Always inspect script contents before running them manually in an elevated PowerShell session.
 
 ### Where Files Are Stored
 - **Downloaded Artifacts**: `%LOCALAPPDATA%\DevOpsToolsInstaller\Downloads`
@@ -206,10 +213,10 @@ Navigate to the **Installed** tab to manage and verify your local workstation en
 
 Standalone CLI binaries (`kubectl`, `kind`, `jq`, `yq`, `helm`, etc.) land in `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`. 
 
-### Option 1: In-App (Recommended)
-Open **Settings** in the app and click **"Add to PATH"**. The app immediately registers the folder in your User Environment (`HKCU\Environment\PATH`) with zero administrator elevation required.
+> [!TIP]
+> Open **Settings** in the app and click **"Add to PATH"**. The app immediately registers the folder in your User Environment (`HKCU\Environment\PATH`) with zero administrator elevation required.
 
-### Option 2: PowerShell
+Alternatively, to add it via PowerShell:
 ```powershell
 $bin  = "$env:LOCALAPPDATA\DevOpsToolsInstaller\Tools\bin"
 $user = [Environment]::GetEnvironmentVariable("PATH", "User")
@@ -218,6 +225,9 @@ if ($user -notlike "*$bin*") {
     Write-Host "Added $bin to your user PATH. Restart your terminal to apply."
 }
 ```
+
+> [!IMPORTANT]  
+> After updating your PATH (either via the in-app Settings button or PowerShell), restart any active terminal instances (PowerShell, CMD, Windows Terminal, or VS Code) so they can detect the newly added CLI binaries.
 
 ---
 
@@ -307,7 +317,9 @@ To contribute a new tool:
 
 ## Troubleshooting
 
-- **SmartScreen Warning on First Launch**: Because each release is signed or packaged directly on GitHub Actions, Windows SmartScreen may show an initial unrecognized warning until community reputation builds. Click *More info* → *Run anyway*.
+> [!WARNING]  
+> If Microsoft Defender SmartScreen displays an *"Unrecognized app"* or *"Windows protected your PC"* notification on newly downloaded releases, this is expected behavior for open-source software before broad global reputation accumulates. Click **"More info"** → **"Run anyway"**, or verify the asset's cryptographic SHA-256 hash against `SHA256SUMS.txt`.
+
 - **CLI Tool Not Found in Terminal**: Ensure you have added `Tools\bin` to your PATH (via **Settings → Add to PATH**) and restarted your terminal session.
 - **Offline Catalog Loading**: If offline, the application automatically loads the embedded local catalog copy. Reconnect to the internet and restart to pull the newest releases.
 
