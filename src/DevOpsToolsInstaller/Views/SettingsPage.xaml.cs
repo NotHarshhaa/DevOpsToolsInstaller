@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using DevOpsToolsInstaller.Controls;
 using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
@@ -16,6 +17,8 @@ public sealed partial class SettingsPage : Page
         Loaded += SettingsPage_Loaded;
     }
 
+    private AppReleaseInfo? _discoveredRelease;
+
     private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
     {
         var dlFolder = DownloadService.DefaultDownloadsFolder;
@@ -24,6 +27,8 @@ public sealed partial class SettingsPage : Page
         UpdateStorageInfo(dlFolder);
         UpdatePathStatus();
         UpdateCompletionStatus();
+        UpdateLastCheckedDisplay();
+        AutoUpdateToggle.IsOn = SettingsService.CheckForUpdatesOnStartup;
 
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
@@ -359,5 +364,98 @@ public sealed partial class SettingsPage : Page
         };
 
         await dialog.ShowAsync();
+    }
+
+    private void UpdateLastCheckedDisplay()
+    {
+        if (SettingsService.LastUpdateCheckTime.HasValue)
+        {
+            var dt = SettingsService.LastUpdateCheckTime.Value;
+            var isToday = dt.Date == DateTime.Today;
+            var timeStr = isToday ? $"Today at {dt:hh:mm tt}" : dt.ToString("MMM dd, yyyy 'at' hh:mm tt");
+            UpdateLastCheckedText.Text = $"Last checked: {timeStr}";
+        }
+        else
+        {
+            UpdateLastCheckedText.Text = "Last checked: Never";
+        }
+    }
+
+    private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            CheckForUpdatesButton.IsEnabled = false;
+            UpdateCheckRing.IsActive = true;
+            UpdateCheckRing.Visibility = Visibility.Visible;
+            UpdateStatusBadgeText.Text = "Checking…";
+            UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
+            UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+
+            var release = await AppUpdaterService.CheckForUpdatesAsync();
+            UpdateLastCheckedDisplay();
+
+            if (release == null)
+            {
+                UpdateStatusBadgeText.Text = "Check Failed";
+                ShowNotice("Unable to reach GitHub Releases. Please check your internet connection.", InfoBarSeverity.Warning);
+                return;
+            }
+
+            _discoveredRelease = release;
+
+            if (release.IsUpdateAvailable)
+            {
+                UpdateStatusBadgeText.Text = $"Update {release.TagName} Available";
+                UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+                UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+
+                UpdateAvailableTitle.Text = $"Update Available — {release.TagName}";
+                UpdateAvailableSubtitle.Text = string.IsNullOrWhiteSpace(release.Title)
+                    ? $"A new version of DevOps Tools Installer is ready to download and install."
+                    : release.Title;
+                UpdateAvailableBanner.Visibility = Visibility.Visible;
+
+                // Prompt user with UpdateDialog modal
+                await UpdateDialog.ShowAsync(this.XamlRoot, release);
+            }
+            else
+            {
+                UpdateAvailableBanner.Visibility = Visibility.Collapsed;
+                UpdateStatusBadgeText.Text = $"Up to date (v{AppUpdaterService.CurrentVersion})";
+                UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+                UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+                ShowNotice($"You are running the latest version of DevOps Tools Installer (v{AppUpdaterService.CurrentVersion}).", InfoBarSeverity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdateStatusBadgeText.Text = "Error";
+            ShowNotice($"Failed to check for updates: {ex.Message}", InfoBarSeverity.Error);
+        }
+        finally
+        {
+            UpdateCheckRing.IsActive = false;
+            UpdateCheckRing.Visibility = Visibility.Collapsed;
+            CheckForUpdatesButton.IsEnabled = true;
+        }
+    }
+
+    private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (_discoveredRelease != null)
+        {
+            await UpdateDialog.ShowAsync(this.XamlRoot, _discoveredRelease);
+        }
+        else
+        {
+            CheckForUpdates_Click(sender, e);
+        }
+    }
+
+    private void AutoUpdateToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.CheckForUpdatesOnStartup = AutoUpdateToggle.IsOn;
+        SettingsService.SaveSettings();
     }
 }

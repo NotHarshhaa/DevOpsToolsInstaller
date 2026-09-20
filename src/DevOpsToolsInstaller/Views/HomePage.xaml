@@ -29,12 +29,12 @@
                 x:Name="UpdateInfoBar"
                 IsOpen="False"
                 IsClosable="True"
-                Severity="Informational"
+                Severity="Success"
                 Title="Update Available"
                 Message="A newer version is available."
                 CornerRadius="6">
                 <controls:InfoBar.ActionButton>
-                    <HyperlinkButton x:Name="UpdateLink" Content="Download update" Click="UpdateLink_Click" />
+                    <Button Style="{StaticResource AccentButtonStyle}" Content="Update Now" Click="UpdateNow_Click" />
                 </controls:InfoBar.ActionButton>
             </controls:InfoBar>
 

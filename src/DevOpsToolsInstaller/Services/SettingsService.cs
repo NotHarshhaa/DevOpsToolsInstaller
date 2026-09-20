@@ -44,6 +44,9 @@ public static class SettingsService
         }
     }
 
+    public static bool CheckForUpdatesOnStartup { get; set; } = true;
+    public static DateTime? LastUpdateCheckTime { get; set; }
+
     public static void LoadSettings()
     {
         try
@@ -66,6 +69,17 @@ public static class SettingsService
                         DownloadsFolder = dl;
                     }
                 }
+
+                if (doc.RootElement.TryGetProperty("CheckForUpdatesOnStartup", out var autoUpdateProp))
+                {
+                    CheckForUpdatesOnStartup = autoUpdateProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("LastUpdateCheckTime", out var lastCheckProp) &&
+                    DateTime.TryParse(lastCheckProp.GetString(), out var lastCheck))
+                {
+                    LastUpdateCheckTime = lastCheck;
+                }
             }
         }
         catch
@@ -86,7 +100,9 @@ public static class SettingsService
             var data = new
             {
                 Theme = Theme.ToString(),
-                DownloadsFolder = DownloadsFolder
+                DownloadsFolder = DownloadsFolder,
+                CheckForUpdatesOnStartup = CheckForUpdatesOnStartup,
+                LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o")
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

@@ -46,18 +46,24 @@ public sealed partial class HomePage : Page
         _ = CheckForUpdatesAsync();
     }
 
+    private AppReleaseInfo? _discoveredRelease;
+
     private async Task CheckForUpdatesAsync()
     {
+        if (!SettingsService.CheckForUpdatesOnStartup)
+            return;
+
         try
         {
-            var result = await UpdateCheckerService.CheckAsync();
-            if (result is { IsUpdateAvailable: true })
+            var release = await AppUpdaterService.CheckForUpdatesAsync();
+            if (release is { IsUpdateAvailable: true })
             {
-                _updateUrl = result.ReleaseUrl;
-                UpdateInfoBar.Title = $"Update Available — v{result.LatestVersion}";
-                UpdateInfoBar.Message = string.IsNullOrWhiteSpace(result.ReleaseNotes)
-                    ? "A newer version of DevOps Tools Installer is available on GitHub."
-                    : result.ReleaseNotes;
+                _discoveredRelease = release;
+                _updateUrl = release.HtmlUrl;
+                UpdateInfoBar.Title = $"Update Available — {release.TagName}";
+                UpdateInfoBar.Message = string.IsNullOrWhiteSpace(release.Title)
+                    ? "A newer version of DevOps Tools Installer is available with updates and improvements."
+                    : release.Title;
                 UpdateInfoBar.IsOpen = true;
             }
         }
@@ -67,10 +73,24 @@ public sealed partial class HomePage : Page
         }
     }
 
+    private async void UpdateNow_Click(object sender, RoutedEventArgs e)
+    {
+        if (_discoveredRelease != null)
+        {
+            await Controls.UpdateDialog.ShowAsync(this.XamlRoot, _discoveredRelease);
+        }
+        else if (!string.IsNullOrWhiteSpace(_updateUrl))
+        {
+            LauncherService.OpenUrl(_updateUrl);
+        }
+    }
+
     private void UpdateLink_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(_updateUrl))
             LauncherService.OpenUrl(_updateUrl);
+        else if (_discoveredRelease != null)
+            LauncherService.OpenUrl(_discoveredRelease.HtmlUrl);
     }
 
     private void Catalog_Click(object sender, RoutedEventArgs e)

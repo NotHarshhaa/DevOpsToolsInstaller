@@ -19,6 +19,13 @@
                            Style="{StaticResource PageSubtitleStyle}" />
             </StackPanel>
 
+            <!-- Update Feedback InfoBar -->
+            <controls:InfoBar
+                x:Name="AboutInfoBar"
+                IsOpen="False"
+                IsClosable="True"
+                Severity="Informational" />
+
             <!-- Tool Hero Card -->
             <Border Style="{StaticResource HeroCardStyle}" Padding="26">
                 <Grid ColumnSpacing="22">
@@ -56,10 +63,17 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
-                        <Button Style="{StaticResource AccentButtonStyle}" Click="ToolGitHub_Click" Padding="14,8">
+                        <Button x:Name="AboutCheckUpdatesButton" Style="{StaticResource AccentButtonStyle}" Click="CheckForUpdates_Click" Padding="14,8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <ProgressRing x:Name="AboutCheckRing" Width="14" Height="14" IsActive="False" Visibility="Collapsed" />
+                                <FontIcon x:Name="AboutCheckIcon" Glyph="&#xE895;" FontSize="13" />
+                                <TextBlock x:Name="AboutCheckText" Text="Check for Updates" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="ToolGitHub_Click" Padding="14,8">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE774;" FontSize="14" />
-                                <TextBlock Text="GitHub Repo" FontWeight="SemiBold" />
+                                <TextBlock Text="GitHub Repo" />
                             </StackPanel>
                         </Button>
                     </StackPanel>
