@@ -48,13 +48,33 @@ jobs:
       - name: Rename Executable
         shell: pwsh
         run: |
-          Rename-Item -Path "publish_out\DevOpsToolsInstaller.exe" -NewName "DevOpsToolsInstaller_${{ matrix.arch_name }}.exe"
+          Copy-Item -Path "publish_out\DevOpsToolsInstaller.exe" -Destination "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}.exe"
+
+      - name: Build Windows Setup Wizard (x64)
+        if: matrix.arch_name == 'x64'
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            $iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
+          }
+          Write-Host "Compiling Inno Setup wizard with $iscc..."
+          & $iscc "/DSourceDir=publish_out" "/DOutputBaseFilename=DevOpsToolsInstaller_x64_Setup" "installer/setup.iss"
+          Move-Item -Path "dist\DevOpsToolsInstaller_x64_Setup.exe" -Destination "publish_out\"
 
       - name: Upload Binary Artifact
         uses: actions/upload-artifact@v4
         with:
           name: binary-${{ matrix.arch_name }}
           path: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}.exe
+          if-no-files-found: error
+
+      - name: Upload Setup Wizard Artifact
+        if: matrix.arch_name == 'x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: setup-${{ matrix.arch_name }}
+          path: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe
           if-no-files-found: error
 
   release:
@@ -93,6 +113,7 @@ jobs:
           name: Release ${{ steps.get_tag.outputs.tag }}
           body_path: release_notes.md
           files: |
+            release_assets/DevOpsToolsInstaller_x64_Setup.exe
             release_assets/DevOpsToolsInstaller_x64.exe
             release_assets/DevOpsToolsInstaller_arm64.exe
             release_assets/SHA256SUMS.txt

@@ -33,7 +33,7 @@ DevOpsToolsInstaller does **not** install anything silently. It downloads offici
 - [Adding `Tools\bin` to Your PATH](#adding-toolsbin-to-your-path)
 - [Security, Integrity & Privacy](#security-integrity--privacy)
 - [In-App Auto-Updater](#in-app-auto-updater)
-- [Installation & Portable Execution](#installation--portable-execution)
+- [Installation & Deployment Options](#installation--deployment-options)
 - [Tech Stack](#tech-stack)
 - [Catalog Format & Custom Tools](#catalog-format--custom-tools)
 - [Troubleshooting](#troubleshooting)
@@ -243,12 +243,21 @@ DevOpsToolsInstaller includes an integrated, zero-friction updater:
 
 ---
 
-## Installation & Portable Execution
+## Installation & Deployment Options
 
-DevOpsToolsInstaller is distributed as a **single, self-contained portable executable** with embedded single-file compression:
+DevOpsToolsInstaller provides two official distribution formats available from [GitHub Releases](https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest):
 
-1. Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe` for ARM64 devices) from [GitHub Releases](https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest).
-2. Run the executable. No pre-installation, MSI installers, or runtime prerequisites (`.NET` runtime is fully bundled) required.
+### 🧙 Option 1: Windows Setup Wizard (Recommended)
+Download **`DevOpsToolsInstaller_x64_Setup.exe`**:
+- **System or User Installation**: Installs all application binaries, WinUI 3 libraries, vector logos, and catalogs to `C:\Program Files\DevOpsToolsInstaller` (or a custom location on `C:\`).
+- **Desktop & Start Menu Shortcuts**: Automatically configures accessible shortcuts.
+- **Automatic PATH Configuration**: Registers the application directory in your system or user PATH environment variable.
+- **Clean Uninstallation**: Fully integrated with Windows Settings (*Installed apps* / *Programs and Features*).
+
+### 🚀 Option 2: Portable Single-File Executable
+Download **`DevOpsToolsInstaller_x64.exe`** (or `_arm64.exe` for ARM64 devices):
+- Single self-contained executable with embedded compression.
+- Completely portable: drop it onto a USB drive, `Downloads`, or `Desktop` and launch immediately with zero installation.
 
 ---
 

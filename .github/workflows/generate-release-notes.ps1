@@ -4,14 +4,21 @@ param(
     [string]$OutputFile = "release_notes.md"
 )
 
+$setupHash = "N/A"
 $x64Hash = "N/A"
 $arm64Hash = "N/A"
 
-if (Test-Path "$AssetsDir\DevOpsToolsInstaller_x64.exe") {
-    $x64Hash = (Get-FileHash -Path "$AssetsDir\DevOpsToolsInstaller_x64.exe" -Algorithm SHA256).Hash.ToLower()
+$setupFile = Get-ChildItem -Path "$AssetsDir" -Filter "*Setup*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($setupFile) {
+    $setupHash = (Get-FileHash -Path $setupFile.FullName -Algorithm SHA256).Hash.ToLower()
 }
-if (Test-Path "$AssetsDir\DevOpsToolsInstaller_arm64.exe") {
-    $arm64Hash = (Get-FileHash -Path "$AssetsDir\DevOpsToolsInstaller_arm64.exe" -Algorithm SHA256).Hash.ToLower()
+$x64File = Get-ChildItem -Path "$AssetsDir" -Filter "*x64*.exe" -Exclude "*Setup*" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($x64File) {
+    $x64Hash = (Get-FileHash -Path $x64File.FullName -Algorithm SHA256).Hash.ToLower()
+}
+$arm64File = Get-ChildItem -Path "$AssetsDir" -Filter "*arm64*.exe" -Exclude "*Setup*" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($arm64File) {
+    $arm64Hash = (Get-FileHash -Path $arm64File.FullName -Algorithm SHA256).Hash.ToLower()
 }
 
 if (Test-Path $AssetsDir) {
@@ -100,21 +107,21 @@ This major release transforms DevOps Tools Installer with a completely redesigne
 
 ### 📦 Verification & Checksums
 
-| Asset | SHA256 Hash |
-| :--- | :--- |
-| **`DevOpsToolsInstaller_x64.exe`** | `__X64_HASH__` |
-| **`DevOpsToolsInstaller_arm64.exe`** | `__ARM64_HASH__` |
+| Asset | Type | SHA256 Hash |
+| :--- | :--- | :--- |
+| **`DevOpsToolsInstaller_x64_Setup.exe`** | Windows Setup Wizard | `__SETUP_HASH__` |
+| **`DevOpsToolsInstaller_x64.exe`** | Portable Single Binary | `__X64_HASH__` |
+| **`DevOpsToolsInstaller_arm64.exe`** | Portable Single Binary | `__ARM64_HASH__` |
 
 *(All asset checksums are also downloadable in `SHA256SUMS.txt`)*
 
 ---
 
 ### 🚀 Quick Start
-1. Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe` for ARM64 devices).
-2. Run the executable — completely portable with no pre-installation required.
-3. In **Settings**, click **"Add to PATH"** to enable command-line access for all portable tools.
+- **Option A (Setup Wizard)**: Download and run `DevOpsToolsInstaller_x64_Setup.exe` to install to `C:\Program Files\DevOpsToolsInstaller` (or a custom folder) with automated shortcuts and PATH integration.
+- **Option B (Portable)**: Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe`) and run directly — no installation required.
 '@
 
-$content = $template.Replace("__TAG__", $Tag).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
+$content = $template.Replace("__TAG__", $Tag).Replace("__SETUP_HASH__", $setupHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
 [System.IO.File]::WriteAllText($OutputFile, $content, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Generated release notes at $OutputFile"

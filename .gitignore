@@ -55,3 +55,7 @@ artifacts/
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+
+# Output installer directories
+dist/
+release_assets/

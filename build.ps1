@@ -11,6 +11,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string]$Configuration = 'Release',
     [switch]$SingleFile,
+    [switch]$Setup,
     [switch]$Run,
     [switch]$Clean
 )
@@ -43,6 +44,19 @@ function Find-Dotnet {
             $env:PATH = ([IO.Path]::GetDirectoryName($c)) + ';' + $env:PATH
             return $c
         }
+    }
+    return $null
+}
+
+function Find-ISCC {
+    if (Get-Command ISCC.exe -ErrorAction SilentlyContinue) { return 'ISCC.exe' }
+    $candidates = @(
+        "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+        'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+        'C:\Program Files\Inno Setup 6\ISCC.exe'
+    )
+    foreach ($c in $candidates) {
+        if (Test-Path $c) { return $c }
     }
     return $null
 }
@@ -209,6 +223,33 @@ Write-Host ""
 Write-Host "  Run:" -ForegroundColor Yellow
 Write-Host "    $exe" -ForegroundColor White
 Write-Host ""
+
+# ---------------------------------------------------------------------------
+# Setup Wizard (Inno Setup)
+# ---------------------------------------------------------------------------
+
+if ($Setup) {
+    Write-Step "Building Windows Setup Wizard (Inno Setup)..."
+    $iscc = Find-ISCC
+    if (-not $iscc) {
+        Write-Err "Inno Setup Compiler (ISCC.exe) not found. Install it with: winget install JRSoftware.InnoSetup --scope user"
+    } else {
+        $issFile = Join-Path $root 'installer\setup.iss'
+        $distDir = Join-Path $root 'dist'
+        if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
+
+        Write-Host "  Compiling with $iscc..." -ForegroundColor Gray
+        & $iscc "/DSourceDir=$pubDir" $issFile
+        if ($LASTEXITCODE -eq 0) {
+            $setupExe = Get-ChildItem -Path $distDir -Filter "*Setup.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($setupExe) {
+                Write-Ok "Setup Wizard generated: $($setupExe.FullName) ($([math]::Round($setupExe.Length / 1MB, 1)) MB)"
+            }
+        } else {
+            Write-Err "Setup compiler failed with exit code $LASTEXITCODE"
+        }
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Auto-launch
