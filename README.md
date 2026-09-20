@@ -1,326 +1,334 @@
 # DevOpsToolsInstaller
 
 <p align="center">
-  <em>One place to download every official DevOps tool installer for a fresh Windows workstation — without silent installs, bundled binaries, or telemetry.</em>
+  <em>The native Windows workstation provisioning hub for DevOps and Platform Engineers — 90 official tools, curated stacks, zero silent installs, zero bundled binaries, and zero telemetry.</em>
 </p>
 
 <p align="center">
+  <img alt="Release" src="https://img.shields.io/badge/release-v2.1.0-blue?logo=github" />
   <img alt="Build" src="https://github.com/NotHarshhaa/DevOpsToolsInstaller/actions/workflows/release.yml/badge.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows" />
   <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet" />
-  <img alt="UI" src="https://img.shields.io/badge/UI-WinUI%203-2b579a" />
+  <img alt="UI" src="https://img.shields.io/badge/UI-WinUI%203%20%7C%20Mica%20Alt-2b579a" />
   <img alt="Arch" src="https://img.shields.io/badge/arch-x64%20%7C%20arm64-lightgrey" />
   <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-green" />
 </p>
 
-A native Windows desktop app built for DevOps engineers to quickly get
-official installers and binaries for the tools of the trade — container
-runtimes, IaC tools, Kubernetes CLIs, and cloud provider CLIs (AWS, Azure,
-GCP) — all from one place.
+A high-performance, native Windows 11 desktop application designed to provision cloud, container, Kubernetes, IaC, security, database, and terminal tools on a fresh workstation in minutes.
 
-DevOpsToolsInstaller does **not** install anything silently. It downloads
-the vendor's official artifact with a live progress bar, then takes the
-right hands-off action for what it downloaded — launching a vendor
-installer, unpacking an archive, or dropping a CLI into a tools folder — so
-you finish setup exactly the way the vendor intended. No bundled binaries,
-no background scripts modifying your system.
+DevOpsToolsInstaller does **not** install anything silently. It downloads official vendor artifacts directly from upstream release endpoints with a real-time progress bar, validates cryptographic Authenticode digital signatures and SHA-256 hashes, and triggers the appropriate context-aware action — launching the vendor's setup wizard, unpacking an archive, or placing a standalone CLI into an isolated user tools folder.
 
 ---
 
 ## Contents
 
 - [Why](#why)
-- [Who this is for](#who-this-is-for)
-- [How it works](#how-it-works)
-- [What happens after download](#what-happens-after-download)
-- [A quick tour](#a-quick-tour)
-- [Categories covered](#categories-covered)
-- [Adding `Tools\bin` to your PATH](#adding-toolsbin-to-your-path)
-- [Features](#features)
-- [Security & privacy](#security--privacy)
-- [Installation](#installation)
-- [Tech stack](#tech-stack)
-- [Catalog format](#catalog-format)
-- [Adding a tool to the catalog](#adding-a-tool-to-the-catalog)
+- [Who This Is For](#who-this-is-for)
+- [How It Works](#how-it-works)
+- [Application Tour & Navigation](#application-tour--navigation)
+- [Tool Categories (90 Tools)](#tool-categories-90-tools)
+- [Curated Stacks & Workstation Presets](#curated-stacks--workstation-presets)
+- [What Happens After Download](#what-happens-after-download)
+- [Installed Tools, Health Checks & Shell Completions](#installed-tools-health-checks--shell-completions)
+- [Adding `Tools\bin` to Your PATH](#adding-toolsbin-to-your-path)
+- [Security, Integrity & Privacy](#security-integrity--privacy)
+- [In-App Auto-Updater](#in-app-auto-updater)
+- [Installation & Portable Execution](#installation--portable-execution)
+- [Tech Stack](#tech-stack)
+- [Catalog Format & Custom Tools](#catalog-format--custom-tools)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
-- [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
 
+---
+
 ## Why
 
-Setting up a new DevOps workstation usually means the same ritual every
-time: open a dozen tabs, hunt down the AWS CLI installer, the Terraform
-binary, kubectl, the Azure CLI, Helm, k9s, gcloud... and run each one by
-hand. DevOpsToolsInstaller collects those links into a single, versioned
-catalog so you can browse by category, queue up what you need for a new
-machine, and download everything in one sitting — while the actual
-installation stays fully in your hands, exactly like doing it manually.
+Setting up a new DevOps workstation usually means the same tedious routine: open a dozen browser tabs, chase down vendor download URLs, verify versions, extract archives, configure PATH variables, and run each setup by hand.
 
-## Who this is for
+**DevOpsToolsInstaller** unifies this workflow into a single, beautifully designed workstation control plane:
+- Browse an extensible catalog of **90 official developer and DevOps tools**.
+- Choose role-based **Curated Stacks** (Kubernetes Platform Engineer, DevSecOps, Cloud Engineer, IaC Complete, etc.) for rapid 1-click provisioning or catalog filtering.
+- Select previous release versions directly from tool cards.
+- Verify runtime CLI health checks and generate shell autocompletions.
+- Enjoy a translucent **Windows 11 Mica Alt** interface with zero background bloat, zero telemetry, and zero hidden installs.
 
-DevOps engineers, SREs, and platform engineers setting up or rebuilding
-a Windows workstation who are tired of manually chasing down installer
-links for the same set of tools every time.
+---
 
-## How it works
+## Who This Is For
 
-1. Browse the catalog, grouped by category (Cloud CLIs, Containers, IaC, Kubernetes, CI/CD, Editors, etc.)
-2. Select the tools you need
-3. DevOpsToolsInstaller downloads each artifact directly from the vendor's official URL, with progress per item
-4. Once downloaded, trigger the right action for each tool with one click
+- **DevOps, Platform & SRE Engineers** setting up or reprovisioning Windows laptops.
+- **Cloud Architects & Developers** working across AWS, Azure, GCP, and Kubernetes ecosystems.
+- **IT & Security Teams** who need transparent vendor downloads, Authenticode digital signature auditing, and zero system tampering.
 
-Nothing is installed silently. Nothing runs with elevated permissions except
-a vendor installer that **you** launch, which requests elevation the normal way.
+---
 
-## What happens after download
+## How It Works
 
-Not every tool is a classic setup wizard. The catalog tags each tool with a
-**kind**, and the app takes the matching action:
+```
+┌─────────────────────────┐     Direct Vendor Download     ┌────────────────────────┐
+│  DevOps Tools Catalog   │  ────────────────────────────► │   Official Artifact    │
+│  (90 Tools / 12 Stacks) │                                │  (.msi, .exe, .zip)   │
+└─────────────────────────┘                                └───────────┬────────────┘
+                                                                       │
+                                              Cryptographic Check      ▼
+                                       ┌────────────────────────────────────────────┐
+                                       │ Authenticode WinVerifyTrust & SHA-256 Hash │
+                                       └───────────────────────┬────────────────────┘
+                                                               │
+                                       ┌───────────────────────┴────────────────────┐
+                                       ▼                                            ▼
+                           Installer (.msi / .exe)                      Archive / CLI Binary
+                           Standard Vendor Wizard                      %LOCALAPPDATA%\...\Tools\bin
+                           (User UAC Prompt)                           (1-Click User PATH Setup)
+```
 
-| Kind | Examples | Action | Button |
-|------|----------|--------|--------|
-| **Installer** | AWS CLI, Docker Desktop, Git, VS Code | Launches the vendor installer (it shows its own UAC prompt) | `Install` |
-| **Archive** | Terraform, Helm, Pulumi, glab | Extracts the `.zip` into a per-tool folder and opens it | `Extract` |
-| **Binary** | kubectl, kind, jq, yq | Copies the standalone `.exe` into a single `Tools\bin` folder you can add to `PATH` | `Add to Tools` |
-| **Script** | OCI CLI install script | Opens the folder so you can review it first — scripts are **never** run automatically | `Open Folder` |
+1. **Select Tools or Stacks**: Browse individual tools or select a pre-configured stack.
+2. **Direct Official Download**: Fetched straight from official vendor repositories (GitHub Releases, AWS, Azure, HashiCorp, CNCF).
+3. **Integrity Validation**: Win32 `WinVerifyTrust` checks digital signatures and hashes before execution.
+4. **Context-Aware Deployment**: Launch official installers, extract archives, or deploy CLI binaries directly to your workstation.
 
-If a catalog entry omits `kind`, the app infers it from the file extension
-(`.zip` → archive, `.ps1` → script, `.msi`/`.exe` → installer), so older
-catalogs keep working.
+---
 
-### Removing a tool
+## Application Tour & Navigation
 
-Every tool you've actioned can be removed again from the **Downloads** screen —
-each row has an `Uninstall` / `Remove` button that does the right thing for the
-tool's kind:
+The application uses the Windows 11 **Mica Alt** translucent canvas, native **Segoe Fluent Icons**, and a clean layered layout:
 
-| Kind | Remove action | Button |
-|------|---------------|--------|
-| **Installer** | Finds the tool in the Windows uninstall registry and launches the **vendor's own uninstaller** (it shows its own prompts / UAC — nothing is removed silently) | `Uninstall` |
-| **Archive** | Deletes the extracted `Tools\<tool-id>` folder | `Remove` |
-| **Binary** | Deletes the standalone `.exe` from `Tools\bin` | `Remove` |
-| **Script** | Nothing was installed, so only the cached download is removed | `Delete` |
+- **🏠 Home (`HomePage`)**: Workstation dashboard displaying catalog metrics (available tools, installed tools, disk consumption), quick-launch action tiles, featured preset stacks, and direct access to security and compliance disclosures.
+- **📦 Tool Catalog (`CatalogPage`)**:
+  - **90 Cataloged Tools**: Multi-category browsing with 100% official vector SVG logos.
+  - **Multi-Version Selector**: Switch between the latest version or specific previous releases with dynamic URL resolution.
+  - **Category Filter Chips**: Instant category switching with live tool counts.
+  - **Favorites (★)**: Star preferred tools to prioritize them at the top of your catalog.
+  - **Profile Import & Export**: Export your tool selections to a `.json` profile file to share across teams or restore setups instantly.
+  - **Active Stack Banner**: Interactive banner showing current stack filtering with a single-click "Clear Filter" action.
+  - **Adaptive CommandBar**: Dynamically reorganizes controls using a responsive `WrapPanel` across wide monitors, half-screen snapping, and compact windows.
+- **🚀 Curated Stacks (`StacksPage`)**: Dedicated full-page view featuring 12 role-based workstation bundles with live tool status checkmarks and dual-action workflows (**Install Stack** or **Select Stack**).
+- **📥 Downloads (`DownloadsPage`)**: Concurrent download manager (up to 3 parallel downloads) with transfer speeds, ETA timers, progress bars, and post-download action triggers.
+- **🩺 Installed Tools (`InstalledPage`)**:
+  - Complete inventory of deployed tools and binaries.
+  - **CLI Health Probing**: Executes binaries (`--version` / `-v`) to measure latency (ms) and verify runtime health (Healthy, Degraded, or Missing).
+  - **Shell Autocompletion Generator**: Generates autocompletion scripts for PowerShell and Bash with 1-click insertion into `$PROFILE`.
+  - **Safe Uninstallation**: Invokes vendor uninstallers via Windows Registry detection or cleanly removes extracted files.
+- **⚙️ Settings (`SettingsPage`)**:
+  - Theme customization (Light, Dark, or System Default).
+  - One-click **"Add to PATH"** with real-time PATH inspection.
+  - Disk cache monitor and cleanup.
+  - Desktop and Start Menu shortcut creation.
+  - Manual **"Check for Updates"** triggering the GitHub update service.
+- **ℹ️ About (`AboutPage`)**: Architecture specifications, complete **Security Risks & Precautions**, and legal trademark disclaimers.
+- **🔍 Global AutoSuggestBox**: Embedded directly in the left navigation pane for real-time catalog search and direct query forwarding from anywhere in the app.
 
-The button only lights up when there's actually something to remove — the app
-checks for the extracted folder, the copied binary, or a matching Windows
-uninstall entry when the Downloads page loads. Every removal asks for
-confirmation first and, by default, also clears the cached download so you get
-disk space back. Just like installing, the app never elevates itself and never
-runs a vendor uninstaller silently.
+---
 
-### Where files go
+## Tool Categories (90 Tools)
 
-- **Downloads** — `%LOCALAPPDATA%\DevOpsToolsInstaller\Downloads`
-- **Extracted archives** — `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\<tool-id>`
-- **Standalone binaries** — `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`
+The catalog organizes 90 essential tools across 12 distinct domains:
 
-## A quick tour
+1. **Cloud Provider CLIs**: AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI, AWS SAM CLI, eksctl, Azure Functions Core Tools.
+2. **Containerization & Runtimes**: Docker Desktop, Podman Desktop, Lazydocker, Dive, Kind, Minikube.
+3. **Kubernetes Tooling**: kubectl, Helm, k9s, Stern, Kustomize, kubectx, kubens, Helmfile, Cilium CLI, Linkerd, Istioctl, Velero.
+4. **Infrastructure as Code (IaC)**: Terraform, OpenTofu, Pulumi, Terragrunt, TFLint, Packer, Ansible, Infracost.
+5. **CI/CD & Version Control**: Git, GitHub CLI, GitLab CLI, ArgoCD CLI, Flux CLI, Tekton CLI (`tkn`), Act (local GitHub Actions runner), Dagger, Task.
+6. **Security & Secrets Management**: HashiCorp Vault, SOPS, Gitleaks, Snyk CLI, Kyverno CLI.
+7. **Policy, Governance & Compliance**: Trivy, Checkov, tfsec, Syft, Grype, Cosign, Open Policy Agent (`opa`).
+8. **Networking & Tunneling**: ngrok, Cloudflare Tunnel (`cloudflared`), Tailscale, Wireshark, Nmap, ctop.
+9. **Database & Data DevOps**: Flyway CLI, Liquibase, pgcli, mycli, usql, Redis CLI.
+10. **Monitoring & Observability**: Prometheus, Grafana, k6 (load testing), Vector, LogCLI.
+11. **Developer Editors & Terminals**: Visual Studio Code, Windows Terminal, PyCharm Community, Cursor, Neovim.
+12. **Core Utilities & Performance**: jq, yq, Postman, curl, HTTPie, Starship, fzf, ripgrep, bat, fd, eza, zoxide, Delta, PuTTY, WinSCP, 7-Zip.
 
-The app is built around four primary sections, accessible via the left navigation pane:
+*(Full specifications live in [`catalog/catalog.json`](catalog/catalog.json).)*
 
-- **Home** — a dashboard showing catalog metrics (total tools available, downloaded tools count, and storage used), quick action links (Browse Catalog, View Downloads, Open Tools Folder), and featured preset stacks for rapid onboarding.
-- **Tool Catalog** — the interactive directory of 47+ tools:
-  - **Dynamic Search & Filtering**: Real-time search across tool names, categories, and descriptions; category filter chips with tool counts; and a "Downloaded only" toggle.
-  - **Sort & Organize**: Sort alphabetically (A→Z, Z→A), by category, by kind, by downloaded status, or by your personal favorites.
-  - **Favorites**: Star (☆/★) frequently used tools to keep them pinned and prioritized.
-  - **Curated Preset Stacks**: One-click selection of specialized stacks (Kubernetes Core, Cloud Foundation, DevOps Essentials, Security & Scanning, CI/CD & Git, Infrastructure as Code).
-  - **Profile Import & Export**: Export your tool selections to a `.json` profile file to share with teammates or replicate setups across workstations; import anytime to select tools automatically.
-  - **Tool Specifications Modal**: Click info on any tool card to inspect technical specifications, copy official download URLs, and launch vendor documentation.
-  - **Adaptive Responsive CommandBar**: Automatically reorganizes its controls across wide, laptop, snapped half-screen, and compact window sizes using an intelligent custom `WrapPanel` so options and search are never clipped.
-- **Downloads** — live download and installation manager:
-  - Concurrent downloads (up to 3 simultaneous items) with real-time speed, ETA, and progress metrics.
-  - Context-aware post-download actions (`Install`, `Extract`, `Add to Tools`, or `Open Folder`).
-  - Safe uninstallation and removal (`Uninstall` via vendor uninstaller, or `Remove` for extracted folders and binaries) with disk cleanup prompts.
-- **Settings** — customize themes (Light / Dark / System Default), monitor disk usage, clear download caches, open local storage folders, verify user `PATH` configuration, and check catalog sync status.
+---
 
-## Categories covered
+## Curated Stacks & Workstation Presets
 
-- **Cloud provider CLIs** — AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI
-- **Containerization** — Docker Desktop, Podman Desktop
-- **Kubernetes** — kubectl, Helm, k9s, kind, minikube
-- **Infrastructure as Code** — Terraform, OpenTofu, Pulumi, Ansible
-- **CI/CD & Version Control** — Git, GitHub CLI, GitLab CLI, ArgoCD CLI
-- **Security & Scanning** — Trivy, Grype, Syft, Cosign, Snyk CLI
-- **Editors & Terminals** — VS Code, Windows Terminal
-- **Utilities** — jq, yq, Postman, curl
+The **Curated Stacks** section offers 12 opinionated, battle-tested bundles designed to provision a machine for specific engineering disciplines:
 
-(Full, up-to-date list lives in [`catalog/catalog.json`](catalog/catalog.json).)
+| Stack | Description | Core Tools Included |
+| :--- | :--- | :--- |
+| **Kubernetes Starter Pack** | Core toolset for local and remote cluster management | `kubectl`, `helm`, `k9s`, `minikube`, `stern`, `kustomize`, `kubectx` |
+| **Kubernetes Advanced** | Production GitOps, service mesh, and disaster recovery | `kubectl`, `helm`, `argocd`, `flux`, `istioctl`, `cilium-cli`, `velero`, `helmfile`, `k9s` |
+| **Cloud Engineer Essentials** | Multi-cloud infrastructure and policy provisioning | `awscli`, `azure-cli`, `gcloud-cli`, `terraform`, `terragrunt`, `tflint`, `infracost`, `vault` |
+| **AWS Developer Kit** | Toolkit for AWS cloud, containers, and serverless | `awscli`, `aws-sam-cli`, `eksctl`, `terraform`, `docker-desktop` |
+| **DevSecOps Toolkit** | Vulnerability scanning, container signing, and policy auditing | `trivy`, `gitleaks`, `sops`, `cosign`, `syft`, `grype`, `opa`, `kyverno-cli` |
+| **CI/CD Pipeline Builder** | Local runner automation and pipeline construction | `git`, `github-cli`, `act`, `dagger`, `task`, `docker-desktop`, `tkn` |
+| **IaC Complete** | Comprehensive infrastructure-as-code suite | `terraform`, `opentofu`, `pulumi`, `terragrunt`, `tflint`, `packer`, `vault`, `infracost` |
+| **Observability Stack** | Metrics, distributed logging, and performance benchmarking | `prometheus`, `grafana`, `k6`, `vector`, `logcli` |
+| **Terminal Power User** | Blazing-fast modern CLI productivity enhancements | `windows-terminal`, `starship`, `fzf`, `ripgrep`, `bat`, `fd`, `eza`, `zoxide`, `delta`, `jq`, `yq` |
+| **Container Essentials** | Container build, debug, and vulnerability inspection | `docker-desktop`, `lazydocker`, `dive`, `trivy`, `cosign`, `syft` |
+| **Developer Workstation** | Complete one-click bootstrap for a fresh developer machine | `git`, `github-cli`, `vscode`, `docker-desktop`, `kubectl`, `helm`, `terraform`, `jq`, `postman`, `windows-terminal`, `starship` |
+| **Networking & Service Mesh** | Secure ingress tunneling and service-to-service networking | `ngrok`, `cloudflared`, `linkerd`, `istioctl`, `cilium-cli` |
 
-## Adding `Tools\bin` to your PATH
+### Dual-Action Workflow
+- **Install Stack**: Queues and batch-downloads every tool in the stack.
+- **Select Stack**: Applies a live filter to the Catalog, enabling you to review, customize, or selectively install tools in the stack.
 
-Every **Binary** tool (kubectl, kind, jq, yq, …) lands in one folder. Add it
-to your user `PATH` once and those CLIs work from any terminal. The app tells
-you whether the folder is already on your `PATH`; to add it yourself, run this
-in PowerShell (no admin required — it only touches your user environment):
+---
 
+## What Happens After Download
+
+Every tool in the catalog is assigned a **kind**, dictating the post-download action:
+
+| Kind | Artifact Formats | Action | Button |
+| :--- | :--- | :--- | :--- |
+| **Installer** | `.msi`, `.exe` | Launches official vendor setup wizard (surfaces standard Windows UAC prompt) | `Install` |
+| **Archive** | `.zip` | Extracts cleanly into per-tool sandbox (`Tools\<tool-id>`) and opens folder | `Extract` |
+| **Binary** | `.exe` | Places the standalone binary directly into `Tools\bin` | `Add to Tools` |
+| **Script** | `.ps1`, `.sh` | Opens folder for manual inspection — **scripts are never executed automatically** | `Open Folder` |
+
+### Where Files Are Stored
+- **Downloaded Artifacts**: `%LOCALAPPDATA%\DevOpsToolsInstaller\Downloads`
+- **Extracted Archives**: `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\<tool-id>`
+- **Portable CLI Binaries**: `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`
+
+---
+
+## Installed Tools, Health Checks & Shell Completions
+
+Navigate to the **Installed** tab to manage and verify your local workstation environment:
+
+### 🩺 Real-Time CLI Health Checks
+- Directly invokes installed tool binaries using their standard version flags (`--version`, `-v`, or `version`).
+- Measures process execution latency in milliseconds.
+- Categorizes tools as **Healthy** (working binary), **Degraded** (slow response), or **Missing** (PATH or file failure).
+- Click **"Check All CLIs"** to execute batch diagnostics across your entire toolset.
+
+### ⚡ Shell Autocompletion Generator
+- Generates native completion scripts for **PowerShell** and **Bash** for tools like `kubectl`, `helm`, `gh`, `docker`, `terraform`, `podman`, and more.
+- Provides a one-click **"Add to PowerShell Profile"** button that automatically appends the completion snippet to `$PROFILE` without manual editing.
+
+---
+
+## Adding `Tools\bin` to Your PATH
+
+Standalone CLI binaries (`kubectl`, `kind`, `jq`, `yq`, `helm`, etc.) land in `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`. 
+
+### Option 1: In-App (Recommended)
+Open **Settings** in the app and click **"Add to PATH"**. The app immediately registers the folder in your User Environment (`HKCU\Environment\PATH`) with zero administrator elevation required.
+
+### Option 2: PowerShell
 ```powershell
 $bin  = "$env:LOCALAPPDATA\DevOpsToolsInstaller\Tools\bin"
 $user = [Environment]::GetEnvironmentVariable("PATH", "User")
 if ($user -notlike "*$bin*") {
     [Environment]::SetEnvironmentVariable("PATH", "$user;$bin", "User")
-    Write-Host "Added $bin to your user PATH. Restart your terminal to pick it up."
+    Write-Host "Added $bin to your user PATH. Restart your terminal to apply."
 }
 ```
 
-## Features
+---
 
-### 📦 Curated & Verified Catalog
-- **47+ Official DevOps Tools**: Complete coverage of cloud CLIs, container engines, Kubernetes tooling, IaC frameworks, CI/CD runners, security scanners, editors, and CLI utilities.
-- **Direct Vendor Downloads**: All artifacts are fetched directly from official release URLs (GitHub releases, vendor CDNs, official MSI packages) — zero repackaging or proxied files.
-- **Independent Catalog Updates**: Fetches the newest catalog directly from GitHub on startup with an embedded offline fallback when disconnected.
+## Security, Integrity & Privacy
 
-### 🎯 Smart Selection & Preset Stacks
-- **Curated Presets**: Quick-select battle-tested stacks with one click:
-  - *Kubernetes Core*: kubectl, Helm, k9s, kind, minikube
-  - *Cloud Foundation*: AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI
-  - *DevOps Essentials*: Git, Docker Desktop, Terraform, VS Code, jq
-  - *Security & Scanning*: Trivy, Grype, Syft, Cosign, Snyk CLI
-  - *CI/CD & Git*: Git, GitHub CLI, GitLab CLI, ArgoCD CLI
-  - *Infrastructure as Code*: Terraform, OpenTofu, Pulumi, Ansible
-- **Profile Import & Export**: Save your exact tool selection as a portable JSON profile (`.json`) to standardize team environments or restore setups on new machines.
-- **Favorites System**: Pin preferred tools with a single click (☆/★) to sort or filter favorites first.
-- **Bulk Selection Controls**: Instant "Select All" and "Clear" controls.
+DevOpsToolsInstaller was built with an uncompromising security model:
 
-### ⚡ Intelligent Download & Lifecycle Management
-- **Concurrent Download Engine**: Downloads up to 3 artifacts simultaneously with per-item progress, transfer speed, and ETA tracking.
-- **Artifact-Aware Actions**:
-  - *Installers (`.msi`, `.exe`)*: Launches the official vendor installer with its standard UAC prompt.
-  - *Archives (`.zip`)*: Extracts directly into `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\<tool-id>`.
-  - *Standalone Binaries (`.exe`)*: Copies the CLI executable into `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin`.
-  - *Scripts (`.ps1`, `.sh`)*: Safely opens the folder for user inspection before execution.
-- **Safe, Reversible Uninstallation**: Cleanly removes tools from within the app:
-  - Launches the vendor's official uninstaller via Windows Registry detection.
-  - Deletes extracted archive folders and standalone binaries.
-  - Prompts to clean up cached installer files to reclaim disk space.
-- **SHA-256 Checksum Verification**: Automatically validates downloaded file integrity against catalog hashes.
+1. **No Silent Installs**: The app never executes third-party installers silently in the background. Installers display their native vendor wizards and standard Windows User Account Control (UAC) prompts.
+2. **Win32 Authenticode Verification**: The app leverages the native Windows `WinVerifyTrust` API to inspect cryptographic signatures on downloaded `.exe` and `.msi` installers against trusted Certificate Authorities prior to launching.
+3. **SHA-256 Hash Validation**: Catalog entries include cryptographic checksums to guard against payload tampering or incomplete downloads.
+4. **Direct Vendor Artifacts**: Downloads point exclusively to official vendor release infrastructure (GitHub Releases, Amazon S3, Azure CDN, HashiCorp Releases). No proxy mirrors, no intermediary repackaging, and no modified binaries.
+5. **Isolated User Sandbox**: Portable tools extract strictly into `%LOCALAPPDATA%\DevOpsToolsInstaller\`. System-wide directories (`Program Files`, `Windows\System32`) and Machine PATH (`HKLM`) are never touched without standard vendor installer elevation.
+6. **Zero Telemetry**: No analytics, no user tracking, no phone-home pings, and no background daemon services.
 
-### 🔍 Search, Sorting & Inspection
-- **Instant Search**: Real-time filtering across tool names, categories, and descriptions.
-- **Flexible Sorting**: Sort by Name (A→Z, Z→A), Category, Artifact Kind, Downloaded Status, or Favorites.
-- **Detailed Tool Specs**: Inspect full tool metadata, copy download links to clipboard, and open official documentation sites.
+---
 
-### 💻 Modern Windows 11 Native Experience
-- **Fluent Design & WinUI 3**: Native controls adhering to Windows 11 styling guidelines, clean typography, theme resources, and no distracting neon badges.
-- **Adaptive Layout**: Custom `WrapPanel` and dynamic responsive breakpoints that adjust search bars, buttons, and icons smoothly from 4K monitors down to snapped half-screen windows.
-- **Light / Dark / System Themes**: Instant theme switching remembered across restarts.
-- **Self-Contained & Lightweight**: Native x64 and ARM64 executables with zero runtime dependencies.
-- **Zero Telemetry**: No analytics, no tracking, and no background services.
+## In-App Auto-Updater
 
-## Security & privacy
+DevOpsToolsInstaller includes an integrated, zero-friction updater:
+- Automatically checks the GitHub Releases API on launch (and on-demand via **Settings → Check for Updates**).
+- Displays release notes, version comparisons, and asset sizes in a native Fluent dialog.
+- Downloads the new release with real-time progress, verifies checksums, safely stages the update, and restarts smoothly.
 
-- **No silent installs.** The app downloads artifacts; you decide when to run
-  them. Installers surface their own UAC prompt — the app itself never
-  requests elevation.
-- **Scripts are never auto-executed.** For `script`-kind entries (e.g. the OCI
-  CLI installer), the app only opens the containing folder so you can review
-  the script before running it yourself.
-- **Downloads come straight from the vendor.** URLs point at official vendor
-  or first-party release hosts; nothing is proxied or repackaged.
-- **Optional integrity checks.** When a catalog entry includes a `sha256`, the
-  downloaded file is hashed and re-downloaded on mismatch.
-- **No telemetry.** The only network calls are fetching the catalog JSON and
-  downloading the artifacts you choose.
+---
 
-## Installation
+## Installation & Portable Execution
 
-Download the latest release from the [Releases](../../releases) page and run
-the `.exe`. No installation required — it's a single self-contained binary.
-Builds are published for both **x64** and **arm64**.
+DevOpsToolsInstaller is distributed as a **single, self-contained portable executable** with embedded single-file compression:
 
-## Tech stack
+1. Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe` for ARM64 devices) from [GitHub Releases](https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest).
+2. Run the executable. No pre-installation, MSI installers, or runtime prerequisites (`.NET` runtime is fully bundled) required.
 
-- **WinUI 3** (Windows App SDK) on **.NET 8**
-- Self-contained, no runtime install required
-- Catalog is plain JSON — no code changes needed to add tools
+---
 
-## Catalog format
+## Tech Stack
 
-The catalog is a flat JSON array. Each entry describes one tool:
+- **Framework**: WinUI 3 via Windows App SDK 1.6
+- **Runtime**: .NET 8.0 (Self-Contained, Single-File Compressed)
+- **Architecture**: MVVM with CommunityToolkit.Mvvm
+- **Styling**: Windows 11 Fluent Design with Mica Alt backdrop and Segoe Fluent Icons
+- **Security**: Win32 Cryptographic APIs (`WinVerifyTrust`, `Wintrust.dll`)
+
+---
+
+## Catalog Format & Custom Tools
+
+The catalog is stored in plain JSON (`catalog/catalog.json`) and fetched dynamically from GitHub at runtime (with an embedded offline fallback):
 
 ```jsonc
 {
-  "id": "terraform",                 // unique, stable identifier
-  "name": "Terraform",               // display name
+  "id": "terraform",
+  "name": "Terraform",
   "category": "Infrastructure as Code",
   "description": "Infrastructure as Code tool for provisioning cloud resources",
-  "iconGlyph": "\uE74C",             // Segoe Fluent Icons glyph
-  "kind": "archive",                 // installer | archive | binary | script
-  "version": "1.9.5",                // optional, shown in the UI
-  "homepage": "https://www.terraform.io/",  // optional
+  "iconGlyph": "\uE74C",
+  "kind": "archive",
+  "version": "1.9.5",
+  "homepage": "https://www.terraform.io/",
   "downloadUrl": "https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_windows_amd64.zip",
   "fileName": "terraform_windows_amd64.zip",
-  "sha256": "",                      // optional; if set, verified after download
-  "launchArgs": ""                   // optional args passed to an installer
+  "sha256": "3a92...",
+  "previousVersions": [
+    {
+      "version": "1.8.5",
+      "downloadUrl": "https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_windows_amd64.zip",
+      "fileName": "terraform_1.8.5_windows_amd64.zip"
+    }
+  ]
 }
 ```
 
-- `kind` drives the post-download action (see [What happens after download](#what-happens-after-download)).
-  If omitted, it's inferred from the file extension for backward compatibility.
-- `sha256`, when provided, is checked after download; a mismatch triggers a re-download.
+To contribute a new tool:
+1. Add the tool definition to [`catalog/catalog.json`](catalog/catalog.json).
+2. Place the official vector SVG logo in [`src/DevOpsToolsInstaller/Assets/logos/<id>.svg`](src/DevOpsToolsInstaller/Assets/logos/).
+3. (Optional) Reference the tool ID in relevant stacks within [`catalog/bundles.json`](catalog/bundles.json).
 
-## Adding a tool to the catalog
-
-1. Add a new object to [`catalog/catalog.json`](catalog/catalog.json) with the fields above.
-2. Pick a unique, stable `id` (used for the per-tool extract folder).
-3. Set the correct `kind` so the app takes the right action:
-   - `installer` for `.exe`/`.msi` setups that install themselves
-   - `archive` for `.zip` files that need extracting
-   - `binary` for a single standalone `.exe` (a CLI)
-   - `script` for `.ps1`/shell scripts the user should review first
-4. Point `downloadUrl` at the **official** vendor artifact and set a matching `fileName`.
-5. (Recommended) fill in `version` and `homepage`; (optional) add a `sha256`.
-6. Rebuild, or just let the app pick up the change on next launch — the
-   catalog is fetched from GitHub at runtime with the embedded copy as a fallback.
+---
 
 ## Troubleshooting
 
-- **A download fails or stalls.** Re-select the tool and download again; the
-  app removes partial files on failure and resumes from a clean state. Check
-  that the vendor URL in the catalog is still current.
-- **"Add to Tools" worked but the CLI isn't found.** Make sure
-  `Tools\bin` is on your `PATH` (see
-  [above](#adding-toolsbin-to-your-path)) and restart your terminal.
-- **The catalog looks out of date.** The app fetches the catalog from GitHub
-  on launch and falls back to the embedded copy when offline. Reconnect and
-  relaunch to get the latest.
-- **Theme didn't change everything.** Theme is applied live; if a screen looks
-  off, navigate away and back.
+- **SmartScreen Warning on First Launch**: Because each release is signed or packaged directly on GitHub Actions, Windows SmartScreen may show an initial unrecognized warning until community reputation builds. Click *More info* → *Run anyway*.
+- **CLI Tool Not Found in Terminal**: Ensure you have added `Tools\bin` to your PATH (via **Settings → Add to PATH**) and restarted your terminal session.
+- **Offline Catalog Loading**: If offline, the application automatically loads the embedded local catalog copy. Reconnect to the internet and restart to pull the newest releases.
+
+---
 
 ## FAQ
 
-**Does it install tools silently or with admin rights?**
-No. It downloads artifacts and then hands off to the vendor's own installer,
-which you launch and which shows its own UAC prompt if it needs one.
+**Does this utility run installers silently or bypass UAC?**  
+No. Vendor setup wizards run interactively and display their own standard elevation prompts. You remain in complete control of what runs on your workstation.
 
-**Will it run the OCI install script for me?**
-No. Script-kind entries are downloaded and the folder is opened for review;
-you run the script yourself.
+**Can I use this in an enterprise corporate environment?**  
+Yes. The tool operates strictly within user space (`%LOCALAPPDATA%`), performs Authenticode signature verification, avoids modified binaries, and collects zero telemetry.
 
-**Where are my downloads and extracted tools?**
-Under `%LOCALAPPDATA%\DevOpsToolsInstaller` — see
-[Where files go](#where-files-go).
+**Where can I request new tools or stacks?**  
+Submit an issue or open a pull request following the [Contributing Guidelines](CONTRIBUTING.md).
 
-**Can I add my own tools?**
-Yes — see [Adding a tool to the catalog](#adding-a-tool-to-the-catalog).
-
-## Roadmap
-
-Ideas under consideration (contributions welcome):
-
-- SHA-256 hashes populated for more catalog entries
-- Per-tool "update available" hints when a newer version ships
-- A one-click "Add `Tools\bin` to PATH" action inside Settings
-- Support for `.tar.gz`/`.7z` archive extraction
+---
 
 ## Contributing
 
-Contributions are welcome — especially catalog additions for new DevOps
-tools and cloud CLIs, and corrections to download URLs and versions. When
-adding a tool, set the correct `kind` so the app takes the right action.
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions are warmly welcomed! Feel free to:
+- Propose new DevOps, SRE, or cloud tools to [`catalog/catalog.json`](catalog/catalog.json).
+- Submit new role-based stacks in [`catalog/bundles.json`](catalog/bundles.json).
+- Improve existing download endpoints, versions, or SVG logos.
+
+Please review [CONTRIBUTING.md](CONTRIBUTING.md) before submitting pull requests.
+
+---
 
 ## License
 
-[Apache License](LICENSE)
+This project is licensed under the [Apache-2.0 License](LICENSE).  
+*All third-party tool trademarks, logos, and binaries belong to their respective copyright holders.*
