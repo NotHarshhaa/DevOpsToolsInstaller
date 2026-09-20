@@ -267,15 +267,6 @@
     <!--  BUTTON & FILTER STYLES                                     -->
     <!-- ═══════════════════════════════════════════════════════════ -->
 
-    <Style x:Key="AccentButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Padding" Value="14,6" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-    </Style>
-
     <Style x:Key="QuickLinkButtonStyle" TargetType="Button">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -296,15 +287,12 @@
     </Style>
 
     <!-- Standard category filter button (Selected) -->
-    <Style x:Key="SelectedCategoryChipStyle" TargetType="Button">
+    <Style x:Key="SelectedCategoryChipStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
         <Setter Property="CornerRadius" Value="4" />
         <Setter Property="Padding" Value="12,6" />
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0" />
-        <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
     </Style>
 
 </ResourceDictionary>
