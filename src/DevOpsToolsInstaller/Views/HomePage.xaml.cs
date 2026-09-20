@@ -98,4 +98,24 @@ public sealed partial class HomePage : Page
 
     private void Downloads_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Downloads");
+
+    private async void BrowseAllBundles_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null || this.XamlRoot is null) return;
+
+        var selected = await Controls.BundleSelectionDialog.ShowAsync(this.XamlRoot, mw.Bundles, mw.Tools);
+        if (selected != null)
+        {
+            mw.NavigateToCatalogWithBundle(selected.Id);
+        }
+    }
+
+    private void SelectBundle_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string bundleId)
+        {
+            App.MainWindowInstance?.NavigateToCatalogWithBundle(bundleId);
+        }
+    }
 }

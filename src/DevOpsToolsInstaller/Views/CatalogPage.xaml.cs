@@ -71,7 +71,27 @@ public sealed partial class CatalogPage : Page
         }
 
         ApplyFilter();
-        StatusText.Text = $"{mw.Tools.Count} tools available";
+        PopulatePresetsMenu();
+
+        if (!string.IsNullOrWhiteSpace(mw.PendingBundleSelectionId))
+        {
+            var bundleId = mw.PendingBundleSelectionId;
+            mw.PendingBundleSelectionId = null;
+            var targetBundle = mw.Bundles.FirstOrDefault(b => string.Equals(b.Id, bundleId, StringComparison.OrdinalIgnoreCase));
+            if (targetBundle != null)
+            {
+                ApplyBundleSelection(targetBundle);
+            }
+            else
+            {
+                StatusText.Text = $"{mw.Tools.Count} tools available";
+            }
+        }
+        else
+        {
+            StatusText.Text = $"{mw.Tools.Count} tools available";
+        }
+
         UpdateScrollButtons();
     }
 
@@ -305,29 +325,55 @@ public sealed partial class CatalogPage : Page
 
     // ── Presets ──────────────────────────────────────────────────────────
 
-    private void Preset_Click(object sender, RoutedEventArgs e)
+    private void PopulatePresetsMenu()
     {
-        if (sender is not MenuFlyoutItem item || item.Tag is not string tag) return;
+        var mw = App.MainWindowInstance;
+        if (mw is null || PresetsMenuFlyout is null) return;
+
+        PresetsMenuFlyout.Items.Clear();
+
+        // 1. "Browse All Stacks…" at the top
+        var browseAllItem = new MenuFlyoutItem
+        {
+            Text = "Browse All Stacks…",
+            Icon = new FontIcon { Glyph = "\uE8F1" }
+        };
+        browseAllItem.Click += async (s, e) =>
+        {
+            if (this.XamlRoot == null) return;
+            var selected = await Controls.BundleSelectionDialog.ShowAsync(this.XamlRoot, mw.Bundles, mw.Tools);
+            if (selected != null)
+            {
+                ApplyBundleSelection(selected);
+            }
+        };
+        PresetsMenuFlyout.Items.Add(browseAllItem);
+        PresetsMenuFlyout.Items.Add(new MenuFlyoutSeparator());
+
+        // 2. Add each bundle dynamically from mw.Bundles
+        foreach (var bundle in mw.Bundles)
+        {
+            var item = new MenuFlyoutItem
+            {
+                Text = $"{bundle.Icon} {bundle.Name} ({bundle.Tools.Count})"
+            };
+            ToolTipService.SetToolTip(item, bundle.Description);
+            var capturedBundle = bundle;
+            item.Click += (s, e) =>
+            {
+                ApplyBundleSelection(capturedBundle);
+            };
+            PresetsMenuFlyout.Items.Add(item);
+        }
+    }
+
+    private void ApplyBundleSelection(ToolBundle bundle)
+    {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
-        var targetIds = tag switch
-        {
-            "k8s"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "kubectl", "helm", "k9s", "minikube", "kind", "skaffold" },
-            "cloud" => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "awscli", "azure-cli", "gcloud-cli", "doctl", "oci-cli" },
-            "iac"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "terraform", "opentofu", "terragrunt", "pulumi", "packer", "ansible" },
-            "sec"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "trivy", "sops", "gitleaks" },
-            "cli"   => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "windows-terminal", "vscode", "lazygit", "lazydocker", "jq", "yq" },
-            _       => new HashSet<string>()
-        };
-
-        foreach (var tool in mw.Tools)
-        {
-            tool.IsSelected = targetIds.Contains(tool.Id);
-        }
-
-        var selectedCount = mw.Tools.Count(t => t.IsSelected);
-        StatusText.Text = $"Selected {selectedCount} tools for preset: {item.Text}";
+        int selectedCount = mw.SelectBundle(bundle);
+        StatusText.Text = $"Selected {selectedCount} tools from {bundle.Name}";
     }
 
     // ── Select / Clear ──────────────────────────────────────────────────

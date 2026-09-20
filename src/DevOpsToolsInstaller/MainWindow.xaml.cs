@@ -19,9 +19,19 @@ public sealed partial class MainWindow : Window
     public ObservableCollection<ToolDefinition> Tools { get; } = new();
 
     /// <summary>
+    /// Curated tool stacks / presets loaded from bundles.json.
+    /// </summary>
+    public ObservableCollection<ToolBundle> Bundles { get; } = new();
+
+    /// <summary>
     /// Tools that are queued / in-progress / completed downloads.
     /// </summary>
     public ObservableCollection<ToolDefinition> DownloadQueue { get; } = new();
+
+    /// <summary>
+    /// Holds a bundle ID to select when navigating to CatalogPage from another page (e.g. HomePage).
+    /// </summary>
+    public string? PendingBundleSelectionId { get; set; }
 
     public CatalogService CatalogSvc => _catalog;
     public DownloadService DownloadSvc => _download;
@@ -30,9 +40,7 @@ public sealed partial class MainWindow : Window
     private bool _catalogLoaded;
 
     /// <summary>
-    /// Loads the catalog into <see cref="Tools"/> exactly once. Safe to call
-    /// from multiple pages concurrently — the guard ensures a single load and
-    /// prevents duplicate entries.
+    /// Loads the catalog and bundles into <see cref="Tools"/> and <see cref="Bundles"/> exactly once.
     /// </summary>
     public async Task EnsureCatalogLoadedAsync()
     {
@@ -43,7 +51,12 @@ public sealed partial class MainWindow : Window
         {
             if (_catalogLoaded) return;
 
-            var tools = await _catalog.LoadCatalogAsync();
+            var toolsTask = _catalog.LoadCatalogAsync();
+            var bundlesTask = _catalog.LoadBundlesAsync();
+            await Task.WhenAll(toolsTask, bundlesTask);
+
+            var tools = await toolsTask;
+            var bundles = await bundlesTask;
 
             // Mark already-downloaded tools based on files on disk.
             var dlFolder = DownloadService.DefaultDownloadsFolder;
@@ -63,12 +76,43 @@ public sealed partial class MainWindow : Window
                 Tools.Add(tool);
             }
 
+            Bundles.Clear();
+            foreach (var bundle in bundles)
+            {
+                Bundles.Add(bundle);
+            }
+
             _catalogLoaded = true;
         }
         finally
         {
             _catalogLoadLock.Release();
         }
+    }
+
+    /// <summary>
+    /// Selects all tools belonging to the specified bundle and unselects others.
+    /// Returns the number of tools selected.
+    /// </summary>
+    public int SelectBundle(ToolBundle bundle)
+    {
+        var targetIds = new HashSet<string>(bundle.Tools, StringComparer.OrdinalIgnoreCase);
+        int count = 0;
+        foreach (var tool in Tools)
+        {
+            tool.IsSelected = targetIds.Contains(tool.Id);
+            if (tool.IsSelected) count++;
+        }
+        return count;
+    }
+
+    /// <summary>
+    /// Navigates to the Catalog page and triggers selection of the given bundle.
+    /// </summary>
+    public void NavigateToCatalogWithBundle(string bundleId)
+    {
+        PendingBundleSelectionId = bundleId;
+        NavigateTo("Catalog");
     }
 
     public MainWindow()

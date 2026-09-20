@@ -9,6 +9,9 @@ public sealed class CatalogService
     private const string RemoteCatalogUrl =
         "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/main/catalog/catalog.json";
 
+    private const string RemoteBundlesUrl =
+        "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/main/catalog/bundles.json";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -50,6 +53,29 @@ public sealed class CatalogService
     }
 
     /// <summary>
+    /// Loads curated tool bundles. Tries the remote GitHub URL first;
+    /// falls back to the embedded Assets/bundles.json if offline.
+    /// </summary>
+    public async Task<List<ToolBundle>> LoadBundlesAsync(CancellationToken ct = default)
+    {
+        // 1. Try remote
+        try
+        {
+            var json = await Http.GetStringAsync(RemoteBundlesUrl, ct);
+            var bundles = JsonSerializer.Deserialize<List<ToolBundle>>(json, JsonOptions);
+            if (bundles is { Count: > 0 })
+                return bundles;
+        }
+        catch
+        {
+            // Network unavailable — fall through to embedded copy
+        }
+
+        // 2. Embedded fallback
+        return LoadEmbeddedBundles();
+    }
+
+    /// <summary>
     /// Loads the catalog that was copied into the output directory at build time.
     /// Uses AppContext.BaseDirectory so single-file deployments can locate the file.
     /// </summary>
@@ -63,6 +89,21 @@ public sealed class CatalogService
         var json = File.ReadAllText(catalogPath);
         return JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions)
                ?? new List<ToolDefinition>();
+    }
+
+    /// <summary>
+    /// Loads the curated bundles copied into the output directory at build time.
+    /// </summary>
+    private static List<ToolBundle> LoadEmbeddedBundles()
+    {
+        var bundlesPath = Path.Combine(AppContext.BaseDirectory, "Assets", "bundles.json");
+
+        if (!File.Exists(bundlesPath))
+            return new List<ToolBundle>();
+
+        var json = File.ReadAllText(bundlesPath);
+        return JsonSerializer.Deserialize<List<ToolBundle>>(json, JsonOptions)
+               ?? new List<ToolBundle>();
     }
 
     /// <summary>

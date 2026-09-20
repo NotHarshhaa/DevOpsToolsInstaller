@@ -250,6 +250,180 @@
             </Border>
 
             <!-- ══════════════════════════════════ -->
+            <!--  CURATED TOOL STACKS               -->
+            <!-- ══════════════════════════════════ -->
+            <Border Style="{StaticResource CardStyle}">
+                <StackPanel Spacing="12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Spacing="2">
+                            <TextBlock Text="Curated Tool Stacks" Style="{StaticResource CardTitleStyle}" />
+                            <TextBlock Text="1-click presets for popular developer &amp; DevOps workflows"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Click="BrowseAllBundles_Click"
+                                CornerRadius="4" Padding="10,5" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8F1;" FontSize="12" />
+                                <TextBlock Text="Browse all 12 stacks" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <Grid ColumnSpacing="10" RowSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Bundle 1: Kubernetes Starter -->
+                        <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource QuickActionCardStyle}" Padding="14,12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="☸️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="Kubernetes Starter Pack" FontWeight="SemiBold" FontSize="13" />
+                                        <Border Style="{StaticResource BadgeStyle}">
+                                            <TextBlock Text="7 tools" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="kubectl, Helm, k9s, Minikube, Stern, Kustomize, kubectx"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Tag="k8s-starter" Click="SelectBundle_Click"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,4" VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Select this stack in catalog">
+                                    <TextBlock Text="Select" FontSize="12" />
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Bundle 2: Cloud Engineer Essentials -->
+                        <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource QuickActionCardStyle}" Padding="14,12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="☁️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="Cloud Engineer Essentials" FontWeight="SemiBold" FontSize="13" />
+                                        <Border Style="{StaticResource BadgeStyle}">
+                                            <TextBlock Text="8 tools" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="AWS, Azure, GCloud, Terraform, Terragrunt, Infracost, Vault"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Tag="cloud-engineer" Click="SelectBundle_Click"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,4" VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Select this stack in catalog">
+                                    <TextBlock Text="Select" FontSize="12" />
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Bundle 3: DevSecOps Toolkit -->
+                        <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource QuickActionCardStyle}" Padding="14,12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="🔒" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="DevSecOps Toolkit" FontWeight="SemiBold" FontSize="13" />
+                                        <Border Style="{StaticResource BadgeStyle}">
+                                            <TextBlock Text="8 tools" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Trivy, Gitleaks, SOPS, Cosign, Syft, Grype, OPA, Kyverno"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Tag="devops-security" Click="SelectBundle_Click"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,4" VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Select this stack in catalog">
+                                    <TextBlock Text="Select" FontSize="12" />
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Bundle 4: Terminal Power User -->
+                        <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource QuickActionCardStyle}" Padding="14,12">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="💻" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="Terminal Power User" FontWeight="SemiBold" FontSize="13" />
+                                        <Border Style="{StaticResource BadgeStyle}">
+                                            <TextBlock Text="11 tools" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Windows Terminal, Starship, fzf, ripgrep, bat, fd, eza, zoxide"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                                <Button Grid.Column="2" Tag="terminal-poweruser" Click="SelectBundle_Click"
+                                        Style="{StaticResource AccentButtonStyle}" Padding="10,4" VerticalAlignment="Center"
+                                        ToolTipService.ToolTip="Select this stack in catalog">
+                                    <TextBlock Text="Select" FontSize="12" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- ══════════════════════════════════ -->
             <!--  HOW IT WORKS — WORKFLOW STEPS     -->
             <!-- ══════════════════════════════════ -->
             <Border Style="{StaticResource CardStyle}">
