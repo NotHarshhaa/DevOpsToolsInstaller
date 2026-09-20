@@ -127,4 +127,8 @@ public sealed partial class HomePage : Page
             mw.NavigateToCatalogWithSearch(query);
         }
     }
+
+    private void SecurityDisclosures_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("About");
 }
+
