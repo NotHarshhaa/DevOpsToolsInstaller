@@ -94,6 +94,44 @@ public static class AppUpdaterService
     }
 
     /// <summary>
+    /// Returns true when the application was installed via the Windows Setup Wizard
+    /// (Inno Setup) rather than running as a standalone portable single-file binary.
+    /// </summary>
+    public static bool IsInstalledViaSetup
+    {
+        get
+        {
+            try
+            {
+                var baseDir = AppContext.BaseDirectory;
+                // Inno Setup places unins000.exe in the application installation directory.
+                if (File.Exists(Path.Combine(baseDir, "unins000.exe")))
+                {
+                    return true;
+                }
+
+                // Also check if running from standard Program Files directory paths
+                var progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                var progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                if (!string.IsNullOrEmpty(progFiles) && baseDir.StartsWith(progFiles, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+                if (!string.IsNullOrEmpty(progFilesX86) && baseDir.StartsWith(progFilesX86, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
     /// Checks the GitHub Releases API for the latest published release.
     /// Returns null immediately when the app is running as a packaged MSIX
     /// (Microsoft Store manages updates in that case).
@@ -135,9 +173,10 @@ public static class AppUpdaterService
             var currentCleanVersion = CleanVersionString(CurrentVersion);
             var isUpdateAvailable = IsNewerVersion(latestCleanVersion, currentCleanVersion);
 
-            // Asset discovery: find binary matching machine architecture
+            // Asset discovery: find binary matching machine architecture and installation flavor
             var isArm64 = RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
             var targetKeyword = isArm64 ? "arm64" : "x64";
+            var wantsSetup = IsInstalledViaSetup;
 
             string bestAssetName = "";
             string bestAssetUrl = "";
@@ -146,6 +185,8 @@ public static class AppUpdaterService
 
             if (root.TryGetProperty("assets", out var assetsProp) && assetsProp.ValueKind == JsonValueKind.Array)
             {
+                var exeAssets = new List<(string Name, string Url, long Size)>();
+
                 foreach (var asset in assetsProp.EnumerateArray())
                 {
                     var aName = asset.TryGetProperty("name", out var nProp) ? nProp.GetString() ?? "" : "";
@@ -159,25 +200,58 @@ public static class AppUpdaterService
                         continue;
                     }
 
-                    if (!aName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-                        continue;
-
-                    // Exact arch match (e.g. DevOpsToolsInstaller_x64.exe or DevOpsToolsInstaller_arm64.exe)
-                    if (aName.Contains(targetKeyword, StringComparison.OrdinalIgnoreCase))
+                    if (aName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                     {
-                        bestAssetName = aName;
-                        bestAssetUrl = aUrl;
-                        bestAssetSize = aSize;
-                        break;
+                        exeAssets.Add((aName, aUrl, aSize));
                     }
+                }
 
-                    // Fallback to any exe if no architecture match found yet
-                    if (string.IsNullOrEmpty(bestAssetUrl))
+                // Flavor selection strategy:
+                // - Setup installation: prioritizes setup wizard installer (*setup*.exe)
+                // - Portable application: prioritizes standalone binary (excludes *setup*.exe)
+                (string Name, string Url, long Size) chosen = default;
+
+                if (wantsSetup)
+                {
+                    chosen = exeAssets.FirstOrDefault(a =>
+                        a.Name.Contains(targetKeyword, StringComparison.OrdinalIgnoreCase) &&
+                        a.Name.Contains("setup", StringComparison.OrdinalIgnoreCase));
+
+                    if (string.IsNullOrEmpty(chosen.Url))
                     {
-                        bestAssetName = aName;
-                        bestAssetUrl = aUrl;
-                        bestAssetSize = aSize;
+                        chosen = exeAssets.FirstOrDefault(a =>
+                            a.Name.Contains("setup", StringComparison.OrdinalIgnoreCase));
                     }
+                }
+                else
+                {
+                    chosen = exeAssets.FirstOrDefault(a =>
+                        a.Name.Contains(targetKeyword, StringComparison.OrdinalIgnoreCase) &&
+                        !a.Name.Contains("setup", StringComparison.OrdinalIgnoreCase));
+
+                    if (string.IsNullOrEmpty(chosen.Url))
+                    {
+                        chosen = exeAssets.FirstOrDefault(a =>
+                            !a.Name.Contains("setup", StringComparison.OrdinalIgnoreCase));
+                    }
+                }
+
+                // Universal fallback if preferred flavor was not present in the release assets
+                if (string.IsNullOrEmpty(chosen.Url))
+                {
+                    chosen = exeAssets.FirstOrDefault(a =>
+                        a.Name.Contains(targetKeyword, StringComparison.OrdinalIgnoreCase));
+                }
+                if (string.IsNullOrEmpty(chosen.Url) && exeAssets.Count > 0)
+                {
+                    chosen = exeAssets[0];
+                }
+
+                if (!string.IsNullOrEmpty(chosen.Url))
+                {
+                    bestAssetName = chosen.Name;
+                    bestAssetUrl = chosen.Url;
+                    bestAssetSize = chosen.Size;
                 }
             }
 
@@ -300,14 +374,66 @@ public static class AppUpdaterService
     }
 
     /// <summary>
-    /// Creates a background updater script, executes it, and terminates the current
-    /// process so the updated binary can atomically replace the running executable.
+    /// Executes the update and restarts the application.
+    /// If the running app was installed via Setup Wizard (or downloaded a Setup installer),
+    /// the installer is launched with administrative elevation to upgrade Program Files cleanly.
+    /// For portable standalone binaries, a background script replaces the executable.
     /// </summary>
     public static void ApplyUpdateAndRestart(string downloadedExePath)
     {
         if (!File.Exists(downloadedExePath))
         {
             throw new FileNotFoundException("Downloaded update executable not found.", downloadedExePath);
+        }
+
+        var isSetup = IsInstalledViaSetup ||
+                      Path.GetFileName(downloadedExePath).Contains("setup", StringComparison.OrdinalIgnoreCase);
+
+        if (isSetup)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = downloadedExePath,
+                Arguments = "/CLOSEAPPLICATIONS /RESTARTAPPLICATIONS",
+                UseShellExecute = true,
+                Verb = "runas",
+                WorkingDirectory = Path.GetDirectoryName(downloadedExePath) ?? ""
+            };
+
+            try
+            {
+                Process.Start(psi);
+            }
+            catch (System.ComponentModel.Win32Exception ex) when (ex.NativeErrorCode == 1223)
+            {
+                // The user cancelled the UAC elevation prompt (ERROR_CANCELLED = 1223).
+                // Do not terminate the application.
+                return;
+            }
+            catch
+            {
+                // If elevation fails or is not supported, attempt standard launch
+                psi.Verb = "";
+                try
+                {
+                    Process.Start(psi);
+                }
+                catch
+                {
+                    return;
+                }
+            }
+
+            // Terminate current application cleanly so the setup wizard can update files without locks
+            try
+            {
+                Microsoft.UI.Xaml.Application.Current?.Exit();
+            }
+            catch
+            {
+                Environment.Exit(0);
+            }
+            return;
         }
 
         var currentExe = Environment.ProcessPath;
@@ -353,7 +479,7 @@ public static class AppUpdaterService
 
         File.WriteAllText(tempScript, scriptContent);
 
-        var psi = new ProcessStartInfo
+        var psiPortable = new ProcessStartInfo
         {
             FileName = "cmd.exe",
             Arguments = $"/c \"{tempScript}\"",
@@ -362,7 +488,7 @@ public static class AppUpdaterService
             WorkingDirectory = AppContext.BaseDirectory
         };
 
-        Process.Start(psi);
+        Process.Start(psiPortable);
 
         // Terminate current application cleanly
         try
