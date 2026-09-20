@@ -46,6 +46,16 @@ public sealed partial class SettingsPage : Page
     {
         var inProfile = ShellCompletionService.IsSnippetInProfile();
         CompletionStatusText.Text = inProfile ? "Configured in $PROFILE" : "Not configured";
+        if (inProfile)
+        {
+            CompletionStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            CompletionStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+        }
+        else
+        {
+            CompletionStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
+            CompletionStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+        }
     }
 
     private void UpdatePathStatus()
@@ -54,13 +64,33 @@ public sealed partial class SettingsPage : Page
         if (onPath)
         {
             PathStatusText.Text = "On User PATH";
+            PathStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            PathStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
             AddToPathButton.IsEnabled = false;
         }
         else
         {
             PathStatusText.Text = "Not on PATH";
+            PathStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
+            PathStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
             AddToPathButton.IsEnabled = true;
         }
+    }
+
+    private void CopyDownloadsPath_Click(object sender, RoutedEventArgs e)
+    {
+        var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dp.SetText(DownloadPathText.Text ?? DownloadService.DefaultDownloadsFolder);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+        ShowNotice("Downloads folder path copied to clipboard.", InfoBarSeverity.Informational);
+    }
+
+    private void CopyToolsPath_Click(object sender, RoutedEventArgs e)
+    {
+        var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dp.SetText(ToolsPathText.Text ?? ArtifactService.BinFolder);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+        ShowNotice("Tools bin folder path copied to clipboard.", InfoBarSeverity.Informational);
     }
 
     private void AddToPath_Click(object sender, RoutedEventArgs e)

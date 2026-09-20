@@ -4,16 +4,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
-    <ScrollViewer Padding="32,28,32,36">
-        <StackPanel Spacing="22" MaxWidth="920">
+    <ScrollViewer Padding="32,28,32,40">
+        <StackPanel Spacing="24" MaxWidth="920">
             <StackPanel.ChildrenTransitions>
                 <TransitionCollection>
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="24" />
+                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
                 </TransitionCollection>
             </StackPanel.ChildrenTransitions>
 
             <!-- Header -->
-            <StackPanel Spacing="3">
+            <StackPanel Spacing="4">
                 <TextBlock Text="About DevOps Tools Installer" Style="{StaticResource PageTitleStyle}" />
                 <TextBlock Text="Purpose-built for DevOps engineers, cloud architects, and developers on Windows."
                            Style="{StaticResource PageSubtitleStyle}" />
@@ -35,8 +35,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <Border Grid.Column="0" Width="56" Height="56" CornerRadius="8"
-                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    <Border Grid.Column="0" Width="60" Height="60" CornerRadius="12"
+                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                             BorderThickness="1"
                             VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -45,21 +45,25 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
 
-                    <StackPanel Grid.Column="1" Spacing="6" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Spacing="8" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <TextBlock Text="DevOps Tools Installer" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
-                            <Border Style="{StaticResource BadgeStyle}">
-                                <TextBlock Text="v2.1.0" FontSize="11"
+                            <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
+                                <TextBlock Text="v2.1.0" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
-                            <Border Style="{StaticResource BadgeStyle}">
-                                <TextBlock Text="WinUI 3 • .NET 8" FontSize="11"
+                            <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
+                                <TextBlock Text="WinUI 3 • .NET 8" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Border>
+                            <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
+                                <TextBlock Text="Zero Telemetry" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
                         </StackPanel>
                         <TextBlock TextWrapping="Wrap"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="A native, high-performance catalog installer designed to eliminate friction when provisioning cloud and DevOps CLIs on Windows. Official vendor binaries, automatic PATH configuration, and zero telemetry." />
+                                   Text="A native, high-performance workstation provisioning hub designed to eliminate friction when installing and configuring cloud and DevOps CLIs on Windows. Official vendor binaries, automatic PATH deployment, and silent execution." />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
@@ -80,326 +84,405 @@
                 </Grid>
             </Border>
 
-            <!-- Author Card Spotlight -->
-            <TextBlock Text="Creator &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,4,0,0" />
-            <Border Style="{StaticResource CardStyle}" Padding="22">
-                <Grid ColumnSpacing="22">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+            <!-- Workstation Environment & Diagnostics -->
+            <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE90F;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Workstation Environment &amp; Diagnostics" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
 
-                    <!-- Author Avatar (GitHub Avatar) -->
-                    <Border Grid.Column="0" Width="64" Height="64" CornerRadius="32"
-                            BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            VerticalAlignment="Center">
-                        <controls:PersonPicture
-                            x:Name="AuthorPicture"
-                            DisplayName="HARSHHAA"
-                            Initials="H"
-                            Width="60"
-                            Height="60" />
-                    </Border>
+                <Border Style="{StaticResource CardStyle}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <Grid ColumnSpacing="14" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                    <!-- Author Details -->
-                    <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <TextBlock Text="HARSHHAA" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
-                            <Border Style="{StaticResource BadgeStyle}">
-                                <TextBlock Text="Lead Maintainer" FontSize="11"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <!-- OS Tile -->
+                            <Border Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Operating System" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock x:Name="OsVersionText" Text="Windows 11" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
                             </Border>
-                        </StackPanel>
 
-                        <HyperlinkButton Click="AuthorGitHub_Click" Padding="0" Margin="0,0,0,2">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE774;" FontSize="12" />
-                                <TextBlock Text="https://github.com/NotHarshhaa" FontSize="13" />
-                            </StackPanel>
-                        </HyperlinkButton>
-
-                        <TextBlock TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="Crafted by HARSHHAA to empower engineers with clean, dependable, and reproducible developer environments on Windows without third-party package manager bloat." />
-                    </StackPanel>
-
-                    <!-- Action Buttons -->
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
-                        <Button Click="AuthorGitHub_Click" Padding="14,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE77B;" FontSize="13" />
-                                <TextBlock Text="@NotHarshhaa" FontWeight="SemiBold" />
-                            </StackPanel>
-                        </Button>
-                        <Button Click="ReportIssue_Click" Padding="14,8">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE939;" FontSize="13" />
-                                <TextBlock Text="File an Issue" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Mission & Overview -->
-            <TextBlock Text="Why DevOps Tools Installer?" Style="{StaticResource CardTitleStyle}" Margin="4,4,0,0" />
-            <Border Style="{StaticResource CardStyle}" Padding="20">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Solving the Windows DevOps Workstation Challenge" FontWeight="SemiBold" FontSize="15" />
-                    <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" LineHeight="20"
-                               Text="While Linux and macOS benefit from native package workflows, setting up a Windows DevOps workstation historically required navigating dozens of disparate vendor download pages, MSI installers, zip extractions, and manual Windows Environment Variable edits. DevOps Tools Installer provides a centralized, transparent hub where all tools are cataloged with verified direct vendor download URLs, silent install configurations, and automated PATH deployment into Tools\bin." />
-
-                    <Grid ColumnSpacing="16" RowSpacing="12" Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <Border Grid.Row="0" Grid.Column="0" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE72E;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                    <TextBlock Text="100% Transparent &amp; Direct" FontWeight="SemiBold" />
+                            <!-- Arch Tile -->
+                            <Border Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Platform Architecture" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock x:Name="ArchitectureText" Text="x64 (64-bit Native)" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
-                                <TextBlock Text="Only downloads official binaries directly from vendor releases. No custom mirrors or repackaged executables."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
+                            </Border>
 
-                        <Border Grid.Row="0" Grid.Column="1" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE756;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                    <TextBlock Text="User PATH Automation" FontWeight="SemiBold" />
+                            <!-- Runtime Tile -->
+                            <Border Grid.Column="2" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Runtime / Framework" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock x:Name="RuntimeVersionText" Text=".NET 8.0 • WinUI 3" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
-                                <TextBlock Text="Extracted portable CLIs are linked into Tools\bin. Configure PATH in 1 click without needing administrator privileges."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
+                            </Border>
 
-                        <Border Grid.Row="1" Grid.Column="0" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE71D;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                    <TextBlock Text="Curated Stacks &amp; Presets" FontWeight="SemiBold" />
+                            <!-- PATH Tile -->
+                            <Border Grid.Column="3" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="User PATH Status" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Padding="6,1">
+                                        <TextBlock x:Name="PathStatusBadgeText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
                                 </StackPanel>
-                                <TextBlock Text="Quickly filter and batch-download entire curated toolchains: Kubernetes, Multi-Cloud, IaC, Security, and CLI utilities."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                        </Grid>
 
-                        <Border Grid.Row="1" Grid.Column="1" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="4">
-                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                    <TextBlock Text="Clean Windows Uninstallation" FontWeight="SemiBold" />
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Diagnostic metrics assist when filing issues or verifying local environment configurations."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Click="CopyDiagnostics_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    <TextBlock Text="Copy Diagnostics" />
                                 </StackPanel>
-                                <TextBlock Text="Precise word-boundary registry uninstaller integration prevents accidental uninstalls of unrelated system software."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- Key Use Cases -->
-            <TextBlock Text="Primary Use Cases" Style="{StaticResource CardTitleStyle}" Margin="4,4,0,0" />
-            <Grid ColumnSpacing="16" RowSpacing="14">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <!-- Use Case 1 -->
-                <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE7F4;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="Machine Onboarding" FontWeight="SemiBold" />
-                        <TextBlock Text="Bootstrap a fresh Windows workstation with all essential developer tools in under 5 minutes without opening a browser."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                            </Button>
+                        </Grid>
                     </StackPanel>
                 </Border>
-
-                <!-- Use Case 2 -->
-                <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE909;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="Kubernetes Engineering" FontWeight="SemiBold" />
-                        <TextBlock Text="Manage and update kubectl, Helm, k9s, Minikube, kind, and Cilium CLI side-by-side with zero PATH conflicts."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Use Case 3 -->
-                <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE753;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="Multi-Cloud Operations" FontWeight="SemiBold" />
-                        <TextBlock Text="Maintain AWS CLI, Azure CLI, Google Cloud SDK, and doctl with automated installer arguments and updates."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Use Case 4 -->
-                <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE943;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="Infrastructure as Code" FontWeight="SemiBold" />
-                        <TextBlock Text="Provision HashiCorp Terraform, Terragrunt, Pulumi, Ansible, and Packer portable binaries instantly into your shell."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Use Case 5 -->
-                <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE72E;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="DevSecOps &amp; Scanning" FontWeight="SemiBold" />
-                        <TextBlock Text="Equip security teams with Trivy, Snyk, Grype, Syft, and Cosign for image vulnerability scans and SBOM generation."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-
-                <!-- Use Case 6 -->
-                <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
-                    <StackPanel Spacing="8">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
-                            <FontIcon Glyph="&#xE756;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
-                        </Border>
-                        <TextBlock Text="Shell Modernization" FontWeight="SemiBold" />
-                        <TextBlock Text="Supercharge Windows Terminal and PowerShell with GitHub CLI (gh), jq, yq, fzf, ripgrep, and bat."
-                                   Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- ═══════════════════════════════════════════ -->
-            <!--  SECURITY RISKS, PRECAUTIONS & DISCLAIMER   -->
-            <!-- ═══════════════════════════════════════════ -->
-            <StackPanel Spacing="3" Margin="4,6,0,0">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE72E;" FontSize="15" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                    <TextBlock Text="Security Risks, Precautions &amp; Legal Disclaimers" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-                <TextBlock Text="Important disclosures regarding binary provenance, system permissions, enterprise compliance, and liability."
-                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
 
-            <Border Style="{StaticResource CardStyle}" Padding="20">
-                <StackPanel Spacing="16">
-                    <Grid ColumnSpacing="14" RowSpacing="12">
+            <!-- Creator & Maintainer Spotlight -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Creator &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Border Style="{StaticResource CardStyle}" Padding="22">
+                    <Grid ColumnSpacing="22">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
 
-                        <!-- Risk / Precaution 1: Direct Vendor Downloads -->
-                        <Border Grid.Row="0" Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                                        <FontIcon Glyph="&#xE774;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Text="Official Direct Downloads" FontWeight="SemiBold" FontSize="13" />
-                                </StackPanel>
-                                <TextBlock Text="All downloads are fetched directly from official vendor GitHub releases and verified endpoints (e.g. dl.k8s.io, amazonaws.com, hashicorp.com). No third-party mirror servers or modified binaries are used."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
+                        <!-- Author Avatar -->
+                        <Border Grid.Column="0" Width="64" Height="64" CornerRadius="32"
+                                BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                VerticalAlignment="Center">
+                            <controls:PersonPicture
+                                x:Name="AuthorPicture"
+                                DisplayName="HARSHHAA"
+                                Initials="H"
+                                Width="60"
+                                Height="60" />
                         </Border>
 
-                        <!-- Risk / Precaution 2: User-Level Isolation -->
-                        <Border Grid.Row="0" Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                                        <FontIcon Glyph="&#xE756;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Text="User-Level PATH &amp; Permissions" FontWeight="SemiBold" FontSize="13" />
-                                </StackPanel>
-                                <TextBlock Text="Portable CLI tools extract to your local Tools\bin folder and link via Current User PATH (HKCU). System-wide environment variables (HKLM) are never touched without explicit UAC elevation for system MSI installers."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        <!-- Author Details -->
+                        <StackPanel Grid.Column="1" Spacing="5" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                <TextBlock Text="HARSHHAA" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
+                                <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
+                                    <TextBlock Text="Lead Maintainer" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
                             </StackPanel>
-                        </Border>
 
-                        <!-- Risk / Precaution 3: Antivirus & SmartScreen -->
-                        <Border Grid.Row="1" Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                                        <FontIcon Glyph="&#xE7BA;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Text="SmartScreen &amp; Integrity" FontWeight="SemiBold" FontSize="13" />
+                            <HyperlinkButton Click="AuthorGitHub_Click" Padding="0" Margin="0,0,0,2">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE774;" FontSize="12" />
+                                    <TextBlock Text="https://github.com/NotHarshhaa" FontSize="13" />
                                 </StackPanel>
-                                <TextBlock Text="Newly released open-source versions may display Windows SmartScreen 'Unknown Publisher' notifications until global reputation builds. Always verify SHA-256 checksums against the vendor release page."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
+                            </HyperlinkButton>
 
-                        <!-- Risk / Precaution 4: Corporate & Policy Compliance -->
-                        <Border Grid.Row="1" Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
-                            <StackPanel Spacing="6">
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
-                                        <FontIcon Glyph="&#xE72E;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <TextBlock Text="Enterprise Governance" FontWeight="SemiBold" FontSize="13" />
-                                </StackPanel>
-                                <TextBlock Text="If operating on managed corporate laptops or workstations, ensure that installing third-party developer CLIs and container engines complies with your organization's IT and security baselines."
-                                           Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-
-                    <!-- Official Legal Disclaimer & Trademark Notice -->
-                    <Border Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            BorderThickness="1" CornerRadius="8" Padding="16">
-                        <StackPanel Spacing="6">
-                            <TextBlock Text="Legal Disclaimer &amp; Trademark Attribution" FontWeight="SemiBold" FontSize="12"
-                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            <TextBlock TextWrapping="Wrap" FontSize="11" LineHeight="16"
+                            <TextBlock TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       Text="DevOps Tools Installer is an independent open-source catalog utility and is NOT affiliated with, sponsored by, or endorsed by Docker, Microsoft Corporation, Amazon Web Services, Google LLC, HashiCorp, CNCF, or any other trademark owner. All third-party product names, logos, trademarks, and registered trademarks remain the property of their respective holders. Every tool downloaded through this application is distributed under its own respective vendor license (e.g. Apache-2.0, MIT, MPL, or commercial terms). This software is provided 'AS IS' WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. The authors and maintainers disclaim any liability for system damages, data loss, or policy violations resulting from installing or executing third-party tools." />
+                                       Text="Crafted by HARSHHAA to empower engineers with clean, dependable, and reproducible developer environments on Windows without third-party package manager bloat." />
+                        </StackPanel>
+
+                        <!-- Action Buttons -->
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
+                            <Button Click="AuthorGitHub_Click" Padding="14,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE77B;" FontSize="13" />
+                                    <TextBlock Text="@NotHarshhaa" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="ReportIssue_Click" Padding="14,8">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE939;" FontSize="13" />
+                                    <TextBlock Text="File an Issue" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- Mission & Architectural Pillars -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Architectural Pillars" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Border Style="{StaticResource CardStyle}" Padding="20">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="Solving the Windows DevOps Workstation Challenge" FontWeight="SemiBold" FontSize="15" />
+                        <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" LineHeight="20"
+                                   Text="While Linux and macOS benefit from native package workflows, setting up a Windows DevOps workstation historically required navigating dozens of disparate vendor download pages, MSI installers, zip extractions, and manual Windows Environment Variable edits. DevOps Tools Installer provides a centralized, transparent hub where all tools are cataloged with verified direct vendor download URLs, silent install configurations, and automated PATH deployment into Tools\bin." />
+
+                        <Grid ColumnSpacing="16" RowSpacing="12" Margin="0,4,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0" Grid.Column="0" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE72E;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="100% Transparent &amp; Direct" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="Only downloads official binaries directly from vendor releases. No custom mirrors or repackaged executables."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="0" Grid.Column="1" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE756;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="User PATH Automation" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="Extracted portable CLIs are linked into Tools\bin. Configure PATH in 1 click without needing administrator privileges."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="0" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE71D;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="Curated Stacks &amp; Presets" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="Quickly filter and batch-download entire curated toolchains: Kubernetes, Multi-Cloud, IaC, Security, and CLI utilities."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Row="1" Grid.Column="1" Background="{ThemeResource ControlFillColorSecondaryBrush}" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="Clean Windows Uninstallation" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="Precise word-boundary registry uninstaller integration prevents accidental uninstalls of unrelated system software."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Key Use Cases -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Primary Use Cases" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Grid ColumnSpacing="16" RowSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!-- Use Case 1 -->
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE7F4;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="Machine Onboarding" FontWeight="SemiBold" />
+                            <TextBlock Text="Bootstrap a fresh Windows workstation with all essential developer tools in under 5 minutes without opening a browser."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                         </StackPanel>
                     </Border>
-                </StackPanel>
-            </Border>
 
-            <!-- Community & Open Source -->
+                    <!-- Use Case 2 -->
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE909;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="Kubernetes Engineering" FontWeight="SemiBold" />
+                            <TextBlock Text="Manage and update kubectl, Helm, k9s, Minikube, kind, and Cilium CLI side-by-side with zero PATH conflicts."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Use Case 3 -->
+                    <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE753;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="Multi-Cloud Operations" FontWeight="SemiBold" />
+                            <TextBlock Text="Maintain AWS CLI, Azure CLI, Google Cloud SDK, and doctl with automated installer arguments and updates."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Use Case 4 -->
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE943;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="Infrastructure as Code" FontWeight="SemiBold" />
+                            <TextBlock Text="Provision HashiCorp Terraform, Terragrunt, Pulumi, Ansible, and Packer portable binaries instantly into your shell."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Use Case 5 -->
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE72E;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="DevSecOps &amp; Scanning" FontWeight="SemiBold" />
+                            <TextBlock Text="Equip security teams with Trivy, Snyk, Grype, Syft, and Cosign for image vulnerability scans and SBOM generation."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Use Case 6 -->
+                    <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource CardStyle}" Padding="16">
+                        <StackPanel Spacing="8">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource ControlFillColorSecondaryBrush}" HorizontalAlignment="Left">
+                                <FontIcon Glyph="&#xE756;" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            </Border>
+                            <TextBlock Text="Shell Modernization" FontWeight="SemiBold" />
+                            <TextBlock Text="Supercharge Windows Terminal and PowerShell with GitHub CLI (gh), jq, yq, fzf, ripgrep, and bat."
+                                       Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+
+            <!-- Security Risks, Precautions & Disclaimers -->
+            <StackPanel Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                    <TextBlock Text="Security Risks, Precautions &amp; Legal Disclaimers" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
+
+                <Border Style="{StaticResource CardStyle}" Padding="20">
+                    <StackPanel Spacing="16">
+                        <Grid ColumnSpacing="14" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Risk / Precaution 1 -->
+                            <Border Grid.Row="0" Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                                            <FontIcon Glyph="&#xE774;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="Official Direct Downloads" FontWeight="SemiBold" FontSize="13" />
+                                    </StackPanel>
+                                    <TextBlock Text="All downloads are fetched directly from official vendor GitHub releases and verified endpoints (e.g. dl.k8s.io, amazonaws.com, hashicorp.com). No third-party mirror servers or modified binaries are used."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Risk / Precaution 2 -->
+                            <Border Grid.Row="0" Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                                            <FontIcon Glyph="&#xE756;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="User-Level PATH &amp; Permissions" FontWeight="SemiBold" FontSize="13" />
+                                    </StackPanel>
+                                    <TextBlock Text="Portable CLI tools extract to your local Tools\bin folder and link via Current User PATH (HKCU). System-wide environment variables (HKLM) are never touched without explicit UAC elevation for system MSI installers."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Risk / Precaution 3 -->
+                            <Border Grid.Row="1" Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                                            <FontIcon Glyph="&#xE7BA;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="SmartScreen &amp; Integrity" FontWeight="SemiBold" FontSize="13" />
+                                    </StackPanel>
+                                    <TextBlock Text="Newly released open-source versions may display Windows SmartScreen notifications until global reputation builds. Always verify SHA-256 checksums against official vendor release pages."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Risk / Precaution 4 -->
+                            <Border Grid.Row="1" Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <StackPanel Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border Width="26" Height="26" CornerRadius="6" Background="{ThemeResource ControlFillColorSecondaryBrush}">
+                                            <FontIcon Glyph="&#xE72E;" FontSize="12" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="Enterprise Governance" FontWeight="SemiBold" FontSize="13" />
+                                    </StackPanel>
+                                    <TextBlock Text="If operating on managed corporate laptops, ensure that installing third-party developer CLIs and container engines complies with your organization's IT and security baselines."
+                                               Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Official Legal Disclaimer & Trademark Notice -->
+                        <Border Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="16">
+                            <StackPanel Spacing="6">
+                                <TextBlock Text="Legal Disclaimer &amp; Trademark Attribution" FontWeight="SemiBold" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                <TextBlock TextWrapping="Wrap" FontSize="11" LineHeight="16"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           Text="DevOps Tools Installer is an independent open-source catalog utility and is NOT affiliated with, sponsored by, or endorsed by Docker, Microsoft Corporation, Amazon Web Services, Google LLC, HashiCorp, CNCF, or any other trademark owner. All third-party product names, logos, trademarks, and registered trademarks remain the property of their respective holders. Every tool downloaded through this application is distributed under its own respective vendor license (e.g. Apache-2.0, MIT, MPL, or commercial terms). This software is provided 'AS IS' WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. The authors and maintainers disclaim any liability for system damages, data loss, or policy violations resulting from installing or executing third-party tools." />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- Community, Documentation & Open Source -->
             <Border Style="{StaticResource CardStyle}" Padding="20">
                 <Grid ColumnSpacing="16">
                     <Grid.ColumnDefinitions>
@@ -412,10 +495,22 @@
                                    Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <Button Click="ToolGitHub_Click">
+                        <Button Click="Documentation_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE897;" FontSize="13" />
+                                <TextBlock Text="Docs" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="License_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8A5;" FontSize="13" />
+                                <TextBlock Text="License" />
+                            </StackPanel>
+                        </Button>
+                        <Button Click="ToolGitHub_Click" Style="{StaticResource AccentButtonStyle}">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE774;" FontSize="13" />
-                                <TextBlock Text="Star on GitHub" />
+                                <TextBlock Text="Star on GitHub" FontWeight="SemiBold" />
                             </StackPanel>
                         </Button>
                     </StackPanel>

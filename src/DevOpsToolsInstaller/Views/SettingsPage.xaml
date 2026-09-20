@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
-    <ScrollViewer Padding="32,28,32,36">
-        <StackPanel Spacing="20" MaxWidth="840">
+    <ScrollViewer Padding="32,28,32,40">
+        <StackPanel Spacing="24" MaxWidth="880">
             <StackPanel.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
@@ -13,9 +13,9 @@
             </StackPanel.ChildrenTransitions>
 
             <!-- Header -->
-            <StackPanel Spacing="2">
+            <StackPanel Spacing="4">
                 <TextBlock Text="Settings &amp; Configuration" Style="{StaticResource PageTitleStyle}" />
-                <TextBlock Text="Personalize appearance, manage directories, and configure system PATH."
+                <TextBlock Text="Manage workstation directories, terminal autocompletion, appearance, and updates."
                            Style="{StaticResource PageSubtitleStyle}" />
             </StackPanel>
 
@@ -26,220 +26,10 @@
                 IsClosable="True"
                 Severity="Success" />
 
-            <!-- Appearance -->
-            <TextBlock Text="Appearance" Style="{StaticResource CardTitleStyle}" Margin="4,4,0,0" />
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE790;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Application Theme" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock Text="Choose Light, Dark, or follow the Windows system preference."
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                    <ComboBox Grid.Column="2" x:Name="ThemeComboBox" Width="170"
-                              SelectionChanged="ThemeComboBox_SelectionChanged" VerticalAlignment="Center">
-                        <ComboBoxItem Content="System default" Tag="Default" />
-                        <ComboBoxItem Content="Light" Tag="Light" />
-                        <ComboBoxItem Content="Dark" Tag="Dark" />
-                    </ComboBox>
-                </Grid>
-            </Border>
-
-            <!-- Storage & Paths -->
-            <TextBlock Text="Directories &amp; Environment" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
-
-            <!-- Downloads folder -->
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE8B7;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Installer Downloads Folder" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock x:Name="DownloadPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button Click="ChangeFolder_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE8DA;" FontSize="13" />
-                                <TextBlock Text="Change" />
-                            </StackPanel>
-                        </Button>
-                        <Button Click="OpenFolder_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                <TextBlock Text="Open" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Tools bin folder (PATH) -->
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="CLI Binaries Folder (PATH)" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="7,1">
-                                <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Border>
-                        </StackPanel>
-                        <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
-                            </StackPanel>
-                        </Button>
-                        <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools folder">
-                            <FontIcon Glyph="&#xE838;" FontSize="13" />
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Clear downloads -->
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE74D;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <TextBlock Text="Cached Installer Files" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                        <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </StackPanel>
-                    <Button Grid.Column="2" x:Name="ClearButton" Click="ClearDownloads_Click" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE74D;" FontSize="13" />
-                            <TextBlock Text="Clear cache" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </Border>
-
-            <!-- System Integration & Shortcuts -->
-            <TextBlock Text="System Integration &amp; Terminal" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
-
-            <!-- Shell Autocompletion -->
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                            Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                            VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="Shell Autocompletion ($PROFILE)" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="7,1">
-                                <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Border>
-                        </StackPanel>
-                        <TextBlock Text="Generate autocompletion snippets for kubectl, helm, gh, terraform, and save directly to your PowerShell $PROFILE."
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <Button Grid.Column="2" Click="GenerateCompletion_Click" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE756;" FontSize="13" />
-                            <TextBlock Text="Configure" />
-                        </StackPanel>
-                    </Button>
-                </Grid>
-            </Border>
-
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <Grid ColumnSpacing="16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="10"
-                            VerticalAlignment="Center">
-                        <Image x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="36" Height="36" Stretch="Uniform"
-                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="Application Logo &amp; Shortcuts" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="7,1">
-                                <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Border>
-                        </StackPanel>
-                        <TextBlock Text="Add DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu."
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE7F4;" FontSize="13" />
-                                <TextBlock Text="Desktop" />
-                            </StackPanel>
-                        </Button>
-                        <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                                <TextBlock Text="Start Menu" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
-
-            <!-- Software Updates -->
-            <TextBlock Text="Software Updates &amp; Releases" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
-            <Border Style="{StaticResource CardStyle}" Padding="18">
-                <StackPanel Spacing="14">
+            <!-- SECTION 1: APPEARANCE -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Appearance &amp; Personalization" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Border Style="{StaticResource CardStyle}" Padding="18">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -247,142 +37,402 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
                                 Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                 VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE895;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <FontIcon Glyph="&#xE790;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                         </Border>
 
                         <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock Text="Application Updates" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <Border x:Name="UpdateStatusBadge" Style="{StaticResource BadgeStyle}" Padding="7,1">
-                                    <TextBlock x:Name="UpdateStatusBadgeText" Text="Ready" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
-                            <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
+                            <TextBlock Text="Application Theme" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock Text="Choose Light, Dark, or follow the Windows system preference."
                                        Style="{StaticResource CaptionTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </StackPanel>
 
+                        <ComboBox Grid.Column="2" x:Name="ThemeComboBox" Width="170"
+                                  SelectionChanged="ThemeComboBox_SelectionChanged" VerticalAlignment="Center">
+                            <ComboBoxItem Content="System default" Tag="Default" />
+                            <ComboBoxItem Content="Light" Tag="Light" />
+                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                        </ComboBox>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- SECTION 2: DIRECTORIES & ENVIRONMENT -->
+            <StackPanel Spacing="10">
+                <TextBlock Text="Directories &amp; Environment" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+
+                <!-- Downloads folder -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE8B7;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Text="Installer Downloads Folder" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock x:Name="DownloadPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" />
+                        </StackPanel>
+
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
-                            <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click">
+                            <Button Click="CopyDownloadsPath_Click" ToolTipService.ToolTip="Copy directory path">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                            </Button>
+                            <Button Click="ChangeFolder_Click">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE895;" FontSize="13" />
-                                    <TextBlock Text="Check for Updates" />
+                                    <FontIcon Glyph="&#xE8DA;" FontSize="13" />
+                                    <TextBlock Text="Change" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open folder in File Explorer">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                    <TextBlock Text="Open" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
                     </Grid>
+                </Border>
 
-                    <!-- Update Available Action Bar (Visible when update found) -->
-                    <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
-                            Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
-                            BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
-                            BorderThickness="1" CornerRadius="8" Padding="14">
-                        <Grid ColumnSpacing="12">
+                <!-- Tools bin folder (PATH) -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="CLI Binaries Folder (PATH)" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                    <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" />
+                            <TextBlock Text="Portable CLI tools extract here. Add to your User PATH to execute tools directly in any terminal."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button Click="CopyToolsPath_Click" ToolTipService.ToolTip="Copy bin path">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                            </Button>
+                            <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                    <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer">
+                                <FontIcon Glyph="&#xE838;" FontSize="13" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Clear downloads -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE74D;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                            <TextBlock Text="Cached Installer Files" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                            <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+
+                        <Button Grid.Column="2" x:Name="ClearButton" Click="ClearDownloads_Click" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                <TextBlock Text="Clear cache" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- SECTION 3: SYSTEM INTEGRATION & TERMINAL -->
+            <StackPanel Spacing="10">
+                <TextBlock Text="System Integration &amp; Terminal" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+
+                <!-- Shell Autocompletion -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="Shell Autocompletion ($PROFILE)" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                    <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Generate autocompletion snippets for kubectl, helm, gh, terraform, and save directly to your PowerShell $PROFILE or Bash/Zsh."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Click="GenerateCompletion_Click" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE756;" FontSize="13" />
+                                <TextBlock Text="Configure" />
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Desktop & Start Menu Shortcuts -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                VerticalAlignment="Center">
+                            <Image x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="28" Height="28" Stretch="Uniform"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="Application Logo &amp; Shortcuts" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                    <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE7F4;" FontSize="13" />
+                                    <TextBlock Text="Desktop" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8F1;" FontSize="13" />
+                                    <TextBlock Text="Start Menu" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- SECTION 4: SOFTWARE UPDATES -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="Software Updates &amp; Releases" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel Spacing="16">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE895;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock Text="Application Updates" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                    <Border x:Name="UpdateStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                        <TextBlock x:Name="UpdateStatusBadgeText" Text="Ready" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
+                                <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE895;" FontSize="13" />
+                                        <TextBlock Text="Check for Updates" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Update Available Action Bar (Visible when update found) -->
+                        <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
+                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                                BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="14">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
+                                               FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                            <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <!-- Subtle Divider -->
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                        <!-- Auto-check Toggle -->
+                        <Grid ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
-                                           FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
+                                <TextBlock Text="Automatically check for updates on startup" Style="{StaticResource BodyTextBlockStyle}" />
+                                <TextBlock Text="Query GitHub Releases on application launch to ensure tools and security patches remain current."
                                            Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                        <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
+                            <ToggleSwitch Grid.Column="1" x:Name="AutoUpdateToggle" IsOn="True"
+                                          Toggled="AutoUpdateToggle_Toggled"
+                                          OnContent="" OffContent="" VerticalAlignment="Center" />
                         </Grid>
-                    </Border>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
 
-                    <!-- Auto-check Toggle -->
-                    <Grid ColumnSpacing="16">
+            <!-- SECTION 5: ABOUT & MAINTAINER SPOTLIGHT -->
+            <StackPanel Spacing="8">
+                <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <Border Style="{StaticResource CardStyle}" Padding="20">
+                    <Grid ColumnSpacing="18">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="Automatically check for updates" Style="{StaticResource BodyTextBlockStyle}" />
-                            <TextBlock Text="Query GitHub Releases on application startup to ensure tools and security patches remain current."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                        <ToggleSwitch Grid.Column="1" x:Name="AutoUpdateToggle" IsOn="True"
-                                      Toggled="AutoUpdateToggle_Toggled"
-                                      OnContent="" OffContent="" VerticalAlignment="Center" />
-                    </Grid>
-                </StackPanel>
-            </Border>
 
-            <!-- About -->
-            <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,6,0,0" />
-            <Border Style="{StaticResource CardStyle}" Padding="20">
-                <Grid ColumnSpacing="18">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
+                                BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                VerticalAlignment="Center">
+                            <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="52" Height="52" />
+                        </Border>
 
-                    <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
-                            BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                            VerticalAlignment="Center">
-                        <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="52" Height="52" />
-                    </Border>
+                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
+                                    <TextBlock Text="v2.1.0" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
 
-                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <Border Style="{StaticResource BadgeStyle}" Padding="6,1">
-                                <TextBlock Text="v2.1.0" FontSize="11"
+                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                <TextBlock Text="Created &amp; Maintained by" Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </Border>
+                                <TextBlock Text="HARSHHAA" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Text="•" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                <HyperlinkButton Click="AuthorGitHub_Click" Padding="0">
+                                    <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
+                                </HyperlinkButton>
+                            </StackPanel>
+
+                            <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       Text="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration." />
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                            <TextBlock Text="Created &amp; Maintained by" Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            <TextBlock Text="HARSHHAA" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            <TextBlock Text="•" Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                            <HyperlinkButton Click="AuthorGitHub_Click" Padding="0">
-                                <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
+                            <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE946;" FontSize="13" />
+                                    <TextBlock Text="About &amp; Architecture" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <HyperlinkButton Click="GitHub_Click" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE774;" FontSize="13" />
+                                    <TextBlock Text="GitHub Repo" />
+                                </StackPanel>
                             </HyperlinkButton>
                         </StackPanel>
-
-                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="A modern catalog-based package and binary installer for DevOps and cloud engineers on Windows. Fetches official vendor artifacts, verifies integrity, and integrates CLI tools seamlessly into your PATH." />
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
-                        <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE946;" FontSize="13" />
-                                <TextBlock Text="About &amp; Use Cases" FontWeight="SemiBold" />
-                            </StackPanel>
-                        </Button>
-                        <HyperlinkButton Click="GitHub_Click" HorizontalAlignment="Right">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE774;" FontSize="13" />
-                                <TextBlock Text="GitHub Repo" />
-                            </StackPanel>
-                        </HyperlinkButton>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                    </Grid>
+                </Border>
+            </StackPanel>
 
         </StackPanel>
     </ScrollViewer>
