@@ -1,4 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Models;
@@ -8,6 +13,9 @@ namespace DevOpsToolsInstaller.Views;
 
 public sealed partial class InstalledPage : Page
 {
+    private List<ToolDefinition> _allInstalledTools = new();
+    private DateTime _lastChecked = DateTime.Now;
+
     public InstalledPage()
     {
         InitializeComponent();
@@ -29,7 +37,7 @@ public sealed partial class InstalledPage : Page
 
         var dlFolder = DownloadService.DefaultDownloadsFolder;
 
-        // Scan on a background thread (registry scan can be slow)
+        // Scan on a background thread (registry & folder check)
         var installedTools = await Task.Run(() =>
         {
             var results = new List<ToolDefinition>();
@@ -39,7 +47,7 @@ public sealed partial class InstalledPage : Page
                 {
                     tool.IsInstalled = true;
 
-                    // If it's an installer, grab the version from the registry
+                    // If it's an installer, grab the version from the registry if available
                     if (tool.Kind == ArtifactKind.Installer)
                     {
                         var regVer = UninstallService.GetInstalledVersion(tool);
@@ -55,10 +63,14 @@ public sealed partial class InstalledPage : Page
             return results;
         });
 
-        InstalledList.ItemsSource = installedTools;
+        _allInstalledTools = installedTools;
+        _lastChecked = DateTime.Now;
 
-        var count = installedTools.Count;
+        ApplyFilter();
+
+        var count = _allInstalledTools.Count;
         InstalledCountText.Text = $"{count} deployed";
+        PageHeadingText.Text = $"Installed Tools & Updates ({count} total)";
 
         if (count > 0)
         {
@@ -69,16 +81,19 @@ public sealed partial class InstalledPage : Page
             // Asynchronously resolve CLI versions in the background for tools missing version
             _ = Task.Run(async () =>
             {
-                foreach (var tool in installedTools)
+                foreach (var tool in _allInstalledTools)
                 {
                     if (string.IsNullOrWhiteSpace(tool.DetectedVersion))
                     {
                         var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2);
                         if (probe.Success && !string.IsNullOrWhiteSpace(probe.DetectedVersion))
                         {
-                            tool.DetectedVersion = probe.DetectedVersion;
-                            tool.HealthStatus = "Healthy";
-                            tool.HealthOutput = probe.RawOutput;
+                            _ = DispatcherQueue.TryEnqueue(() =>
+                            {
+                                tool.DetectedVersion = probe.DetectedVersion;
+                                tool.HealthStatus = "Healthy";
+                                tool.HealthOutput = probe.RawOutput;
+                            });
                         }
                     }
                 }
@@ -92,9 +107,167 @@ public sealed partial class InstalledPage : Page
         }
     }
 
-    private async void TestCli_Click(object sender, RoutedEventArgs e)
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var query = SearchBox.Text?.Trim() ?? "";
+
+        var filtered = _allInstalledTools.AsEnumerable();
+        if (!string.IsNullOrEmpty(query))
+        {
+            filtered = filtered.Where(t =>
+                t.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Category.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                t.Description.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(t.DetectedVersion) && t.DetectedVersion.Contains(query, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        var list = filtered.ToList();
+        InstalledList.ItemsSource = list;
+
+        StatusText.Text = $"{list.Count} of {_allInstalledTools.Count} tool(s) shown";
+        if (FooterStatusText != null)
+        {
+            FooterStatusText.Text = $"{_allInstalledTools.Count} tools managed. Check for Updates: Last checked {GetLastCheckedText()}.";
+        }
+    }
+
+    private string GetLastCheckedText()
+    {
+        var elapsed = DateTime.Now - _lastChecked;
+        if (elapsed.TotalMinutes < 1) return "Just now";
+        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes} min ago";
+        return $"{(int)elapsed.TotalHours} hr ago";
+    }
+
+    private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        StatusText.Text = "Checking for tool updates…";
+        await ScanInstalledToolsAsync();
+        StatusText.Text = $"Update check complete for {_allInstalledTools.Count} tools.";
+    }
+
+    private async void CheckSingleToolUpdate_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button { DataContext: ToolDefinition tool }) return;
+
+        StatusText.Text = $"Checking {tool.Name}…";
+        var probe = await CliHealthService.ProbeToolAsync(tool);
+        if (probe.Success && !string.IsNullOrWhiteSpace(probe.DetectedVersion))
+        {
+            tool.DetectedVersion = probe.DetectedVersion;
+            tool.HealthStatus = "Healthy";
+        }
+        StatusText.Text = $"{tool.Name}: {(tool.HasUpdate ? "Update available" : "Up to date")}";
+    }
+
+    private void UpdateTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        tool.IsSelected = true;
+        if (!mw.DownloadQueue.Contains(tool))
+        {
+            mw.DownloadQueue.Add(tool);
+        }
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var dlFolder = DownloadService.DefaultDownloadsFolder;
+                await mw.DownloadSvc.DownloadAsync(tool, dlFolder);
+            }
+            catch { }
+        });
+
+        mw.NavigateTo("Downloads");
+    }
+
+    private void LaunchCli_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+
+        try
+        {
+            var (exeName, _) = CliHealthService.GetProbeCommand(tool);
+            var exePath = CliHealthService.ResolveExecutablePath(exeName, tool.Id);
+            var cmdTarget = !string.IsNullOrEmpty(exePath) ? exePath : exeName;
+
+            var cmd = $"Write-Host '--- {tool.Name} Terminal Session ---' -ForegroundColor Cyan; if (Get-Command '{cmdTarget}' -ErrorAction SilentlyContinue) {{ & '{cmdTarget}' --help }} else {{ Write-Host 'Run {tool.Name} command:' -ForegroundColor Yellow }}";
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoExit -Command \"{cmd}\"",
+                UseShellExecute = true
+            };
+
+            try
+            {
+                var wtPsi = new ProcessStartInfo
+                {
+                    FileName = "wt.exe",
+                    Arguments = $"powershell.exe -NoExit -Command \"{cmd}\"",
+                    UseShellExecute = true
+                };
+                Process.Start(wtPsi);
+            }
+            catch
+            {
+                Process.Start(psi);
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Could not launch CLI: {ex.Message}";
+        }
+    }
+
+    private void OpenSingleToolFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { DataContext: ToolDefinition tool }) return;
+        var (exeName, _) = CliHealthService.GetProbeCommand(tool);
+        var path = CliHealthService.ResolveExecutablePath(exeName, tool.Id);
+        var dir = !string.IsNullOrEmpty(path) && File.Exists(path)
+            ? Path.GetDirectoryName(path)
+            : DownloadService.DefaultDownloadsFolder;
+
+        if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+        {
+            Process.Start(new ProcessStartInfo { FileName = "explorer.exe", Arguments = dir, UseShellExecute = true });
+        }
+    }
+
+    private void CopyToolPath_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { DataContext: ToolDefinition tool }) return;
+        var (exeName, _) = CliHealthService.GetProbeCommand(tool);
+        var path = CliHealthService.ResolveExecutablePath(exeName, tool.Id) ?? exeName;
+        var dp = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dp.SetText(path);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dp);
+        StatusText.Text = $"Copied path to clipboard: {path}";
+    }
+
+    private void OpenDoc_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { DataContext: ToolDefinition tool }) return;
+        if (!string.IsNullOrWhiteSpace(tool.Homepage))
+        {
+            LauncherService.OpenUrl(tool.Homepage);
+        }
+    }
+
+    private async void TestCli_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
         StatusText.Text = $"Testing {tool.Name}…";
         tool.HealthStatus = "Testing…";
@@ -153,16 +326,16 @@ public sealed partial class InstalledPage : Page
 
     private async void RunAllHealthChecks_Click(object sender, RoutedEventArgs e)
     {
-        if (InstalledList.ItemsSource is not List<ToolDefinition> tools || tools.Count == 0)
+        if (_allInstalledTools.Count == 0)
         {
             StatusText.Text = "No installed tools to check.";
             return;
         }
 
-        StatusText.Text = $"Running health checks on {tools.Count} tools…";
+        StatusText.Text = $"Running health checks on {_allInstalledTools.Count} tools…";
         int healthyCount = 0;
 
-        foreach (var tool in tools)
+        foreach (var tool in _allInstalledTools)
         {
             tool.HealthStatus = "Testing…";
             var result = await CliHealthService.ProbeToolAsync(tool);
@@ -178,13 +351,13 @@ public sealed partial class InstalledPage : Page
             }
         }
 
-        StatusText.Text = $"Health check complete: {healthyCount}/{tools.Count} CLIs healthy.";
+        StatusText.Text = $"Health check complete: {healthyCount}/{_allInstalledTools.Count} CLIs healthy.";
     }
 
     private async void ShellCompletion_Click(object sender, RoutedEventArgs e)
     {
         var mw = App.MainWindowInstance;
-        var installedTools = (InstalledList.ItemsSource as List<ToolDefinition>) ?? mw?.Tools.Where(t => t.IsInstalled).ToList() ?? new List<ToolDefinition>();
+        var installedTools = _allInstalledTools.Count > 0 ? _allInstalledTools : (mw?.Tools.Where(t => t.IsInstalled).ToList() ?? new List<ToolDefinition>());
 
         await ShowShellCompletionModalAsync(installedTools);
     }
@@ -297,7 +470,7 @@ public sealed partial class InstalledPage : Page
 
     private async void Remove_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
         var dlFolder = DownloadService.DefaultDownloadsFolder;
 
