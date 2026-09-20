@@ -12,6 +12,7 @@ param(
     [string]$Configuration = 'Release',
     [switch]$SingleFile,
     [switch]$Setup,
+    [switch]$Msi,
     [switch]$Msix,
     [switch]$Run,
     [switch]$Clean
@@ -62,6 +63,16 @@ function Find-ISCC {
     return $null
 }
 
+function Find-WiX {
+    if (Get-Command wix -ErrorAction SilentlyContinue) { return 'wix' }
+    $userTools = "$env:USERPROFILE\.dotnet\tools\wix.exe"
+    if (Test-Path $userTools) {
+        $env:PATH = "$env:USERPROFILE\.dotnet\tools;" + $env:PATH
+        return $userTools
+    }
+    return $null
+}
+
 # ---------------------------------------------------------------------------
 # Clean
 # ---------------------------------------------------------------------------
@@ -91,6 +102,8 @@ Write-Host "+------------------------------------------------------------------+
 Write-Host ""
 Write-Host "  Configuration : $Configuration" -ForegroundColor White
 Write-Host "  Single File   : $SingleFile"    -ForegroundColor White
+Write-Host "  Setup Wizard  : $Setup"         -ForegroundColor White
+Write-Host "  MSI Package   : $Msi"           -ForegroundColor White
 Write-Host "  MSIX Package  : $Msix"          -ForegroundColor White
 Write-Host "  Project       : $project"        -ForegroundColor Gray
 Write-Host ""
@@ -302,6 +315,44 @@ if ($Setup) {
             }
         } else {
             Write-Err "Setup compiler failed with exit code $LASTEXITCODE"
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Windows Installer (.msi via WiX Toolset)
+# ---------------------------------------------------------------------------
+
+if ($Msi) {
+    Write-Step "Building Windows Installer Package (.msi via WiX Toolset)..."
+    $wix = Find-WiX
+    if (-not $wix) {
+        Write-Err "WiX Toolset (wix.exe) not found."
+        Write-Host "  Install WiX with: dotnet tool install --global wix --version 5.0.2" -ForegroundColor Yellow
+        Write-Host "  And install UI extension: wix extension add -g WixToolset.UI.wixext/5.0.2" -ForegroundColor Yellow
+    } else {
+        $wxsFile = Join-Path $root 'installer\setup.wxs'
+        $distDir = Join-Path $root 'dist'
+        if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
+
+        $version = "2.1.0"
+        if (Test-Path $project) {
+            $csprojXml = [xml](Get-Content $project)
+            $verNode = $csprojXml.SelectSingleNode("//Version")
+            if ($verNode -and $verNode.InnerText) { $version = $verNode.InnerText.Trim() }
+        }
+
+        $assetsDir = Join-Path $root 'src\DevOpsToolsInstaller\Assets'
+        $outputMsi = Join-Path $distDir "DevOpsToolsInstaller_v${version}_x64.msi"
+
+        Write-Host "  Compiling with WiX Toolset ($outputMsi)..." -ForegroundColor Gray
+        & $wix build $wxsFile -ext WixToolset.UI.wixext -arch x64 -d "SourceDir=$pubDir" -d "AssetsDir=$assetsDir" -d "AppVersion=$version" -o $outputMsi
+        if ($LASTEXITCODE -eq 0 -and (Test-Path $outputMsi)) {
+            $msiItem = Get-Item $outputMsi
+            $sizeMB = [math]::Round($msiItem.Length / 1MB, 1)
+            Write-Ok "Windows Installer (.msi) generated: $($msiItem.FullName) ($sizeMB MB)"
+        } else {
+            Write-Err "WiX compiler failed with exit code $LASTEXITCODE"
         }
     }
 }

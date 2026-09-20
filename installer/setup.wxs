@@ -1,0 +1,115 @@
+<!-- ===================================================================== -->
+<!-- DevOps Tools Installer - WiX Toolset v5 Windows Installer (.msi)      -->
+<!-- Enterprise-grade Windows Installer package with PATH & shortcuts      -->
+<!-- ===================================================================== -->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <?ifndef AppVersion?>
+    <?define AppVersion="2.1.0"?>
+  <?endif?>
+
+  <?ifndef SourceDir?>
+    <?define SourceDir="..\src\DevOpsToolsInstaller\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\publish"?>
+  <?endif?>
+
+  <?ifndef AssetsDir?>
+    <?define AssetsDir="..\src\DevOpsToolsInstaller\Assets"?>
+  <?endif?>
+
+  <Package Name="DevOps Tools Installer"
+           Manufacturer="NotHarshhaa"
+           Version="$(var.AppVersion)"
+           UpgradeCode="7D25A89E-6B3C-4D88-9124-7C79E88E4BA2"
+           Scope="perMachine"
+           InstallerVersion="500">
+
+    <SummaryInformation Description="DevOps Tools Installer Setup"
+                        Manufacturer="NotHarshhaa" />
+
+    <!-- Upgrades: Automatically replace older versions -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of DevOps Tools Installer is already installed."
+                  AllowSameVersionUpgrades="yes" />
+
+    <!-- Embed installation cabinet with high compression -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Application Icon & Add/Remove Programs (ARP) metadata -->
+    <Icon Id="AppIcon" SourceFile="$(var.AssetsDir)\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/NotHarshhaa/DevOpsToolsInstaller/issues" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/NotHarshhaa/DevOpsToolsInstaller" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases" />
+    <Property Id="ARPCOMMENTS" Value="Modern WinUI 3 DevOps Tools Installer &amp; Workstation Provisioner" />
+
+    <!-- Target directory structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="DevOpsToolsInstaller">
+        <!-- Main Application Executable -->
+        <Component Id="MainExecutable" Guid="3E4F9C21-6A18-4720-B561-12D034E7B6C8">
+          <File Id="DevOpsToolsInstallerExe"
+                Source="$(var.SourceDir)\DevOpsToolsInstaller.exe"
+                KeyPath="yes">
+            <!-- Desktop Shortcut -->
+            <Shortcut Id="DesktopShortcut"
+                      Directory="DesktopFolder"
+                      Name="DevOps Tools Installer"
+                      Description="Modern WinUI 3 DevOps Tools Installer &amp; Workstation Provisioner"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="AppIcon"
+                      Advertise="no" />
+            <!-- Start Menu Shortcut -->
+            <Shortcut Id="StartMenuShortcut"
+                      Directory="ApplicationProgramsFolder"
+                      Name="DevOps Tools Installer"
+                      Description="Modern WinUI 3 DevOps Tools Installer &amp; Workstation Provisioner"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="AppIcon"
+                      Advertise="no" />
+          </File>
+          <RemoveFolder Id="CleanUpProgramMenuFolder"
+                        Directory="ApplicationProgramsFolder"
+                        On="uninstall" />
+        </Component>
+
+        <!-- System PATH Integration -->
+        <Component Id="PathEnvComponent" Guid="F3B90E5A-7164-42DE-95C8-B27D72E1584C">
+          <Environment Id="PATH"
+                       Name="PATH"
+                       Value="[INSTALLFOLDER]"
+                       Permanent="no"
+                       Part="last"
+                       Action="set"
+                       System="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <!-- Shell folder references -->
+    <StandardDirectory Id="DesktopFolder" />
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="DevOps Tools Installer" />
+    </StandardDirectory>
+
+    <!-- Installation Features -->
+    <Feature Id="Complete"
+             Title="DevOps Tools Installer"
+             Description="Installs DevOps Tools Installer and desktop shortcuts."
+             Level="1"
+             Display="expand"
+             ConfigurableDirectory="INSTALLFOLDER">
+      <ComponentRef Id="MainExecutable" />
+      <Feature Id="PathEnvironmentFeature"
+               Title="Add to System PATH"
+               Description="Adds the application directory to the system PATH environment variable."
+               Level="1">
+        <ComponentRef Id="PathEnvComponent" />
+      </Feature>
+    </Feature>
+
+    <!-- Interactive Setup Wizard UI -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="installer\License.rtf" />
+
+  </Package>
+</Wix>

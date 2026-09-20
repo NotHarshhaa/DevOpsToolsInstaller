@@ -62,7 +62,23 @@ jobs:
           & $iscc "/DSourceDir=publish_out" "/DOutputBaseFilename=DevOpsToolsInstaller_x64_Setup" "installer/setup.iss"
           Move-Item -Path "dist\DevOpsToolsInstaller_x64_Setup.exe" -Destination "publish_out\"
 
-      - name: Sign Binaries & Setup Wizard (Authenticode)
+      - name: Build Windows Installer (.msi) (x64)
+        if: matrix.arch_name == 'x64'
+        shell: pwsh
+        run: |
+          Write-Host "Installing WiX Toolset v5..."
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add -g WixToolset.UI.wixext/5.0.2
+
+          $ver = "2.1.0"
+          if ($env:GITHUB_REF_NAME -match '^v?(\d+\.\d+\.\d+)') {
+            $ver = $Matches[1]
+          }
+
+          Write-Host "Compiling WiX .msi package (v$ver)..."
+          wix build "installer/setup.wxs" -ext WixToolset.UI.wixext -arch x64 -d "SourceDir=publish_out" -d "AssetsDir=src/DevOpsToolsInstaller/Assets" -d "AppVersion=$ver" -o "publish_out/DevOpsToolsInstaller_x64.msi"
+
+      - name: Sign Binaries, Setup Wizard & MSI (Authenticode)
         shell: pwsh
         env:
           SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
@@ -75,6 +91,9 @@ jobs:
             $toSign = @("publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}.exe")
             if (Test-Path "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe") {
               $toSign += "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe"
+            }
+            if (Test-Path "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}.msi") {
+              $toSign += "publish_out\DevOpsToolsInstaller_${{ matrix.arch_name }}.msi"
             }
             .\scripts\sign-binaries.ps1 -Files $toSign -Base64Cert "$env:SIGNING_CERTIFICATE" -Password "$env:SIGNING_PASSWORD"
           }
@@ -92,6 +111,14 @@ jobs:
         with:
           name: setup-${{ matrix.arch_name }}
           path: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}_Setup.exe
+          if-no-files-found: error
+
+      - name: Upload MSI Artifact
+        if: matrix.arch_name == 'x64'
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi-${{ matrix.arch_name }}
+          path: publish_out/DevOpsToolsInstaller_${{ matrix.arch_name }}.msi
           if-no-files-found: error
 
   release:
@@ -131,6 +158,7 @@ jobs:
           body_path: release_notes.md
           files: |
             release_assets/DevOpsToolsInstaller_x64_Setup.exe
+            release_assets/DevOpsToolsInstaller_x64.msi
             release_assets/DevOpsToolsInstaller_x64.exe
             release_assets/DevOpsToolsInstaller_arm64.exe
             release_assets/SHA256SUMS.txt

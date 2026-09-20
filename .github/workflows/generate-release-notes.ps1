@@ -5,12 +5,17 @@ param(
 )
 
 $setupHash = "N/A"
+$msiHash = "N/A"
 $x64Hash = "N/A"
 $arm64Hash = "N/A"
 
 $setupFile = Get-ChildItem -Path "$AssetsDir" -Filter "*Setup*.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($setupFile) {
     $setupHash = (Get-FileHash -Path $setupFile.FullName -Algorithm SHA256).Hash.ToLower()
+}
+$msiFile = Get-ChildItem -Path "$AssetsDir" -Filter "*x64*.msi" -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($msiFile) {
+    $msiHash = (Get-FileHash -Path $msiFile.FullName -Algorithm SHA256).Hash.ToLower()
 }
 $x64File = Get-ChildItem -Path "$AssetsDir" -Filter "*x64*.exe" -Exclude "*Setup*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($x64File) {
@@ -23,7 +28,7 @@ if ($arm64File) {
 
 if (Test-Path $AssetsDir) {
     # Generate SHA256SUMS.txt
-    Get-ChildItem -Path "$AssetsDir\*.exe" -ErrorAction SilentlyContinue | ForEach-Object {
+    Get-ChildItem -Path "$AssetsDir\*.exe", "$AssetsDir\*.msi" -ErrorAction SilentlyContinue | ForEach-Object {
         $h = (Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash.ToLower()
         "$h  $($_.Name)"
     } | Out-File -FilePath "$AssetsDir\SHA256SUMS.txt" -Encoding utf8
@@ -110,6 +115,7 @@ This major release transforms DevOps Tools Installer with a completely redesigne
 | Asset | Type | SHA256 Hash |
 | :--- | :--- | :--- |
 | **`DevOpsToolsInstaller_x64_Setup.exe`** | Windows Setup Wizard | `__SETUP_HASH__` |
+| **`DevOpsToolsInstaller_x64.msi`** | Windows Installer (.msi) | `__MSI_HASH__` |
 | **`DevOpsToolsInstaller_x64.exe`** | Portable Single Binary | `__X64_HASH__` |
 | **`DevOpsToolsInstaller_arm64.exe`** | Portable Single Binary | `__ARM64_HASH__` |
 
@@ -119,9 +125,10 @@ This major release transforms DevOps Tools Installer with a completely redesigne
 
 ### 🚀 Quick Start
 - **Option A (Setup Wizard)**: Download and run `DevOpsToolsInstaller_x64_Setup.exe` to install to `C:\Program Files\DevOpsToolsInstaller` (or a custom folder) with automated shortcuts and PATH integration.
-- **Option B (Portable)**: Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe`) and run directly — no installation required.
+- **Option B (Windows Installer Package)**: Download and run `DevOpsToolsInstaller_x64.msi` for enterprise GPO, Intune, SCCM, or silent rollouts (`msiexec /i DevOpsToolsInstaller_x64.msi /qn`).
+- **Option C (Portable)**: Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe`) and run directly — no installation required.
 '@
 
-$content = $template.Replace("__TAG__", $Tag).Replace("__SETUP_HASH__", $setupHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
+$content = $template.Replace("__TAG__", $Tag).Replace("__SETUP_HASH__", $setupHash).Replace("__MSI_HASH__", $msiHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
 [System.IO.File]::WriteAllText($OutputFile, $content, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Generated release notes at $OutputFile"
