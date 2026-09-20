@@ -197,7 +197,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="☸️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE74C;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="Kubernetes Starter" FontWeight="SemiBold" FontSize="13" />
@@ -231,7 +231,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="☁️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE753;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="Cloud Essentials" FontWeight="SemiBold" FontSize="13" />
@@ -265,7 +265,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="🔒" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE72E;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="DevSecOps Suite" FontWeight="SemiBold" FontSize="13" />
@@ -299,7 +299,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="💻" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE756;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="Terminal Power User" FontWeight="SemiBold" FontSize="13" />
@@ -333,7 +333,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="🏗️" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE8B9;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="Full-Stack IaC" FontWeight="SemiBold" FontSize="13" />
@@ -367,7 +367,7 @@
                                 <Border Grid.Row="0" Width="38" Height="38" CornerRadius="8"
                                         Background="{ThemeResource ControlFillColorSecondaryBrush}"
                                         HorizontalAlignment="Left">
-                                    <TextBlock Text="🚀" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <FontIcon Glyph="&#xE912;" FontSize="18" Foreground="{ThemeResource TextFillColorPrimaryBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Row="1" Spacing="2">
                                     <TextBlock Text="GitOps &amp; CI/CD" FontWeight="SemiBold" FontSize="13" />

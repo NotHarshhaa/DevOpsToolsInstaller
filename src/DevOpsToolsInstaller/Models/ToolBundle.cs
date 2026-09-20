@@ -12,4 +12,7 @@ public sealed class ToolBundle
     public string Description { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
     public List<string> Tools { get; set; } = new();
+
+    public string Glyph => !string.IsNullOrEmpty(Icon) ? Icon : "\uE71D";
+    public string ToolsSummary => string.Join(", ", Tools);
 }

@@ -253,16 +253,11 @@ public sealed partial class MainWindow : Window
         if (args.SelectedItem is not NavigationViewItem item) return;
         if (item.Tag is not string tag) return;
 
-        if (tag == "Stacks")
-        {
-            _ = OpenCuratedStacksDialogAsync();
-            return;
-        }
-
         var pageType = tag switch
         {
             "Home"      => typeof(HomePage),
             "Catalog"   => typeof(CatalogPage),
+            "Stacks"    => typeof(StacksPage),
             "Downloads" => typeof(DownloadsPage),
             "Installed" => typeof(InstalledPage),
             "Settings"  => typeof(SettingsPage),

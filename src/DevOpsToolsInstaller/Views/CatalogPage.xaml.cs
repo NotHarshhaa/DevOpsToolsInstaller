@@ -342,17 +342,12 @@ public sealed partial class CatalogPage : Page
         // 1. "Browse All Stacks…" at the top
         var browseAllItem = new MenuFlyoutItem
         {
-            Text = "Browse All Stacks…",
-            Icon = new FontIcon { Glyph = "\uE8F1" }
+            Text = "Explore All Stacks Section…",
+            Icon = new FontIcon { Glyph = "\uE71D" }
         };
-        browseAllItem.Click += async (s, e) =>
+        browseAllItem.Click += (s, e) =>
         {
-            if (this.XamlRoot == null) return;
-            var selected = await Controls.BundleSelectionDialog.ShowAsync(this.XamlRoot, mw.Bundles, mw.Tools);
-            if (selected != null)
-            {
-                ApplyBundleSelection(selected);
-            }
+            mw.NavigateTo("Stacks");
         };
         PresetsMenuFlyout.Items.Add(browseAllItem);
         PresetsMenuFlyout.Items.Add(new MenuFlyoutSeparator());
@@ -362,7 +357,8 @@ public sealed partial class CatalogPage : Page
         {
             var item = new MenuFlyoutItem
             {
-                Text = $"{bundle.Icon} {bundle.Name} ({bundle.Tools.Count})"
+                Text = $"{bundle.Name} ({bundle.Tools.Count})",
+                Icon = new FontIcon { Glyph = bundle.Glyph }
             };
             ToolTipService.SetToolTip(item, bundle.Description);
             var capturedBundle = bundle;

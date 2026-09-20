@@ -3,84 +3,84 @@
     "id": "k8s-starter",
     "name": "Kubernetes Starter Pack",
     "description": "Everything you need to get started with Kubernetes development and management",
-    "icon": "☸️",
+    "icon": "\uE74C",
     "tools": ["kubectl", "helm", "k9s", "minikube", "stern", "kustomize", "kubectx"]
   },
   {
     "id": "k8s-advanced",
     "name": "Kubernetes Advanced",
     "description": "Production-grade Kubernetes tooling for GitOps, service mesh, and disaster recovery",
-    "icon": "🚀",
+    "icon": "\uEA86",
     "tools": ["kubectl", "helm", "argocd", "flux", "istioctl", "cilium-cli", "velero", "helmfile", "k9s"]
   },
   {
     "id": "cloud-engineer",
     "name": "Cloud Engineer Essentials",
     "description": "Core tools for multi-cloud infrastructure management",
-    "icon": "☁️",
+    "icon": "\uE753",
     "tools": ["awscli", "azure-cli", "gcloud-cli", "terraform", "terragrunt", "tflint", "infracost", "vault"]
   },
   {
     "id": "aws-developer",
     "name": "AWS Developer Kit",
     "description": "Complete toolkit for AWS cloud development and serverless applications",
-    "icon": "🟧",
+    "icon": "\uEC37",
     "tools": ["awscli", "aws-sam-cli", "eksctl", "terraform", "docker-desktop"]
   },
   {
     "id": "devops-security",
     "name": "DevSecOps Toolkit",
     "description": "Security scanning, secrets management, and compliance tools for DevOps pipelines",
-    "icon": "🔒",
+    "icon": "\uE72E",
     "tools": ["trivy", "gitleaks", "sops", "cosign", "syft", "grype", "opa", "kyverno-cli"]
   },
   {
     "id": "cicd-pipeline",
     "name": "CI/CD Pipeline Builder",
     "description": "Tools for building, testing, and automating software delivery pipelines",
-    "icon": "⚙️",
+    "icon": "\uE912",
     "tools": ["git", "github-cli", "act", "dagger", "task", "docker-desktop", "tkn"]
   },
   {
     "id": "iac-complete",
     "name": "Infrastructure as Code Complete",
     "description": "Full IaC toolkit with provisioning, cost estimation, linting, and secrets management",
-    "icon": "🏗️",
+    "icon": "\uE8B9",
     "tools": ["terraform", "opentofu", "pulumi", "terragrunt", "tflint", "packer", "vault", "infracost"]
   },
   {
     "id": "observability-stack",
     "name": "Observability Stack",
     "description": "End-to-end monitoring, logging, and performance testing",
-    "icon": "📊",
+    "icon": "\uE9D2",
     "tools": ["prometheus", "grafana", "k6", "vector", "logcli"]
   },
   {
     "id": "terminal-poweruser",
     "name": "Terminal Power User",
     "description": "Modern CLI tools that supercharge your terminal productivity",
-    "icon": "💻",
+    "icon": "\uE756",
     "tools": ["windows-terminal", "starship", "fzf", "ripgrep", "bat", "fd", "eza", "zoxide", "delta", "jq", "yq"]
   },
   {
     "id": "container-essentials",
     "name": "Container Essentials",
     "description": "Everything you need for building, running, and debugging containers",
-    "icon": "🐳",
+    "icon": "\uE7B8",
     "tools": ["docker-desktop", "lazydocker", "dive", "trivy", "cosign", "syft"]
   },
   {
     "id": "developer-workstation",
     "name": "Developer Workstation Setup",
     "description": "Complete one-click setup for a new developer machine with all essential DevOps tools",
-    "icon": "🖥️",
+    "icon": "\uE7F8",
     "tools": ["git", "github-cli", "vscode", "docker-desktop", "kubectl", "helm", "terraform", "jq", "postman", "windows-terminal", "starship"]
   },
   {
     "id": "networking-mesh",
     "name": "Networking & Service Mesh",
     "description": "Tools for tunneling, zero-trust networking, and service mesh management",
-    "icon": "🌐",
+    "icon": "\uE774",
     "tools": ["ngrok", "cloudflared", "linkerd", "istioctl", "cilium-cli"]
   }
 ]
