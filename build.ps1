@@ -12,6 +12,7 @@ param(
     [string]$Configuration = 'Release',
     [switch]$SingleFile,
     [switch]$Setup,
+    [switch]$Msix,
     [switch]$Run,
     [switch]$Clean
 )
@@ -90,6 +91,7 @@ Write-Host "+------------------------------------------------------------------+
 Write-Host ""
 Write-Host "  Configuration : $Configuration" -ForegroundColor White
 Write-Host "  Single File   : $SingleFile"    -ForegroundColor White
+Write-Host "  MSIX Package  : $Msix"          -ForegroundColor White
 Write-Host "  Project       : $project"        -ForegroundColor Gray
 Write-Host ""
 
@@ -223,6 +225,59 @@ Write-Host ""
 Write-Host "  Run:" -ForegroundColor Yellow
 Write-Host "    $exe" -ForegroundColor White
 Write-Host ""
+
+# ---------------------------------------------------------------------------
+# MSIX Package for Microsoft Store
+# ---------------------------------------------------------------------------
+
+if ($Msix) {
+    Write-Step "Building MSIX package for Microsoft Store submission..."
+
+    $msixOutDir = Join-Path (Split-Path -Parent $project) 'bin\MsixPackage'
+    if (-not (Test-Path $msixOutDir)) { New-Item -ItemType Directory -Path $msixOutDir | Out-Null }
+
+    $msixArgs = @(
+        'publish', $project,
+        '-c', $Configuration,
+        '-r', 'win-x64',
+        '--self-contained', 'true',
+        '-p:Platform=x64',
+        '-p:BuildMsix=true',
+        '-p:WindowsAppSDKSelfContained=true',
+        '-p:AppxPackageSigningEnabled=false',
+        '-p:GenerateAppxPackageOnBuild=true',
+        '-p:AppxBundle=Always',
+        '-p:AppxBundlePlatforms=x64',
+        "-p:AppxPackageDir=$msixOutDir\"
+    )
+
+    Write-Host "  Running dotnet publish with MSIX tooling..." -ForegroundColor Gray
+    $msixOut = & $dotnet @msixArgs 2>&1
+    $msixOut | ForEach-Object {
+        $line = "$_"
+        if ($line -match ' error ')   { Write-Host "    $line" -ForegroundColor Red }
+        elseif ($line -match ' warning ') { Write-Host "    $line" -ForegroundColor Yellow }
+    }
+
+    if ($LASTEXITCODE -eq 0) {
+        # Find the produced .msixupload or .msix file
+        $msixFile = Get-ChildItem -Path $msixOutDir -Include '*.msixupload','*.msix' -Recurse |
+                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($msixFile) {
+            $sizeMB = [math]::Round($msixFile.Length / 1MB, 1)
+            Write-Ok "MSIX package: $($msixFile.FullName) ($sizeMB MB)"
+            Write-Host ""
+            Write-Host "  Next step: upload '$($msixFile.Name)' to Microsoft Partner Center" -ForegroundColor Yellow
+            Write-Host "  Dashboard: https://partner.microsoft.com/dashboard" -ForegroundColor Cyan
+        } else {
+            Write-Warn "Build succeeded but no .msixupload/.msix file found in $msixOutDir"
+            Write-Host "  Contents:" -ForegroundColor Gray
+            Get-ChildItem -Recurse $msixOutDir | ForEach-Object { Write-Host "    $($_.FullName)" -ForegroundColor Gray }
+        }
+    } else {
+        Write-Err "MSIX build failed - see output above."
+    }
+}
 
 # ---------------------------------------------------------------------------
 # Setup Wizard (Inno Setup)

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:uap5="http://schemas.microsoft.com/appx/manifest/uap/windows10/5"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="uap uap3 uap5 rescap desktop">
+
+  <!-- ── Identity (from Microsoft Partner Center → Product identity) ── -->
+  <Identity
+    Name="NotHarshhaa.DevOpsToolsInstaller"
+    Publisher="CN=F51483FD-C3DC-4F7E-9215-8A8DFF21FE27"
+    Version="2.1.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>DevOps Tools Installer</DisplayName>
+    <PublisherDisplayName>NotHarshhaa</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>One-click DevOps tool installer for Windows. Browse, download, and launch the latest DevOps, cloud, and developer CLI tools in seconds.</Description>
+  </Properties>
+
+  <Dependencies>
+    <!-- Windows 10 1809 (Build 17763) minimum, targeting 19041 -->
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.19041.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="DevOpsToolsInstaller"
+      Executable="DevOpsToolsInstaller.exe"
+      EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="DevOps Tools Installer"
+        Description="One-click DevOps tool installer for Windows."
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        BackgroundColor="transparent">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          ShortName="DevOps Installer"
+          Square71x71Logo="Assets\Square44x44Logo.png">
+          <uap:ShowNameOnTiles>
+            <uap:ShowOn Tile="square150x150Logo" />
+            <uap:ShowOn Tile="wide310x150Logo" />
+          </uap:ShowNameOnTiles>
+        </uap:DefaultTile>
+        <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="#0F1117" />
+        <uap:LockScreen Notification="badge" BadgeLogo="Assets\Square44x44Logo.png" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- Allow the packaged app to run with full trust (required for
+             launching external tool installers, writing to PATH, extracting
+             archives, and spawning child processes). -->
+        <desktop:Extension Category="windows.fullTrustProcess"
+                           Executable="DevOpsToolsInstaller.exe" />
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Full trust: needed to run external .exe/.msi installers, set PATH,
+         and extract tool archives to %LOCALAPPDATA%. -->
+    <rescap:Capability Name="runFullTrust" />
+
+    <!-- Network access for downloading tools and checking for updates. -->
+    <Capability Name="internetClient" />
+
+    <!-- Read/write to user's documents and downloads folders. -->
+    <uap:Capability Name="removableStorage" />
+  </Capabilities>
+
+</Package>

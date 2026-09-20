@@ -1,4 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ── Core properties ──────────────────────────────────────────────── -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -6,12 +8,10 @@
     <WindowsSdkPackageVersion>10.0.19041.38</WindowsSdkPackageVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RootNamespace>DevOpsToolsInstaller</RootNamespace>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;arm64</Platforms>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
-    <WindowsPackageType>None</WindowsPackageType>
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <Nullable>enable</Nullable>
@@ -24,12 +24,33 @@
     <FileVersion>2.1.0.0</FileVersion>
   </PropertyGroup>
 
+  <!-- ── Unpackaged build (default: dotnet build / run locally) ───────── -->
+  <PropertyGroup Condition="'$(BuildMsix)' != 'true'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <!-- Win32 app.manifest for DPI awareness and long-path support -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <!-- ── Packaged MSIX build (build.ps1 -Msix) ──────────────────────── -->
+  <PropertyGroup Condition="'$(BuildMsix)' == 'true'">
+    <WindowsPackageType>MSIX</WindowsPackageType>
+    <!-- app.manifest is superseded by Package.appxmanifest for packaged builds -->
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <!-- Produce a .msixupload bundle for Partner Center submission -->
+    <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <AppxPackageDir>$(MSBuildProjectDirectory)\bin\MsixPackage\</AppxPackageDir>
+  </PropertyGroup>
+
+  <!-- ── NuGet packages ───────────────────────────────────────────────── -->
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.6.240829007" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.1742" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
   </ItemGroup>
 
+  <!-- ── Content assets ───────────────────────────────────────────────── -->
   <ItemGroup>
     <Content Include="..\..\catalog\catalog.json">
       <Link>Assets\catalog.json</Link>
@@ -51,6 +72,37 @@
     <Content Include="Assets\logos\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <!-- ── Store icon assets (included when building MSIX) ─────────────── -->
+  <ItemGroup Condition="'$(BuildMsix)' == 'true'">
+    <Content Include="Assets\StoreLogo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square44x44Logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square44x44Logo.scale-*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square150x150Logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Square150x150Logo.scale-*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Wide310x150Logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\SplashScreen.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
   </ItemGroup>
 
 </Project>

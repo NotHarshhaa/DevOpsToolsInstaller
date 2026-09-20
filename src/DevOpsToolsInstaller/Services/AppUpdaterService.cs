@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Windows.ApplicationModel;
 
 namespace DevOpsToolsInstaller.Services;
 
@@ -70,10 +71,40 @@ public static class AppUpdaterService
     }
 
     /// <summary>
+    /// Returns true when the app is running as a packaged MSIX application
+    /// (e.g. installed via the Microsoft Store). In this case the OS handles
+    /// all updates automatically through the Store and GitHub self-updates
+    /// should be suppressed.
+    /// </summary>
+    public static bool IsRunningAsPackagedApp
+    {
+        get
+        {
+            try
+            {
+                // Package.Current throws InvalidOperationException for unpackaged apps.
+                var _ = Package.Current;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
+
+    /// <summary>
     /// Checks the GitHub Releases API for the latest published release.
+    /// Returns null immediately when the app is running as a packaged MSIX
+    /// (Microsoft Store manages updates in that case).
     /// </summary>
     public static async Task<AppReleaseInfo?> CheckForUpdatesAsync(CancellationToken ct = default)
     {
+        // When installed from the Microsoft Store, updates are managed by the
+        // Store automatically — suppress the GitHub updater entirely.
+        if (IsRunningAsPackagedApp)
+            return null;
+
         try
         {
             var response = await Http.GetAsync(GitHubApiLatestReleaseUrl, ct);
