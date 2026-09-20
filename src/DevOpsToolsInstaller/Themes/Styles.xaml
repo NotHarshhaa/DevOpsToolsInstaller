@@ -57,23 +57,6 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#383838" />
 
-            <!-- Redesigned Catalog Glowing Brushes (Dark) -->
-            <SolidColorBrush x:Key="CatalogCardBackgroundBrush" Color="#131924" />
-            <SolidColorBrush x:Key="CatalogCardBorderCyanBrush" Color="#00D2FF" />
-            <SolidColorBrush x:Key="CatalogCardBorderPurpleBrush" Color="#8B5CF6" />
-            <SolidColorBrush x:Key="CatalogCategoryPillBackgroundBrush" Color="#1A2333" />
-            <SolidColorBrush x:Key="CatalogCategoryPillBorderBrush" Color="#2A374E" />
-            <SolidColorBrush x:Key="CatalogCategoryPillForegroundBrush" Color="#94A3B8" />
-            <SolidColorBrush x:Key="CatalogInstallButtonBackgroundBrush" Color="#00D2FF" />
-            <SolidColorBrush x:Key="CatalogInstallButtonForegroundBrush" Color="#07151E" />
-            <SolidColorBrush x:Key="CatalogInstallButtonHoverBrush" Color="#38E1FF" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonBackgroundBrush" Color="#25183E" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonBorderBrush" Color="#8B5CF6" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonForegroundBrush" Color="#C084FC" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonHoverBrush" Color="#332152" />
-            <SolidColorBrush x:Key="CatalogVersionForegroundBrush" Color="#94A3B8" />
-            <SolidColorBrush x:Key="CatalogCubeGlyphCyanBrush" Color="#00D2FF" />
-            <SolidColorBrush x:Key="CatalogCubeGlyphPurpleBrush" Color="#C084FC" />
             <SolidColorBrush x:Key="CatalogFooterForegroundBrush" Color="#64748B" />
         </ResourceDictionary>
 
@@ -125,23 +108,6 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#E5E5E5" />
 
-            <!-- Redesigned Catalog Glowing Brushes (Light) -->
-            <SolidColorBrush x:Key="CatalogCardBackgroundBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="CatalogCardBorderCyanBrush" Color="#0284C7" />
-            <SolidColorBrush x:Key="CatalogCardBorderPurpleBrush" Color="#7C3AED" />
-            <SolidColorBrush x:Key="CatalogCategoryPillBackgroundBrush" Color="#F1F5F9" />
-            <SolidColorBrush x:Key="CatalogCategoryPillBorderBrush" Color="#CBD5E1" />
-            <SolidColorBrush x:Key="CatalogCategoryPillForegroundBrush" Color="#475569" />
-            <SolidColorBrush x:Key="CatalogInstallButtonBackgroundBrush" Color="#0284C7" />
-            <SolidColorBrush x:Key="CatalogInstallButtonForegroundBrush" Color="#FFFFFF" />
-            <SolidColorBrush x:Key="CatalogInstallButtonHoverBrush" Color="#0369A1" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonBackgroundBrush" Color="#F3E8FF" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonBorderBrush" Color="#A855F7" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonForegroundBrush" Color="#7E22CE" />
-            <SolidColorBrush x:Key="CatalogInstalledButtonHoverBrush" Color="#E9D5FF" />
-            <SolidColorBrush x:Key="CatalogVersionForegroundBrush" Color="#64748B" />
-            <SolidColorBrush x:Key="CatalogCubeGlyphCyanBrush" Color="#0284C7" />
-            <SolidColorBrush x:Key="CatalogCubeGlyphPurpleBrush" Color="#7C3AED" />
             <SolidColorBrush x:Key="CatalogFooterForegroundBrush" Color="#64748B" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
@@ -331,39 +297,6 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0" />
-    </Style>
-
-    <!-- ═══════════════════════════════════════════════════════════ -->
-    <!--  REDESIGNED TOOL CATALOG CARD BUTTON STYLES                 -->
-    <!-- ═══════════════════════════════════════════════════════════ -->
-
-    <!-- Vibrant Install Button (Solid Cyan in Dark, Solid Azure in Light) -->
-    <Style x:Key="CatalogInstallButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource CatalogInstallButtonBackgroundBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource CatalogInstallButtonForegroundBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="18,6" />
-        <Setter Property="MinHeight" Value="32" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
-    </Style>
-
-    <!-- Muted Violet Installed Button (Purple pill matching screenshot) -->
-    <Style x:Key="CatalogInstalledButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource CatalogInstalledButtonBackgroundBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource CatalogInstalledButtonForegroundBrush}" />
-        <Setter Property="BorderBrush" Value="{ThemeResource CatalogInstalledButtonBorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16,5" />
-        <Setter Property="MinHeight" Value="32" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
-        <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
 
 </ResourceDictionary>
