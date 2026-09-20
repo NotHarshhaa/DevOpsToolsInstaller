@@ -1,0 +1,25 @@
+name: Publish to WinGet
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 2.1.0)'
+        required: false
+
+jobs:
+  winget:
+    name: Publish to WinGet Community Repository
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Submit package to Windows Package Manager Community Repository
+        uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: NotHarshhaa.DevOpsToolsInstaller
+          installers-regex: 'DevOpsToolsInstaller_x64_Setup\.exe$'
+          token: ${{ secrets.WINGET_TOKEN || secrets.GH_TOKEN }}

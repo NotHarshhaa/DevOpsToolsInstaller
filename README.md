@@ -257,14 +257,21 @@ DevOpsToolsInstaller includes an integrated, zero-friction updater:
 
 DevOpsToolsInstaller provides two official distribution formats available from [GitHub Releases](https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest):
 
-### 🧙 Option 1: Windows Setup Wizard (Recommended)
+### ⚡ Option 1: Windows Package Manager (WinGet)
+Install directly from your terminal using native Windows Package Manager:
+```powershell
+winget install DevOpsToolsInstaller
+```
+*(or explicitly by package ID: `winget install --id NotHarshhaa.DevOpsToolsInstaller`)*
+
+### 🧙 Option 2: Windows Setup Wizard (Recommended)
 Download **`DevOpsToolsInstaller_x64_Setup.exe`**:
 - **System or User Installation**: Installs all application binaries, WinUI 3 libraries, vector logos, and catalogs to `C:\Program Files\DevOpsToolsInstaller` (or a custom location on `C:\`).
 - **Desktop & Start Menu Shortcuts**: Automatically configures accessible shortcuts.
 - **Automatic PATH Configuration**: Registers the application directory in your system or user PATH environment variable.
 - **Clean Uninstallation**: Fully integrated with Windows Settings (*Installed apps* / *Programs and Features*).
 
-### 🚀 Option 2: Portable Single-File Executable
+### 🚀 Option 3: Portable Single-File Executable
 Download **`DevOpsToolsInstaller_x64.exe`** (or `_arm64.exe` for ARM64 devices):
 - Single self-contained executable with embedded compression.
 - Completely portable: drop it onto a USB drive, `Downloads`, or `Desktop` and launch immediately with zero installation.
