@@ -101,7 +101,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         }
     }
 
-    private double _progress;
+        private double _progress;
     public double Progress
     {
         get => _progress;
@@ -110,6 +110,21 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             if (Math.Abs(_progress - value) > 0.001)
             {
                 _progress = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private string _downloadSpeed = string.Empty;
+    [JsonIgnore]
+    public string DownloadSpeed
+    {
+        get => _downloadSpeed;
+        set
+        {
+            if (_downloadSpeed != value)
+            {
+                _downloadSpeed = value;
                 OnPropertyChanged();
             }
         }

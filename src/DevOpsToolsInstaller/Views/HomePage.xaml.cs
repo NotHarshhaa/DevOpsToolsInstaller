@@ -1,21 +1,25 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
+using DevOpsToolsInstaller.ViewModels;
 
 namespace DevOpsToolsInstaller.Views;
 
 public sealed partial class HomePage : Page
 {
-    private string? _updateUrl;
-    private AppReleaseInfo? _discoveredRelease;
+    public HomeViewModel ViewModel { get; }
 
     public HomePage()
     {
+        ViewModel = new HomeViewModel();
+        DataContext = ViewModel;
         InitializeComponent();
-        HeroLogoImage.Source = AppLogoHelper.GetLogoImage();
+
         Loaded += HomePage_Loaded;
     }
 
@@ -24,111 +28,165 @@ public sealed partial class HomePage : Page
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
-        try
-        {
-            await mw.EnsureCatalogLoadedAsync();
-        }
-        catch
-        {
-            ToolCountText.Text = "Error";
-            ToolCountLabel.Text = "Failed to load catalog";
-            return;
-        }
-
-        // Update stats
-        ToolCountText.Text = mw.Tools.Count > 0 ? mw.Tools.Count.ToString() : "90";
-        ToolCountLabel.Text = "Catalog Tools";
-
-        var downloaded = mw.Tools.Count(t => t.Status == Models.ToolStatus.Downloaded);
-        DownloadedCountText.Text = downloaded.ToString();
-        DownloadedCountLabel.Text = "Installed / On PATH";
-
-        var categories = mw.Tools.Select(t => t.Category).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().Count();
-        CategoriesCountText.Text = categories > 0 ? categories.ToString() : "10";
-
-        BundlesCountText.Text = mw.Bundles.Count > 0 ? mw.Bundles.Count.ToString() : "12";
-
-        // Check for updates (fire-and-forget, non-blocking)
-        _ = CheckForUpdatesAsync();
+        await ViewModel.LoadDashboardAsync(mw);
     }
 
-    private async Task CheckForUpdatesAsync()
+    private async void RetryScan_Click(object sender, RoutedEventArgs e)
     {
-        if (!SettingsService.CheckForUpdatesOnStartup)
-            return;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
 
-        try
-        {
-            var release = await AppUpdaterService.CheckForUpdatesAsync();
-            if (release is { IsUpdateAvailable: true })
-            {
-                _discoveredRelease = release;
-                _updateUrl = release.HtmlUrl;
-                UpdateInfoBar.Title = $"Update Available — {release.TagName}";
-                UpdateInfoBar.Message = string.IsNullOrWhiteSpace(release.Title)
-                    ? "A newer version of DevOps Tools Installer is available with updates and improvements."
-                    : release.Title;
-                UpdateInfoBar.IsOpen = true;
-            }
-        }
-        catch
-        {
-            // Silently ignore — update check is best-effort
-        }
+        await ViewModel.LoadDashboardAsync(mw);
     }
 
-    private async void UpdateNow_Click(object sender, RoutedEventArgs e)
-    {
-        if (_discoveredRelease != null)
-        {
-            await Controls.UpdateDialog.ShowAsync(this.XamlRoot, _discoveredRelease);
-        }
-        else if (!string.IsNullOrWhiteSpace(_updateUrl))
-        {
-            LauncherService.OpenUrl(_updateUrl);
-        }
-    }
-
-    private void UpdateLink_Click(object sender, RoutedEventArgs e)
-    {
-        if (!string.IsNullOrWhiteSpace(_updateUrl))
-            LauncherService.OpenUrl(_updateUrl);
-        else if (_discoveredRelease != null)
-            LauncherService.OpenUrl(_discoveredRelease.HtmlUrl);
-    }
-
-    private void Catalog_Click(object sender, RoutedEventArgs e)
+    private void BrowseCatalog_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Catalog");
 
-    private void Downloads_Click(object sender, RoutedEventArgs e)
-        => App.MainWindowInstance?.NavigateTo("Downloads");
-
-    private void BrowseAllBundles_Click(object sender, RoutedEventArgs e)
+    private void SeeAllStacks_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Stacks");
 
+    private void InstalledMetric_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("Installed");
 
-    private void SelectBundle_Click(object sender, RoutedEventArgs e)
+    private void UpdatesMetric_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("Installed");
+
+    private void DownloadsMetric_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("Downloads");
+
+    private void MetricGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string bundleId)
+        if (MetricCardInstalled == null || MetricCardUpdates == null ||
+            MetricCardDownloads == null || MetricCardPath == null) return;
+
+        if (e.NewSize.Width < 880)
         {
-            App.MainWindowInstance?.NavigateToCatalogWithBundle(bundleId);
+            // 2x2 layout below 880-900px
+            Grid.SetRow(MetricCardInstalled, 0); Grid.SetColumn(MetricCardInstalled, 0); Grid.SetColumnSpan(MetricCardInstalled, 2);
+            Grid.SetRow(MetricCardUpdates, 0); Grid.SetColumn(MetricCardUpdates, 2); Grid.SetColumnSpan(MetricCardUpdates, 2);
+            Grid.SetRow(MetricCardDownloads, 1); Grid.SetColumn(MetricCardDownloads, 0); Grid.SetColumnSpan(MetricCardDownloads, 2);
+            Grid.SetRow(MetricCardPath, 1); Grid.SetColumn(MetricCardPath, 2); Grid.SetColumnSpan(MetricCardPath, 2);
+        }
+        else
+        {
+            // 1x4 layout
+            Grid.SetRow(MetricCardInstalled, 0); Grid.SetColumn(MetricCardInstalled, 0); Grid.SetColumnSpan(MetricCardInstalled, 1);
+            Grid.SetRow(MetricCardUpdates, 0); Grid.SetColumn(MetricCardUpdates, 1); Grid.SetColumnSpan(MetricCardUpdates, 1);
+            Grid.SetRow(MetricCardDownloads, 0); Grid.SetColumn(MetricCardDownloads, 2); Grid.SetColumnSpan(MetricCardDownloads, 1);
+            Grid.SetRow(MetricCardPath, 0); Grid.SetColumn(MetricCardPath, 3); Grid.SetColumnSpan(MetricCardPath, 1);
         }
     }
 
-    private void ToolCard_Click(object sender, RoutedEventArgs e)
+    private void PathMetric_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string toolId)
+        if (sender is FrameworkElement element)
+        {
+            PathDetailsFlyout.ShowAt(element);
+        }
+    }
+
+    private void OpenBinFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(ViewModel.PathBinFolder))
+        {
+            LauncherService.OpenDownloadsFolder(ViewModel.PathBinFolder);
+        }
+    }
+
+    private void CopyBinFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(ViewModel.PathBinFolder))
+        {
+            try
+            {
+                var package = new DataPackage();
+                package.SetText(ViewModel.PathBinFolder);
+                Clipboard.SetContent(package);
+            }
+            catch
+            {
+                // Clipboard copy fallback
+            }
+        }
+    }
+
+    private void StackAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: HomeStackItemViewModel stackModel })
         {
             var mw = App.MainWindowInstance;
             if (mw is null) return;
 
-            var tool = mw.Tools.FirstOrDefault(t => string.Equals(t.Id, toolId, StringComparison.OrdinalIgnoreCase));
-            var query = tool?.Name ?? toolId;
-            mw.NavigateToCatalogWithSearch(query);
+            if (stackModel.IsComplete)
+            {
+                mw.NavigateToCatalogWithBundle(stackModel.Id);
+            }
+            else
+            {
+                ViewModel.InstallStack(stackModel, mw);
+            }
         }
     }
 
-    private void SecurityDisclosures_Click(object sender, RoutedEventArgs e)
-        => App.MainWindowInstance?.NavigateTo("About");
-}
+    private async void UpdateTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ToolDefinition tool })
+        {
+            var mw = App.MainWindowInstance;
+            if (mw is null) return;
 
+            await ViewModel.UpdateToolAsync(tool, mw);
+        }
+    }
+
+    private async void UpdateAll_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        await ViewModel.UpdateAllAsync(mw);
+    }
+
+    private async void InstallPopularTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ToolDefinition tool })
+        {
+            var mw = App.MainWindowInstance;
+            if (mw is null) return;
+
+            await ViewModel.InstallToolAsync(tool, mw);
+        }
+    }
+
+    private void PopularToolRow_Click(object sender, ItemClickEventArgs e)
+    {
+        if (e.ClickedItem is HomePopularToolItemViewModel item)
+        {
+            var mw = App.MainWindowInstance;
+            if (mw is null) return;
+
+            mw.NavigateToCatalogWithSearch(item.Name);
+        }
+    }
+
+    private void SetupSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            var mw = App.MainWindowInstance;
+            if (mw is null) return;
+
+            ViewModel.UpdateSearchSuggestions(sender.Text?.Trim() ?? string.Empty, mw);
+            sender.ItemsSource = ViewModel.SearchSuggestions;
+        }
+    }
+
+    private void SetupSearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        var query = args.QueryText?.Trim();
+        if (!string.IsNullOrEmpty(query))
+        {
+            App.MainWindowInstance?.NavigateToCatalogWithSearch(query);
+        }
+    }
+}

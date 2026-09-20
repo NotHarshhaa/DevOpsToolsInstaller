@@ -93,6 +93,10 @@ public sealed class DownloadService
             response.EnsureSuccessStatusCode();
 
             var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            long lastSpeedBytes = 0;
+            long lastSpeedTimeMs = 0;
+
             await using (var stream = await response.Content.ReadAsStreamAsync(ct))
             await using (var fileStream = File.Create(destPath))
             {
@@ -105,6 +109,17 @@ public sealed class DownloadService
                 {
                     await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct);
                     totalRead += bytesRead;
+
+                    var elapsedMs = sw.ElapsedMilliseconds;
+                    if (elapsedMs - lastSpeedTimeMs >= 400)
+                    {
+                        var deltaBytes = totalRead - lastSpeedBytes;
+                        var deltaTimeSec = (elapsedMs - lastSpeedTimeMs) / 1000.0;
+                        var speedMBps = deltaTimeSec > 0 ? (deltaBytes / (1024.0 * 1024.0)) / deltaTimeSec : 0;
+                        tool.DownloadSpeed = $"{speedMBps:F1} MB/s";
+                        lastSpeedBytes = totalRead;
+                        lastSpeedTimeMs = elapsedMs;
+                    }
 
                     if (totalBytes > 0)
                     {
@@ -136,6 +151,7 @@ public sealed class DownloadService
                 throw new CryptographicException("SHA256 checksum verification failed.");
             }
 
+            tool.DownloadSpeed = string.Empty;
             tool.Progress = 100;
             tool.Status = ToolStatus.Downloaded;
             ActivityLogService.Success(tool.Name, "Download completed successfully");
@@ -143,6 +159,7 @@ public sealed class DownloadService
         catch (OperationCanceledException)
         {
             CleanupPartial(destPath);
+            tool.DownloadSpeed = string.Empty;
             tool.Status = ToolStatus.NotDownloaded;
             tool.Progress = 0;
             ActivityLogService.Warn(tool.Name, "Download cancelled by user");
@@ -151,6 +168,7 @@ public sealed class DownloadService
         catch (Exception ex)
         {
             CleanupPartial(destPath);
+            tool.DownloadSpeed = string.Empty;
             tool.Status = ToolStatus.Failed;
             tool.StatusText = $"Failed: {ex.Message}";
             tool.Progress = 0;
