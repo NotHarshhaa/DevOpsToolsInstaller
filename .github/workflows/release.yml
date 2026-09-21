@@ -9,7 +9,7 @@ on:
       version:
         description: 'Version tag (e.g., v2.0.0)'
         required: true
-        default: 'v2.0.0'
+        default: 'v2.5.0'
 
 permissions:
   contents: write
@@ -59,8 +59,11 @@ jobs:
             $iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
           }
           Write-Host "Compiling Inno Setup wizard with $iscc..."
-          & $iscc "/DSourceDir=publish_out" "/DOutputBaseFilename=DevOpsToolsInstaller_x64_Setup" "installer/setup.iss"
-          Move-Item -Path "dist\DevOpsToolsInstaller_x64_Setup.exe" -Destination "publish_out\"
+          $sourceDir = (Resolve-Path "publish_out").Path
+          if (-not (Test-Path "dist")) { New-Item -ItemType Directory -Path "dist" -Force | Out-Null }
+          $outDir = (Resolve-Path "dist").Path
+          & $iscc "/DSourceDir=$sourceDir" "/DOutputDir=$outDir" "/DOutputBaseFilename=DevOpsToolsInstaller_x64_Setup" "installer/setup.iss"
+          Move-Item -Path "dist\DevOpsToolsInstaller_x64_Setup.exe" -Destination "publish_out\" -Force
 
       - name: Build Windows Installer (.msi) (x64)
         if: matrix.arch_name == 'x64'
@@ -70,13 +73,15 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.UI.wixext/5.0.2
 
-          $ver = "2.1.0"
+          $ver = "2.5.0"
           if ($env:GITHUB_REF_NAME -match '^v?(\d+\.\d+\.\d+)') {
             $ver = $Matches[1]
           }
 
           Write-Host "Compiling WiX .msi package (v$ver)..."
-          wix build "installer/setup.wxs" -ext WixToolset.UI.wixext -arch x64 -d "SourceDir=publish_out" -d "AssetsDir=src/DevOpsToolsInstaller/Assets" -d "AppVersion=$ver" -o "publish_out/DevOpsToolsInstaller_x64.msi"
+          $sourceDir = (Resolve-Path "publish_out").Path
+          $assetsDir = (Resolve-Path "src/DevOpsToolsInstaller/Assets").Path
+          wix build "installer/setup.wxs" -ext WixToolset.UI.wixext -arch x64 -d "SourceDir=$sourceDir" -d "AssetsDir=$assetsDir" -d "AppVersion=$ver" -o "publish_out/DevOpsToolsInstaller_x64.msi"
 
       - name: Sign Binaries, Setup Wizard & MSI (Authenticode)
         shell: pwsh
