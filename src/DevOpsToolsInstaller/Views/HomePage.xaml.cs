@@ -77,13 +77,6 @@ public sealed partial class HomePage : Page
         }
     }
 
-    private void PathMetric_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is FrameworkElement element)
-        {
-            PathDetailsFlyout.ShowAt(element);
-        }
-    }
 
     private void OpenBinFolder_Click(object sender, RoutedEventArgs e)
     {

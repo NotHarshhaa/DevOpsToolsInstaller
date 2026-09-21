@@ -253,6 +253,11 @@ public sealed partial class MainWindow : Window
         if (args.SelectedItem is not NavigationViewItem item) return;
         if (item.Tag is not string tag) return;
 
+        NavigateToTag(tag);
+    }
+
+    private void NavigateToTag(string tag)
+    {
         var pageType = tag switch
         {
             "Home"      => typeof(HomePage),
@@ -315,20 +320,21 @@ public sealed partial class MainWindow : Window
     /// </summary>
     public void NavigateTo(string tag)
     {
-        foreach (NavigationViewItem item in NavView.MenuItems)
-        {
-            if (item.Tag as string == tag)
-            {
-                NavView.SelectedItem = item;
-                return;
-            }
-        }
+        var allItems = NavView.MenuItems.OfType<NavigationViewItem>()
+            .Concat(NavView.FooterMenuItems.OfType<NavigationViewItem>());
 
-        foreach (NavigationViewItem item in NavView.FooterMenuItems)
+        foreach (var item in allItems)
         {
             if (item.Tag as string == tag)
             {
-                NavView.SelectedItem = item;
+                if (ReferenceEquals(NavView.SelectedItem, item))
+                {
+                    NavigateToTag(tag);
+                }
+                else
+                {
+                    NavView.SelectedItem = item;
+                }
                 return;
             }
         }

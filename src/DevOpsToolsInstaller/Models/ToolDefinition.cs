@@ -111,9 +111,13 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             {
                 _progress = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(ProgressPercent));
             }
         }
     }
+
+    [JsonIgnore]
+    public int ProgressPercent => (int)Math.Round(Progress);
 
     private string _downloadSpeed = string.Empty;
     [JsonIgnore]
@@ -144,6 +148,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsDownloadedOrInstalled));
                 OnPropertyChanged(nameof(IsDownloading));
                 OnPropertyChanged(nameof(ActionStatusText));
+                OnPropertyChanged(nameof(ActionLabel));
                 UpdateStatusText();
             }
         }
@@ -182,6 +187,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsDownloadedOrInstalled));
                 OnPropertyChanged(nameof(ActionStatusText));
+                OnPropertyChanged(nameof(ActionLabel));
             }
         }
     }
@@ -364,14 +370,32 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     /// The label shown on the post-download action button, per artifact kind.
     /// </summary>
     [JsonIgnore]
-    public string ActionLabel => Kind switch
+    public string ActionLabel
     {
-        ArtifactKind.Installer => "Install",
-        ArtifactKind.Archive   => "Extract",
-        ArtifactKind.Binary    => "Add to Tools",
-        ArtifactKind.Script    => "Open Folder",
-        _                      => "Install"
-    };
+        get
+        {
+            if (IsInstalled)
+            {
+                return Kind switch
+                {
+                    ArtifactKind.Installer => "Installed ✓",
+                    ArtifactKind.Archive   => "Extracted ✓",
+                    ArtifactKind.Binary    => "In Tools\\bin ✓",
+                    ArtifactKind.Script    => "Reviewed ✓",
+                    _                      => "Installed ✓"
+                };
+            }
+
+            return Kind switch
+            {
+                ArtifactKind.Installer => "Install",
+                ArtifactKind.Archive   => "Extract",
+                ArtifactKind.Binary    => "Add to Tools",
+                ArtifactKind.Script    => "Open Folder",
+                _                      => "Install"
+            };
+        }
+    }
 
     /// <summary>
     /// Label for the removal button, matched to how the tool was actioned.

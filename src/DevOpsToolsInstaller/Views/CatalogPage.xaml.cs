@@ -307,7 +307,7 @@ public sealed partial class CatalogPage : Page
 
     private void ToggleFavorite_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
         tool.IsFavorite = FavoritesService.Toggle(tool.Id);
     }
 
@@ -315,7 +315,7 @@ public sealed partial class CatalogPage : Page
 
     private void CopyCommand_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
         var commands = new List<string>();
 
@@ -546,7 +546,7 @@ public sealed partial class CatalogPage : Page
 
     private async void ToolDetails_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
         var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
 
@@ -713,7 +713,7 @@ public sealed partial class CatalogPage : Page
 
     private async void VersionPicker_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
         await ShowVersionPickerDialogAsync(tool);
     }
 

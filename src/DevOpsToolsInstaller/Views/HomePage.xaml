@@ -182,7 +182,6 @@
                     <Button x:Name="MetricCardPath"
                             Grid.Row="0" Grid.Column="3"
                             Style="{StaticResource QuickActionCardStyle}"
-                            Click="PathMetric_Click"
                             AutomationProperties.Name="{Binding PathMetricAutomationName}">
                         <Button.Flyout>
                             <Flyout x:Name="PathDetailsFlyout">

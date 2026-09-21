@@ -56,6 +56,7 @@ public static class CliHealthService
             { "git", ("git.exe", "--version") },
             { "github-cli", ("gh.exe", "--version") },
             { "gitlab-cli", ("glab.exe", "--version") },
+            { "argocd", ("argocd.exe", "version --client") },
             { "argocd-cli", ("argocd.exe", "version --client") },
 
             // Security
@@ -63,6 +64,7 @@ public static class CliHealthService
             { "grype", ("grype.exe", "version") },
             { "syft", ("syft.exe", "version") },
             { "cosign", ("cosign.exe", "version") },
+            { "snyk", ("snyk.exe", "--version") },
             { "snyk-cli", ("snyk.exe", "--version") },
 
             // Utilities

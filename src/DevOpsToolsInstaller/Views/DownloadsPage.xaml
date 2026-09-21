@@ -256,7 +256,7 @@
                                                        Style="{StaticResource CaptionTextBlockStyle}"
                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                        FontWeight="SemiBold" FontSize="11">
-                                                <Run Text="{Binding Progress, Mode=OneWay}" /><Run Text="%" />
+                                                <Run Text="{Binding ProgressPercent, Mode=OneWay}" /><Run Text="%" />
                                             </TextBlock>
                                         </Grid>
 

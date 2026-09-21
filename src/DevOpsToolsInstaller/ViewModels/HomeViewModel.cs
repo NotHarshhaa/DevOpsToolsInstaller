@@ -583,6 +583,14 @@ public sealed partial class HomeViewModel : ObservableObject
             {
                 var dlFolder = DownloadService.DefaultDownloadsFolder;
                 await mw.DownloadSvc.DownloadAsync(tool, dlFolder);
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var installRes = ArtifactService.Perform(tool, dlFolder);
+                    if (installRes.Success)
+                    {
+                        tool.IsInstalled = true;
+                    }
+                }
             }
             catch { }
             finally
@@ -619,6 +627,18 @@ public sealed partial class HomeViewModel : ObservableObject
         {
             var dlFolder = DownloadService.DefaultDownloadsFolder;
             await mw.DownloadSvc.DownloadBatchAsync(toolsToUpdate, dlFolder);
+
+            foreach (var tool in toolsToUpdate)
+            {
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var installRes = ArtifactService.Perform(tool, dlFolder);
+                    if (installRes.Success)
+                    {
+                        tool.IsInstalled = true;
+                    }
+                }
+            }
 
             _ = mw.DispatcherQueue.TryEnqueue(() =>
             {
@@ -670,6 +690,19 @@ public sealed partial class HomeViewModel : ObservableObject
         {
             var dlFolder = DownloadService.DefaultDownloadsFolder;
             await mw.DownloadSvc.DownloadBatchAsync(missingTools, dlFolder);
+
+            foreach (var tool in missingTools)
+            {
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var installRes = ArtifactService.Perform(tool, dlFolder);
+                    if (installRes.Success)
+                    {
+                        tool.IsInstalled = true;
+                    }
+                }
+            }
+
             _ = mw.DispatcherQueue.TryEnqueue(SyncActiveDownloads);
         });
 
