@@ -28,7 +28,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$version = "2.1.0"
+$version = "2.5.0"
 $manifestDir = Join-Path $PSScriptRoot "..\installer\winget\manifests\n\NotHarshhaa\DevOpsToolsInstaller\$version"
 
 if (-not (Test-Path $manifestDir)) {

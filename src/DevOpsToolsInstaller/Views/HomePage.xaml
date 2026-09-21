@@ -26,7 +26,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                         <TextBlock Text="Workstation overview" Style="{StaticResource PageTitleStyle}" />
                         <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
-                            <TextBlock Text="v2.1.0 • WinUI 3" FontSize="11"
+                            <TextBlock Text="v2.5.0 • WinUI 3" FontSize="11"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </Border>
                     </StackPanel>

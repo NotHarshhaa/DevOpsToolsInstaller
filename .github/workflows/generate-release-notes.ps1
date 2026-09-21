@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v2.1.0",
+    [string]$Tag = "v2.5.0",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -35,78 +35,75 @@ if (Test-Path $AssetsDir) {
 }
 
 $template = @'
-# 🚀 DevOps Tools Installer __TAG__
+# 🚀 DevOps Tools Installer __TAG__ Stable Release
 
-Welcome to the **__TAG__** milestone release of **DevOps Tools Installer**!
-This major release transforms DevOps Tools Installer with a completely redesigned **WinUI 3 Gallery aesthetic** featuring **Mica Alt** translucent materials, doubles the catalog from 47 to **90 curated tools** across 10 categories (including 3 brand-new categories), introduces **Curated Stacks** for one-click workstation provisioning and live stack filtering, adds **100% official vector SVG branding**, integrates an **in-app GitHub auto-updater service**, embeds **global sidebar search**, and establishes comprehensive **Security Disclosures and Behavioral Precautions**.
-
----
-
-### ✨ Major Features & What's New
-
-#### 🎨 WinUI 3 Gallery Redesign & Translucent Mica Alt Backdrop
-- **Mica Alt Window Material**: Modernized the application canvas with Windows 11 translucent Mica Alt backdrop styling and custom titlebar bleed-through.
-- **Segoe Fluent Icons**: Replaced emojis across all pages, navigation items, and stack cards with clean, native Segoe Fluent Icons (`\uE...`) for a crisp, enterprise-grade feel.
-- **Polished Card & Chip Styling**: Refined category filter chips, badge containers, and hover states with smooth micro-animations.
-
-#### 📦 Catalog Expanded to 90 Tools with 3 Brand-New Categories
-- **Expanded Coverage**: The catalog has nearly doubled from 47 to **90 essential DevOps, cloud, and engineering tools**.
-- **Three New Categories**:
-  - **🌐 Networking & Tunneling**: `ngrok`, `cloudflared`, `tailscale`, `wireshark`, `nmap`, `ctop`, `k9s`, etc.
-  - **🛡️ Policy, Governance & Compliance**: `trivy`, `checkov`, `tfsec`, `syft`, `grype`, `cosign`, `opa`, etc.
-  - **🗄️ Database & Data DevOps**: `flyway`, `liquibase`, `pgcli`, `mycli`, `usql`, `redis-cli`, etc.
-- **Updated & Verified Endpoints**: All tool download URLs, checksums, and version manifests refreshed and validated.
-
-#### 🖼️ 100% Official Vector SVG Logos
-- Added high-fidelity, scalable official vector SVG logos for **all 90 cataloged tools** in `Assets/logos/`.
-- Crisp rendering across all DPI scaling levels and display resolutions (AWS CLI, Azure CLI, Google Cloud SDK, Terraform, Podman, Trivy, Prometheus, Grafana, Ansible, Git, Docker, and more).
-
-#### 🚀 Curated Stacks & Workstation Presets
-- **Dedicated Full-Page Stacks Navigation**: Replaced popup dialogs with a dedicated **Curated Stacks** view (`StacksPage`) accessible directly from the sidebar.
-- **12 Role-Based Presets**: Ready-to-use bundles including *Kubernetes Platform Engineer*, *Cloud Infrastructure Architect*, *GitOps Specialist*, *SecOps & Compliance Auditor*, *Full-Stack DevOps*, *Linux SysAdmin*, *Observability Specialist*, and more.
-- **Dual-Action Workflow**:
-  - **Install Stack**: Queue and batch-install all tools in a bundle with a single click.
-  - **Select Stack**: Live-filter the Catalog to only show tools matching the chosen stack, accompanied by an interactive active stack banner and quick-clear action.
-- **Per-Tool Status Indicators**: Visual checkmarks and live indicators directly on tool chips within each stack card.
-
-#### 🔍 Global Sidebar Search (AutoSuggestBox)
-- Integrated an **AutoSuggestBox** directly into the left navigation pane.
-- Allows instant searching from anywhere in the application with automatic navigation and live query forwarding into the Catalog view.
-
-#### 🔄 In-App GitHub Auto-Updater Service
-- **Automatic & Manual Checks**: Automatically queries the GitHub Releases API on startup, with a manual **"Check for Updates"** button in Settings.
-- **Interactive Update Dialog**: Displays release notes, asset sizes, and a real-time progress bar during download.
-- **Safe Staging & Restart**: Downloads the latest release, verifies checksums, safely stages the new executable, and restarts seamlessly.
-
-#### 🛡️ Security Disclosures, Behavioral Precautions & Disclaimers
-- **Transparent Behavioral Disclosures**: Added dedicated disclosures detailing:
-  - UAC privilege escalation requirements for vendor `.exe`/`.msi` installers.
-  - User and System `PATH` modifications with idempotency guarantees.
-  - Isolated tool sandbox storage in `%LOCALAPPDATA%\DevOpsToolsInstaller\`.
-  - Cryptographic Authenticode signature and SHA-256 hash validation before execution.
-  - Zero telemetry, zero analytics, and zero personal data collection.
-- **Independent Open-Source Disclaimer**: Clearly states third-party tool ownership and vendor software trademarks.
-- **Home Page Quick Access**: Dedicated security card on the Home page deep-linking directly into About page disclosures.
-
-#### ⚡ Portable Single-File Compression
-- Enabled `<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>` in the build configuration, drastically reducing the distribution executable size without sacrificing startup performance.
+Welcome to the **__TAG__** stable milestone release of **DevOps Tools Installer**!
+This major release delivers enterprise deployment packages (**Windows Installer .msi** & **Setup Wizard .exe**), official **WinGet package manager support**, complete **UI & functionality bug fixes**, real-time **download speed tracking & ETA timers**, revamped **Installed page diagnostics with shell completion generator**, **PATH environment health inspection**, and an official **hero showcase banner**.
 
 ---
 
-### 📋 Full Commit Changelog (from v2.0.0 to v2.1.0)
+### ✨ Major Features & What's New in __TAG__
 
-- `dac0c1f` - **feat**: Enhance About and Home pages with security disclosures and transparency features
-- `bec6fd7` - **feat**: Enhance Catalog and Stacks pages with curated stack functionality
-- `8a6053b` - **feat**: Introduce Stacks page and enhance tool bundle navigation
-- `49791d9` - **feat**: Enhance navigation and search functionality in MainWindow
-- `9eb3c26` - **feat**: Add SVG logos for new tools in DevOpsToolsInstaller
-- `0961116` - **feat**: Introduce curated tool bundles and enhance catalog functionality
-- `2ac29f3` - **feat**: Add new bundles and tools to catalog
-- `cb11390` - **feat**: Add new logos for various tools in DevOpsToolsInstaller
-- `cc7d5c7` - **fix**: Update download URLs and version numbers in catalog.json
-- `ecc3b54` - **refactor**: Remove unused AccentButtonStyle and update SelectedCategoryChipStyle
-- `6473cf2` - **feat**: Implement update checking and dialog for application updates
-- `21656f0` - **feat**: Enable compression for single-file publishing
+#### 📦 Enterprise Windows Installer (.msi) & Setup Wizard (.exe)
+- **WiX Toolset v4/v5 MSI Package**: Introduced native `.msi` Windows Installer packages (`DevOpsToolsInstaller_x64.msi`) tailored for enterprise rollouts, Microsoft Intune, SCCM, and Active Directory GPO with silent installation support (`msiexec /i DevOpsToolsInstaller_x64.msi /qn`).
+- **Inno Setup Wizard**: Enhanced the standard setup wizard (`DevOpsToolsInstaller_x64_Setup.exe`) with automated Start Menu shortcuts, Desktop icons, and PATH registration.
+- **Portable Binaries**: Continue providing zero-install self-contained portable executables for both `x64` and `arm64`.
+
+#### 🪟 WinGet Package Manager Integration
+- Added official WinGet package manifests (`NotHarshhaa.DevOpsToolsInstaller`) allowing seamless installation, upgrades, and uninstallation straight from the terminal:
+  ```powershell
+  winget install NotHarshhaa.DevOpsToolsInstaller
+  ```
+- Added automated WinGet manifest submission and validation tooling (`scripts/submit-winget.ps1`).
+
+#### 🛠️ Comprehensive UI & Functionality Hardening
+- **Context Menus & Version Badges Fixed**: Resolved type-casting issues in `CatalogPage` so right-click menu items (*"Favorite"*, *"Copy Install Command"*, *"Tool Details"*) and version picker badges execute reliably from all UI elements.
+- **Category Filter Matching**: Fixed category chip Tag values to strictly match ampersands in `catalog.json` (*"CI/CD & Version Control"*, *"Monitoring & Observability"*, *"Policy & Compliance"*, *"Database & Data"*, *"Editors & Terminals"*).
+- **Automated Artifact Extraction on Home Dashboard**: Installing tools or stacks from the Home page now triggers post-download extraction and binary placement into `Tools\bin` via `ArtifactService`.
+- **CLI Probing & Shell Completion IDs**: Aligned probe command mapping and autocompletion generators for canonical tool IDs (`argocd`, `snyk`).
+- **Clean Percentage Displays & Action Labels**: Formatted download progress percentages into clean whole numbers with responsive post-installation confirmation badges (`Installed ✓`, `Extracted ✓`, `In Tools\bin ✓`).
+
+#### ⚡ Download Speed Tracking & Explorer Integration
+- **Real-Time Transfer Metrics**: Active downloads now calculate and display live download speeds (MB/s) and estimated time remaining.
+- **File Explorer Integration**: 1-click "Show in Folder" opens the exact downloaded artifact in Windows Explorer.
+- **Activity Log Panel**: Collapsible activity log showing timestamps, severity levels, and 1-click clipboard export for troubleshooting.
+
+#### 🩺 Revamped Installed Tools & Shell Completions
+- **CLI Health Probing**: Executes binaries (`--version` / `-v`) non-blockingly to measure runtime responsiveness and execution latency (ms).
+- **Shell Autocompletion Generator**: Automatically generates completion scripts for PowerShell and Bash with 1-click integration into the user's PowerShell `$PROFILE`.
+- **Safe Uninstallation**: Supports vendor Windows uninstallation wizards, archive extraction removal, and binary cleanup from `Tools\bin`.
+
+#### 🔍 PATH Environment Health Diagnostics
+- Dedicated PATH diagnostics inspecting user and process environment variables to verify that `Tools\bin` is active.
+- 1-click "Add to PATH" helper and quick folder access directly from the Home dashboard and Settings.
+
+#### 🎨 Showcase Branding & Documentation
+- Designed and embedded high-resolution hero showcase banner into `README.md`.
+- Added comprehensive `PRIVACY.md` privacy policy detailing zero-telemetry and local-only operation.
+
+---
+
+### 📋 Full Commit Changelog (from v2.1.0 to __TAG__)
+
+- `d44e1d6` - **feat**: Add showcase banner to README and include banner image asset
+- `f4ebc50` - **feat**: Enhance navigation and tool installation logic in MainWindow and HomeViewModel
+- `c9642f5` - **feat**: Add Windows Installer (.msi) support and enhance release notes generation
+- `ac69682` - **feat**: Implement File Explorer Integration and Enhance Downloads Page UI
+- `3fd2122` - **feat**: Enhance About and Settings Pages with New Features and UI Improvements
+- `567e511` - **feat**: Introduce Download Speed Tracking and Path Health Service
+- `9283f52` - **feat**: Revamp Installed Page UI with Enhanced Search and Tool Management
+- `f6dda61` - **feat**: Enhance Tool Bundles with Categories and UI Improvements
+- `4a4881c` - **refactor**: Clean up Styles.xaml and update CatalogPage.xaml layout
+- `da48fba` - **feat**: Revamp Catalog Page UI and enhance Tool Definition properties
+- `735434b` - **feat**: Add Privacy Policy document for DevOps Tools Installer
+- `5e04210` - **fix(winget)**: update LicenseUrl branch to master and add submit-winget script
+- `ea26e53` - **feat**: Update README and add WinGet support for DevOpsToolsInstaller
+- `cd80ba0` - **feat**: Enhance AppUpdaterService with installation detection and asset selection logic
+- `ed5e81d` - **feat**: Add MSIX packaging support and update build process
+- `b74c903` - **docs**: Update README with notes and tips for user guidance
+- `a933cc7` - **feat**: Add code signing support and update README acknowledgements
+- `43a31cb` - **feat**: Add Windows Setup Wizard and update build process
+- `0c6177b` - **feat**: Revise README for clarity and detail enhancement
 
 ---
 
@@ -124,9 +121,13 @@ This major release transforms DevOps Tools Installer with a completely redesigne
 ---
 
 ### 🚀 Quick Start
-- **Option A (Setup Wizard)**: Download and run `DevOpsToolsInstaller_x64_Setup.exe` to install to `C:\Program Files\DevOpsToolsInstaller` (or a custom folder) with automated shortcuts and PATH integration.
-- **Option B (Windows Installer Package)**: Download and run `DevOpsToolsInstaller_x64.msi` for enterprise GPO, Intune, SCCM, or silent rollouts (`msiexec /i DevOpsToolsInstaller_x64.msi /qn`).
-- **Option C (Portable)**: Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe`) and run directly — no installation required.
+- **Option A (WinGet)**:
+  ```powershell
+  winget install NotHarshhaa.DevOpsToolsInstaller
+  ```
+- **Option B (Setup Wizard)**: Download and run `DevOpsToolsInstaller_x64_Setup.exe` to install to `C:\Program Files\DevOpsToolsInstaller` with automated shortcuts and PATH integration.
+- **Option C (Windows Installer Package)**: Download and run `DevOpsToolsInstaller_x64.msi` for enterprise GPO, Intune, SCCM, or silent rollouts (`msiexec /i DevOpsToolsInstaller_x64.msi /qn`).
+- **Option D (Portable)**: Download `DevOpsToolsInstaller_x64.exe` (or `_arm64.exe`) and run directly — no installation required.
 '@
 
 $content = $template.Replace("__TAG__", $Tag).Replace("__SETUP_HASH__", $setupHash).Replace("__MSI_HASH__", $msiHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)

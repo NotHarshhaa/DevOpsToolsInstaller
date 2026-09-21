@@ -7,7 +7,7 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class UpdateCheckerService
 {
-    private const string CurrentVersion = "2.1.0";
+    private const string CurrentVersion = "2.5.0";
     private const string GitHubReleasesUrl =
         "https://api.github.com/repos/NotHarshhaa/DevOpsToolsInstaller/releases/latest";
 
@@ -20,7 +20,7 @@ public static class UpdateCheckerService
             Timeout = TimeSpan.FromSeconds(10)
         };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "DevOpsToolsInstaller/2.1.0 (Windows NT 10.0; Win64; x64)");
+            "DevOpsToolsInstaller/2.5.0 (Windows NT 10.0; Win64; x64)");
         Http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github.v3+json");
     }
 
