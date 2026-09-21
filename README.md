@@ -14,6 +14,10 @@
   <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-green" />
 </p>
 
+<p align="center">
+  <img src="assets/banner.png" alt="DevOps Tools Installer Showcase Banner" width="100%" />
+</p>
+
 A high-performance, native Windows 11 desktop application designed to provision cloud, container, Kubernetes, IaC, security, database, and terminal tools on a fresh workstation in minutes.
 
 > [!NOTE]  
