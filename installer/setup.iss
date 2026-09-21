@@ -54,7 +54,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "addtopath"; Description: "Add application directory to PATH environment variable"; GroupDescription: "System Integration:"
 
 [Files]
-Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*_x64.exe,*_arm64.exe,*_Setup.exe,*.msi"
 
 [Icons]
 Name: "{group}\DevOps Tools Installer"; Filename: "{app}\DevOpsToolsInstaller.exe"
