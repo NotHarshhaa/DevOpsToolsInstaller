@@ -59,3 +59,7 @@ Desktop.ini
 # Output installer directories
 dist/
 release_assets/
+
+# Catalog signing private key — NEVER commit
+catalog/keys/
+*.pem

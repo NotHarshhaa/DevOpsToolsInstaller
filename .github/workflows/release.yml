@@ -38,6 +38,21 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Sign Catalog Files (pinned-key catalog trust)
+        env:
+          CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace("$env:CATALOG_SIGNING_KEY")) {
+            Write-Host "CATALOG_SIGNING_KEY secret is not set. Catalog will ship unsigned - app versions fall back to the embedded catalog." -ForegroundColor Yellow
+            Write-Host "Generate a key with: openssl ecparam -name prime256v1 -genkey -noout -out catalog-signing-key.pem" -ForegroundColor Gray
+            exit 0
+          }
+          $keyPath = Join-Path $env:RUNNER_TEMP "catalog-signing-key.pem"
+          [IO.File]::WriteAllText($keyPath, "$env:CATALOG_SIGNING_KEY`n")
+          .\catalog\sign-catalog.ps1 -KeyPath $keyPath
+          Remove-Item $keyPath -Force
+
       - name: Restore NuGet Packages
         run: dotnet restore src/DevOpsToolsInstaller/DevOpsToolsInstaller.csproj -r ${{ matrix.rid }}
 

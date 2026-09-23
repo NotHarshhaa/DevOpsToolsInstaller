@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
@@ -30,49 +31,87 @@ public sealed class CatalogService
     }
 
     /// <summary>
-    /// Loads the tool catalog. Tries the remote GitHub URL first;
-    /// falls back to the embedded Assets/catalog.json if offline.
+    /// Loads the tool catalog. Uses the remote GitHub copy only when its
+    /// signature verifies against the pinned public key; otherwise falls back
+    /// to the embedded Assets/catalog.json (fail closed against tampering).
     /// </summary>
     public async Task<List<ToolDefinition>> LoadCatalogAsync(CancellationToken ct = default)
     {
-        // 1. Try remote
+        // 1. Try remote (signature-verified)
         try
         {
             var json = await Http.GetStringAsync(RemoteCatalogUrl, ct);
-            var tools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
-            if (tools is { Count: > 0 })
-                return tools;
+            if (await VerifyRemoteSignatureAsync(RemoteCatalogUrl, json, ct))
+            {
+                var tools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
+                if (tools is { Count: > 0 })
+                    return tools;
+            }
+            else
+            {
+                ActivityLogService.Warn(
+                    "Catalog", "Remote catalog signature missing or invalid — using the built-in catalog.");
+            }
         }
         catch
         {
-            // Network unavailable — fall through to embedded copy
+            ActivityLogService.Info(
+                "Catalog", "Remote catalog unreachable — using the built-in catalog.");
         }
 
-        // 2. Embedded fallback
+        // 2. Embedded fallback (baked into the app at build time)
         return LoadEmbeddedCatalog();
     }
 
     /// <summary>
-    /// Loads curated tool bundles. Tries the remote GitHub URL first;
-    /// falls back to the embedded Assets/bundles.json if offline.
+    /// Loads curated tool bundles. Same fail-closed signature policy as the catalog.
     /// </summary>
     public async Task<List<ToolBundle>> LoadBundlesAsync(CancellationToken ct = default)
     {
-        // 1. Try remote
+        // 1. Try remote (signature-verified)
         try
         {
             var json = await Http.GetStringAsync(RemoteBundlesUrl, ct);
-            var bundles = JsonSerializer.Deserialize<List<ToolBundle>>(json, JsonOptions);
-            if (bundles is { Count: > 0 })
-                return bundles;
+            if (await VerifyRemoteSignatureAsync(RemoteBundlesUrl, json, ct))
+            {
+                var bundles = JsonSerializer.Deserialize<List<ToolBundle>>(json, JsonOptions);
+                if (bundles is { Count: > 0 })
+                    return bundles;
+            }
+            else
+            {
+                ActivityLogService.Warn(
+                    "Catalog", "Remote bundles signature missing or invalid — using the built-in stacks.");
+            }
         }
         catch
         {
-            // Network unavailable — fall through to embedded copy
+            ActivityLogService.Info(
+                "Catalog", "Remote bundles unreachable — using the built-in stacks.");
         }
 
-        // 2. Embedded fallback
+        // 2. Embedded fallback (baked into the app at build time)
         return LoadEmbeddedBundles();
+    }
+
+    /// <summary>
+    /// Fetches the base64 ECDSA signature (&lt;url&gt;.sig) for a remote catalog
+    /// file and verifies it against the pinned public key over the exact bytes
+    /// served for the file.
+    /// </summary>
+    private static async Task<bool> VerifyRemoteSignatureAsync(
+        string fileUrl, string content, CancellationToken ct)
+    {
+        try
+        {
+            var signature = await Http.GetStringAsync(fileUrl + ".sig", ct);
+            return CatalogSignatureService.Verify(Encoding.UTF8.GetBytes(content), signature.Trim());
+        }
+        catch
+        {
+            // Missing signature file (404) or fetch failure counts as unsigned.
+            return false;
+        }
     }
 
     /// <summary>
