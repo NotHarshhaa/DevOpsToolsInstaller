@@ -10,10 +10,11 @@
 
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Default">
-            <!-- Neutral Windows Theme brushes (Dark) -->
-            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="#1F6FEB" />
-            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="#388BFD" />
-            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="#1158C7" />
+            <!-- Accent follows the user's Windows accent color (native Win11 behavior).
+                 Dark theme: hover lightens, pressed darkens. -->
+            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="{ThemeResource SystemAccentColor}" />
+            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="{ThemeResource SystemAccentColorLight1}" />
+            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="{ThemeResource SystemAccentColorDark1}" />
             <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
 
             <!-- Neutral Tags & Badges -->
@@ -57,14 +58,14 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#383838" />
 
-            <SolidColorBrush x:Key="CatalogFooterForegroundBrush" Color="#64748B" />
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
-            <!-- Neutral Windows Theme brushes (Light) -->
-            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="#0067C0" />
-            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="#1975C5" />
-            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="#005BA1" />
+            <!-- Accent follows the user's Windows accent color (native Win11 behavior).
+                 Light theme: hover/pressed darken. -->
+            <SolidColorBrush x:Key="CustomAccentPrimaryBrush" Color="{ThemeResource SystemAccentColor}" />
+            <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="{ThemeResource SystemAccentColorDark1}" />
+            <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="{ThemeResource SystemAccentColorDark2}" />
             <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
 
             <!-- Neutral Tags & Badges -->
@@ -108,7 +109,6 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#E5E5E5" />
 
-            <SolidColorBrush x:Key="CatalogFooterForegroundBrush" Color="#64748B" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

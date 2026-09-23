@@ -29,7 +29,10 @@
 
             <!-- SECTION 1: APPEARANCE -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Appearance &amp; Personalization" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE790;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Appearance &amp; Personalization" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
                 <Border Style="{StaticResource CardStyle}" Padding="18">
                     <Grid ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
@@ -64,7 +67,10 @@
 
             <!-- SECTION 2: DIRECTORIES & ENVIRONMENT -->
             <StackPanel Spacing="10">
-                <TextBlock Text="Directories &amp; Environment" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Directories &amp; Environment" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
 
                 <!-- Downloads folder -->
                 <Border Style="{StaticResource CardStyle}" Padding="18">
@@ -192,7 +198,10 @@
 
             <!-- SECTION 3: SYSTEM INTEGRATION & TERMINAL -->
             <StackPanel Spacing="10">
-                <TextBlock Text="System Integration &amp; Terminal" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE756;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="System Integration &amp; Terminal" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
 
                 <!-- Shell Autocompletion -->
                 <Border Style="{StaticResource CardStyle}" Padding="18">
@@ -281,7 +290,10 @@
 
             <!-- SECTION 4: SOFTWARE UPDATES -->
             <StackPanel Spacing="8">
-                <TextBlock Text="Software Updates &amp; Releases" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE895;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Software Updates &amp; Releases" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
                 <Border Style="{StaticResource CardStyle}" Padding="18">
                     <StackPanel Spacing="16">
                         <Grid ColumnSpacing="16">
@@ -375,7 +387,10 @@
 
             <!-- SECTION 5: ABOUT & MAINTAINER SPOTLIGHT -->
             <StackPanel Spacing="8">
-                <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" Margin="4,0,0,0" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE946;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
                 <Border Style="{StaticResource CardStyle}" Padding="20">
                     <Grid ColumnSpacing="18">
                         <Grid.ColumnDefinitions>

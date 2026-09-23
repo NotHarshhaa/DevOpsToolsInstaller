@@ -60,58 +60,48 @@
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  COMMAND BAR                       -->
+        <!--  NATIVE COMMAND BAR                -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Padding="12,8"
-                SizeChanged="CommandBar_SizeChanged">
-            <Grid x:Name="CommandBarGrid" ColumnSpacing="8" RowSpacing="8">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition x:Name="SecondRowDef" Height="0" />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="SearchColDef" Width="*" />
-                    <ColumnDefinition x:Name="ToolbarColDef" Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                <!-- Search box -->
-                <AutoSuggestBox
-                    Grid.Row="0" Grid.Column="0"
-                    x:Name="SearchBox"
-                    PlaceholderText="Search tools, categories, descriptions…"
-                    QueryIcon="Find"
-                    MinWidth="180"
-                    MaxWidth="360"
-                    HorizontalAlignment="Stretch"
-                    CornerRadius="4"
-                    TextChanged="SearchBox_TextChanged" />
+            <!-- Search box -->
+            <AutoSuggestBox
+                Grid.Column="0"
+                x:Name="SearchBox"
+                Width="340"
+                PlaceholderText="Search tools, categories, descriptions…"
+                QueryIcon="Find"
+                VerticalAlignment="Center"
+                TextChanged="SearchBox_TextChanged" />
 
-                <!-- Dynamic responsive toolbar options -->
-                <controls:WrapPanel
-                    Grid.Row="0" Grid.Column="1"
-                    x:Name="ToolbarPanel"
-                    HorizontalSpacing="6"
-                    VerticalSpacing="6">
-                    <ProgressRing x:Name="BusyRing" Width="18" Height="18" Visibility="Collapsed" />
-                    <TextBlock x:Name="StatusText" VerticalAlignment="Center" Margin="0,0,4,0"
-                               FontSize="12"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                    <!-- Separator 1 -->
-                    <Border x:Name="Separator1" Width="1" Height="20" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            VerticalAlignment="Center" Margin="2,0" />
-
-                    <!-- Sort dropdown -->
-                    <DropDownButton x:Name="SortButton" CornerRadius="4" Padding="10,6"
-                                    ToolTipService.ToolTip="Sort tools">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8CB;" FontSize="13" />
-                            <TextBlock x:Name="SortButtonText" Text="Sort" />
-                        </StackPanel>
-                        <DropDownButton.Flyout>
+            <!-- Native Win11 CommandBar: overflow, hover and keyboard handling for free -->
+            <CommandBar
+                Grid.Column="1"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                DefaultLabelPosition="Right"
+                IsOpen="False"
+                OverflowButtonVisibility="Collapsed"
+                Background="Transparent">
+                <CommandBar.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,12,0">
+                        <ProgressRing x:Name="BusyRing" Width="18" Height="18" Visibility="Collapsed" />
+                        <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                                   FontSize="12"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </CommandBar.Content>
+                <CommandBar.PrimaryCommands>
+                    <AppBarButton x:Name="SortButton" Label="Sort" ToolTipService.ToolTip="Sort tools">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8CB;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="A → Z" Tag="az" Click="Sort_Click" />
                                 <MenuFlyoutItem Text="Z → A" Tag="za" Click="Sort_Click" />
@@ -122,65 +112,44 @@
                                 <MenuFlyoutItem Text="Downloaded first" Tag="downloaded" Click="Sort_Click" />
                                 <MenuFlyoutItem Text="Favorites first" Tag="favorites" Click="Sort_Click" />
                             </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
 
-                    <!-- Downloaded-only toggle -->
-                    <ToggleButton x:Name="DownloadedOnlyToggle" Click="DownloadedOnly_Click"
-                                  CornerRadius="4" Padding="10,6"
-                                  ToolTipService.ToolTip="Filter downloaded tools only">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE896;" FontSize="13" />
-                            <TextBlock x:Name="DownloadedToggleText" Text="Downloaded" />
-                        </StackPanel>
-                    </ToggleButton>
+                    <AppBarToggleButton x:Name="DownloadedOnlyToggle" Label="Downloaded" Click="DownloadedOnly_Click"
+                                        ToolTipService.ToolTip="Filter downloaded tools only">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE896;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
 
-                    <!-- Separator 2 -->
-                    <Border x:Name="Separator2" Width="1" Height="20" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            VerticalAlignment="Center" Margin="2,0" />
-
-                    <!-- Presets dropdown -->
-                    <DropDownButton x:Name="PresetsButton" CornerRadius="4" Padding="10,6"
-                                    ToolTipService.ToolTip="Curated tool preset stacks">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE71D;" FontSize="13" />
-                            <TextBlock x:Name="PresetsButtonText" Text="Presets" />
-                        </StackPanel>
-                        <DropDownButton.Flyout>
+                    <AppBarButton x:Name="PresetsButton" Label="Presets" ToolTipService.ToolTip="Curated tool preset stacks">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE71D;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
                             <MenuFlyout x:Name="PresetsMenuFlyout" />
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
 
-                    <!-- Select all -->
-                    <Button x:Name="SelectAllButton" Click="SelectAll_Click" CornerRadius="4" Padding="10,6"
-                            ToolTipService.ToolTip="Select all visible tools">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8B3;" FontSize="13" />
-                            <TextBlock x:Name="SelectAllButtonText" Text="Select all" />
-                        </StackPanel>
-                    </Button>
+                    <AppBarButton x:Name="SelectAllButton" Label="Select all" Click="SelectAll_Click"
+                                  ToolTipService.ToolTip="Select all visible tools">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B3;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
 
-                    <!-- Clear selection -->
-                    <Button x:Name="ClearButton" Click="Clear_Click" CornerRadius="4" Padding="10,6"
-                            ToolTipService.ToolTip="Deselect all tools">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE894;" FontSize="13" />
-                            <TextBlock x:Name="ClearButtonText" Text="Clear" />
-                        </StackPanel>
-                    </Button>
+                    <AppBarButton x:Name="ClearButton" Label="Clear" Click="Clear_Click"
+                                  ToolTipService.ToolTip="Deselect all tools">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE894;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
 
-                    <!-- Separator 3 -->
-                    <Border x:Name="Separator3" Width="1" Height="20" Background="{ThemeResource DividerStrokeColorDefaultBrush}"
-                            VerticalAlignment="Center" Margin="2,0" />
-
-                    <!-- Profile Export/Import menu -->
-                    <DropDownButton x:Name="ProfileButton" CornerRadius="4" Padding="10,6"
-                                    ToolTipService.ToolTip="Import or export tool selection profile">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE8B7;" FontSize="13" />
-                            <TextBlock x:Name="ProfileButtonText" Text="Profile" />
-                        </StackPanel>
-                        <DropDownButton.Flyout>
+                    <AppBarButton x:Name="ProfileButton" Label="Profile" ToolTipService.ToolTip="Import or export tool selection profile">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
                             <MenuFlyout>
                                 <MenuFlyoutItem Text="Export Selection…" Click="Export_Click">
                                     <MenuFlyoutItem.Icon>
@@ -193,30 +162,29 @@
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                             </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
 
-                    <!-- Cancel button -->
-                    <Button x:Name="CancelButton" Visibility="Collapsed" Click="CancelDownload_Click"
-                            CornerRadius="4" Padding="10,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE711;" FontSize="12" />
-                            <TextBlock Text="Cancel" />
-                        </StackPanel>
-                    </Button>
+                    <AppBarButton x:Name="CancelButton" Label="Cancel" Visibility="Collapsed" Click="CancelDownload_Click">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE711;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                </CommandBar.PrimaryCommands>
+            </CommandBar>
 
-                    <!-- Download CTA button -->
-                    <Button x:Name="DownloadButton" Style="{StaticResource AccentButtonStyle}"
-                            Click="Download_Click" Padding="12,6"
-                            ToolTipService.ToolTip="Download and install selected tools">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE896;" FontSize="13" />
-                            <TextBlock x:Name="DownloadButtonText" Text="Download selected" FontWeight="SemiBold" />
-                        </StackPanel>
-                    </Button>
-                </controls:WrapPanel>
+            <!-- Download CTA button -->
+            <Button Grid.Column="2" x:Name="DownloadButton"
+                    Style="{StaticResource AccentButtonStyle}"
+                    Click="Download_Click" Padding="14,7"
+                    VerticalAlignment="Center"
+                    ToolTipService.ToolTip="Download and install selected tools">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE896;" FontSize="13" />
+                    <TextBlock x:Name="DownloadButtonText" Text="Download selected" FontWeight="SemiBold" />
+                </StackPanel>
+            </Button>
         </Grid>
-    </Border>
 
         <!-- ══════════════════════════════════ -->
         <!--  CATEGORY FILTER CHIPS             -->
@@ -467,13 +435,13 @@
                        x:Name="FooterStatusText"
                        Text="90 Tools Available | Last Sync: Just now"
                        FontSize="12"
-                       Foreground="{ThemeResource CatalogFooterForegroundBrush}"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                        VerticalAlignment="Center" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                 <HyperlinkButton Content="Refresh Catalog" Click="RefreshCatalog_Click"
                                  FontSize="11" Padding="4,2"
-                                 Foreground="{ThemeResource CatalogFooterForegroundBrush}" />
+                                 Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
             </StackPanel>
         </Grid>
     </Grid>

@@ -52,35 +52,29 @@
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  COMMAND BAR / SEARCH              -->
+        <!--  SEARCH & STATUS                   -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Padding="12,8">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
 
-                <AutoSuggestBox
-                    Grid.Column="0"
-                    x:Name="SearchBox"
-                    PlaceholderText="Search stacks, included tools (e.g. docker, terraform, k8s), or workflows…"
-                    QueryIcon="Find"
-                    MaxWidth="450"
-                    HorizontalAlignment="Left"
-                    CornerRadius="4"
-                    TextChanged="SearchBox_TextChanged" />
+            <AutoSuggestBox
+                Grid.Column="0"
+                x:Name="SearchBox"
+                Width="380"
+                HorizontalAlignment="Left"
+                PlaceholderText="Search stacks, included tools (e.g. docker, terraform, k8s), or workflows…"
+                QueryIcon="Find"
+                VerticalAlignment="Center"
+                TextChanged="SearchBox_TextChanged" />
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                               FontSize="12"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-            </Grid>
-        </Border>
+            <TextBlock Grid.Column="1" x:Name="StatusText" VerticalAlignment="Center"
+                       HorizontalAlignment="Right"
+                       FontSize="12"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Grid>
 
         <!-- ══════════════════════════════════ -->
         <!--  CATEGORY FILTER CHIPS             -->
@@ -314,25 +308,18 @@
         <!-- ══════════════════════════════════ -->
         <!--  FOOTER STATUS BAR                 -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="4"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="6" Padding="12,6" Margin="0,4,0,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE71D;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <TextBlock x:Name="FooterStatusText" Text="12 Stacks Available  •  DevOps Tools Installer"
-                               FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-
-                <TextBlock Grid.Column="1" Text="Windows 11 Fluent" FontSize="11"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
-            </Grid>
-        </Border>
+            <TextBlock Grid.Column="0"
+                       x:Name="FooterStatusText"
+                       Text="Loading stacks…"
+                       FontSize="12"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                       VerticalAlignment="Center" />
+        </Grid>
     </Grid>
 </Page>

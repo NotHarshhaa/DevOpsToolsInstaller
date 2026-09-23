@@ -65,63 +65,50 @@
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  COMMAND BAR                       -->
+        <!--  NATIVE COMMAND BAR                -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="1"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Padding="12,8">
-            <Grid ColumnSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="0" Click="Refresh_Click" CornerRadius="4" Padding="10,6"
-                        ToolTipService.ToolTip="Re-scan registry and filesystem for installed tools">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE72C;" FontSize="13" />
-                        <TextBlock Text="Refresh" />
-                    </StackPanel>
-                </Button>
-
-                <Button Grid.Column="1" Click="RunAllHealthChecks_Click" CornerRadius="4" Padding="10,6"
-                        ToolTipService.ToolTip="Verify execution of all command-line tools">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE9D9;" FontSize="13" />
-                        <TextBlock Text="Check All CLIs" />
-                    </StackPanel>
-                </Button>
-
-                <Button Grid.Column="2" Click="ShellCompletion_Click" CornerRadius="4" Padding="10,6"
-                        ToolTipService.ToolTip="Generate and configure shell completion snippets">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE756;" FontSize="13" />
-                        <TextBlock Text="Shell Completion" />
-                    </StackPanel>
-                </Button>
-
-                <Border Grid.Column="3" Width="1" Height="20"
-                        Background="{ThemeResource DividerStrokeColorDefaultBrush}"
-                        VerticalAlignment="Center" Margin="2,0" />
-
-                <TextBlock Grid.Column="4" x:Name="StatusText" VerticalAlignment="Center"
-                           Margin="4,0,0,0" FontSize="12"
+        <CommandBar Grid.Row="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    DefaultLabelPosition="Right"
+                    IsOpen="False"
+                    OverflowButtonVisibility="Collapsed"
+                    Background="Transparent">
+            <CommandBar.Content>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                           Margin="0,0,16,0" FontSize="12"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+            </CommandBar.Content>
+            <CommandBar.PrimaryCommands>
+                <AppBarButton Label="Refresh" Click="Refresh_Click"
+                              ToolTipService.ToolTip="Re-scan registry and filesystem for installed tools">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE72C;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
 
-                <Button Grid.Column="5" Click="OpenToolsFolder_Click" CornerRadius="4" Padding="10,6"
-                        ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE838;" FontSize="13" />
-                        <TextBlock Text="Open Tools folder" />
-                    </StackPanel>
-                </Button>
-            </Grid>
-        </Border>
+                <AppBarButton Label="Check All CLIs" Click="RunAllHealthChecks_Click"
+                              ToolTipService.ToolTip="Verify execution of all command-line tools">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
+                <AppBarButton Label="Shell Completion" Click="ShellCompletion_Click"
+                              ToolTipService.ToolTip="Generate and configure shell completion snippets">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE756;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
+                <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"
+                              ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE838;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+            </CommandBar.PrimaryCommands>
+        </CommandBar>
 
         <!-- ══════════════════════════════════ -->
         <!--  TABLE HEADER ROW                  -->
@@ -242,7 +229,7 @@
                                 <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
                                         Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="#107C41" />
+                                        <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                                         <TextBlock Text="Up to date" FontSize="11"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </StackPanel>
@@ -380,25 +367,18 @@
         <!-- ══════════════════════════════════ -->
         <!--  FOOTER STATUS BAR                 -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="4"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="6" Padding="12,6" Margin="0,4,0,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    <TextBlock x:Name="FooterStatusText" Text="5 tools managed. Check for Updates: Last checked 2 min ago."
-                               FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </StackPanel>
-
-                <TextBlock Grid.Column="1" Text="Windows 11 Fluent" FontSize="11"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
-            </Grid>
-        </Border>
+            <TextBlock Grid.Column="0"
+                       x:Name="FooterStatusText"
+                       Text="Scanning installed tools…"
+                       FontSize="12"
+                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                       VerticalAlignment="Center" />
+        </Grid>
     </Grid>
 </Page>

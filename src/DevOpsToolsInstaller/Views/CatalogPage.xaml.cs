@@ -230,57 +230,8 @@ public sealed partial class CatalogPage : Page
     private IEnumerable<ToolDefinition> VisibleTools => _filteredTools;
 
     // ── Search & Command Bar Layout ──────────────────────────────────────
-
-    private void CommandBar_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        var width = e.NewSize.Width;
-
-        // When container is very wide (>= 1220px), place Search and Toolbar on the same line.
-        // Otherwise, Search takes Row 0 (full width) and Toolbar takes Row 1.
-        bool isTwoRows = width < 1220;
-
-        if (isTwoRows)
-        {
-            SecondRowDef.Height = GridLength.Auto;
-            Grid.SetRow(ToolbarPanel, 1);
-            Grid.SetColumn(ToolbarPanel, 0);
-            Grid.SetColumnSpan(ToolbarPanel, 2);
-            SearchBox.MaxWidth = double.PositiveInfinity;
-        }
-        else
-        {
-            SecondRowDef.Height = new GridLength(0);
-            Grid.SetRow(ToolbarPanel, 0);
-            Grid.SetColumn(ToolbarPanel, 1);
-            Grid.SetColumnSpan(ToolbarPanel, 1);
-            SearchBox.MaxWidth = 360;
-        }
-
-        // Dynamically adjust button labels based on available width:
-        // When width is compact (< 880px), collapse text on secondary buttons so they display as compact icon buttons with ToolTips.
-        // When width is very compact (< 620px), shorten the CTA button text to "Download".
-        bool isCompact = width < 880;
-        bool isVeryCompact = width < 620;
-
-        var labelVisibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
-        var sepVisibility = isCompact ? Visibility.Collapsed : Visibility.Visible;
-
-        if (SortButtonText != null) SortButtonText.Visibility = labelVisibility;
-        if (DownloadedToggleText != null) DownloadedToggleText.Visibility = labelVisibility;
-        if (PresetsButtonText != null) PresetsButtonText.Visibility = labelVisibility;
-        if (SelectAllButtonText != null) SelectAllButtonText.Visibility = labelVisibility;
-        if (ClearButtonText != null) ClearButtonText.Visibility = labelVisibility;
-        if (ProfileButtonText != null) ProfileButtonText.Visibility = labelVisibility;
-
-        if (Separator1 != null) Separator1.Visibility = sepVisibility;
-        if (Separator2 != null) Separator2.Visibility = sepVisibility;
-        if (Separator3 != null) Separator3.Visibility = sepVisibility;
-
-        if (DownloadButtonText != null)
-        {
-            DownloadButtonText.Text = isVeryCompact ? "Download" : "Download selected";
-        }
-    }
+    // (The native CommandBar handles overflow/labels automatically, so the
+    //  old manual width-responsive layout code was removed with it.)
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {

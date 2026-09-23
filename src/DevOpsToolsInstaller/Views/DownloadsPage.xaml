@@ -35,86 +35,86 @@
         </StackPanel>
 
         <!-- ══════════════════════════════════ -->
-        <!--  INTERACTIVE COMMAND & FILTER BAR  -->
+        <!--  SEARCH, FILTERS & COMMAND BAR     -->
         <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="14,10">
-            <Grid ColumnSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-                <!-- Search Input -->
-                <TextBox Grid.Column="0" x:Name="SearchBox"
-                         PlaceholderText="Filter downloads…"
-                         TextChanged="SearchBox_TextChanged"
-                         VerticalAlignment="Center">
-                    <TextBox.Header>
-                        <StackPanel Orientation="Horizontal" Spacing="4" />
-                    </TextBox.Header>
-                </TextBox>
+            <!-- Search Input -->
+            <TextBox Grid.Column="0" x:Name="SearchBox"
+                     Width="220"
+                     PlaceholderText="Filter downloads…"
+                     TextChanged="SearchBox_TextChanged"
+                     VerticalAlignment="Center" />
 
-                <!-- Status Filter Chips -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <Button x:Name="FilterAllBtn" Content="All" Click="FilterTab_Click" Tag="All"
-                            Style="{StaticResource SelectedCategoryChipStyle}" />
-                    <Button x:Name="FilterDownloadingBtn" Content="Downloading" Click="FilterTab_Click" Tag="Downloading"
-                            Style="{StaticResource CategoryChipStyle}" />
-                    <Button x:Name="FilterReadyBtn" Content="Ready to Install" Click="FilterTab_Click" Tag="Ready"
-                            Style="{StaticResource CategoryChipStyle}" />
-                    <Button x:Name="FilterInstalledBtn" Content="Installed" Click="FilterTab_Click" Tag="Installed"
-                            Style="{StaticResource CategoryChipStyle}" />
+            <!-- Status Filter Chips -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <Button x:Name="FilterAllBtn" Content="All" Click="FilterTab_Click" Tag="All"
+                        Style="{StaticResource SelectedCategoryChipStyle}" />
+                <Button x:Name="FilterDownloadingBtn" Content="Downloading" Click="FilterTab_Click" Tag="Downloading"
+                        Style="{StaticResource CategoryChipStyle}" />
+                <Button x:Name="FilterReadyBtn" Content="Ready to Install" Click="FilterTab_Click" Tag="Ready"
+                        Style="{StaticResource CategoryChipStyle}" />
+                <Button x:Name="FilterInstalledBtn" Content="Installed" Click="FilterTab_Click" Tag="Installed"
+                        Style="{StaticResource CategoryChipStyle}" />
+            </StackPanel>
+
+            <!-- Middle Status / Message -->
+            <TextBlock Grid.Column="2" x:Name="StatusText"
+                       VerticalAlignment="Center" HorizontalAlignment="Right"
+                       FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                       TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+
+            <!-- Native Win11 CommandBar for secondary actions -->
+            <CommandBar Grid.Column="3"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Center"
+                        DefaultLabelPosition="Right"
+                        IsOpen="False"
+                        OverflowButtonVisibility="Collapsed"
+                        Background="Transparent">
+                <CommandBar.PrimaryCommands>
+                    <AppBarButton x:Name="OpenFolderButton" Label="Open Folder" Click="OpenFolder_Click"
+                                  ToolTipService.ToolTip="Open downloads folder in Windows File Explorer">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE838;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton x:Name="ClearFinishedButton" Label="Clear Finished" Click="ClearFinished_Click"
+                                  ToolTipService.ToolTip="Remove installed tools from queue">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE74D;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarToggleButton x:Name="LogToggle" Label="Activity Log" Click="LogToggle_Click"
+                                        ToolTipService.ToolTip="Toggle diagnostic activity log">
+                        <AppBarToggleButton.Icon>
+                            <FontIcon Glyph="&#xE7BA;" />
+                        </AppBarToggleButton.Icon>
+                    </AppBarToggleButton>
+                </CommandBar.PrimaryCommands>
+            </CommandBar>
+
+            <!-- Batch Install Button (Visible when ready items exist) -->
+            <Button Grid.Column="4" x:Name="InstallAllReadyButton" Click="InstallAllReady_Click"
+                    Style="{StaticResource AccentButtonStyle}"
+                    VerticalAlignment="Center"
+                    Visibility="Collapsed"
+                    ToolTipService.ToolTip="Deploy all downloaded tools to workstation">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE768;" FontSize="12" />
+                    <TextBlock Text="Install All Ready" FontWeight="SemiBold" />
                 </StackPanel>
-
-                <!-- Middle Status / Message -->
-                <TextBlock Grid.Column="2" x:Name="StatusText"
-                           VerticalAlignment="Center" HorizontalAlignment="Right"
-                           FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
-
-                <!-- Action Controls -->
-                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <!-- Batch Install Button (Visible when ready items exist) -->
-                    <Button x:Name="InstallAllReadyButton" Click="InstallAllReady_Click"
-                            Style="{StaticResource AccentButtonStyle}"
-                            Visibility="Collapsed"
-                            ToolTipService.ToolTip="Deploy all downloaded tools to workstation">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE768;" FontSize="12" />
-                            <TextBlock Text="Install All Ready" FontWeight="SemiBold" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Open Downloads Folder -->
-                    <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open downloads folder in Windows File Explorer">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE838;" FontSize="13" />
-                            <TextBlock Text="Open Folder" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Clear Finished -->
-                    <Button x:Name="ClearFinishedButton" Click="ClearFinished_Click"
-                            ToolTipService.ToolTip="Remove installed tools from queue">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE74D;" FontSize="13" />
-                            <TextBlock Text="Clear Finished" />
-                        </StackPanel>
-                    </Button>
-
-                    <!-- Toggle Activity Log -->
-                    <ToggleButton x:Name="LogToggle" Click="LogToggle_Click"
-                                  ToolTipService.ToolTip="Toggle diagnostic activity log">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE7BA;" FontSize="13" />
-                            <TextBlock Text="Activity Log" />
-                        </StackPanel>
-                    </ToggleButton>
-                </StackPanel>
-            </Grid>
-        </Border>
+            </Button>
+        </Grid>
 
         <!-- ══════════════════════════════════ -->
         <!--  MAIN QUEUE & CONTENT AREA         -->
