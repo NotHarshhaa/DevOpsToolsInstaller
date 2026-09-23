@@ -171,6 +171,8 @@ public sealed partial class InstalledPage : Page
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
+        StatusText.Text = $"Updating {tool.Name}…";
+
         tool.IsSelected = true;
         if (!mw.DownloadQueue.Contains(tool))
         {
@@ -183,8 +185,20 @@ public sealed partial class InstalledPage : Page
             {
                 var dlFolder = DownloadService.DefaultDownloadsFolder;
                 await mw.DownloadSvc.DownloadAsync(tool, dlFolder);
+
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var res = ArtifactService.Perform(tool, dlFolder);
+                    _ = mw.DispatcherQueue.TryEnqueue(() =>
+                        StatusText.Text = $"{tool.Name}: {res.Message}");
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                ActivityLogService.Error(tool.Name, $"Update failed: {ex.Message}");
+                _ = mw.DispatcherQueue.TryEnqueue(() =>
+                    StatusText.Text = $"Update failed for {tool.Name}: {ex.Message}");
+            }
         });
 
         mw.NavigateTo("Downloads");

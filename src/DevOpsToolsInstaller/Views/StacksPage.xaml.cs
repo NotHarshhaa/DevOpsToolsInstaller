@@ -286,11 +286,13 @@ public sealed partial class StacksPage : Page
         {
             if (toolsById.TryGetValue(tid, out var tool))
             {
-                tool.IsSelected = true;
-                if (tool.Status != ToolStatus.Downloaded && tool.Status != ToolStatus.Downloading)
+                if (tool.IsInstalled || tool.Status == ToolStatus.Downloaded || tool.Status == ToolStatus.Downloading)
                 {
-                    toDownload.Add(tool);
+                    continue;
                 }
+
+                tool.IsSelected = true;
+                toDownload.Add(tool);
             }
         }
 

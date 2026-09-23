@@ -7,7 +7,7 @@ namespace DevOpsToolsInstaller.Services;
 public sealed class DownloadService
 {
     private static readonly HttpClient Http;
-    private static readonly ConcurrentDictionary<string, Task> ActiveDownloads = new();
+    private static readonly ConcurrentDictionary<string, Lazy<Task>> ActiveDownloads = new();
 
     static DownloadService()
     {
@@ -39,13 +39,16 @@ public sealed class DownloadService
         IProgress<double>? progress = null,
         CancellationToken ct = default)
     {
+        // Lazy<Task> guarantees exactly one download starts per tool even when
+        // concurrent callers race GetOrAdd (a plain factory can run twice).
         var downloadTask = ActiveDownloads.GetOrAdd(
             tool.Id,
-            _ => ExecuteDownloadAsync(tool, destinationFolder, progress, ct));
+            _ => new Lazy<Task>(() => ExecuteDownloadAsync(tool, destinationFolder, progress, ct),
+                LazyThreadSafetyMode.ExecutionAndPublication));
 
         try
         {
-            await downloadTask;
+            await downloadTask.Value;
         }
         finally
         {

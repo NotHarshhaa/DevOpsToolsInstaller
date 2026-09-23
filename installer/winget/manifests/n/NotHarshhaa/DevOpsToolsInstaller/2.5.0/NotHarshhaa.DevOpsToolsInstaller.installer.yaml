@@ -18,6 +18,6 @@ AppsAndFeaturesEntries:
 Installers:
   - Architecture: x64
     InstallerUrl: https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/download/v2.5.0/DevOpsToolsInstaller_x64_Setup.exe
-    InstallerSha256: 42507250F581C78C336B710065F5AB46856861792E41ED76489DC8C3306E2139
+    InstallerSha256: AB0419E0BA74CFF44CEF3D3655A5993E95E921494C2F964836A33CCFDEF8B98A
 ManifestType: installer
 ManifestVersion: 1.6.0

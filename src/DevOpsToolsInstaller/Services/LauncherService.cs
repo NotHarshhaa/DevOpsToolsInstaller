@@ -39,7 +39,7 @@ public sealed class LauncherService
         Process.Start(new ProcessStartInfo
         {
             FileName = "explorer.exe",
-            Arguments = downloadsFolder,
+            Arguments = $"\"{downloadsFolder}\"",
             UseShellExecute = true
         });
     }

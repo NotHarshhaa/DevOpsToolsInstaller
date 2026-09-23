@@ -1,5 +1,6 @@
 <Page
     x:Class="DevOpsToolsInstaller.Views.HomePage"
+    NavigationCacheMode="Enabled"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
@@ -382,9 +383,9 @@
                         </StackPanel>
                         <HyperlinkButton Grid.Column="1" Click="SeeAllStacks_Click"
                                          FontSize="12" VerticalAlignment="Center"
-                                         AutomationProperties.Name="See all 12 tool stacks">
+                                         AutomationProperties.Name="See all tool stacks">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="See all 12" />
+                                <TextBlock x:Name="SeeAllStacksText" Text="See all" />
                                 <FontIcon Glyph="&#xE76C;" FontSize="10" />
                             </StackPanel>
                         </HyperlinkButton>

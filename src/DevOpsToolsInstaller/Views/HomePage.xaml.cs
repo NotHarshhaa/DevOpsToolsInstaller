@@ -29,6 +29,7 @@ public sealed partial class HomePage : Page
         if (mw is null) return;
 
         await ViewModel.LoadDashboardAsync(mw);
+        SeeAllStacksText.Text = $"See all {ViewModel.Stacks.Count}";
     }
 
     private async void RetryScan_Click(object sender, RoutedEventArgs e)

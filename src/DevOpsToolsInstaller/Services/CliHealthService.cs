@@ -192,10 +192,10 @@ public static class CliHealthService
                 return new CliProbeResult(
                     false,
                     null,
-                    "Process timed out after 3 seconds.",
+                    "Process timed out.",
                     $"{exeName} {args}",
                     sw.ElapsedMilliseconds,
-                    "Health check timed out.");
+                    $"Health check timed out after {timeoutSeconds} seconds.");
             }
 
             var stdout = await stdoutTask;

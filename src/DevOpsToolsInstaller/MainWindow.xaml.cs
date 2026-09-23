@@ -143,6 +143,9 @@ public sealed partial class MainWindow : Window
             AppWindow?.SetIcon(iconPath);
         }
 
+        // Sensible default window size on first display.
+        AppWindow?.Resize(new Windows.Graphics.SizeInt32(1280, 820));
+
         AppTitleBarLogo.Source = AppLogoHelper.GetLogoImage();
 
         ApplyTheme(SettingsService.Theme);

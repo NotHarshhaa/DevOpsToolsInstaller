@@ -306,6 +306,7 @@ public sealed partial class HomeViewModel : ObservableObject
 
     private readonly List<ToolDefinition> _installedTools = new();
     private ObservableCollection<ToolDefinition>? _boundDownloadQueue;
+    private bool _isUpdatingAll;
 
     public HomeViewModel(
         IPathHealthService? pathHealthService = null,
@@ -569,6 +570,8 @@ public sealed partial class HomeViewModel : ObservableObject
 
     public async Task InstallToolAsync(ToolDefinition tool, MainWindow mw)
     {
+        if (tool.Status == ToolStatus.Downloading) return;
+
         tool.IsSelected = true;
         if (!mw.DownloadQueue.Contains(tool))
         {
@@ -577,6 +580,7 @@ public sealed partial class HomeViewModel : ObservableObject
 
         SyncActiveDownloads();
 
+        var wasInstalled = tool.IsInstalled || tool.Status == ToolStatus.Downloaded;
         _ = Task.Run(async () =>
         {
             try
@@ -590,14 +594,34 @@ public sealed partial class HomeViewModel : ObservableObject
                     {
                         tool.IsInstalled = true;
                     }
+                    else
+                    {
+                        ActivityLogService.Warn(tool.Name, installRes.Message);
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                ActivityLogService.Error(tool.Name, $"Install failed: {ex.Message}");
+            }
             finally
             {
                 _ = mw.DispatcherQueue.TryEnqueue(() =>
                 {
                     SyncActiveDownloads();
+                    if (!wasInstalled && tool.IsInstalled && !tool.HasUpdate)
+                    {
+                        InstalledCount++;
+                        HasInstalledTools = true;
+                        var matchedUpdate = Updates.FirstOrDefault(u => u.Tool == tool);
+                        if (matchedUpdate is not null)
+                        {
+                            Updates.Remove(matchedUpdate);
+                        }
+                        UpdateCount = Updates.Count;
+                        HasUpdates = UpdateCount > 0;
+                        CanUpdateAll = UpdateCount >= 2;
+                    }
                     UpdateDynamicSubtitle();
                 });
             }
@@ -611,6 +635,9 @@ public sealed partial class HomeViewModel : ObservableObject
 
     public async Task UpdateAllAsync(MainWindow mw)
     {
+        if (_isUpdatingAll) return;
+        _isUpdatingAll = true;
+
         var toolsToUpdate = Updates.Select(u => u.Tool).ToList();
         foreach (var tool in toolsToUpdate)
         {
@@ -623,11 +650,12 @@ public sealed partial class HomeViewModel : ObservableObject
 
         SyncActiveDownloads();
 
-        _ = Task.Run(async () =>
+        try
         {
             var dlFolder = DownloadService.DefaultDownloadsFolder;
             await mw.DownloadSvc.DownloadBatchAsync(toolsToUpdate, dlFolder);
 
+            var succeeded = new List<ToolDefinition>();
             foreach (var tool in toolsToUpdate)
             {
                 if (tool.Status == ToolStatus.Downloaded)
@@ -636,20 +664,39 @@ public sealed partial class HomeViewModel : ObservableObject
                     if (installRes.Success)
                     {
                         tool.IsInstalled = true;
+                        succeeded.Add(tool);
                     }
+                    else
+                    {
+                        ActivityLogService.Warn(tool.Name, installRes.Message);
+                    }
+                }
+                else
+                {
+                    ActivityLogService.Warn(tool.Name, "Update download failed — kept in the updates list.");
                 }
             }
 
             _ = mw.DispatcherQueue.TryEnqueue(() =>
             {
                 SyncActiveDownloads();
-                Updates.Clear();
-                UpdateCount = 0;
-                HasUpdates = false;
-                CanUpdateAll = false;
+                // Only drop the updates that actually applied; failed ones stay listed.
+                foreach (var upd in Updates.Where(u => succeeded.Contains(u.Tool)).ToList())
+                {
+                    Updates.Remove(upd);
+                }
+                InstalledCount += succeeded.Count;
+                HasInstalledTools = HasInstalledTools || InstalledCount > 0;
+                UpdateCount = Updates.Count;
+                HasUpdates = UpdateCount > 0;
+                CanUpdateAll = UpdateCount >= 2;
                 UpdateDynamicSubtitle();
             });
-        });
+        }
+        finally
+        {
+            _isUpdatingAll = false;
+        }
     }
 
     public void InstallStack(HomeStackItemViewModel stack, MainWindow mw)
