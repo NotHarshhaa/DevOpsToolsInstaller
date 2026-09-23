@@ -42,6 +42,39 @@ public sealed partial class SettingsPage : Page
                 break;
             }
         }
+
+        // Security section
+        AuditLogPathText.Text = ActivityLogService.LogDirectory;
+        foreach (ComboBoxItem item in SignaturePolicyComboBox.Items)
+        {
+            if (item.Tag as string == SettingsService.SignaturePolicy.ToString())
+            {
+                SignaturePolicyComboBox.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
+    private void SignaturePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SignaturePolicyComboBox.SelectedItem is ComboBoxItem selectedItem &&
+            selectedItem.Tag is string tag &&
+            Enum.TryParse<SignaturePolicy>(tag, out var policy) &&
+            SettingsService.SignaturePolicy != policy)
+        {
+            SettingsService.SignaturePolicy = policy;
+            SettingsService.SaveSettings();
+            ShowNotice(
+                policy == SignaturePolicy.BlockUnsigned
+                    ? "Signature policy updated: installers without a verified trusted signature will be blocked."
+                    : "Signature policy updated: you will be warned before launching unsigned installers.",
+                InfoBarSeverity.Success);
+        }
+    }
+
+    private void OpenAuditLogFolder_Click(object sender, RoutedEventArgs e)
+    {
+        LauncherService.OpenDownloadsFolder(ActivityLogService.LogDirectory);
     }
 
     private void UpdateCompletionStatus()

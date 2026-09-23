@@ -81,6 +81,32 @@ public static class ArtifactService
 
     private static ArtifactActionResult RunInstaller(ToolDefinition tool, string downloadsFolder)
     {
+        var filePath = Path.Combine(downloadsFolder, tool.FileName);
+
+        // Security policy: verify the vendor installer's Authenticode signature
+        // before launching it, per the user's chosen strictness level.
+        var signature = AuthenticodeService.VerifyFile(filePath);
+        var isTrustworthy = signature.IsValid || signature.Status == SignatureStatus.Unknown;
+
+        if (!isTrustworthy && SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned)
+        {
+            ActivityLogService.Error(tool.Name, $"Blocked by signature policy: {signature.StatusBadge}");
+            return new ArtifactActionResult(
+                false,
+                $"{tool.Name} was NOT launched: signature policy is set to block installers " +
+                $"without a verified trusted signature ({signature.StatusBadge}). " +
+                "You can change this in Settings > Security.");
+        }
+
+        if (!isTrustworthy)
+        {
+            ActivityLogService.Warn(tool.Name, $"Launching installer with {signature.StatusBadge}");
+        }
+        else
+        {
+            ActivityLogService.Info(tool.Name, $"Signature check passed: {signature.StatusBadge}");
+        }
+
         LauncherService.Launch(tool, downloadsFolder);
         return new ArtifactActionResult(true, $"Launched {tool.Name} installer.");
     }

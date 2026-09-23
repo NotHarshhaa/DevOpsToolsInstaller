@@ -62,6 +62,17 @@ public sealed class DownloadService
         IProgress<double>? progress,
         CancellationToken ct)
     {
+        // Security: refuse to fetch executables over plain-text HTTP — an
+        // attacker on the network could otherwise swap the binary mid-flight
+        // even when the catalog itself is fetched over HTTPS.
+        if (!Uri.TryCreate(tool.DownloadUrl, UriKind.Absolute, out var downloadUri) ||
+            downloadUri.Scheme != Uri.UriSchemeHttps)
+        {
+            var msg = $"Blocked download: '{tool.DownloadUrl}' is not HTTPS.";
+            ActivityLogService.Error(tool.Name, msg);
+            throw new InvalidOperationException(msg);
+        }
+
         var destPath = Path.Combine(destinationFolder, tool.FileName);
         var partialPath = destPath + ".partial";
 
@@ -199,6 +210,11 @@ public sealed class DownloadService
             }
             File.Move(partialPath, destPath);
 
+            // Security: tag the file with Mark-of-the-Web (Zone.Identifier) so
+            // Windows SmartScreen / Microsoft Defender evaluate it the same way
+            // as a browser download.
+            ApplyMarkOfTheWeb(destPath);
+
             tool.DownloadSpeed = string.Empty;
             tool.Progress = 100;
             tool.Status = ToolStatus.Downloaded;
@@ -311,6 +327,26 @@ public sealed class DownloadService
         catch
         {
             /* best effort */
+        }
+    }
+
+    /// <summary>
+    /// Writes the Windows Mark-of-the-Web (Zone.Identifier alternate data
+    /// stream, ZoneId=3 = Internet) onto a downloaded file so that
+    /// SmartScreen and Microsoft Defender treat it as an internet download.
+    /// Best-effort: a FAT/odd filesystem without ADS support is ignored.
+    /// </summary>
+    private static void ApplyMarkOfTheWeb(string filePath)
+    {
+        try
+        {
+            File.WriteAllText(
+                filePath + ":Zone.Identifier",
+                "[ZoneTransfer]\r\nZoneId=3\r\n");
+        }
+        catch
+        {
+            // Volume may not support alternate data streams.
         }
     }
 

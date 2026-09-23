@@ -12,6 +12,18 @@ public enum AppTheme
     Dark
 }
 
+/// <summary>
+/// How strictly the app treats vendor installers with missing or untrusted
+/// digital signatures before they are launched.
+/// </summary>
+public enum SignaturePolicy
+{
+    /// <summary>Show a confirmation warning before launching (default).</summary>
+    Warn,
+    /// <summary>Refuse to launch installers without a verified trusted signature.</summary>
+    BlockUnsigned
+}
+
 public static class SettingsService
 {
     private static readonly string SettingsFilePath = Path.Combine(
@@ -52,6 +64,9 @@ public static class SettingsService
 
     /// <summary>Closing the window hides it to the system tray instead of exiting.</summary>
     public static bool CloseToTray { get; set; } = true;
+
+    /// <summary>How unsigned/untrusted vendor installers are handled before launch.</summary>
+    public static SignaturePolicy SignaturePolicy { get; set; } = SignaturePolicy.Warn;
 
     public static void LoadSettings()
     {
@@ -96,6 +111,12 @@ public static class SettingsService
                 {
                     CloseToTray = trayProp.GetBoolean();
                 }
+
+                if (doc.RootElement.TryGetProperty("SignaturePolicy", out var sigProp) &&
+                    Enum.TryParse<SignaturePolicy>(sigProp.GetString(), out var policy))
+                {
+                    SignaturePolicy = policy;
+                }
             }
         }
         catch
@@ -120,7 +141,8 @@ public static class SettingsService
                 CheckForUpdatesOnStartup = CheckForUpdatesOnStartup,
                 LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o"),
                 EnableNotifications = EnableNotifications,
-                CloseToTray = CloseToTray
+                CloseToTray = CloseToTray,
+                SignaturePolicy = SignaturePolicy.ToString()
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

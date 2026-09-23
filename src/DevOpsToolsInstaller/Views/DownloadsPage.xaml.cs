@@ -215,6 +215,31 @@ public sealed partial class DownloadsPage : Page
                 tool.SignatureResult = AuthenticodeService.VerifyFile(filePath);
             }
 
+            var isTrustworthy = tool.SignatureResult is null ||
+                                tool.SignatureResult.IsValid ||
+                                tool.SignatureResult.Status == SignatureStatus.Unknown;
+
+            if (!isTrustworthy && SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned)
+            {
+                ActivityLogService.Error(tool.Name, $"Launch blocked by signature policy: {tool.SignatureResult?.StatusBadge}");
+                StatusText.Text = $"{tool.Name}: launch blocked by signature policy.";
+
+                var blockDialog = new ContentDialog
+                {
+                    Title = "Launch Blocked by Security Policy",
+                    Content = $"The installer for '{tool.Name}' does not have a verified digital signature from a " +
+                              $"trusted certificate authority.\n\n" +
+                              $"Status: {tool.SignatureResult?.StatusBadge}\n" +
+                              $"Details: {tool.SignatureResult?.Summary}\n\n" +
+                              "Your security policy is set to block unsigned installers. You can change this in Settings > Security.",
+                    CloseButtonText = "OK",
+                    DefaultButton = ContentDialogButton.Close,
+                    XamlRoot = this.XamlRoot
+                };
+                await blockDialog.ShowAsync();
+                return;
+            }
+
             if (tool.SignatureResult is not null && !tool.SignatureResult.IsValid)
             {
                 var warningDialog = new ContentDialog

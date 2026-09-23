@@ -444,7 +444,107 @@
                 </Border>
             </StackPanel>
 
-            <!-- SECTION 5: ABOUT & MAINTAINER SPOTLIGHT -->
+            <!-- SECTION 5: SECURITY -->
+            <StackPanel Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Security" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
+
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel Spacing="14">
+
+                        <!-- Signature policy -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE9D9;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Vendor Installer Signature Policy" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="Warn asks for confirmation before launching installers without a verified trusted signature. Block refuses to launch them entirely."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <ComboBox Grid.Column="2" x:Name="SignaturePolicyComboBox" Width="190"
+                                      VerticalAlignment="Center"
+                                      SelectionChanged="SignaturePolicyComboBox_SelectionChanged">
+                                <ComboBoxItem Content="Warn before launch" Tag="Warn" />
+                                <ComboBoxItem Content="Block unsigned installers" Tag="BlockUnsigned" />
+                            </ComboBox>
+                        </Grid>
+
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                        <!-- Built-in protections summary -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE73E;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                <TextBlock Text="Always-on protections" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                           Text="• SHA-256 checksum verification of every download against the vendor catalog&#x0a;• HTTPS-only downloads — plain-text HTTP fetches are refused&#x0a;• Authenticode signature checks before any installer is launched&#x0a;• Mark-of-the-Web applied to downloads so SmartScreen &amp; Defender stay active&#x0a;• Official vendor URLs only — no mirrors or repackaged binaries" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                        <!-- Audit log -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE9F9;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Security Audit Log" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock x:Name="AuditLogPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                           IsTextSelectionEnabled="True" />
+                            </StackPanel>
+
+                            <Button Grid.Column="2" Click="OpenAuditLogFolder_Click" VerticalAlignment="Center"
+                                    ToolTipService.ToolTip="Open the audit log folder in File Explorer">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                    <TextBlock Text="Open Folder" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- SECTION 6: ABOUT & MAINTAINER SPOTLIGHT -->
             <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
                     <FontIcon Glyph="&#xE946;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />

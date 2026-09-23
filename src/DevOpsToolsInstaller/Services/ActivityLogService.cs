@@ -39,7 +39,8 @@ public sealed class LogEntry
 /// <summary>
 /// Thread-safe activity log that the download pipeline and other services
 /// can publish events into. The <see cref="Entries"/> collection is observable
-/// and automatically marshals to the UI thread.
+/// and automatically marshals to the UI thread. Every entry is additionally
+/// appended to a daily audit file on disk for post-incident review.
 /// </summary>
 public static class ActivityLogService
 {
@@ -54,7 +55,16 @@ public static class ActivityLogService
     public static ObservableCollection<LogEntry> Entries { get; } = new();
 
     /// <summary>
-    /// Adds a log entry. Thread-safe — marshals to UI thread.
+    /// Folder holding the on-disk audit logs:
+    /// %LOCALAPPDATA%\DevOpsToolsInstaller\logs
+    /// </summary>
+    public static string LogDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "DevOpsToolsInstaller", "logs");
+
+    /// <summary>
+    /// Adds a log entry. Thread-safe — marshals to UI thread. Also appended
+    /// to the daily audit file (best-effort, never throws).
     /// </summary>
     public static void Log(LogSeverity severity, string toolName, string message)
     {
@@ -74,6 +84,24 @@ public static class ActivityLogService
             while (Entries.Count > MaxEntries)
                 Entries.RemoveAt(Entries.Count - 1);
         });
+
+        WriteToAuditFile(entry);
+    }
+
+    private static void WriteToAuditFile(LogEntry entry)
+    {
+        try
+        {
+            Directory.CreateDirectory(LogDirectory);
+            var filePath = Path.Combine(LogDirectory, $"activity-{entry.Timestamp:yyyyMMdd}.log");
+            File.AppendAllText(
+                filePath,
+                $"{entry.Timestamp:yyyy-MM-dd HH:mm:ss}\t[{entry.Severity}]\t{entry.ToolName}\t{entry.Message}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Disk logging is best-effort; the in-memory log still works.
+        }
     }
 
     /// <summary>Shorthand for info-level log.</summary>
