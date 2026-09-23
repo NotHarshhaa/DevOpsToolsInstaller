@@ -35,6 +35,7 @@ LicenseFile=..\LICENSE
 OutputDir={#OutputDir}
 OutputBaseFilename={#OutputBaseFilename}
 SetupIconFile=..\src\DevOpsToolsInstaller\Assets\app.ico
+WizardImageFile=assets\wizardlarge.bmp
 WizardSmallImageFile=assets\wizardsmall.bmp
 UninstallDisplayIcon={app}\DevOpsToolsInstaller.exe
 Compression=lzma2/ultra64
