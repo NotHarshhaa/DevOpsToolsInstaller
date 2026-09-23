@@ -143,7 +143,7 @@
             </GridView.ItemContainerTransitions>
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <ItemsWrapGrid x:Name="StacksWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="245" />
+                    <ItemsWrapGrid x:Name="StacksWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="292" />
                 </ItemsPanelTemplate>
             </GridView.ItemsPanel>
             <GridView.ItemContainerStyle>
@@ -163,7 +163,7 @@
                         <Grid RowSpacing="10">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
-                                <RowDefinition Height="38" />
+                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
@@ -191,7 +191,7 @@
                                 </Border>
                             </Grid>
 
-                            <!-- ROW 1: Description (2 Lines Ellipsis) -->
+                            <!-- ROW 1: Description (2 Lines Ellipsis, auto-sized) -->
                             <TextBlock Grid.Row="1" Text="{Binding Description}"
                                        Style="{StaticResource CaptionTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
