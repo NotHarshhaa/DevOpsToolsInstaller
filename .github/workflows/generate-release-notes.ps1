@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v2.5.0",
+    [string]$Tag = "v2.8.0",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -37,73 +37,56 @@ if (Test-Path $AssetsDir) {
 $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Stable Release
 
-Welcome to the **__TAG__** stable milestone release of **DevOps Tools Installer**!
-This major release delivers enterprise deployment packages (**Windows Installer .msi** & **Setup Wizard .exe**), official **WinGet package manager support**, complete **UI & functionality bug fixes**, real-time **download speed tracking & ETA timers**, revamped **Installed page diagnostics with shell completion generator**, **PATH environment health inspection**, and an official **hero showcase banner**.
+Welcome to the **__TAG__** milestone release of **DevOps Tools Installer**!
+This release introduces a **security-first architecture** with cryptographic catalog signing and Authenticode verification policies, full **Headless CLI automation** for terminal workflows, **System Tray minimization with background toast notifications**, native **WinUI 3 CommandBars** with fluent theme alignment, and modernized **Windows 11 setup wizard experiences**.
 
 ---
 
 ### ✨ Major Features & What's New in __TAG__
 
-#### 📦 Enterprise Windows Installer (.msi) & Setup Wizard (.exe)
-- **WiX Toolset v4/v5 MSI Package**: Introduced native `.msi` Windows Installer packages (`DevOpsToolsInstaller_x64.msi`) tailored for enterprise rollouts, Microsoft Intune, SCCM, and Active Directory GPO with silent installation support (`msiexec /i DevOpsToolsInstaller_x64.msi /qn`).
-- **Inno Setup Wizard**: Enhanced the standard setup wizard (`DevOpsToolsInstaller_x64_Setup.exe`) with automated Start Menu shortcuts, Desktop icons, and PATH registration.
-- **Portable Binaries**: Continue providing zero-install self-contained portable executables for both `x64` and `arm64`.
+#### 🛡️ Enterprise Security & Integrity Hardening
+- **ECDSA P-256 Signed Catalog & Fail-Closed Trust**: All remote catalog updates (`catalog.json` and `bundles.json`) are cryptographically verified using publisher-pinned ECDSA P-256 public keys (`CatalogSignatureService`), protecting against MITM attacks and mirror tampering.
+- **Authenticode Signature Policy**: Added configurable signature verification policies in Settings (`WarnUnsigned` / `BlockUnsigned`) to verify digital signatures of downloaded vendor installers before execution.
+- **Persistent Daily Audit Logging**: Complete post-incident traceability with append-only daily audit logs (`audit_YYYY-MM-DD.log`) tracking downloads, verification statuses, and tool launches.
+- **Security-First Transport & Tagging**: Strict HTTPS-only transport enforcement and automatic Windows Mark-of-the-Web (`Zone.Identifier`) tagging on all downloaded artifacts.
 
-#### 🪟 WinGet Package Manager Integration
-- Added official WinGet package manifests (`NotHarshhaa.DevOpsToolsInstaller`) allowing seamless installation, upgrades, and uninstallation straight from the terminal:
-  ```powershell
-  winget install NotHarshhaa.DevOpsToolsInstaller
-  ```
-- Added automated WinGet manifest submission and validation tooling (`scripts/submit-winget.ps1`).
+#### ⚡ Headless CLI Mode & Automation
+- **Terminal Automation**: Run `DevOpsToolsInstaller.exe` directly from PowerShell, CMD, or CI/CD scripts without launching the graphical UI:
+  - `--list`: Discover all available tools and categories with clear formatting.
+  - `--install <tool1,tool2>`: Non-interactive batch installation of developer tools.
+  - `--install-bundle <bundle-id>`: Provision entire curated stacks (e.g. `k8s-starter`, `aws-devops`).
+  - `--check-updates`: Quick CLI verification for newer application releases.
 
-#### 🛠️ Comprehensive UI & Functionality Hardening
-- **Context Menus & Version Badges Fixed**: Resolved type-casting issues in `CatalogPage` so right-click menu items (*"Favorite"*, *"Copy Install Command"*, *"Tool Details"*) and version picker badges execute reliably from all UI elements.
-- **Category Filter Matching**: Fixed category chip Tag values to strictly match ampersands in `catalog.json` (*"CI/CD & Version Control"*, *"Monitoring & Observability"*, *"Policy & Compliance"*, *"Database & Data"*, *"Editors & Terminals"*).
-- **Automated Artifact Extraction on Home Dashboard**: Installing tools or stacks from the Home page now triggers post-download extraction and binary placement into `Tools\bin` via `ArtifactService`.
-- **CLI Probing & Shell Completion IDs**: Aligned probe command mapping and autocompletion generators for canonical tool IDs (`argocd`, `snyk`).
-- **Clean Percentage Displays & Action Labels**: Formatted download progress percentages into clean whole numbers with responsive post-installation confirmation badges (`Installed ✓`, `Extracted ✓`, `In Tools\bin ✓`).
+#### 🔔 System Tray Integration & Background Notifications
+- **System Tray Minimization**: Keeps the installer accessible in the Windows taskbar notification area without cluttering your workspace.
+- **Native Toast Notifications**: Real-time notifications for background download completions, installations, and update availability.
+- **Smart Window Close Handling**: Option in Settings to minimize to the tray instead of terminating when closing the main window.
 
-#### ⚡ Download Speed Tracking & Explorer Integration
-- **Real-Time Transfer Metrics**: Active downloads now calculate and display live download speeds (MB/s) and estimated time remaining.
-- **File Explorer Integration**: 1-click "Show in Folder" opens the exact downloaded artifact in Windows Explorer.
-- **Activity Log Panel**: Collapsible activity log showing timestamps, severity levels, and 1-click clipboard export for troubleshooting.
+#### 🎨 Modern UI & Native CommandBar Enhancements
+- **Native WinUI 3 CommandBars**: Replaced custom action bars with native `CommandBar` controls across `CatalogPage`, `DownloadsPage`, `InstalledPage`, and `StacksPage` for consistent Windows 11 styling and responsive action overflows.
+- **Theme & Accent Color Alignment**: Refined `Styles.xaml` to align with Windows accent colors, ensuring high-contrast readability in both Dark and Light themes.
+- **Navigation Performance**: Enabled `NavigationCacheMode` across pages for instant tab switching with zero redraw flicker.
+- **Deduplication & Error Reporting**: Prevent duplicate concurrent downloads and display informative error diagnostics with unhandled exception logging.
 
-#### 🩺 Revamped Installed Tools & Shell Completions
-- **CLI Health Probing**: Executes binaries (`--version` / `-v`) non-blockingly to measure runtime responsiveness and execution latency (ms).
-- **Shell Autocompletion Generator**: Automatically generates completion scripts for PowerShell and Bash with 1-click integration into the user's PowerShell `$PROFILE`.
-- **Safe Uninstallation**: Supports vendor Windows uninstallation wizards, archive extraction removal, and binary cleanup from `Tools\bin`.
-
-#### 🔍 PATH Environment Health Diagnostics
-- Dedicated PATH diagnostics inspecting user and process environment variables to verify that `Tools\bin` is active.
-- 1-click "Add to PATH" helper and quick folder access directly from the Home dashboard and Settings.
-
-#### 🎨 Showcase Branding & Documentation
-- Designed and embedded high-resolution hero showcase banner into `README.md`.
-- Added comprehensive `PRIVACY.md` privacy policy detailing zero-telemetry and local-only operation.
+#### 📦 Setup Wizard & Installer Polishing
+- **Windows 11 Setup Experience**: Updated Inno Setup wizard with modern high-resolution branding graphics (`wizardlarge.bmp` and `wizardsmall.bmp`).
+- **Process Protection**: Automatically detects and prompts to close active running instances during installation and updates.
+- **Environment & PATH Integration**: Improved PATH variable handling and clean uninstallation routines.
+- **Apache-2.0 License**: Streamlined legal and license notices across the application, installer, and repository.
 
 ---
 
-### 📋 Full Commit Changelog (from v2.1.0 to __TAG__)
+### 📋 Full Commit Changelog (from v2.5.0 to __TAG__)
 
-- `d44e1d6` - **feat**: Add showcase banner to README and include banner image asset
-- `f4ebc50` - **feat**: Enhance navigation and tool installation logic in MainWindow and HomeViewModel
-- `c9642f5` - **feat**: Add Windows Installer (.msi) support and enhance release notes generation
-- `ac69682` - **feat**: Implement File Explorer Integration and Enhance Downloads Page UI
-- `3fd2122` - **feat**: Enhance About and Settings Pages with New Features and UI Improvements
-- `567e511` - **feat**: Introduce Download Speed Tracking and Path Health Service
-- `9283f52` - **feat**: Revamp Installed Page UI with Enhanced Search and Tool Management
-- `f6dda61` - **feat**: Enhance Tool Bundles with Categories and UI Improvements
-- `4a4881c` - **refactor**: Clean up Styles.xaml and update CatalogPage.xaml layout
-- `da48fba` - **feat**: Revamp Catalog Page UI and enhance Tool Definition properties
-- `735434b` - **feat**: Add Privacy Policy document for DevOps Tools Installer
-- `5e04210` - **fix(winget)**: update LicenseUrl branch to master and add submit-winget script
-- `ea26e53` - **feat**: Update README and add WinGet support for DevOpsToolsInstaller
-- `cd80ba0` - **feat**: Enhance AppUpdaterService with installation detection and asset selection logic
-- `ed5e81d` - **feat**: Add MSIX packaging support and update build process
-- `b74c903` - **docs**: Update README with notes and tips for user guidance
-- `a933cc7` - **feat**: Add code signing support and update README acknowledgements
-- `43a31cb` - **feat**: Add Windows Setup Wizard and update build process
-- `0c6177b` - **feat**: Revise README for clarity and detail enhancement
+- `cc8990f` - **feat**: Revise README and installer setup for clarity and enhanced features
+- `60082e8` - **feat**: Implement catalog signing and verification for enhanced security
+- `6b1288c` - **feat**: Implement security features for installer with signature verification and audit logging
+- `93c7f41` - **feat**: Add wizard images to installer for improved user interface
+- `fbd27c3` - **feat**: Update installer script for enhanced user experience and functionality
+- `73903af` - **feat**: Implement headless CLI mode and system tray functionality
+- `c37e474` - **fix**: Adjust layout dimensions and improve description handling in StacksPage
+- `ec75ee0` - **feat**: Refactor UI components to utilize native CommandBar and improve theme integration
+- `f589058` - **feat**: Enhance error handling and UI improvements across various components
 
 ---
 
@@ -131,5 +114,9 @@ This major release delivers enterprise deployment packages (**Windows Installer 
 '@
 
 $content = $template.Replace("__TAG__", $Tag).Replace("__SETUP_HASH__", $setupHash).Replace("__MSI_HASH__", $msiHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
+$outputDir = [System.IO.Path]::GetDirectoryName((Resolve-Path -Path $OutputFile -ErrorAction SilentlyContinue)?.Path ?? (Join-Path $PWD $OutputFile))
+if (-not [string]::IsNullOrWhiteSpace($outputDir) -and -not (Test-Path $outputDir)) {
+    New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
+}
 [System.IO.File]::WriteAllText($OutputFile, $content, [System.Text.UTF8Encoding]::new($false))
 Write-Host "Generated release notes at $OutputFile"

@@ -6,7 +6,7 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <?ifndef AppVersion?>
-    <?define AppVersion="2.5.0"?>
+    <?define AppVersion="2.8.0"?>
   <?endif?>
 
   <?ifndef SourceDir?>

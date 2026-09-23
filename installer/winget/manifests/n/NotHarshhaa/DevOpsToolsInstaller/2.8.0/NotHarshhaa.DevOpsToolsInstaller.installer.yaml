@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+
+PackageIdentifier: NotHarshhaa.DevOpsToolsInstaller
+PackageVersion: 2.8.0
+InstallerType: inno
+Scope: user
+InstallModes:
+  - interactive
+  - silent
+  - silentWithProgress
+UpgradeBehavior: install
+ReleaseDate: 2026-09-24
+AppsAndFeaturesEntries:
+  - DisplayName: DevOps Tools Installer
+    Publisher: NotHarshhaa
+    DisplayVersion: 2.8.0
+    ProductCode: '{D3V0P5-T00L5-1N5T4LL3R-2026-V2}_is1'
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/download/v2.8.0/DevOpsToolsInstaller_x64_Setup.exe
+    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+ManifestType: installer
+ManifestVersion: 1.6.0

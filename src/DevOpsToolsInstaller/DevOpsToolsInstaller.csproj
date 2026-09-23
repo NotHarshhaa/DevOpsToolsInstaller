@@ -19,9 +19,9 @@
     <ApplicationTitle>DevOps Tools Installer</ApplicationTitle>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>DevOpsToolsInstaller</AssemblyName>
-    <Version>2.5.0</Version>
-    <AssemblyVersion>2.5.0.0</AssemblyVersion>
-    <FileVersion>2.5.0.0</FileVersion>
+    <Version>2.8.0</Version>
+    <AssemblyVersion>2.8.0.0</AssemblyVersion>
+    <FileVersion>2.8.0.0</FileVersion>
   </PropertyGroup>
 
   <!-- ── Unpackaged build (default: dotnet build / run locally) ───────── -->

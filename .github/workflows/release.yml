@@ -9,7 +9,7 @@ on:
       version:
         description: 'Version tag (e.g., v2.0.0)'
         required: true
-        default: 'v2.5.0'
+        default: 'v2.8.0'
 
 permissions:
   contents: write
@@ -88,7 +88,7 @@ jobs:
           dotnet tool install --global wix --version 5.0.2
           wix extension add -g WixToolset.UI.wixext/5.0.2
 
-          $ver = "2.5.0"
+          $ver = "2.8.0"
           if ($env:GITHUB_REF_NAME -match '^v?(\d+\.\d+\.\d+)') {
             $ver = $Matches[1]
           }
