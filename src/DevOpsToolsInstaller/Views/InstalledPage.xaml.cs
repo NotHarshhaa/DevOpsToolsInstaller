@@ -191,6 +191,10 @@ public sealed partial class InstalledPage : Page
                     var res = ArtifactService.Perform(tool, dlFolder);
                     _ = mw.DispatcherQueue.TryEnqueue(() =>
                         StatusText.Text = $"{tool.Name}: {res.Message}");
+
+                    ToastService.Show(
+                        res.Success ? $"{tool.Name} updated" : $"{tool.Name} update failed",
+                        res.Message);
                 }
             }
             catch (Exception ex)

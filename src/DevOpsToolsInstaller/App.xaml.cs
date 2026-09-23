@@ -35,7 +35,24 @@ public partial class App : Application
 
         SettingsService.LoadSettings();
         FavoritesService.Load();
+
+        // Headless CLI mode: run the requested command and exit without
+        // creating a window (used by provisioning scripts and CI).
+        var cliArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
+        if (Services.CliHost.IsCliRequest(cliArgs))
+        {
+            _ = RunCliAsync(cliArgs);
+            return;
+        }
+
         MainWindowInstance = new MainWindow();
         MainWindowInstance.Activate();
+    }
+
+    private async System.Threading.Tasks.Task RunCliAsync(string[] args)
+    {
+        var exitCode = await Services.CliHost.RunAsync(args);
+        Exit();
+        Environment.ExitCode = exitCode;
     }
 }

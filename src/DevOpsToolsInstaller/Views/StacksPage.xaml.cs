@@ -318,6 +318,11 @@ public sealed partial class StacksPage : Page
             {
                 var dlFolder = DownloadService.DefaultDownloadsFolder;
                 await mw.DownloadSvc.DownloadBatchAsync(toDownload, dlFolder, maxConcurrency: 3);
+
+                var installedCount = toDownload.Count(t => t.Status == ToolStatus.Downloaded);
+                ToastService.Show(
+                    $"{targetBundle.Name}: {installedCount}/{toDownload.Count} downloaded",
+                    "Downloaded tools are ready to deploy from the Downloads page.");
             }
             catch
             {

@@ -241,6 +241,65 @@
                     </Grid>
                 </Border>
 
+                <!-- Notifications & Tray -->
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xEA8F;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Toast Notifications" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="Show Windows notifications when background downloads, installs, and update checks finish."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <ToggleSwitch Grid.Column="2" x:Name="NotificationsToggle"
+                                          Toggled="NotificationsToggle_Toggled"
+                                          OnContent="" OffContent="" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE770;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Close to System Tray" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="Closing the window keeps the app running in the tray with quick actions. Exit from the tray menu to stop it."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <ToggleSwitch Grid.Column="2" x:Name="CloseToTrayToggle"
+                                          Toggled="CloseToTrayToggle_Toggled"
+                                          OnContent="" OffContent="" VerticalAlignment="Center" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
                 <!-- Desktop & Start Menu Shortcuts -->
                 <Border Style="{StaticResource CardStyle}" Padding="18">
                     <Grid ColumnSpacing="16">

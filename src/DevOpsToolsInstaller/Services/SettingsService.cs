@@ -47,6 +47,12 @@ public static class SettingsService
     public static bool CheckForUpdatesOnStartup { get; set; } = true;
     public static DateTime? LastUpdateCheckTime { get; set; }
 
+    /// <summary>Show Windows toast notifications for background events.</summary>
+    public static bool EnableNotifications { get; set; } = true;
+
+    /// <summary>Closing the window hides it to the system tray instead of exiting.</summary>
+    public static bool CloseToTray { get; set; } = true;
+
     public static void LoadSettings()
     {
         try
@@ -80,6 +86,16 @@ public static class SettingsService
                 {
                     LastUpdateCheckTime = lastCheck;
                 }
+
+                if (doc.RootElement.TryGetProperty("EnableNotifications", out var notifProp))
+                {
+                    EnableNotifications = notifProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("CloseToTray", out var trayProp))
+                {
+                    CloseToTray = trayProp.GetBoolean();
+                }
             }
         }
         catch
@@ -102,7 +118,9 @@ public static class SettingsService
                 Theme = Theme.ToString(),
                 DownloadsFolder = DownloadsFolder,
                 CheckForUpdatesOnStartup = CheckForUpdatesOnStartup,
-                LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o")
+                LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o"),
+                EnableNotifications = EnableNotifications,
+                CloseToTray = CloseToTray
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

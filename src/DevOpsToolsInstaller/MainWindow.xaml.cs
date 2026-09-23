@@ -38,6 +38,8 @@ public sealed partial class MainWindow : Window
 
     private readonly SemaphoreSlim _catalogLoadLock = new(1, 1);
     private bool _catalogLoaded;
+    private bool _forceExit;
+    private int _lastUpdateBadgeCount;
 
     /// <summary>
     /// Loads the catalog and bundles into <see cref="Tools"/> and <see cref="Bundles"/> exactly once.
@@ -149,6 +151,27 @@ public sealed partial class MainWindow : Window
         AppTitleBarLogo.Source = AppLogoHelper.GetLogoImage();
 
         ApplyTheme(SettingsService.Theme);
+
+        InitializeTray();
+
+        // Close-to-tray: hide the window instead of exiting (unless the user
+        // picked Exit from the tray menu).
+        if (AppWindow is not null)
+        {
+            AppWindow.Closing += (s, e) =>
+            {
+                if (_forceExit || !SettingsService.CloseToTray || !TrayIconService.IsAvailable)
+                {
+                    return;
+                }
+                e.Cancel = true;
+                _ = DispatcherQueue.TryEnqueue(() => AppWindow.Hide());
+            };
+        }
+
+        Closed += (s, e) => TrayIconService.Shutdown();
+
+        SetupUpdateScheduler();
 
         RootGrid.ActualThemeChanged += (s, e) =>
         {
@@ -341,6 +364,111 @@ public sealed partial class MainWindow : Window
                 return;
             }
         }
+    }
+
+    // ── System tray ──────────────────────────────────────────────────────
+
+    private void InitializeTray()
+    {
+        var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
+        if (!System.IO.File.Exists(iconPath)) return;
+
+        if (!TrayIconService.Initialize(iconPath, "DevOps Tools Installer")) return;
+
+        TrayIconService.OpenRequested += () =>
+            _ = DispatcherQueue.TryEnqueue(ShowMainWindow);
+        TrayIconService.CatalogRequested += () =>
+            _ = DispatcherQueue.TryEnqueue(() => NavigateTo("Catalog"));
+        TrayIconService.CheckUpdatesRequested += () =>
+            _ = DispatcherQueue.TryEnqueue(() => NavigateTo("Installed"));
+        TrayIconService.ExitRequested += () =>
+            _ = DispatcherQueue.TryEnqueue(ExitApplication);
+    }
+
+    private void ShowMainWindow()
+    {
+        AppWindow.Show();
+        Activate();
+    }
+
+    private void ExitApplication()
+    {
+        _forceExit = true;
+        TrayIconService.Shutdown();
+        Close();
+    }
+
+    // ── Background tool-update scheduler ─────────────────────────────────
+
+    private void SetupUpdateScheduler()
+    {
+        var timer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromMinutes(30);
+        timer.Tick += async (s, e) => await CheckToolUpdatesForBadgeAsync(toastOnNew: false);
+        timer.Start();
+
+        _ = RunInitialBadgeCheckAsync();
+    }
+
+    private async Task RunInitialBadgeCheckAsync()
+    {
+        try
+        {
+            // Give startup a moment, then do the first scan for the nav badge.
+            await Task.Delay(8000);
+            await CheckToolUpdatesForBadgeAsync(toastOnNew: true);
+        }
+        catch
+        {
+            // Best effort.
+        }
+    }
+
+    private async Task CheckToolUpdatesForBadgeAsync(bool toastOnNew)
+    {
+        try
+        {
+            await EnsureCatalogLoadedAsync();
+
+            var dlFolder = DownloadService.DefaultDownloadsFolder;
+            var installed = await Task.Run(() =>
+            {
+                var list = new System.Collections.Generic.List<ToolDefinition>();
+                foreach (var tool in Tools)
+                {
+                    if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
+                    {
+                        list.Add(tool);
+                    }
+                }
+                return list;
+            });
+
+            var updates = await new ToolUpdateService().CheckForUpdatesAsync(installed);
+            int count = updates.Count;
+
+            UpdateInstalledBadge(count);
+
+            if (count > 0 && count != _lastUpdateBadgeCount)
+            {
+                var names = string.Join(", ", updates.Take(3).Select(u => u.Name)) +
+                            (count > 3 ? $" and {count - 3} more" : "");
+                ToastService.Show(
+                    $"{count} tool update{(count == 1 ? "" : "s")} available",
+                    names);
+            }
+
+            _lastUpdateBadgeCount = count;
+        }
+        catch
+        {
+            // Background check is best-effort.
+        }
+    }
+
+    private void UpdateInstalledBadge(int count)
+    {
+        InstalledNavItem.InfoBadge = count > 0 ? new InfoBadge { Value = count } : null;
     }
 
     private static void RemoveTogglePaneButtonFocusVisual(DependencyObject parent)

@@ -29,6 +29,8 @@ public sealed partial class SettingsPage : Page
         UpdateCompletionStatus();
         UpdateLastCheckedDisplay();
         AutoUpdateToggle.IsOn = SettingsService.CheckForUpdatesOnStartup;
+        NotificationsToggle.IsOn = SettingsService.EnableNotifications;
+        CloseToTrayToggle.IsOn = SettingsService.CloseToTray;
 
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
@@ -486,6 +488,18 @@ public sealed partial class SettingsPage : Page
     private void AutoUpdateToggle_Toggled(object sender, RoutedEventArgs e)
     {
         SettingsService.CheckForUpdatesOnStartup = AutoUpdateToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void NotificationsToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.EnableNotifications = NotificationsToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void CloseToTrayToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.CloseToTray = CloseToTrayToggle.IsOn;
         SettingsService.SaveSettings();
     }
 }

@@ -67,7 +67,7 @@
                         <FontIcon Glyph="&#xE71D;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Installed" Tag="Installed">
+                <controls:NavigationViewItem x:Name="InstalledNavItem" Content="Installed" Tag="Installed">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE73E;" />
                     </controls:NavigationViewItem.Icon>

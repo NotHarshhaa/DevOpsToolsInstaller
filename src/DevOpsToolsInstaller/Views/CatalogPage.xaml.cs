@@ -469,6 +469,12 @@ public sealed partial class CatalogPage : Page
             var succeeded = selected.Count(t => t.Status == ToolStatus.Downloaded);
             var failed = selected.Count(t => t.Status == ToolStatus.Failed);
             StatusText.Text = $"Done - {succeeded} succeeded, {failed} failed";
+
+            ToastService.Show(
+                $"Download finished ({succeeded}/{selected.Count})",
+                failed > 0
+                    ? $"{failed} download(s) failed. Interrupted transfers can resume on the next attempt."
+                    : "All selected tools were downloaded successfully.");
         }
         catch (OperationCanceledException)
         {
@@ -833,6 +839,10 @@ public sealed partial class CatalogPage : Page
                 {
                     StatusText.Text = res.Message;
                 }
+
+                ToastService.Show(
+                    $"{tool.Name} ready",
+                    res.Success ? res.Message : $"{tool.Name} was downloaded but the install step needs attention.");
             }
             else
             {

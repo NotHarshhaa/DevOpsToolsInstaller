@@ -63,6 +63,7 @@ public sealed class DownloadService
         CancellationToken ct)
     {
         var destPath = Path.Combine(destinationFolder, tool.FileName);
+        var partialPath = destPath + ".partial";
 
         // Skip if already downloaded, non-empty, and hash matches
         if (File.Exists(destPath))
@@ -75,6 +76,8 @@ public sealed class DownloadService
                     tool.Progress = 100;
                     tool.Status = ToolStatus.Downloaded;
                     progress?.Report(100);
+                    // The transfer is complete — a stale .partial is no longer needed.
+                    CleanupPartial(partialPath);
                     return;
                 }
             }
@@ -88,23 +91,57 @@ public sealed class DownloadService
 
         try
         {
-            using var response = await Http.GetAsync(
-                tool.DownloadUrl,
-                HttpCompletionOption.ResponseHeadersRead,
-                ct);
+            // Resume support: a leftover .partial from an interrupted attempt
+            // is continued via an HTTP Range request when the server allows it.
+            long resumeOffset = 0;
+            if (File.Exists(partialPath))
+            {
+                resumeOffset = new FileInfo(partialPath).Length;
+            }
 
+            using var request = new HttpRequestMessage(HttpMethod.Get, tool.DownloadUrl);
+            if (resumeOffset > 0)
+            {
+                request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(resumeOffset, null);
+            }
+
+            using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
             response.EnsureSuccessStatusCode();
 
-            var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+            bool resumed = false;
+            if (resumeOffset > 0)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+                {
+                    resumed = true;
+                    ActivityLogService.Info(tool.Name,
+                        $"Resuming download from {resumeOffset / (1024.0 * 1024.0):F1} MB");
+                }
+                else
+                {
+                    // Server ignored the Range header — restart from scratch.
+                    resumeOffset = 0;
+                }
+            }
+
+            var totalBytes = response.Content.Headers.ContentLength is { } len
+                ? len + resumeOffset
+                : -1L;
             var sw = System.Diagnostics.Stopwatch.StartNew();
             long lastSpeedBytes = 0;
             long lastSpeedTimeMs = 0;
 
             await using (var stream = await response.Content.ReadAsStreamAsync(ct))
-            await using (var fileStream = File.Create(destPath))
+            await using (var fileStream = new FileStream(
+                partialPath,
+                resumed ? FileMode.Append : FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                81920,
+                true))
             {
                 var buffer = new byte[81920]; // 80 KB chunks
-                long totalRead = 0;
+                long totalRead = resumed ? resumeOffset : 0;
                 int bytesRead;
                 int lastReportedPct = -1;
 
@@ -148,11 +185,19 @@ public sealed class DownloadService
             }
 
             // Verify hash if specified
-            if (!string.IsNullOrEmpty(tool.Sha256) && !await VerifyHashAsync(destPath, tool.Sha256, ct))
+            if (!string.IsNullOrEmpty(tool.Sha256) && !await VerifyHashAsync(partialPath, tool.Sha256, ct))
             {
-                CleanupPartial(destPath);
+                // A corrupt partial cannot be resumed — discard it entirely.
+                CleanupPartial(partialPath);
                 throw new CryptographicException("SHA256 checksum verification failed.");
             }
+
+            // Promote the verified partial file to its final name.
+            if (File.Exists(destPath))
+            {
+                File.Delete(destPath);
+            }
+            File.Move(partialPath, destPath);
 
             tool.DownloadSpeed = string.Empty;
             tool.Progress = 100;
@@ -161,16 +206,21 @@ public sealed class DownloadService
         }
         catch (OperationCanceledException)
         {
-            CleanupPartial(destPath);
+            // Keep the .partial file so the next attempt resumes from here.
             tool.DownloadSpeed = string.Empty;
             tool.Status = ToolStatus.NotDownloaded;
             tool.Progress = 0;
-            ActivityLogService.Warn(tool.Name, "Download cancelled by user");
+            ActivityLogService.Warn(tool.Name, "Download cancelled — progress saved for resume");
             throw;
         }
         catch (Exception ex)
         {
-            CleanupPartial(destPath);
+            // Keep the .partial file so the next attempt resumes from here,
+            // unless the failure means the partial is unusable.
+            if (ex is CryptographicException)
+            {
+                CleanupPartial(partialPath);
+            }
             tool.DownloadSpeed = string.Empty;
             tool.Status = ToolStatus.Failed;
             tool.StatusText = $"Failed: {ex.Message}";

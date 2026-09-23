@@ -606,6 +606,7 @@ public sealed partial class HomeViewModel : ObservableObject
             }
             finally
             {
+                var succeeded = tool.IsInstalled;
                 _ = mw.DispatcherQueue.TryEnqueue(() =>
                 {
                     SyncActiveDownloads();
@@ -624,6 +625,12 @@ public sealed partial class HomeViewModel : ObservableObject
                     }
                     UpdateDynamicSubtitle();
                 });
+
+                ToastService.Show(
+                    succeeded ? $"{tool.Name} ready" : $"{tool.Name} install failed",
+                    succeeded
+                        ? $"{tool.Name} was downloaded and installed successfully."
+                        : $"The download or install of {tool.Name} did not complete. Check the Downloads page for details.");
             }
         });
     }
@@ -692,6 +699,12 @@ public sealed partial class HomeViewModel : ObservableObject
                 CanUpdateAll = UpdateCount >= 2;
                 UpdateDynamicSubtitle();
             });
+
+            ToastService.Show(
+                $"Update all finished ({succeeded.Count}/{toolsToUpdate.Count})",
+                succeeded.Count == toolsToUpdate.Count
+                    ? "All selected tools were updated successfully."
+                    : "Some tools could not be updated — the remaining items stay listed on the Home page.");
         }
         finally
         {
@@ -738,6 +751,7 @@ public sealed partial class HomeViewModel : ObservableObject
             var dlFolder = DownloadService.DefaultDownloadsFolder;
             await mw.DownloadSvc.DownloadBatchAsync(missingTools, dlFolder);
 
+            int installedCount = 0;
             foreach (var tool in missingTools)
             {
                 if (tool.Status == ToolStatus.Downloaded)
@@ -746,11 +760,16 @@ public sealed partial class HomeViewModel : ObservableObject
                     if (installRes.Success)
                     {
                         tool.IsInstalled = true;
+                        installedCount++;
                     }
                 }
             }
 
             _ = mw.DispatcherQueue.TryEnqueue(SyncActiveDownloads);
+
+            ToastService.Show(
+                $"{stack.Name}: {installedCount}/{missingTools.Count} tools installed",
+                "The remaining tools from this stack were deployed to your workstation.");
         });
 
         mw.NavigateTo("Downloads");
