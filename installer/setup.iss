@@ -58,7 +58,7 @@ VersionInfoCompany=NotHarshhaa
 VersionInfoDescription=Installs DevOps Tools Installer v{#AppVersion}
 VersionInfoProductName=DevOps Tools Installer
 VersionInfoProductTextVersion={#AppVersion}
-VersionInfoCopyright=MIT License - https://github.com/NotHarshhaa/DevOpsToolsInstaller
+VersionInfoCopyright=Apache-2.0 License - https://github.com/NotHarshhaa/DevOpsToolsInstaller
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
