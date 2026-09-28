@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v2.8.0",
+    [string]$Tag = "v2.9.0",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )

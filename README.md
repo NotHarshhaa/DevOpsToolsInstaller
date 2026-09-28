@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/badge/release-v2.8.0-blue?logo=github" />
+  <img alt="Release" src="https://img.shields.io/badge/release-v2.9.0-blue?logo=github" />
   <img alt="Build" src="https://github.com/NotHarshhaa/DevOpsToolsInstaller/actions/workflows/release.yml/badge.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows" />
   <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet" />
@@ -157,7 +157,7 @@ Everything the UI does is scriptable. Point it at a fresh machine, a rebuild scr
 
 ```text
 PS> DevOpsToolsInstaller.exe --list
-DevOps Tools Installer v2.8.0 — 90 tools available
+DevOps Tools Installer v2.9.0 — 90 tools available
 
   act                      act                          CI/CD and Version Control
   dagger                   Dagger                       CI/CD and Version Control
@@ -172,6 +172,10 @@ PS> DevOpsToolsInstaller.exe --install kubectl,terraform,helm
 
 PS> DevOpsToolsInstaller.exe --install-bundle k8s-starter
 Done. 5 installed, 0 already present, 0 failed.
+
+PS> DevOpsToolsInstaller.exe --uninstall kubectl,terraform
+[ok  ] kubectl: removed Toolsin\kubectl.exe and extracted files.
+Done. 2 uninstalled, 0 not present, 0 failed.
 ```
 
 | Command | Description |
@@ -180,6 +184,8 @@ Done. 5 installed, 0 already present, 0 failed.
 | `--status` | Show which catalog tools are installed, with detected versions. |
 | `--install <id,id,...>` | Download and install specific tools (skips already-installed). |
 | `--install-bundle <bundleId>` | Install every tool in a curated stack. |
+| `--uninstall <id,id,...>` | Uninstall specific tools (removes artifacts, launches vendor uninstallers). |
+| `--version` | Print the application version. |
 | `--help` | Show usage. |
 
 - **Exit codes**: `0` = success, `1` = one or more tools failed — perfect for provisioning scripts.

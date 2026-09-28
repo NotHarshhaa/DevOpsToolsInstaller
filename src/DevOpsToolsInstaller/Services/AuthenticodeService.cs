@@ -51,7 +51,7 @@ public static class AuthenticodeService
     private static readonly Guid ActionGenericVerifyV2 = new("{00AAC56B-CD44-11d0-8CC2-00C04FC295EE}");
 
     private const uint WTD_UI_NONE = 2;
-    private const uint WTD_REVOKE_NONE = 0;
+    private const uint WTD_REVOKE_WHOLECHAIN = 1;
     private const uint WTD_CHOICE_FILE = 1;
     private const uint WTD_STATEACTION_IGNORE = 0;
     private const uint WTD_SAFER_FLAG = 0x00000100;
@@ -61,6 +61,8 @@ public static class AuthenticodeService
     private const int TRUST_E_BAD_DIGEST = unchecked((int)0x80096010);
     private const int CERT_E_UNTRUSTEDROOT = unchecked((int)0x800B0109);
     private const int CERT_E_EXPIRED = unchecked((int)0x800B0101);
+    private const int CERT_E_REVOKED = unchecked((int)0x800B010C);
+    private const int CERT_E_REVOCATION_FAILURE = unchecked((int)0x800B010E);
     private const int TRUST_E_EXPLICIT_DISTRUST = unchecked((int)0x800B0111);
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -156,7 +158,7 @@ public static class AuthenticodeService
                 pPolicyCallbackData = IntPtr.Zero,
                 pSIPClientData = IntPtr.Zero,
                 dwUIChoice = WTD_UI_NONE,
-                fdwRevocationChecks = WTD_REVOKE_NONE,
+                fdwRevocationChecks = WTD_REVOKE_WHOLECHAIN,
                 dwUnionChoice = WTD_CHOICE_FILE,
                 pFile = pFileInfo,
                 dwStateAction = WTD_STATEACTION_IGNORE,
@@ -221,6 +223,26 @@ public static class AuthenticodeService
                     issuer,
                     validTo,
                     $"Digital signature certificate has expired ({publisher ?? "Unknown"}).");
+            }
+
+            if (hResult == CERT_E_REVOKED)
+            {
+                return new AuthenticodeResult(
+                    SignatureStatus.Untrusted,
+                    publisher,
+                    issuer,
+                    validTo,
+                    $"Digital signature certificate has been revoked ({publisher ?? "Unknown"}).");
+            }
+
+            if (hResult == CERT_E_REVOCATION_FAILURE)
+            {
+                return new AuthenticodeResult(
+                    SignatureStatus.Untrusted,
+                    publisher,
+                    issuer,
+                    validTo,
+                    "Certificate revocation status could not be confirmed (offline or CRL/OCSP unreachable).");
             }
 
             return new AuthenticodeResult(

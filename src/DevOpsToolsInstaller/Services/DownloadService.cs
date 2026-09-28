@@ -20,7 +20,7 @@ public sealed class DownloadService
             Timeout = TimeSpan.FromMinutes(30)
         };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "DevOpsToolsInstaller/2.8.0 (Windows NT 10.0; Win64; x64)");
+            $"DevOpsToolsInstaller/{AppUpdaterService.CurrentVersion} (Windows NT 10.0; Win64; x64)");
     }
 
     /// <summary>
@@ -56,6 +56,8 @@ public sealed class DownloadService
         }
     }
 
+    private const int MaxDownloadAttempts = 3;
+
     private static async Task ExecuteDownloadAsync(
         ToolDefinition tool,
         string destinationFolder,
@@ -75,6 +77,7 @@ public sealed class DownloadService
 
         var destPath = Path.Combine(destinationFolder, tool.FileName);
         var partialPath = destPath + ".partial";
+        var metaPath = partialPath + ".meta";
 
         // Skip if already downloaded, non-empty, and hash matches
         if (File.Exists(destPath))
@@ -87,13 +90,14 @@ public sealed class DownloadService
                     tool.Progress = 100;
                     tool.Status = ToolStatus.Downloaded;
                     progress?.Report(100);
-                    // The transfer is complete — a stale .partial is no longer needed.
+                    // The transfer is complete — stale resume state is no longer needed.
                     CleanupPartial(partialPath);
+                    CleanupPartial(metaPath);
                     return;
                 }
             }
 
-            // 0-byte file or hash mismatch — re-download
+            // 0-byte file or hash mismatch — discard it and re-download
             CleanupPartial(destPath);
         }
 
@@ -102,36 +106,134 @@ public sealed class DownloadService
 
         try
         {
-            // Resume support: a leftover .partial from an interrupted attempt
-            // is continued via an HTTP Range request when the server allows it.
-            long resumeOffset = 0;
-            if (File.Exists(partialPath))
+            // Transient network failures (dropped Wi-Fi, DNS blips, reset
+            // connections) are retried with exponential backoff — each retry
+            // resumes from the .partial file instead of starting over.
+            for (int attempt = 1; ; attempt++)
             {
-                resumeOffset = new FileInfo(partialPath).Length;
+                try
+                {
+                    await DownloadCoreAsync(tool, destPath, partialPath, metaPath, progress, ct);
+                    break;
+                }
+                catch (Exception ex) when (attempt < MaxDownloadAttempts && IsTransient(ex))
+                {
+                    var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
+                    ActivityLogService.Warn(tool.Name,
+                        $"Transient failure ({ex.Message}) — retrying in {delay.TotalSeconds:F0}s " +
+                        $"(attempt {attempt + 1} of {MaxDownloadAttempts})");
+                    await Task.Delay(delay, ct);
+                }
             }
 
+            tool.DownloadSpeed = string.Empty;
+            tool.Progress = 100;
+            tool.Status = ToolStatus.Downloaded;
+            ActivityLogService.Success(tool.Name, "Download completed successfully");
+        }
+        catch (OperationCanceledException)
+        {
+            // Keep the .partial file so the next attempt resumes from here.
+            tool.DownloadSpeed = string.Empty;
+            tool.Status = ToolStatus.NotDownloaded;
+            tool.Progress = 0;
+            ActivityLogService.Warn(tool.Name, "Download cancelled — progress saved for resume");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Keep the .partial file so the next attempt resumes from here,
+            // unless the failure means the partial is unusable.
+            if (ex is CryptographicException)
+            {
+                CleanupPartial(partialPath);
+            }
+            tool.DownloadSpeed = string.Empty;
+            tool.Status = ToolStatus.Failed;
+            tool.StatusText = $"Failed: {ex.Message}";
+            tool.Progress = 0;
+            ActivityLogService.Error(tool.Name, $"Download failed: {ex.Message}");
+            throw;
+        }
+    }
+
+    private static async Task DownloadCoreAsync(
+        ToolDefinition tool,
+        string destPath,
+        string partialPath,
+        string metaPath,
+        IProgress<double>? progress,
+        CancellationToken ct)
+    {
+        // Resume support: a leftover .partial from an interrupted attempt
+        // is continued via an HTTP Range request when the server allows it.
+        long resumeOffset = 0;
+        string? storedEtag = null;
+        if (File.Exists(partialPath))
+        {
+            resumeOffset = new FileInfo(partialPath).Length;
+            if (File.Exists(metaPath))
+            {
+                storedEtag = (await File.ReadAllTextAsync(metaPath, ct)).Trim();
+            }
+        }
+
+        bool resumed = false;
+        HttpResponseMessage? response = null;
+        while (true)
+        {
             using var request = new HttpRequestMessage(HttpMethod.Get, tool.DownloadUrl);
             if (resumeOffset > 0)
             {
                 request.Headers.Range = new System.Net.Http.Headers.RangeHeaderValue(resumeOffset, null);
             }
 
-            using var response = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
-            response.EnsureSuccessStatusCode();
+            var candidate = await Http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+            candidate.EnsureSuccessStatusCode();
 
-            bool resumed = false;
-            if (resumeOffset > 0)
+            if (resumeOffset > 0 && candidate.StatusCode == System.Net.HttpStatusCode.PartialContent &&
+                CanResumeSafely(candidate.Headers.ETag?.Tag, storedEtag))
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.PartialContent)
+                resumed = true;
+                response = candidate;
+                ActivityLogService.Info(tool.Name,
+                    $"Resuming download from {resumeOffset / (1024.0 * 1024.0):F1} MB");
+                break;
+            }
+
+            if (resumeOffset == 0)
+            {
+                response = candidate;
+                break;
+            }
+
+            // The server ignored the Range request, or the remote artifact has
+            // changed since the .partial was written (e.g. a version-pinned URL
+            // now serves a newer build). Resuming would splice bytes from two
+            // different artifacts — discard the partial and restart.
+            ActivityLogService.Info(tool.Name,
+                "Partial file no longer matches the remote artifact — restarting download");
+            candidate.Dispose();
+            CleanupPartial(partialPath);
+            CleanupPartial(metaPath);
+            resumeOffset = 0;
+            storedEtag = null;
+        }
+
+        using (response)
+        {
+            // Persist the artifact's identity (ETag) so a future resume can
+            // verify the .partial still belongs to the same file.
+            if (!resumed)
+            {
+                var freshEtag = response!.Headers.ETag?.Tag;
+                if (freshEtag is not null)
                 {
-                    resumed = true;
-                    ActivityLogService.Info(tool.Name,
-                        $"Resuming download from {resumeOffset / (1024.0 * 1024.0):F1} MB");
+                    await File.WriteAllTextAsync(metaPath, freshEtag, ct);
                 }
                 else
                 {
-                    // Server ignored the Range header — restart from scratch.
-                    resumeOffset = 0;
+                    CleanupPartial(metaPath);
                 }
             }
 
@@ -209,42 +311,34 @@ public sealed class DownloadService
                 File.Delete(destPath);
             }
             File.Move(partialPath, destPath);
+            CleanupPartial(metaPath);
 
             // Security: tag the file with Mark-of-the-Web (Zone.Identifier) so
             // Windows SmartScreen / Microsoft Defender evaluate it the same way
             // as a browser download.
             ApplyMarkOfTheWeb(destPath);
-
-            tool.DownloadSpeed = string.Empty;
-            tool.Progress = 100;
-            tool.Status = ToolStatus.Downloaded;
-            ActivityLogService.Success(tool.Name, "Download completed successfully");
-        }
-        catch (OperationCanceledException)
-        {
-            // Keep the .partial file so the next attempt resumes from here.
-            tool.DownloadSpeed = string.Empty;
-            tool.Status = ToolStatus.NotDownloaded;
-            tool.Progress = 0;
-            ActivityLogService.Warn(tool.Name, "Download cancelled — progress saved for resume");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            // Keep the .partial file so the next attempt resumes from here,
-            // unless the failure means the partial is unusable.
-            if (ex is CryptographicException)
-            {
-                CleanupPartial(partialPath);
-            }
-            tool.DownloadSpeed = string.Empty;
-            tool.Status = ToolStatus.Failed;
-            tool.StatusText = $"Failed: {ex.Message}";
-            tool.Progress = 0;
-            ActivityLogService.Error(tool.Name, $"Download failed: {ex.Message}");
-            throw;
         }
     }
+
+    /// <summary>
+    /// Decides whether an interrupted .partial may safely be resumed against
+    /// the current response. When the server publishes an ETag, it must match
+    /// the one recorded alongside the partial; when the server publishes none,
+    /// there is nothing to compare and the resume proceeds as before.
+    /// </summary>
+    private static bool CanResumeSafely(string? currentEtag, string? storedEtag)
+    {
+        if (currentEtag is null) return true;
+        if (storedEtag is null) return false;
+        return string.Equals(storedEtag, currentEtag, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Network-level faults worth retrying with backoff. User cancellation
+    /// (OperationCanceledException) and verification failures are excluded.
+    /// </summary>
+    private static bool IsTransient(Exception ex)
+        => ex is HttpRequestException or IOException;
 
     /// <summary>
     /// Downloads multiple tools concurrently with a semaphore throttle.

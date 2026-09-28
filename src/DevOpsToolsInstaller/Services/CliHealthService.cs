@@ -36,21 +36,51 @@ public static class CliHealthService
             { "k9s", ("k9s.exe", "version --short") },
             { "kind", ("kind.exe", "version") },
             { "minikube", ("minikube.exe", "version") },
+            { "k3d", ("k3d.exe", "version") },
+            { "kustomize", ("kustomize.exe", "version") },
+            { "kubectx", ("kubectx.exe", "--help") },
+            { "stern", ("stern.exe", "version") },
+            { "cilium-cli", ("cilium.exe", "version") },
+            { "linkerd", ("linkerd.exe", "version") },
+            { "tkn", ("tkn.exe", "version") },
+            { "velero", ("velero.exe", "version") },
+            { "eksctl", ("eksctl.exe", "version") },
+            { "skaffold", ("skaffold.exe", "version") },
+            { "flux", ("flux.exe", "version") },
+            { "istioctl", ("istioctl.exe", "version") },
 
             // IaC
             { "terraform", ("terraform.exe", "version") },
             { "opentofu", ("tofu.exe", "version") },
             { "pulumi", ("pulumi.exe", "version") },
+            { "terragrunt", ("terragrunt.exe", "version") },
+            { "tflint", ("tflint.exe", "--version") },
+            { "packer", ("packer.exe", "version") },
+            { "infracost", ("infracost.exe", "version") },
 
             // Cloud CLIs
             { "awscli", ("aws.exe", "--version") },
             { "azure-cli", ("az.cmd", "version") },
             { "gcloud-cli", ("gcloud.cmd", "version") },
             { "oci-cli", ("oci.exe", "--version") },
+            { "doctl", ("doctl.exe", "version") },
+            { "aws-sam-cli", ("sam.exe", "--version") },
+            { "ngrok", ("ngrok.exe", "version") },
+            { "cloudflared", ("cloudflared.exe", "--version") },
 
             // Containers
             { "docker-desktop", ("docker.exe", "--version") },
             { "podman-desktop", ("podman.exe", "--version") },
+            { "nerdctl", ("nerdctl.exe", "version") },
+            { "rancher-desktop", ("rdctl.exe", "version") },
+            { "dive", ("dive.exe", "--version") },
+            { "dagger", ("dagger.exe", "version") },
+
+            // HashiCorp platform
+            { "vault", ("vault.exe", "version") },
+            { "consul", ("consul.exe", "version") },
+            { "nomad", ("nomad.exe", "version") },
+            { "vagrant", ("vagrant.exe", "version") },
 
             // CI/CD & Git
             { "git", ("git.exe", "--version") },
@@ -58,6 +88,17 @@ public static class CliHealthService
             { "gitlab-cli", ("glab.exe", "--version") },
             { "argocd", ("argocd.exe", "version --client") },
             { "argocd-cli", ("argocd.exe", "version --client") },
+            { "act", ("act.exe", "--version") },
+            { "task", ("task.exe", "--version") },
+            { "just", ("just.exe", "--version") },
+            { "helmfile", ("helmfile.exe", "--version") },
+
+            // Observability
+            { "prometheus", ("prometheus.exe", "--version") },
+            { "grafana", ("grafana.exe", "-v") },
+            { "k6", ("k6.exe", "version") },
+            { "vector", ("vector.exe", "--version") },
+            { "logcli", ("logcli.exe", "--version") },
 
             // Security
             { "trivy", ("trivy.exe", "--version") },
@@ -66,11 +107,29 @@ public static class CliHealthService
             { "cosign", ("cosign.exe", "version") },
             { "snyk", ("snyk.exe", "--version") },
             { "snyk-cli", ("snyk.exe", "--version") },
+            { "sops", ("sops.exe", "--version") },
+            { "gitleaks", ("gitleaks.exe", "version") },
+            { "opa", ("opa.exe", "version") },
+            { "kyverno-cli", ("kyverno.exe", "version") },
 
-            // Utilities
+            // Terminal & utilities
             { "jq", ("jq.exe", "--version") },
             { "yq", ("yq.exe", "--version") },
             { "curl", ("curl.exe", "--version") },
+            { "fzf", ("fzf.exe", "--version") },
+            { "ripgrep", ("rg.exe", "--version") },
+            { "bat", ("bat.exe", "--version") },
+            { "fd", ("fd.exe", "--version") },
+            { "delta", ("delta.exe", "--version") },
+            { "eza", ("eza.exe", "--version") },
+            { "zoxide", ("zoxide.exe", "--version") },
+            { "lazygit", ("lazygit.exe", "--version") },
+            { "lazydocker", ("lazydocker.exe", "--version") },
+            { "starship", ("starship.exe", "--version") },
+            { "alacritty", ("alacritty.exe", "--version") },
+            { "wezterm", ("wezterm.exe", "--version") },
+            { "windows-terminal", ("wt.exe", "--version") },
+            { "neovim", ("nvim.exe", "--version") },
             { "vscode", ("code.cmd", "--version") }
         };
 

@@ -85,8 +85,10 @@ public static class ArtifactService
 
         // Security policy: verify the vendor installer's Authenticode signature
         // before launching it, per the user's chosen strictness level.
+        // Fail-closed: only a positively verified signature counts as trustworthy —
+        // a failed/undetermined check (Unknown) is treated like an unsigned file.
         var signature = AuthenticodeService.VerifyFile(filePath);
-        var isTrustworthy = signature.IsValid || signature.Status == SignatureStatus.Unknown;
+        var isTrustworthy = signature.IsValid;
 
         if (!isTrustworthy && SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned)
         {
@@ -113,19 +115,35 @@ public static class ArtifactService
 
     private static ArtifactActionResult ExtractArchive(ToolDefinition tool, string sourcePath)
     {
+        var fileName = Path.GetFileName(sourcePath);
         var ext = Path.GetExtension(sourcePath).ToLowerInvariant();
-        if (ext != ".zip")
+
+        string target;
+        if (ext == ".zip")
         {
-            // Only .zip can be extracted in-process; open the file's folder so
-            // the user can handle other formats (.tar.gz, .7z) with their tools.
+            target = Path.Combine(ToolsRoot, tool.Id);
+            Directory.CreateDirectory(target);
+            ZipFile.ExtractToDirectory(sourcePath, target, overwriteFiles: true);
+        }
+        else if (fileName.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
+                 fileName.EndsWith(".tar.bz2", StringComparison.OrdinalIgnoreCase) ||
+                 fileName.EndsWith(".tar.xz", StringComparison.OrdinalIgnoreCase) ||
+                 fileName.EndsWith(".tar.zst", StringComparison.OrdinalIgnoreCase) ||
+                 ext is ".tgz" or ".tbz2" or ".txz" or ".tar")
+        {
+            // Tar-based archives are extracted with the bsdtar.exe shipped with
+            // Windows 10 1803+ (handles gzip/bzip2/x/zstd compression natively).
+            target = ExtractTarArchive(tool, sourcePath);
+        }
+        else
+        {
+            // Only .zip and tar-based archives can be extracted in-process;
+            // open the file's folder so the user can handle other formats
+            // (.7z, standalone .exe archives) with their own tools.
             LauncherService.OpenDownloadsFolder(Path.GetDirectoryName(sourcePath)!);
             return new ArtifactActionResult(
                 true, $"{tool.Name}: opened folder ({ext} archives need manual extraction).");
         }
-
-        var target = Path.Combine(ToolsRoot, tool.Id);
-        Directory.CreateDirectory(target);
-        ZipFile.ExtractToDirectory(sourcePath, target, overwriteFiles: true);
 
         // Copy any contained executables to Tools\bin so users only need Tools\bin on PATH
         var bin = BinFolder;
@@ -134,12 +152,12 @@ public static class ArtifactService
 
         foreach (var exePath in exes)
         {
-            var fileName = Path.GetFileName(exePath);
+            var fileName2 = Path.GetFileName(exePath);
             try
             {
-                var dest = Path.Combine(bin, fileName);
+                var dest = Path.Combine(bin, fileName2);
                 File.Copy(exePath, dest, overwrite: true);
-                copiedNames.Add(fileName);
+                copiedNames.Add(fileName2);
             }
             catch
             {
@@ -156,6 +174,38 @@ public static class ArtifactService
 
         var extraInfo = copiedNames.Count > 0 ? $" {pathHint}" : "";
         return new ArtifactActionResult(true, $"{tool.Name} extracted to Tools\\{tool.Id}.{extraInfo}");
+    }
+
+    /// <summary>
+    /// Extracts a tar archive (optionally compressed) using the tar.exe bundled
+    /// with Windows, into Tools\&lt;id&gt;. Throws on a non-zero tar exit code.
+    /// </summary>
+    private static string ExtractTarArchive(ToolDefinition tool, string sourcePath)
+    {
+        var target = Path.Combine(ToolsRoot, tool.Id);
+        Directory.CreateDirectory(target);
+
+        var psi = new System.Diagnostics.ProcessStartInfo
+        {
+            FileName = "tar.exe",
+            Arguments = $"-xf \"{sourcePath}\" -C \"{target}\"",
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardError = true
+        };
+
+        using var proc = System.Diagnostics.Process.Start(psi)
+            ?? throw new IOException("Failed to start tar.exe for archive extraction.");
+        var stderr = proc.StandardError.ReadToEnd();
+        proc.WaitForExit(120_000);
+
+        if (proc.ExitCode != 0)
+        {
+            throw new IOException(
+                $"tar.exe exited with code {proc.ExitCode}: {stderr.Trim()}");
+        }
+
+        return target;
     }
 
     /// <summary>

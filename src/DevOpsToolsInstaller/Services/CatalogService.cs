@@ -27,7 +27,7 @@ public sealed class CatalogService
             Timeout = TimeSpan.FromSeconds(15)
         };
         Http.DefaultRequestHeaders.UserAgent.ParseAdd(
-            "DevOpsToolsInstaller/2.8.0 (Windows NT 10.0; Win64; x64)");
+            $"DevOpsToolsInstaller/{AppUpdaterService.CurrentVersion} (Windows NT 10.0; Win64; x64)");
     }
 
     /// <summary>

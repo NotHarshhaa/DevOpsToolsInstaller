@@ -12,6 +12,7 @@ namespace DevOpsToolsInstaller.Services;
 ///   DevOpsToolsInstaller.exe --status
 ///   DevOpsToolsInstaller.exe --install kubectl,terraform,helm
 ///   DevOpsToolsInstaller.exe --install-bundle k8s-starter
+///   DevOpsToolsInstaller.exe --uninstall kubectl,terraform
 ///
 /// The process exits with code 0 on success, 1 when any requested tool failed.
 /// </summary>
@@ -19,7 +20,8 @@ public static class CliHost
 {
     private static readonly HashSet<string> Commands = new(StringComparer.OrdinalIgnoreCase)
     {
-        "--install", "--install-bundle", "--list", "--status", "--help", "-h"
+        "--install", "--install-bundle", "--uninstall", "--list", "--status",
+        "--version", "--help", "-h"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -66,6 +68,13 @@ public static class CliHost
         if (args.Contains("--status", StringComparer.OrdinalIgnoreCase))
         {
             return await PrintStatusAsync();
+        }
+
+        if (args.Contains("--version", StringComparer.OrdinalIgnoreCase) ||
+            args.Contains("-v", StringComparer.OrdinalIgnoreCase))
+        {
+            WriteLine($"DevOpsToolsInstaller v{AppUpdaterService.CurrentVersion}");
+            return 0;
         }
 
         var catalog = new CatalogService();
@@ -116,6 +125,12 @@ public static class CliHost
                         errors.Add($"bundle '{bundleId}' references unknown tool id '{tid}'");
                     }
                 }
+            }
+            else if (arg.Equals("--uninstall", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await UninstallToolsAsync(
+                    args[++i].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                    knownIds);
             }
         }
 
@@ -222,9 +237,16 @@ public static class CliHost
             if (isInstalled)
             {
                 installed++;
-                var version = tool.Kind == ArtifactKind.Installer
-                    ? UninstallService.GetInstalledVersion(tool)
-                    : CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2).GetAwaiter().GetResult().DetectedVersion;
+                string? version;
+                if (tool.Kind == ArtifactKind.Installer)
+                {
+                    version = await Task.Run(() => UninstallService.GetInstalledVersion(tool));
+                }
+                else
+                {
+                    var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2);
+                    version = probe.DetectedVersion;
+                }
                 WriteLine($"  [x] {tool.Name.PadRight(28)} {tool.Category.PadRight(28)} {(string.IsNullOrWhiteSpace(version) ? "" : $"v{version}")}");
             }
         }
@@ -232,6 +254,53 @@ public static class CliHost
         WriteLine();
         WriteLine($"{installed} of {tools.Count} catalog tools installed.");
         return 0;
+    }
+
+    /// <summary>
+    /// Handles the --uninstall command: removes each requested tool's artifacts
+    /// (and launches the vendor uninstaller for Installer-kind tools).
+    /// </summary>
+    private static Task<int> UninstallToolsAsync(
+        IEnumerable<string> toolIds,
+        Dictionary<string, ToolDefinition> knownIds)
+    {
+        var dlFolder = DownloadService.DefaultDownloadsFolder;
+        int removedCount = 0;
+        int missingCount = 0;
+        int failedCount = 0;
+
+        foreach (var rawId in toolIds)
+        {
+            if (!knownIds.TryGetValue(rawId, out var tool))
+            {
+                missingCount++;
+                WriteLine($"[warn] unknown tool id '{rawId}' (use --list to see available ids)");
+                continue;
+            }
+
+            if (!UninstallService.IsInstalled(tool, dlFolder))
+            {
+                missingCount++;
+                WriteLine($"[skip] {tool.Name} ({tool.Id}) is not installed");
+                continue;
+            }
+
+            var result = UninstallService.Uninstall(tool, dlFolder);
+            if (result.Success)
+            {
+                removedCount++;
+                WriteLine($"[ok  ] {tool.Name}: {result.Message}");
+            }
+            else
+            {
+                failedCount++;
+                WriteLine($"[fail] {tool.Name}: {result.Message}");
+            }
+        }
+
+        WriteLine(string.Empty);
+        WriteLine($"Done. {removedCount} uninstalled, {missingCount} not present, {failedCount} failed.");
+        return Task.FromResult(failedCount == 0 ? 0 : 1);
     }
 
     private static void PrintUsage()
@@ -243,6 +312,8 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --status                     Show which tools are installed");
         WriteLine("  DevOpsToolsInstaller.exe --install <id,id,...>        Download and install specific tools");
         WriteLine("  DevOpsToolsInstaller.exe --install-bundle <bundleId>  Install all tools in a curated stack");
+        WriteLine("  DevOpsToolsInstaller.exe --uninstall <id,id,...>      Uninstall specific tools");
+        WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");
         WriteLine("  DevOpsToolsInstaller.exe --help                       Show this help");
         WriteLine();
         WriteLine("Exit codes: 0 = success, 1 = one or more tools failed.");
