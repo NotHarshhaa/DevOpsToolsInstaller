@@ -3,7 +3,8 @@
     NavigationCacheMode="Enabled"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
 
     <ScrollViewer Padding="32,24,32,32">
         <StackPanel Spacing="24" MaxWidth="1080">
@@ -56,6 +57,7 @@
                               AutomationProperties.Name="Loading workstation overview" />
                 <TextBlock Text="Scanning workstation tools and health…"
                            Style="{StaticResource CaptionTextBlockStyle}"
+                           helpers:Motion.Pulse="True"
                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
             </StackPanel>
 
@@ -97,6 +99,7 @@
 
                     <!-- Metric 1: Installed Tools -->
                     <Button x:Name="MetricCardInstalled"
+                            helpers:Motion.HoverLift="True"
                             Grid.Row="0" Grid.Column="0"
                             Style="{StaticResource QuickActionCardStyle}"
                             Click="InstalledMetric_Click"
@@ -120,6 +123,7 @@
 
                     <!-- Metric 2: Updates Available -->
                     <Button x:Name="MetricCardUpdates"
+                            helpers:Motion.HoverLift="True"
                             Grid.Row="0" Grid.Column="1"
                             Style="{StaticResource QuickActionCardStyle}"
                             Click="UpdatesMetric_Click"
@@ -158,6 +162,7 @@
 
                     <!-- Metric 3: Active Downloads -->
                     <Button x:Name="MetricCardDownloads"
+                            helpers:Motion.HoverLift="True"
                             Grid.Row="0" Grid.Column="2"
                             Style="{StaticResource QuickActionCardStyle}"
                             Click="DownloadsMetric_Click"
@@ -181,6 +186,7 @@
 
                     <!-- Metric 4: PATH Health -->
                     <Button x:Name="MetricCardPath"
+                            helpers:Motion.HoverLift="True"
                             Grid.Row="0" Grid.Column="3"
                             Style="{StaticResource QuickActionCardStyle}"
                             AutomationProperties.Name="{Binding PathMetricAutomationName}">
@@ -486,7 +492,7 @@
                             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                 <FontIcon Glyph="&#xE895;" FontSize="13" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
                                 <TextBlock Text="Updates available" Style="{StaticResource CardTitleStyle}" />
-                                <Border Style="{StaticResource BadgeStyle}">
+                                <Border Style="{StaticResource BadgeStyle}" helpers:Motion.Pulse="True">
                                     <TextBlock Text="{Binding UpdateCount}" FontSize="11"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                 </Border>
