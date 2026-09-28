@@ -102,6 +102,13 @@
                     </AppBarButton.Icon>
                 </AppBarButton>
 
+                <AppBarButton Label="Export Report" Click="ExportReport_Click"
+                              ToolTipService.ToolTip="Write a markdown inventory of installed tools, versions, and pending updates to your Documents folder">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE9F9;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
                 <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"
                               ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
                     <AppBarButton.Icon>

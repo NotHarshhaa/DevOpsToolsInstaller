@@ -555,18 +555,25 @@
                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
 
-                                        <!-- Update button (standard/subtle) -->
-                                        <Button Grid.Column="2"
-                                                Click="UpdateTool_Click"
-                                                Tag="{Binding Tool}"
-                                                Padding="12,5" CornerRadius="4"
-                                                VerticalAlignment="Center"
-                                                AutomationProperties.Name="{Binding AutomationLabel}">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <FontIcon Glyph="&#xE895;" FontSize="11" />
-                                                <TextBlock Text="Update" FontSize="12" />
-                                            </StackPanel>
-                                        </Button>
+                                        <!-- What's new + Update buttons -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <HyperlinkButton Click="WhatsNew_Click"
+                                                             Tag="{Binding Tool}"
+                                                             Padding="4,5" FontSize="12"
+                                                             VerticalAlignment="Center"
+                                                             Content="What's new?"
+                                                             AutomationProperties.Name="Show release notes for the new version" />
+                                            <Button Click="UpdateTool_Click"
+                                                    Tag="{Binding Tool}"
+                                                    Padding="12,5" CornerRadius="4"
+                                                    VerticalAlignment="Center"
+                                                    AutomationProperties.Name="{Binding AutomationLabel}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE895;" FontSize="11" />
+                                                    <TextBlock Text="Update" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
                                 </DataTemplate>
                             </ListView.ItemTemplate>

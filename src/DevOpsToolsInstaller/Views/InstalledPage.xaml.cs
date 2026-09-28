@@ -557,6 +557,63 @@ public sealed partial class InstalledPage : Page
         });
     }
 
+    private async void ExportReport_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var reportPath = WorkstationReportService.DefaultReportPath;
+            var catalogTools = _allInstalledTools.Count > 0
+                ? _allInstalledTools
+                : App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+            var count = await WorkstationReportService.WriteReportAsync(catalogTools, reportPath);
+
+            var openButton = new HyperlinkButton { Content = "Open containing folder" };
+            openButton.Click += (_, _) =>
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{reportPath}\"",
+                    UseShellExecute = true
+                });
+            };
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = "Workstation report exported",
+                Content = new StackPanel
+                {
+                    Spacing = 8,
+                    MinWidth = 380,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = $"Report for {count} installed tool(s) written to:",
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        new TextBox
+                        {
+                            Text = reportPath,
+                            IsReadOnly = true,
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        openButton
+                    }
+                },
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close
+            };
+
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Report export failed: {ex.Message}";
+        }
+    }
+
     private void GoToCatalog_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindowInstance?.NavigateTo("Catalog");

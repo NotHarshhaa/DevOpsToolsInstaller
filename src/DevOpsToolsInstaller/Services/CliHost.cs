@@ -18,6 +18,8 @@ namespace DevOpsToolsInstaller.Services;
 ///   DevOpsToolsInstaller.exe --export-profile profile.json
 ///   DevOpsToolsInstaller.exe --import-profile profile.json
 ///   DevOpsToolsInstaller.exe --generate-script bootstrap.ps1
+///   DevOpsToolsInstaller.exe --import-winget winget-export.json
+///   DevOpsToolsInstaller.exe --report workstation.md
 ///
 /// The process exits with code 0 on success, 1 when any requested tool failed.
 /// </summary>
@@ -27,7 +29,9 @@ public static class CliHost
     {
         "--install", "--install-bundle", "--uninstall", "--update",
         "--download-only", "--download-only-bundle",
-        "--export-profile", "--import-profile", "--generate-script",
+        "--export-profile", "--import-profile",
+        "--import-winget", "--import-choco",
+        "--generate-script", "--report",
         "--downloads-folder", "--list", "--status", "--version", "--help", "-h"
     };
 
@@ -199,6 +203,18 @@ public static class CliHost
             else if (arg.Equals("--import-profile", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
                 return await ImportProfileAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--import-winget", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await ImportFromPackageManagerAsync(args[++i], tools, PackageManagerSource.Winget);
+            }
+            else if (arg.Equals("--import-choco", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await ImportFromPackageManagerAsync(args[++i], tools, PackageManagerSource.Chocolatey);
+            }
+            else if (arg.Equals("--report", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await ExportReportAsync(args[++i], tools);
             }
             else if (arg.Equals("--generate-script", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
@@ -618,52 +634,7 @@ public static class CliHost
 
             WriteLine($"Profile loaded: {matched} tool(s) recognized.");
 
-            var dlFolder = DownloadService.DefaultDownloadsFolder;
-            var download = new DownloadService();
-            int installed = 0;
-            int skipped = 0;
-            int failed = 0;
-
-            foreach (var tool in selected)
-            {
-                if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
-                {
-                    skipped++;
-                    WriteLine($"[skip] {tool.Name} ({tool.Id}) already installed");
-                    continue;
-                }
-
-                try
-                {
-                    WriteLine($"[get ] {tool.Name} ({tool.FileName})");
-                    await download.DownloadAsync(tool, dlFolder);
-                    if (tool.Status == ToolStatus.Downloaded)
-                    {
-                        var res = ArtifactService.Perform(tool, dlFolder);
-                        if (res.Success)
-                        {
-                            installed++;
-                            tool.IsInstalled = true;
-                            WriteLine($"[ok  ] {tool.Name}: {res.Message}");
-                        }
-                        else
-                        {
-                            failed++;
-                            WriteLine($"[fail] {tool.Name}: {res.Message}");
-                        }
-                    }
-                    else
-                    {
-                        failed++;
-                        WriteLine($"[fail] {tool.Name}: download did not complete");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    failed++;
-                    WriteLine($"[fail] {tool.Name}: {ex.Message}");
-                }
-            }
+            var (installed, skipped, failed) = await InstallMissingAsync(selected);
 
             WriteLine(string.Empty);
             WriteLine($"Done. {installed} installed, {skipped} already present, {failed} failed.");
@@ -672,6 +643,136 @@ public static class CliHost
         catch (Exception ex)
         {
             WriteLine($"error: could not import profile: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Shared install loop: downloads and installs every tool that is not
+    /// already present, printing per-tool progress. Used by --install-style
+    /// commands and profile/package-manager imports alike.
+    /// </summary>
+    private static async Task<(int Installed, int Skipped, int Failed)> InstallMissingAsync(
+        List<ToolDefinition> targets)
+    {
+        var dlFolder = DownloadService.DefaultDownloadsFolder;
+        var download = new DownloadService();
+        int installed = 0;
+        int skipped = 0;
+        int failed = 0;
+
+        foreach (var tool in targets)
+        {
+            if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
+            {
+                skipped++;
+                WriteLine($"[skip] {tool.Name} ({tool.Id}) already installed");
+                continue;
+            }
+
+            try
+            {
+                WriteLine($"[get ] {tool.Name} ({tool.FileName})");
+                await download.DownloadAsync(tool, dlFolder);
+                if (tool.Status == ToolStatus.Downloaded)
+                {
+                    var res = ArtifactService.Perform(tool, dlFolder);
+                    if (res.Success)
+                    {
+                        installed++;
+                        tool.IsInstalled = true;
+                        WriteLine($"[ok  ] {tool.Name}: {res.Message}");
+                    }
+                    else
+                    {
+                        failed++;
+                        WriteLine($"[fail] {tool.Name}: {res.Message}");
+                    }
+                }
+                else
+                {
+                    failed++;
+                    WriteLine($"[fail] {tool.Name}: download did not complete");
+                }
+            }
+            catch (Exception ex)
+            {
+                failed++;
+                WriteLine($"[fail] {tool.Name}: {ex.Message}");
+            }
+        }
+
+        return (installed, skipped, failed);
+    }
+
+    private enum PackageManagerSource
+    {
+        Winget,
+        Chocolatey
+    }
+
+    /// <summary>
+    /// Handles the --import-winget / --import-choco commands: maps package
+    /// identifiers from another package manager onto the catalog and installs
+    /// everything that matched.
+    /// </summary>
+    private static async Task<int> ImportFromPackageManagerAsync(
+        string path, List<ToolDefinition> tools, PackageManagerSource source)
+    {
+        try
+        {
+            if (!File.Exists(path))
+            {
+                WriteLine($"error: file not found: {path}");
+                return 1;
+            }
+
+            var text = File.ReadAllText(path);
+            var result = source == PackageManagerSource.Winget
+                ? MigrationService.FromWingetExport(text, tools)
+                : MigrationService.FromChocoList(text, tools);
+
+            WriteLine($"{result.SourceDescription}: {result.MatchedTools.Count} package(s) matched this catalog.");
+            if (result.UnmatchedIds.Count > 0)
+            {
+                var preview = string.Join(", ", result.UnmatchedIds.Take(20));
+                var more = result.UnmatchedIds.Count > 20 ? " ..." : "";
+                WriteLine($"[warn] {result.UnmatchedIds.Count} package(s) not in the catalog: {preview}{more}");
+            }
+
+            if (result.MatchedTools.Count == 0)
+            {
+                WriteLine("error: nothing from the import could be mapped to this catalog.");
+                return 1;
+            }
+
+            var (installed, skipped, failed) = await InstallMissingAsync(result.MatchedTools);
+            WriteLine(string.Empty);
+            WriteLine($"Done. {installed} installed, {skipped} already present, {failed} failed.");
+            return failed == 0 ? 0 : 1;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: could not import from package manager: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Handles the --report command: writes a markdown inventory of the
+    /// workstation (installed tools, versions, pending updates, settings).
+    /// </summary>
+    private static async Task<int> ExportReportAsync(string path, List<ToolDefinition> tools)
+    {
+        try
+        {
+            var count = await WorkstationReportService.WriteReportAsync(tools, path);
+            WriteLine($"Report for {count} installed tool(s) written to {Path.GetFullPath(path)}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: could not write report: {ex.Message}");
             return 1;
         }
     }
@@ -742,6 +843,9 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --download-only-bundle <id>  Download a curated stack for offline caching");
         WriteLine("  DevOpsToolsInstaller.exe --export-profile <file>      Export installed tools to a JSON profile");
         WriteLine("  DevOpsToolsInstaller.exe --import-profile <file>      Install tools from a JSON profile");
+        WriteLine("  DevOpsToolsInstaller.exe --import-winget <file>       Migrate packages from a winget export JSON");
+        WriteLine("  DevOpsToolsInstaller.exe --import-choco <file>        Migrate packages from chocolatey list output");
+        WriteLine("  DevOpsToolsInstaller.exe --report <file>              Write a markdown workstation report (for audits)");
         WriteLine("  DevOpsToolsInstaller.exe --generate-script <file>     Generate a standalone PowerShell bootstrap script");
         WriteLine("  DevOpsToolsInstaller.exe --downloads-folder <path>    Redirect downloads (e.g. a USB drive)");
         WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");

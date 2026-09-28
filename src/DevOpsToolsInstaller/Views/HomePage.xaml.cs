@@ -141,6 +141,71 @@ public sealed partial class HomePage : Page
         await ViewModel.UpdateAllAsync(mw);
     }
 
+    private async void WhatsNew_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: ToolDefinition tool })
+        {
+            return;
+        }
+
+        var mw = App.MainWindowInstance;
+        if (mw?.Content?.XamlRoot is null) return;
+
+        var notes = await ToolReleaseNotesService.GetReleaseNotesAsync(tool.DownloadUrl);
+        if (notes is null || string.IsNullOrWhiteSpace(notes.Body))
+        {
+            await ShowWhatsNewDialogAsync(
+                mw.Content.XamlRoot,
+                $"{tool.Name} — release notes",
+                new TextBlock
+                {
+                    Text = "Release notes are not available for this tool (the vendor's releases are not on GitHub, or they could not be fetched).",
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = Application.Current.Resources["TextFillColorSecondaryBrush"] as Microsoft.UI.Xaml.Media.Brush
+                },
+                "Close");
+            return;
+        }
+
+        var body = new StackPanel { Spacing = 12, MinWidth = 420 };
+        body.Children.Add(new TextBlock
+        {
+            Text = notes.TagName,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            FontSize = 14
+        });
+        var scroll = new ScrollViewer
+        {
+            MaxHeight = 320,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            Content = new TextBlock
+            {
+                Text = notes.Body,
+                TextWrapping = TextWrapping.Wrap,
+                IsTextSelectionEnabled = true,
+                FontSize = 13,
+                LineHeight = 19
+            }
+        };
+        body.Children.Add(scroll);
+
+        await ShowWhatsNewDialogAsync(mw.Content.XamlRoot, $"{tool.Name} — what's new in {notes.TagName}", body, "Close");
+    }
+
+    private static async Task ShowWhatsNewDialogAsync(
+        Microsoft.UI.Xaml.XamlRoot xamlRoot, string title, object content, string closeText)
+    {
+        var dialog = new ContentDialog
+        {
+            XamlRoot = xamlRoot,
+            Title = title,
+            Content = content,
+            CloseButtonText = closeText,
+            DefaultButton = ContentDialogButton.Close
+        };
+        await dialog.ShowAsync();
+    }
+
     private async void InstallPopularTool_Click(object sender, RoutedEventArgs e)
     {
         if (sender is Button { Tag: ToolDefinition tool })

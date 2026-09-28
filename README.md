@@ -191,6 +191,9 @@ Done. 2 uninstalled, 0 not present, 0 failed.
 | `--download-only-bundle <bundleId>` | Pre-download a curated stack for offline machines. |
 | `--export-profile <file>` | Export installed tools to a JSON profile. |
 | `--import-profile <file>` | Install tools from a JSON profile (skips already-installed). |
+| `--import-winget <file>` | Migrate packages from a `winget export` JSON (best-effort id mapping). |
+| `--import-choco <file>` | Migrate packages from chocolatey `list` output. |
+| `--report <file>` | Write a markdown workstation report — installed tools, versions, pending updates, security settings. |
 | `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
 | `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
 | `--version` | Print the application version. |
@@ -399,6 +402,11 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 - **Packaging**: Inno Setup 6 (branded setup wizard), MSIX, WinGet manifests, GitHub Actions release pipeline
 
 ---
+
+> **Catalog freshness:** a scheduled GitHub Action (`catalog-refresh.yml`) checks every
+> GitHub-hosted tool's upstream release weekly, opens a PR that bumps stale versions and
+> stamps SHA-256 checksums, and re-signs the catalog when the `CATALOG_SIGNING_KEY` secret
+> is configured. Run it locally any time with `catalog/refresh-catalog.ps1`.
 
 ## Catalog Format, Signing & Custom Tools
 

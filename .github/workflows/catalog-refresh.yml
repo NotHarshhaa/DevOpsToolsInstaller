@@ -1,0 +1,73 @@
+name: Catalog Refresh Bot
+
+# Keeps catalog.json fresh: checks every GitHub-hosted tool's upstream
+# "latest release", bumps stale versions, stamps SHA-256 checksums for
+# version-pinned artifacts, and opens a PR with the changes. When the
+# CATALOG_SIGNING_KEY secret is configured, the updated catalog is
+# re-signed so the app accepts it as a trusted remote update.
+
+on:
+  schedule:
+    - cron: '0 4 * * 1' # Mondays 04:00 UTC
+  workflow_dispatch:
+    inputs:
+      stamp_missing:
+        description: 'Backfill checksums for all tools missing one (slow: downloads ~90 artifacts)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Refresh catalog versions
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          STAMP_MISSING: ${{ inputs.stamp_missing }}
+        run: |
+          $args = @()
+          if ($env:STAMP_MISSING -eq 'true') { $args += '-StampMissing' } else { $args += '-StampChanged' }
+          .\catalog\refresh-catalog.ps1 @args
+
+      - name: Re-sign catalog (if key is configured)
+        shell: pwsh
+        env:
+          CATALOG_SIGNING_KEY: ${{ secrets.CATALOG_SIGNING_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:CATALOG_SIGNING_KEY)) {
+            Write-Host "CATALOG_SIGNING_KEY secret not set — skipping signing. The PR will need a manual signature before release."
+            exit 0
+          }
+          $keyPath = Join-Path $env:RUNNER_TEMP "catalog-signing-key.pem"
+          [IO.File]::WriteAllText($keyPath, $env:CATALOG_SIGNING_KEY.Replace("`n", [Environment]::NewLine))
+          .\catalog\sign-catalog.ps1 -KeyPath $keyPath
+          Remove-Item $keyPath -Force
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: refresh tool catalog versions and checksums'
+          title: 'chore: refresh tool catalog'
+          body: |
+            Automated catalog refresh by the freshness bot.
+
+            - Bumped tools whose upstream GitHub release is newer than the catalog
+            - Stamped SHA-256 checksums for changed, version-pinned artifacts
+
+            **Reviewer checklist:**
+            - [ ] Spot-check bumped download URLs resolve
+            - [ ] If signatures changed, verify the catalog signature matches the pinned public key
+          branch: bot/catalog-refresh
+          delete-branch: true
+          labels: |
+            automated
+            catalog
