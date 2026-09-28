@@ -49,7 +49,7 @@ public static class AppUpdaterService
 
     static AppUpdaterService()
     {
-        Http = new HttpClient
+        Http = new HttpClient(HttpConfigService.CreateHandler())
         {
             Timeout = TimeSpan.FromSeconds(20)
         };

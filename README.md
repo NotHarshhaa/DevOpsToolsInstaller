@@ -36,6 +36,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
 | 🛡️ **Security-first pipeline** | HTTPS-only fetches → SHA-256 verification → Authenticode `WinVerifyTrust` with a configurable **Warn / Block** policy → Mark-of-the-Web tagging → on-disk audit log → **cryptographically signed catalog** (fail-closed). |
 | 🖥️ **Headless CLI mode** | `DevOpsToolsInstaller.exe --install kubectl,terraform` for scripts, machine provisioning, and CI — with proper exit codes. |
+| 🌐 **Corporate proxy support** | Point downloads, catalog updates, and update checks at your own proxy (Settings → Network) — handy behind corporate firewalls. |
 | 📌 **System tray + update scheduler** | Close-to-tray with quick actions, background tool-update scans every 30 minutes, toast notifications with a Settings toggle. |
 | 🔍 **Zero trust, zero telemetry** | No analytics, no phone-home, no background services. Everything it does is logged locally and inspectable. |
 
@@ -184,9 +185,21 @@ Done. 2 uninstalled, 0 not present, 0 failed.
 | `--status` | Show which catalog tools are installed, with detected versions. |
 | `--install <id,id,...>` | Download and install specific tools (skips already-installed). |
 | `--install-bundle <bundleId>` | Install every tool in a curated stack. |
+| `--update [id,id,...]` | Update outdated tools; with ids, force-refresh specific tools. |
 | `--uninstall <id,id,...>` | Uninstall specific tools (removes artifacts, launches vendor uninstallers). |
+| `--download-only <id,id,...>` | Download artifacts without installing (offline caching). |
+| `--download-only-bundle <bundleId>` | Pre-download a curated stack for offline machines. |
+| `--export-profile <file>` | Export installed tools to a JSON profile. |
+| `--import-profile <file>` | Install tools from a JSON profile (skips already-installed). |
+| `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
+| `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
 | `--version` | Print the application version. |
 | `--help` | Show usage. |
+
+> **Workstation profiles:** run `--export-profile profile.json` on a configured machine, commit the file,
+> then `--import-profile profile.json` (or the generated `--generate-script bootstrap.ps1`) on a fresh one.
+> The generated script is fully standalone — it re-downloads official vendor artifacts and needs no
+> DevOpsToolsInstaller installation on the target machine.
 
 - **Exit codes**: `0` = success, `1` = one or more tools failed — perfect for provisioning scripts.
 - **Already installed** tools are detected and skipped automatically.

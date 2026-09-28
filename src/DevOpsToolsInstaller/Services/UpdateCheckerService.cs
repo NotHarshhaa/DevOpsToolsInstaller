@@ -14,7 +14,7 @@ public static class UpdateCheckerService
 
     static UpdateCheckerService()
     {
-        Http = new HttpClient
+        Http = new HttpClient(HttpConfigService.CreateHandler())
         {
             Timeout = TimeSpan.FromSeconds(10)
         };

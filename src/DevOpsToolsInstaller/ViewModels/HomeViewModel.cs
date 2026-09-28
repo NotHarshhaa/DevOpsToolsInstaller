@@ -648,6 +648,11 @@ public sealed partial class HomeViewModel : ObservableObject
         var toolsToUpdate = Updates.Select(u => u.Tool).ToList();
         foreach (var tool in toolsToUpdate)
         {
+            // Drop the previously downloaded artifact so version-pinned file
+            // names (e.g. "kubectl.exe") fetch the new release instead of
+            // short-circuiting on the stale download.
+            DownloadService.DiscardDownloadedArtifact(tool, DownloadService.DefaultDownloadsFolder);
+
             tool.IsSelected = true;
             if (!mw.DownloadQueue.Contains(tool))
             {

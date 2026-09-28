@@ -11,11 +11,7 @@ public sealed class DownloadService
 
     static DownloadService()
     {
-        var handler = new HttpClientHandler
-        {
-            AllowAutoRedirect = true
-        };
-        Http = new HttpClient(handler)
+        Http = new HttpClient(HttpConfigService.CreateHandler())
         {
             Timeout = TimeSpan.FromMinutes(30)
         };
@@ -451,6 +447,19 @@ public sealed class DownloadService
     {
         var path = Path.Combine(destinationFolder, tool.FileName);
         return File.Exists(path) && new FileInfo(path).Length > 0;
+    }
+
+    /// <summary>
+    /// Deletes a tool's downloaded artifact (and any resume state) so the next
+    /// download fetches it afresh — used when updating to a newer version whose
+    /// artifact file name matches the old one.
+    /// </summary>
+    public static void DiscardDownloadedArtifact(ToolDefinition tool, string destinationFolder)
+    {
+        var destPath = Path.Combine(destinationFolder, tool.FileName);
+        CleanupPartial(destPath);
+        CleanupPartial(destPath + ".partial");
+        CleanupPartial(destPath + ".partial.meta");
     }
 
     /// <summary>

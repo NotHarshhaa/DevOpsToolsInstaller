@@ -22,7 +22,7 @@ public sealed class CatalogService
 
     static CatalogService()
     {
-        Http = new HttpClient
+        Http = new HttpClient(HttpConfigService.CreateHandler())
         {
             Timeout = TimeSpan.FromSeconds(15)
         };

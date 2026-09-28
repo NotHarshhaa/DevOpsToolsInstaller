@@ -544,6 +544,84 @@
                 </Border>
             </StackPanel>
 
+            <!-- SECTION 5.5: NETWORK -->
+            <StackPanel Spacing="8">
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
+                    <FontIcon Glyph="&#xE703;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <TextBlock Text="Network" Style="{StaticResource CardTitleStyle}" />
+                </StackPanel>
+                <Border Style="{StaticResource CardStyle}" Padding="18">
+                    <StackPanel Spacing="14">
+
+                        <!-- Proxy toggle -->
+                        <Grid ColumnSpacing="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                    VerticalAlignment="Center">
+                                <FontIcon Glyph="&#xE968;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock Text="Use a Custom Proxy Server" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock Text="Route downloads, catalog updates, and update checks through a corporate or personal proxy. When off, the Windows system proxy is used."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <ToggleSwitch Grid.Column="2" x:Name="ProxyToggle"
+                                          Toggled="ProxyToggle_Toggled"
+                                          OnContent="" OffContent="" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <!-- Proxy fields -->
+                        <StackPanel x:Name="ProxyFieldsPanel" Spacing="10" Visibility="Collapsed">
+                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Proxy address" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" x:Name="ProxyUrlBox" PlaceholderText="http://proxy.corp.local:8080"
+                                         LostFocus="ProxyField_LostFocus" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Username (optional)" VerticalAlignment="Center" />
+                                <TextBox Grid.Column="1" x:Name="ProxyUsernameBox" PlaceholderText="Leave empty for anonymous auth"
+                                         LostFocus="ProxyField_LostFocus" />
+                            </Grid>
+
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="180" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="Password (optional)" VerticalAlignment="Center" />
+                                <PasswordBox Grid.Column="1" x:Name="ProxyPasswordBox" PlaceholderText="Stored in local settings"
+                                             LostFocus="ProxyField_LostFocus" />
+                            </Grid>
+
+                            <TextBlock Text="Proxy changes apply the next time the app starts. Credentials are stored in %LOCALAPPDATA%\DevOpsToolsInstaller\settings.json on this machine only."
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
             <!-- SECTION 6: ABOUT & MAINTAINER SPOTLIGHT -->
             <StackPanel Spacing="8">
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">

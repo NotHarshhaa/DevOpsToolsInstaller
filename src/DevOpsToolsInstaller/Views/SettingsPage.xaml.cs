@@ -53,6 +53,33 @@ public sealed partial class SettingsPage : Page
                 break;
             }
         }
+
+        // Network section
+        ProxyToggle.IsOn = SettingsService.ProxyEnabled;
+        ProxyFieldsPanel.Visibility = SettingsService.ProxyEnabled ? Visibility.Visible : Visibility.Collapsed;
+        ProxyUrlBox.Text = SettingsService.ProxyUrl;
+        ProxyUsernameBox.Text = SettingsService.ProxyUsername;
+        ProxyPasswordBox.Password = SettingsService.ProxyPassword;
+    }
+
+    private void ProxyToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.ProxyEnabled = ProxyToggle.IsOn;
+        ProxyFieldsPanel.Visibility = ProxyToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
+        SettingsService.SaveSettings();
+        ShowNotice(
+            ProxyToggle.IsOn
+                ? "Proxy enabled — it will be used for downloads and update checks after the app restarts."
+                : "Proxy disabled — the Windows system proxy will be used.",
+            InfoBarSeverity.Success);
+    }
+
+    private void ProxyField_LostFocus(object sender, RoutedEventArgs e)
+    {
+        SettingsService.ProxyUrl = ProxyUrlBox.Text.Trim();
+        SettingsService.ProxyUsername = ProxyUsernameBox.Text.Trim();
+        SettingsService.ProxyPassword = ProxyPasswordBox.Password;
+        SettingsService.SaveSettings();
     }
 
     private void SignaturePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)

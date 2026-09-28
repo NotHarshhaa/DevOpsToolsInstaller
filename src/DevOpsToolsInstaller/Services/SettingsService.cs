@@ -68,6 +68,16 @@ public static class SettingsService
     /// <summary>How unsigned/untrusted vendor installers are handled before launch.</summary>
     public static SignaturePolicy SignaturePolicy { get; set; } = SignaturePolicy.Warn;
 
+    /// <summary>Route all HTTP(S) traffic (downloads, catalog, update checks) through a proxy.</summary>
+    public static bool ProxyEnabled { get; set; } = false;
+
+    /// <summary>Proxy address, e.g. "http://proxy.corp.local:8080".</summary>
+    public static string ProxyUrl { get; set; } = string.Empty;
+
+    /// <summary>Optional proxy credentials. Stored in the local settings file.</summary>
+    public static string ProxyUsername { get; set; } = string.Empty;
+    public static string ProxyPassword { get; set; } = string.Empty;
+
     public static void LoadSettings()
     {
         try
@@ -117,6 +127,26 @@ public static class SettingsService
                 {
                     SignaturePolicy = policy;
                 }
+
+                if (doc.RootElement.TryGetProperty("ProxyEnabled", out var proxyEnabledProp))
+                {
+                    ProxyEnabled = proxyEnabledProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("ProxyUrl", out var proxyUrlProp))
+                {
+                    ProxyUrl = proxyUrlProp.GetString() ?? string.Empty;
+                }
+
+                if (doc.RootElement.TryGetProperty("ProxyUsername", out var proxyUserProp))
+                {
+                    ProxyUsername = proxyUserProp.GetString() ?? string.Empty;
+                }
+
+                if (doc.RootElement.TryGetProperty("ProxyPassword", out var proxyPassProp))
+                {
+                    ProxyPassword = proxyPassProp.GetString() ?? string.Empty;
+                }
             }
         }
         catch
@@ -142,7 +172,11 @@ public static class SettingsService
                 LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o"),
                 EnableNotifications = EnableNotifications,
                 CloseToTray = CloseToTray,
-                SignaturePolicy = SignaturePolicy.ToString()
+                SignaturePolicy = SignaturePolicy.ToString(),
+                ProxyEnabled = ProxyEnabled,
+                ProxyUrl = ProxyUrl,
+                ProxyUsername = ProxyUsername,
+                ProxyPassword = ProxyPassword
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);
