@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
 
 $root    = Split-Path -Parent $MyInvocation.MyCommand.Path
 $project = Join-Path $root 'src\DevOpsToolsInstaller\DevOpsToolsInstaller.csproj'
-$pubDir  = Join-Path $root "src\DevOpsToolsInstaller\bin\x64\$Configuration\net8.0-windows10.0.19041.0\win-x64\publish"
+$pubDir  = Join-Path $root "src\DevOpsToolsInstaller\bin\x64\$Configuration\net8.0-windows10.0.26100.0\win-x64\publish"
 $exe     = Join-Path $pubDir 'DevOpsToolsInstaller.exe'
 
 function Write-Step([string]$msg) {

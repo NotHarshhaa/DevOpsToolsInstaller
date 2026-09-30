@@ -3,10 +3,11 @@
     NavigationCacheMode="Enabled"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls">
 
     <ScrollViewer Padding="32,28,32,40">
-        <StackPanel Spacing="24" MaxWidth="880">
+        <StackPanel Spacing="20" MaxWidth="1000" HorizontalAlignment="Stretch">
             <StackPanel.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
@@ -16,676 +17,431 @@
             <!-- Header -->
             <StackPanel Spacing="4">
                 <TextBlock Text="Settings &amp; Configuration" Style="{StaticResource PageTitleStyle}" />
-                <TextBlock Text="Manage workstation directories, terminal autocompletion, appearance, and updates."
+                <TextBlock Text="Appearance, security, notifications, network, PATH integration, storage and updates."
                            Style="{StaticResource PageSubtitleStyle}" />
             </StackPanel>
 
-            <!-- Status InfoBar -->
+            <!-- Status InfoBar (shared notice for all groups) -->
             <controls:InfoBar
                 x:Name="NoticeInfoBar"
                 IsOpen="False"
                 IsClosable="True"
-                Severity="Success" />
+                Severity="Success"
+                AutomationProperties.Name="Settings status message" />
 
-            <!-- SECTION 1: APPEARANCE -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE790;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Appearance &amp; Personalization" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+            <!-- ══════════ GROUP: APPEARANCE ══════════ -->
+            <TextBlock Text="Appearance" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsCard x:Name="ThemeCard"
+                             Description="Choose Light, Dark, or follow the Windows system preference.">
+                <tk:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE790;" />
+                </tk:SettingsCard.HeaderIcon>
+                <ComboBox x:Name="ThemeComboBox" Width="170"
+                          SelectionChanged="ThemeComboBox_SelectionChanged"
+                          AutomationProperties.Name="Application theme">
+                    <ComboBoxItem Content="System default" Tag="Default" />
+                    <ComboBoxItem Content="Light" Tag="Light" />
+                    <ComboBoxItem Content="Dark" Tag="Dark" />
+                </ComboBox>
+            </tk:SettingsCard>
 
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE790;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </Border>
+            <!-- ══════════ GROUP: SECURITY ══════════ -->
+            <TextBlock Text="Security" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="SecurityExpander"
+                                 Description="Signature verification policy and security audit trail for every installer this app launches.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE72E;" />
+                </tk:SettingsExpander.HeaderIcon>
 
-                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="Application Theme" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                            <TextBlock Text="Choose Light, Dark, or follow the Windows system preference."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <ComboBox Grid.Column="2" x:Name="ThemeComboBox" Width="170"
-                                  SelectionChanged="ThemeComboBox_SelectionChanged" VerticalAlignment="Center">
-                            <ComboBoxItem Content="System default" Tag="Default" />
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
+                <tk:SettingsExpander.Items>
+                    <!-- Signature policy -->
+                    <tk:SettingsCard x:Name="SignaturePolicyCard"
+                                     Header="Vendor installer signature policy"
+                                     Description="Warn asks for confirmation before launching installers without a verified trusted signature. Block refuses to launch them entirely.">
+                        <ComboBox x:Name="SignaturePolicyComboBox" Width="190"
+                                  SelectionChanged="SignaturePolicyComboBox_SelectionChanged"
+                                  AutomationProperties.Name="Vendor installer signature policy">
+                            <ComboBoxItem Content="Warn before launch" Tag="Warn" />
+                            <ComboBoxItem Content="Block unsigned installers" Tag="BlockUnsigned" />
                         </ComboBox>
-                    </Grid>
-                </Border>
-            </StackPanel>
+                    </tk:SettingsCard>
 
-            <!-- SECTION 2: DIRECTORIES & ENVIRONMENT -->
-            <StackPanel Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Directories &amp; Environment" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
+                    <!-- Warning shown while the policy allows unsigned installers -->
+                    <controls:InfoBar x:Name="SignatureWarningInfoBar"
+                                      IsOpen="True" IsClosable="False"
+                                      Severity="Warning" Visibility="Collapsed"
+                                      Title="Unsigned installers are allowed"
+                                      Message="Installers without a verified trusted signature will only trigger a confirmation prompt. Switch the policy to Block to refuse them entirely."
+                                      AutomationProperties.Name="Unsigned installer policy warning" />
 
-                <!-- Downloads folder -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                    <!-- Always-on protections -->
+                    <tk:SettingsCard x:Name="ProtectionsCard"
+                                     Header="Always-on protections">
+                        <tk:SettingsCard.Description>
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       Text="• SHA-256 checksum verification of every download against the vendor catalog&#x0a;• HTTPS-only downloads — plain-text HTTP fetches are refused&#x0a;• Authenticode signature checks before any installer is launched&#x0a;• Mark-of-the-Web applied to downloads so SmartScreen &amp; Defender stay active&#x0a;• Official vendor URLs only — no mirrors or repackaged binaries" />
+                        </tk:SettingsCard.Description>
+                        <tk:SettingsCard.Content>
+                            <FontIcon Glyph="&#xE73E;" FontSize="16"
+                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                        </tk:SettingsCard.Content>
+                    </tk:SettingsCard>
 
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE8B7;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </Border>
+                    <!-- Audit log -->
+                    <tk:SettingsCard x:Name="AuditLogCard"
+                                     Header="Security audit log">
+                        <tk:SettingsCard.Description>
+                            <TextBlock x:Name="AuditLogPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" />
+                        </tk:SettingsCard.Description>
+                        <Button Click="OpenAuditLogFolder_Click"
+                                ToolTipService.ToolTip="Open the audit log folder in File Explorer"
+                                AutomationProperties.Name="Open security audit log folder">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                <TextBlock Text="Open Folder" />
+                            </StackPanel>
+                        </Button>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
 
-                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                            <TextBlock Text="Installer Downloads Folder" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <!-- ══════════ GROUP: NOTIFICATIONS & TRAY ══════════ -->
+            <TextBlock Text="Notifications &amp; Tray" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="NotificationsExpander"
+                                 Description="Windows toasts and tray behaviour when the window is closed.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xEA8F;" />
+                </tk:SettingsExpander.HeaderIcon>
+
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="Toast notifications"
+                                     Description="Show Windows notifications when background downloads, installs, and update checks finish.">
+                        <ToggleSwitch x:Name="NotificationsToggle"
+                                      Toggled="NotificationsToggle_Toggled"
+                                      OnContent="" OffContent=""
+                                      AutomationProperties.Name="Toast notifications" />
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="Close to system tray"
+                                     Description="Closing the window keeps the app running in the tray with quick actions. Exit from the tray menu to stop it.">
+                        <ToggleSwitch x:Name="CloseToTrayToggle"
+                                      Toggled="CloseToTrayToggle_Toggled"
+                                      OnContent="" OffContent=""
+                                      AutomationProperties.Name="Close to system tray" />
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
+
+            <!-- ══════════ GROUP: NETWORK ══════════ -->
+            <TextBlock Text="Network" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="NetworkExpander"
+                                 Description="Route downloads, catalog updates, and update checks through a corporate or personal proxy. When off, the Windows system proxy is used.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE968;" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <ToggleSwitch x:Name="ProxyToggle"
+                                  Toggled="ProxyToggle_Toggled"
+                                  OnContent="" OffContent=""
+                                  AutomationProperties.Name="Use a custom proxy server" />
+                </tk:SettingsExpander.Content>
+
+                <tk:SettingsExpander.Items>
+                    <StackPanel x:Name="ProxyFieldsPanel" Spacing="4" Visibility="Collapsed">
+                        <tk:SettingsCard Header="Proxy address">
+                            <TextBox x:Name="ProxyUrlBox" Width="280" PlaceholderText="http://proxy.corp.local:8080"
+                                     LostFocus="ProxyField_LostFocus"
+                                     AutomationProperties.Name="Proxy address" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="Username (optional)">
+                            <TextBox x:Name="ProxyUsernameBox" Width="280" PlaceholderText="Leave empty for anonymous auth"
+                                     LostFocus="ProxyField_LostFocus"
+                                     AutomationProperties.Name="Proxy username" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="Password (optional)">
+                            <PasswordBox x:Name="ProxyPasswordBox" Width="280" PlaceholderText="Stored in local settings"
+                                         LostFocus="ProxyField_LostFocus"
+                                         AutomationProperties.Name="Proxy password" />
+                        </tk:SettingsCard>
+
+                        <tk:SettingsCard Header="When changes apply"
+                                         Description="Proxy changes apply the next time the app starts. Credentials are stored in %LOCALAPPDATA%\DevOpsToolsInstaller\settings.json on this machine only." />
+                    </StackPanel>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
+
+            <!-- ══════════ GROUP: PATH & TERMINAL ══════════ -->
+            <TextBlock Text="PATH &amp; Terminal" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="PathExpander"
+                                 Description="Portable CLI tools extract here. Add the folder to your User PATH to execute tools directly in any terminal.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE756;" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                        <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </Border>
+                </tk:SettingsExpander.Content>
+
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="Add to User PATH">
+                        <tk:SettingsCard.Description>
+                            <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" />
+                        </tk:SettingsCard.Description>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Click="CopyToolsPath_Click" ToolTipService.ToolTip="Copy bin path"
+                                    AutomationProperties.Name="Copy tools bin path">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                            </Button>
+                            <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}"
+                                    AutomationProperties.Name="Add tools bin folder to User PATH">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                    <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer"
+                                    AutomationProperties.Name="Open tools bin folder">
+                                <FontIcon Glyph="&#xE838;" FontSize="13" />
+                            </Button>
+                        </StackPanel>
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="Shell autocompletion ($PROFILE)">
+                        <tk:SettingsCard.Description>
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                    <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </StackPanel>
+                        </tk:SettingsCard.Description>
+                        <Button Click="GenerateCompletion_Click"
+                                AutomationProperties.Name="Configure shell autocompletion">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE756;" FontSize="13" />
+                                <TextBlock Text="Configure" />
+                            </StackPanel>
+                        </Button>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
+
+            <!-- ══════════ GROUP: STORAGE & SHORTCUTS ══════════ -->
+            <TextBlock Text="Storage &amp; Shortcuts" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="StorageExpander"
+                                 Description="Download cache location, disk usage, and Start Menu / Desktop shortcuts.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8B7;" />
+                </tk:SettingsExpander.HeaderIcon>
+
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="Installer downloads folder">
+                        <tk:SettingsCard.Description>
                             <TextBlock x:Name="DownloadPathText" Style="{StaticResource CaptionTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
                                        IsTextSelectionEnabled="True" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Click="CopyDownloadsPath_Click" ToolTipService.ToolTip="Copy directory path">
+                        </tk:SettingsCard.Description>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Click="CopyDownloadsPath_Click" ToolTipService.ToolTip="Copy directory path"
+                                    AutomationProperties.Name="Copy downloads folder path">
                                 <FontIcon Glyph="&#xE8C8;" FontSize="13" />
                             </Button>
-                            <Button Click="ChangeFolder_Click">
+                            <Button Click="ChangeFolder_Click" AutomationProperties.Name="Change downloads folder">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8DA;" FontSize="13" />
                                     <TextBlock Text="Change" />
                                 </StackPanel>
                             </Button>
-                            <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open folder in File Explorer">
+                            <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open folder in File Explorer"
+                                    AutomationProperties.Name="Open downloads folder">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE838;" FontSize="13" />
                                     <TextBlock Text="Open" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                    </Grid>
-                </Border>
+                    </tk:SettingsCard>
 
-                <!-- Tools bin folder (PATH) -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock Text="CLI Binaries Folder (PATH)" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                                    <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
-                            <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                       IsTextSelectionEnabled="True" />
-                            <TextBlock Text="Portable CLI tools extract here. Add to your User PATH to execute tools directly in any terminal."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Click="CopyToolsPath_Click" ToolTipService.ToolTip="Copy bin path">
-                                <FontIcon Glyph="&#xE8C8;" FontSize="13" />
-                            </Button>
-                            <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                    <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
-                                </StackPanel>
-                            </Button>
-                            <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer">
-                                <FontIcon Glyph="&#xE838;" FontSize="13" />
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
-
-                <!-- Clear downloads -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE74D;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock Text="Cached Installer Files" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <tk:SettingsCard Header="Cached installer files">
+                        <tk:SettingsCard.Description>
                             <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-
-                        <Button Grid.Column="2" x:Name="ClearButton" Click="ClearDownloads_Click" VerticalAlignment="Center">
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </tk:SettingsCard.Description>
+                        <Button x:Name="ClearButton" Click="ClearDownloads_Click"
+                                AutomationProperties.Name="Clear download cache">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <FontIcon Glyph="&#xE74D;" FontSize="13" />
                                 <TextBlock Text="Clear cache" />
                             </StackPanel>
                         </Button>
-                    </Grid>
-                </Border>
-            </StackPanel>
+                    </tk:SettingsCard>
 
-            <!-- SECTION 3: SYSTEM INTEGRATION & TERMINAL -->
-            <StackPanel Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE756;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="System Integration &amp; Terminal" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-
-                <!-- Shell Autocompletion -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <FontIcon Glyph="&#xE756;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock Text="Shell Autocompletion ($PROFILE)" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                                    <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="Generate autocompletion snippets for kubectl, helm, gh, terraform, and save directly to your PowerShell $PROFILE or Bash/Zsh."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <Button Grid.Column="2" Click="GenerateCompletion_Click" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE756;" FontSize="13" />
-                                <TextBlock Text="Configure" />
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-                </Border>
-
-                <!-- Notifications & Tray -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <StackPanel Spacing="14">
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xEA8F;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                    <tk:SettingsCard Header="Application logo &amp; shortcuts"
+                                     Description="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu.">
+                        <tk:SettingsCard.HeaderIcon>
+                            <controls:ImageIcon x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="20" Height="20" />
+                        </tk:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2" VerticalAlignment="Center">
+                                <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Toast Notifications" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="Show Windows notifications when background downloads, installs, and update checks finish."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <ToggleSwitch Grid.Column="2" x:Name="NotificationsToggle"
-                                          Toggled="NotificationsToggle_Toggled"
-                                          OnContent="" OffContent="" VerticalAlignment="Center" />
-                        </Grid>
-
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE770;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Close to System Tray" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="Closing the window keeps the app running in the tray with quick actions. Exit from the tray menu to stop it."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <ToggleSwitch Grid.Column="2" x:Name="CloseToTrayToggle"
-                                          Toggled="CloseToTrayToggle_Toggled"
-                                          OnContent="" OffContent="" VerticalAlignment="Center" />
-                        </Grid>
-                    </StackPanel>
-                </Border>
-
-                <!-- Desktop & Start Menu Shortcuts -->
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <Grid ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                VerticalAlignment="Center">
-                            <Image x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="28" Height="28" Stretch="Uniform"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock Text="Application Logo &amp; Shortcuts" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                                    <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
-                            <TextBlock Text="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click">
+                            <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click"
+                                    AutomationProperties.Name="Create desktop shortcut">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE7F4;" FontSize="13" />
                                     <TextBlock Text="Desktop" />
                                 </StackPanel>
                             </Button>
-                            <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click">
+                            <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click"
+                                    AutomationProperties.Name="Create Start Menu shortcut">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE8F1;" FontSize="13" />
                                     <TextBlock Text="Start Menu" />
                                 </StackPanel>
                             </Button>
                         </StackPanel>
-                    </Grid>
-                </Border>
-            </StackPanel>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
 
-            <!-- SECTION 4: SOFTWARE UPDATES -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE895;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Software Updates &amp; Releases" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <StackPanel Spacing="16">
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+            <!-- ══════════ GROUP: UPDATES ══════════ -->
+            <TextBlock Text="Updates" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="UpdatesExpander"
+                                 Description="Keep DevOps Tools Installer and its tool catalog current with GitHub Releases.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE895;" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
+                        <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click"
+                                AutomationProperties.Name="Check for application updates">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE895;" FontSize="13" />
+                                <TextBlock Text="Check for Updates" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </tk:SettingsExpander.Content>
 
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE895;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="3" VerticalAlignment="Center">
+                <tk:SettingsExpander.Items>
+                    <!-- Update status -->
+                    <tk:SettingsCard Header="Application updates">
+                        <tk:SettingsCard.Description>
+                            <StackPanel Spacing="6">
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <TextBlock Text="Application Updates" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                     <Border x:Name="UpdateStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
                                         <TextBlock x:Name="UpdateStatusBadgeText" Text="Ready" FontSize="11" FontWeight="SemiBold"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Border>
-                                </StackPanel>
-                                <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
-                                <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE895;" FontSize="13" />
-                                        <TextBlock Text="Check for Updates" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </Grid>
-
-                        <!-- Update Available Action Bar (Visible when update found) -->
-                        <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
-                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
-                                BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
-                                BorderThickness="1" CornerRadius="8" Padding="14">
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                    <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
-                                               FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                    <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
+                                    <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
                                                Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                               VerticalAlignment="Center" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                            <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
+                            </StackPanel>
+                        </tk:SettingsCard.Description>
+                    </tk:SettingsCard>
 
-                        <!-- Subtle Divider -->
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                        <!-- Auto-check Toggle -->
-                        <Grid ColumnSpacing="16">
+                    <!-- Update Available Action Bar (Visible when update found) -->
+                    <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
+                            Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                            BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
+                            BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,2">
+                        <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Automatically check for updates on startup" Style="{StaticResource BodyTextBlockStyle}" />
-                                <TextBlock Text="Query GitHub Releases on application launch to ensure tools and security patches remain current."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-                            <ToggleSwitch Grid.Column="1" x:Name="AutoUpdateToggle" IsOn="True"
-                                          Toggled="AutoUpdateToggle_Toggled"
-                                          OnContent="" OffContent="" VerticalAlignment="Center" />
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-            <!-- SECTION 5: SECURITY -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE72E;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Security" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <StackPanel Spacing="14">
-
-                        <!-- Signature policy -->
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE9D9;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Vendor Installer Signature Policy" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="Warn asks for confirmation before launching installers without a verified trusted signature. Block refuses to launch them entirely."
+                                <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
+                                           FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
                                            Style="{StaticResource CaptionTextBlockStyle}"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                             </StackPanel>
-
-                            <ComboBox Grid.Column="2" x:Name="SignaturePolicyComboBox" Width="190"
-                                      VerticalAlignment="Center"
-                                      SelectionChanged="SignaturePolicyComboBox_SelectionChanged">
-                                <ComboBoxItem Content="Warn before launch" Tag="Warn" />
-                                <ComboBoxItem Content="Block unsigned installers" Tag="BlockUnsigned" />
-                            </ComboBox>
-                        </Grid>
-
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                        <!-- Built-in protections summary -->
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE73E;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                <TextBlock Text="Always-on protections" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           Text="• SHA-256 checksum verification of every download against the vendor catalog&#x0a;• HTTPS-only downloads — plain-text HTTP fetches are refused&#x0a;• Authenticode signature checks before any installer is launched&#x0a;• Mark-of-the-Web applied to downloads so SmartScreen &amp; Defender stay active&#x0a;• Official vendor URLs only — no mirrors or repackaged binaries" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click"
+                                        AutomationProperties.Name="View and install update">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                        <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                         </Grid>
+                    </Border>
 
-                        <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
+                    <!-- Auto-check Toggle -->
+                    <tk:SettingsCard Header="Automatically check for updates on startup"
+                                     Description="Query GitHub Releases on application launch to ensure tools and security patches remain current.">
+                        <ToggleSwitch x:Name="AutoUpdateToggle" IsOn="True"
+                                      Toggled="AutoUpdateToggle_Toggled"
+                                      OnContent="" OffContent=""
+                                      AutomationProperties.Name="Automatically check for updates on startup" />
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
 
-                        <!-- Audit log -->
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
+            <!-- ══════════ GROUP: ABOUT & MAINTAINER SPOTLIGHT ══════════ -->
+            <TextBlock Text="About &amp; Maintainer" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="AboutExpander"
+                                 Description="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <controls:ImageIcon Source="ms-appx:///Assets/app.png" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="32" Height="32" />
+                        <TextBlock Text="v3.0.0" VerticalAlignment="Center"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                </tk:SettingsExpander.Content>
 
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE9F9;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Security Audit Log" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock x:Name="AuditLogPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           IsTextSelectionEnabled="True" />
-                            </StackPanel>
-
-                            <Button Grid.Column="2" Click="OpenAuditLogFolder_Click" VerticalAlignment="Center"
-                                    ToolTipService.ToolTip="Open the audit log folder in File Explorer">
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="Created &amp; maintained by HARSHHAA">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <HyperlinkButton Click="AuthorGitHub_Click" Padding="0"
+                                             AutomationProperties.Name="Open maintainer GitHub profile">
+                                <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
+                            </HyperlinkButton>
+                            <HyperlinkButton Click="GitHub_Click" Padding="0"
+                                             AutomationProperties.Name="Open GitHub repository">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                    <TextBlock Text="Open Folder" />
+                                    <FontIcon Glyph="&#xE774;" FontSize="13" />
+                                    <TextBlock Text="GitHub Repo" Style="{StaticResource CaptionTextBlockStyle}" />
                                 </StackPanel>
-                            </Button>
-                        </Grid>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-            <!-- SECTION 5.5: NETWORK -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE703;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="Network" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-                <Border Style="{StaticResource CardStyle}" Padding="18">
-                    <StackPanel Spacing="14">
-
-                        <!-- Proxy toggle -->
-                        <Grid ColumnSpacing="16">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-
-                            <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8"
-                                    Background="{ThemeResource ControlFillColorSecondaryBrush}"
-                                    VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE968;" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                            </Border>
-
-                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-                                <TextBlock Text="Use a Custom Proxy Server" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock Text="Route downloads, catalog updates, and update checks through a corporate or personal proxy. When off, the Windows system proxy is used."
-                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </StackPanel>
-
-                            <ToggleSwitch Grid.Column="2" x:Name="ProxyToggle"
-                                          Toggled="ProxyToggle_Toggled"
-                                          OnContent="" OffContent="" VerticalAlignment="Center" />
-                        </Grid>
-
-                        <!-- Proxy fields -->
-                        <StackPanel x:Name="ProxyFieldsPanel" Spacing="10" Visibility="Collapsed">
-                            <Border Height="1" Background="{ThemeResource CardStrokeColorDefaultBrush}" />
-
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="180" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Proxy address" VerticalAlignment="Center" />
-                                <TextBox Grid.Column="1" x:Name="ProxyUrlBox" PlaceholderText="http://proxy.corp.local:8080"
-                                         LostFocus="ProxyField_LostFocus" />
-                            </Grid>
-
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="180" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Username (optional)" VerticalAlignment="Center" />
-                                <TextBox Grid.Column="1" x:Name="ProxyUsernameBox" PlaceholderText="Leave empty for anonymous auth"
-                                         LostFocus="ProxyField_LostFocus" />
-                            </Grid>
-
-                            <Grid ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="180" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="Password (optional)" VerticalAlignment="Center" />
-                                <PasswordBox Grid.Column="1" x:Name="ProxyPasswordBox" PlaceholderText="Stored in local settings"
-                                             LostFocus="ProxyField_LostFocus" />
-                            </Grid>
-
-                            <TextBlock Text="Proxy changes apply the next time the app starts. Credentials are stored in %LOCALAPPDATA%\DevOpsToolsInstaller\settings.json on this machine only."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-
-            <!-- SECTION 6: ABOUT & MAINTAINER SPOTLIGHT -->
-            <StackPanel Spacing="8">
-                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="4,0,0,0">
-                    <FontIcon Glyph="&#xE946;" FontSize="14" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                    <TextBlock Text="About &amp; Maintainer" Style="{StaticResource CardTitleStyle}" />
-                </StackPanel>
-                <Border Style="{StaticResource CardStyle}" Padding="20">
-                    <Grid ColumnSpacing="18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <Border Grid.Column="0" Width="56" Height="56" CornerRadius="28"
-                                BorderThickness="1" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                VerticalAlignment="Center">
-                            <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="52" Height="52" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <TextBlock Text="DevOps Tools Installer" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
-                                    <TextBlock Text="v3.0.0" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
-
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <TextBlock Text="Created &amp; Maintained by" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                <TextBlock Text="HARSHHAA" Style="{StaticResource CaptionTextBlockStyle}" FontWeight="SemiBold"
-                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                <TextBlock Text="•" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                <HyperlinkButton Click="AuthorGitHub_Click" Padding="0">
-                                    <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
-                                </HyperlinkButton>
-                            </StackPanel>
-
-                            <TextBlock TextWrapping="Wrap" Margin="0,4,0,0"
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       Text="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration." />
-                        </StackPanel>
-
-                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
-                            <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}">
+                            </HyperlinkButton>
+                            <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}"
+                                    AutomationProperties.Name="Open About and Architecture page">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <FontIcon Glyph="&#xE946;" FontSize="13" />
                                     <TextBlock Text="About &amp; Architecture" FontWeight="SemiBold" />
                                 </StackPanel>
                             </Button>
-                            <HyperlinkButton Click="GitHub_Click" HorizontalAlignment="Right">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE774;" FontSize="13" />
-                                    <TextBlock Text="GitHub Repo" />
-                                </StackPanel>
-                            </HyperlinkButton>
                         </StackPanel>
-                    </Grid>
-                </Border>
-            </StackPanel>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
 
         </StackPanel>
     </ScrollViewer>

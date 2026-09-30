@@ -53,6 +53,7 @@ public sealed partial class SettingsPage : Page
                 break;
             }
         }
+        UpdateSignaturePolicyWarning();
 
         // Network section
         ProxyToggle.IsOn = SettingsService.ProxyEnabled;
@@ -96,7 +97,17 @@ public sealed partial class SettingsPage : Page
                     ? "Signature policy updated: installers without a verified trusted signature will be blocked."
                     : "Signature policy updated: you will be warned before launching unsigned installers.",
                 InfoBarSeverity.Success);
+            UpdateSignaturePolicyWarning();
         }
+    }
+
+    private void UpdateSignaturePolicyWarning()
+    {
+        // While "Warn" is selected, surface a persistent warning that
+        // unsigned installers are still launchable after confirmation.
+        SignatureWarningInfoBar.Visibility = SettingsService.SignaturePolicy == SignaturePolicy.Warn
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     private void OpenAuditLogFolder_Click(object sender, RoutedEventArgs e)

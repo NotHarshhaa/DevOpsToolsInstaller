@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed
+- **Windows App SDK 2.5.1**: Upgraded the app framework from Windows App SDK 1.6 to the latest stable 2.x release (2.5.1). Minimum OS (Windows 10 1809) remains unchanged — 2.x still supports it.
+- **SDK projection update**: Moved the TFM projection band to `net8.0-windows10.0.26100.0` and removed the stale `WindowsSdkPackageVersion 10.0.19041.38` pin to resolve the `WinRT.Runtime 2.1 vs 2.2` assembly conflict introduced by the Toolkit/WinUI 2.x references. Minimum OS stays Windows 10 1809.
+- **Built-in TitleBar control**: Replaced the hand-rolled custom title bar grid with the Windows App SDK `Microsoft.UI.Xaml.Controls.TitleBar` control (icon, title, version badge, automatic drag regions and caption-button spacing).
+- **Modern toast notifications**: Migrated `ToastService` from the legacy `Windows.UI.Notifications` template API to the Windows App SDK app-notifications API (`Microsoft.Windows.AppNotifications` / `AppNotificationBuilder`), which also registers the AUMID automatically for unpackaged (Inno Setup / MSI) installs.
+- **MSIX manifest**: Bumped `MaxVersionTested` to Windows 11 24H2 (10.0.26100.0) to reflect the validated 2.x runtime.
+- **Release pipeline**: Fixed stale MSI version fallback in `release.yml` (2.9.0 → 3.0.0).
+- **Settings page redesign**: Rebuilt `SettingsPage` with the Windows Community Toolkit `SettingsCard` / `SettingsExpander` controls (`CommunityToolkit.WinUI.Controls.SettingsControls` 8.2.251219, verified compatible with Windows App SDK 2.5.1) to match the Windows 11 Settings app. Groups: Appearance, Security, Notifications & Tray, Network, PATH & Terminal, Storage & Shortcuts, Updates, About. All bindings, handlers and behaviors are unchanged; added icons, descriptions, a persistent warning InfoBar for the unsigned-installer policy, and `AutomationProperties` names throughout for keyboard/Narrator accessibility.
+
+---
+
 ## [3.0.0] - 2026-09-30
 
 ### Added
@@ -32,11 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Scheduled GitHub Action (`catalog-refresh.yml`) and `refresh-catalog.ps1` script to keep tool versions and hashes updated weekly.
 
 ### Changed
-- **Windows App SDK 2.5.1**: Upgraded the app framework from Windows App SDK 1.6 to the latest stable 2.x release (2.5.1). TFM (`net8.0-windows10.0.19041.0`) and minimum OS (Windows 10 1809) remain unchanged — 2.x still supports both.
-- **Built-in TitleBar control**: Replaced the hand-rolled custom title bar grid with the Windows App SDK `Microsoft.UI.Xaml.Controls.TitleBar` control (icon, title, version badge, automatic drag regions and caption-button spacing).
-- **Modern toast notifications**: Migrated `ToastService` from the legacy `Windows.UI.Notifications` template API to the Windows App SDK app-notifications API (`Microsoft.Windows.AppNotifications` / `AppNotificationBuilder`), which also registers the AUMID automatically for unpackaged (Inno Setup / MSI) installs.
-- **MSIX manifest**: Bumped `MaxVersionTested` to Windows 11 24H2 (10.0.26100.0) to reflect the validated 2.x runtime.
-- **Release pipeline**: Fixed stale MSI version fallback in `release.yml` (2.9.0 → 3.0.0).
 - **Extended Headless CLI**: Added `--update-all`, `--update <tools>`, and `--download-only <tools>`.
 - **WinGet Workflow**: Updated `.github/workflows/winget.yml` to trigger exclusively via manual dispatch (`workflow_dispatch`).
 - **Documentation**: Added Microsoft Store badges, direct store links, and updated CLI provisioning instructions in `README.md`.
