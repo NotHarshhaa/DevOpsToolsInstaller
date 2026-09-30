@@ -1,0 +1,74 @@
+<!--
+    Backdrops.xaml — shared resources for in-app Mica/Acrylic surfaces
+    (Windows App SDK 2.x SystemBackdropElement).
+
+    Surface fill/stroke brushes are intentionally thin translucent layer
+    colors: over Mica Alt (window backdrop) or an acrylic surface they keep
+    text contrast AA compliant, and both fall back to opaque values under
+    high-contrast themes because the theme resources resolve per theme.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+
+    <!-- Shared surface brushes (single definition, referenced by all pages) -->
+    <SolidColorBrush x:Key="InAppSurfaceFillBrush" Color="{ThemeResource LayerFillColorDefault}" />
+    <SolidColorBrush x:Key="InAppSurfaceStrokeBrush" Color="{ThemeResource CardStrokeColorDefault}" />
+
+    <!-- NavigationView pane: transparent so the in-app acrylic surface
+         (inserted behind the pane content in MainWindow) shows through.
+         When transparency effects are disabled, the pane shows the window's
+         Mica Alt fallback (opaque) instead. -->
+    <SolidColorBrush x:Key="NavigationViewDefaultPaneBackground" Color="Transparent" />
+
+    <!-- Shared in-app acrylic backdrop instance for control templates.
+         DesktopAcrylicController follows light/dark and renders an opaque
+         fallback color when Windows transparency effects are disabled. -->
+    <media:DesktopAcrylicBackdrop x:Key="InAppAcrylicBackdrop" />
+
+    <!-- Flyout presenter with an in-app acrylic surface. MenuFlyouts keep
+         the system's default material; this is for custom Flyout content. -->
+    <Style x:Key="AcrylicFlyoutPresenterStyle" TargetType="FlyoutPresenter">
+        <Setter Property="Background" Value="{ThemeResource InAppSurfaceFillBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource InAppSurfaceStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="96" />
+        <Setter Property="MaxWidth" Value="720" />
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="FlyoutPresenter">
+                    <Grid CornerRadius="{TemplateBinding CornerRadius}">
+                        <controls:SystemBackdropElement
+                            SystemBackdrop="{StaticResource InAppAcrylicBackdrop}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            IsHitTestVisible="False" />
+                        <ScrollViewer
+                            MinWidth="{TemplateBinding MinWidth}"
+                            MaxWidth="{TemplateBinding MaxWidth}"
+                            MaxHeight="{TemplateBinding MaxHeight}"
+                            Margin="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top"
+                            HorizontalScrollMode="Disabled"
+                            HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollMode="Auto"
+                            VerticalScrollBarVisibility="Auto"
+                            AutomationProperties.AccessibilityView="Raw">
+                            <ContentPresenter
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentTransitions="{TemplateBinding ContentTransitions}" />
+                        </ScrollViewer>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

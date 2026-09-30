@@ -191,7 +191,8 @@
                             Style="{StaticResource QuickActionCardStyle}"
                             AutomationProperties.Name="{Binding PathMetricAutomationName}">
                         <Button.Flyout>
-                            <Flyout x:Name="PathDetailsFlyout">
+                            <Flyout x:Name="PathDetailsFlyout"
+                                    FlyoutPresenterStyle="{StaticResource AcrylicFlyoutPresenterStyle}">
                                 <StackPanel Width="340" Spacing="12" Padding="4">
                                     <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE756;" FontSize="16" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
@@ -283,8 +284,14 @@
                 <!-- ══════════════════════════════════ -->
                 <!--  3. ACTIVE DOWNLOADS               -->
                 <!-- ══════════════════════════════════ -->
-                <StackPanel Spacing="10"
-                            Visibility="{Binding HasActiveDownloads, Converter={StaticResource BoolToVisibilityConverter}}">
+                <!-- Unified Mica-layer surface strip (shared brushes) -->
+                <Border CornerRadius="10" Padding="16,14,16,12"
+                        BorderBrush="{ThemeResource InAppSurfaceStrokeBrush}"
+                        BorderThickness="1"
+                        Visibility="{Binding HasActiveDownloads, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid CornerRadius="10"
+                          Background="{ThemeResource InAppSurfaceFillBrush}">
+                        <StackPanel Spacing="10">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -371,7 +378,9 @@
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                Visibility="{Binding HasNextInQueue, Converter={StaticResource BoolToVisibilityConverter}}"
                                Margin="4,0,0,0" />
-                </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
                 <!-- ══════════════════════════════════ -->
                 <!--  4. YOUR STACKS                    -->

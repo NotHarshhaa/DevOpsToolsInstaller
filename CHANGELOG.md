@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **In-app Mica/Acrylic surfaces (Windows App SDK 2.x `SystemBackdropElement`)**: The NavigationView sidebar pane and custom flyouts (e.g. PATH diagnostics) now render their own subtle acrylic surfaces layered over the window-level Mica Alt backdrop, tinted toward the system accent color. Metric cards and the Active Downloads strip use the shared translucent Mica-layer brushes — per-card acrylic over Mica Alt reads as flat gray, so acrylic is reserved for large/overlay surfaces. Shared brushes, the acrylic backdrop instance, and an acrylic `FlyoutPresenterStyle` live in a new `Themes/Backdrops.xaml` ResourceDictionary, with a `helpers:Backdrop.Acrylic` attached property for applying surfaces to any panel. When Windows transparency effects are disabled or a high-contrast theme is active, surfaces are skipped and opaque theme brushes keep text contrast AA compliant.
+
 ### Changed
 - **Windows App SDK 2.5.1**: Upgraded the app framework from Windows App SDK 1.6 to the latest stable 2.x release (2.5.1). Minimum OS (Windows 10 1809) remains unchanged — 2.x still supports it.
 - **SDK projection update**: Moved the TFM projection band to `net8.0-windows10.0.26100.0` and removed the stale `WindowsSdkPackageVersion 10.0.19041.38` pin to resolve the `WinRT.Runtime 2.1 vs 2.2` assembly conflict introduced by the Toolkit/WinUI 2.x references. Minimum OS stays Windows 10 1809.

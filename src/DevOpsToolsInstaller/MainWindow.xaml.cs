@@ -190,6 +190,7 @@ public sealed partial class MainWindow : Window
         NavView.Loaded += (s, e) =>
         {
             RemoveTogglePaneButtonFocusVisual(NavView);
+            ApplyPaneAcrylicSurface();
             ContentFrame.Focus(FocusState.Programmatic);
         };
 
@@ -473,6 +474,41 @@ public sealed partial class MainWindow : Window
     private void UpdateInstalledBadge(int count)
     {
         InstalledNavItem.InfoBadge = count > 0 ? new InfoBadge { Value = count } : null;
+    }
+
+    /// <summary>
+    /// Inserts an in-app Acrylic SystemBackdropElement (Windows App SDK 2.x)
+    /// behind the NavigationView pane content, giving the sidebar its own
+    /// surface distinct from the window's Mica Alt backdrop. Skipped when
+    /// Windows transparency effects are disabled or high contrast is on —
+    /// the pane then shows the window's (auto-fallback) Mica surface.
+    /// </summary>
+    private void ApplyPaneAcrylicSurface()
+    {
+        if (!Helpers.SystemBackdropHelper.TransparencyEffectsEnabled) return;
+
+        var paneGrid = FindDescendantGridByName(NavView, "PaneContentGrid");
+        if (paneGrid is null) return;
+        if (paneGrid.Children.Count > 0 && paneGrid.Children[0] is Microsoft.UI.Xaml.Controls.SystemBackdropElement) return;
+
+        paneGrid.Children.Insert(0, new Microsoft.UI.Xaml.Controls.SystemBackdropElement
+        {
+            SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop(),
+            IsHitTestVisible = false
+        });
+    }
+
+    private static Grid? FindDescendantGridByName(DependencyObject parent, string name)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(parent);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(parent, i);
+            if (child is Grid grid && grid.Name == name) return grid;
+            var result = FindDescendantGridByName(child, name);
+            if (result is not null) return result;
+        }
+        return null;
     }
 
     private static void RemoveTogglePaneButtonFocusVisual(DependencyObject parent)
