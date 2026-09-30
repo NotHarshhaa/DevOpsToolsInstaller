@@ -265,6 +265,7 @@ public sealed class DownloadService
                         var deltaBytes = totalRead - lastSpeedBytes;
                         var deltaTimeSec = (elapsedMs - lastSpeedTimeMs) / 1000.0;
                         var speedMBps = deltaTimeSec > 0 ? (deltaBytes / (1024.0 * 1024.0)) / deltaTimeSec : 0;
+                        tool.DownloadSpeedMBps = speedMBps;
                         tool.DownloadSpeed = $"{speedMBps:F1} MB/s";
                         lastSpeedBytes = totalRead;
                         lastSpeedTimeMs = elapsedMs;

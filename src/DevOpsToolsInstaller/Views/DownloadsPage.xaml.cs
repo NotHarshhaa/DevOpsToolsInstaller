@@ -5,8 +5,13 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
@@ -22,7 +27,72 @@ public sealed partial class DownloadsPage : Page
     {
         InitializeComponent();
         Loaded += DownloadsPage_Loaded;
+        Unloaded += (s, e) => TeardownThroughputChart();
         LogList.ItemsSource = ActivityLogService.Entries;
+    }
+
+    // ── Total throughput chart (LiveCharts, throttled to ≤4 samples/s) ──
+
+    private readonly ChartTelemetry.BoundedValues _throughputValues = new();
+    private DispatcherQueueTimer? _throughputTimer;
+
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> ThroughputSeries { get; private set; } = new();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> ThroughputXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> ThroughputYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+
+    private void InitializeThroughputChart()
+    {
+        ThroughputXAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        ThroughputYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        ThroughputSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        {
+            ChartTelemetry.CreateSparkLine(_throughputValues)
+        };
+        Bindings.Update();
+
+        if (_throughputTimer is null)
+        {
+            _throughputTimer = DispatcherQueue.CreateTimer();
+            _throughputTimer.Interval = TimeSpan.FromMilliseconds(250); // 4 samples/s max
+            _throughputTimer.Tick += (s, e) => SampleThroughput();
+        }
+        _throughputTimer.Start();
+    }
+
+    private void SampleThroughput()
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        double totalMBps = 0;
+        int active = 0;
+        foreach (var tool in mw.DownloadQueue)
+        {
+            if (tool.Status == ToolStatus.Downloading)
+            {
+                totalMBps += tool.DownloadSpeedMBps;
+                active++;
+            }
+        }
+
+        if (active == 0)
+        {
+            // Empty state: nothing transferring — hide the chart card.
+            ThroughputCard.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        _throughputValues.Push(totalMBps);
+        ThroughputValueText.Text = $"{totalMBps:F1} MB/s";
+        ThroughputCard.Visibility = Visibility.Visible;
+    }
+
+    /// <summary>Stops sampling and releases chart data (navigation away / unload).</summary>
+    private void TeardownThroughputChart()
+    {
+        _throughputTimer?.Stop();
+        _throughputValues.ClearSamples();
+        ThroughputCard.Visibility = Visibility.Collapsed;
     }
 
     private async void DownloadsPage_Loaded(object sender, RoutedEventArgs e)
@@ -51,11 +121,19 @@ public sealed partial class DownloadsPage : Page
 
         RefreshInstalledStates(mw.DownloadQueue.ToList(), dlFolder);
         RefreshSignatures(mw.DownloadQueue.ToList(), dlFolder);
+
+        InitializeThroughputChart();
     }
 
     private void DownloadQueue_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         ApplyFilter();
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        TeardownThroughputChart();
     }
 
     private void ApplyFilter()

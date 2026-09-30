@@ -4,8 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
@@ -20,6 +23,63 @@ public sealed partial class InstalledPage : Page
     {
         InitializeComponent();
         Loaded += InstalledPage_Loaded;
+        ActualThemeChanged += (s, e) =>
+        {
+            if (_latencyNames.Count > 0)
+            {
+                RenderLatencyChart(_latencyNames.ToArray(), _latencyValuesMs.ToArray());
+            }
+        };
+    }
+
+    // ── CLI health-check latency chart ──────────────────────────────────
+
+    private readonly List<string> _latencyNames = new();
+    private readonly List<double> _latencyValuesMs = new();
+
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> LatencySeries { get; private set; } = new();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> LatencyXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> LatencyYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+
+    private void ResetLatencySamples()
+    {
+        _latencyNames.Clear();
+        _latencyValuesMs.Clear();
+    }
+
+    /// <summary>Builds the per-tool latency bar chart and shows it (or the empty state).</summary>
+    private void RenderLatencyChart(string[] names, double[] valuesMs)
+    {
+        if (names.Length == 0)
+        {
+            LatencySeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>();
+            LatencyChartCard.Visibility = Visibility.Collapsed;
+            LatencyEmptyState.Visibility = Visibility.Visible;
+            Bindings.Update();
+            return;
+        }
+
+        var values = new ChartTelemetry.BoundedValues(Math.Max(valuesMs.Length, 2));
+        foreach (var ms in valuesMs)
+        {
+            values.Push(ms);
+        }
+
+        LatencySeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        {
+            ChartTelemetry.CreateBarSeries(values)
+        };
+        LatencyXAxes = ChartTelemetry.CreateLabeledAxes(names, ActualTheme, labelsRotation: 55);
+        LatencyYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+
+        LatencyEmptyState.Visibility = Visibility.Collapsed;
+        LatencyChartCard.Visibility = Visibility.Visible;
+        Bindings.Update();
+    }
+
+    private void CloseLatencyChart_Click(object sender, RoutedEventArgs e)
+    {
+        LatencyChartCard.Visibility = Visibility.Collapsed;
     }
 
     private async void InstalledPage_Loaded(object sender, RoutedEventArgs e)
@@ -352,6 +412,7 @@ public sealed partial class InstalledPage : Page
 
         StatusText.Text = $"Running health checks on {_allInstalledTools.Count} tools…";
         int healthyCount = 0;
+        ResetLatencySamples();
 
         foreach (var tool in _allInstalledTools)
         {
@@ -362,12 +423,17 @@ public sealed partial class InstalledPage : Page
             if (result.Success)
             {
                 healthyCount++;
+                _latencyNames.Add(tool.Name);
+                _latencyValuesMs.Add(result.ElapsedMilliseconds);
                 if (!string.IsNullOrWhiteSpace(result.DetectedVersion))
                 {
                     tool.DetectedVersion = result.DetectedVersion;
                 }
             }
         }
+
+        // Latency chart: successful probes only; empty state when none ran.
+        RenderLatencyChart(_latencyNames.ToArray(), _latencyValuesMs.ToArray());
 
         StatusText.Text = $"Health check complete: {healthyCount}/{_allInstalledTools.Count} CLIs healthy.";
     }

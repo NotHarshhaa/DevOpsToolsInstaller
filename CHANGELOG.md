@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **In-app Mica/Acrylic surfaces (Windows App SDK 2.x `SystemBackdropElement`)**: The NavigationView sidebar pane and custom flyouts (e.g. PATH diagnostics) now render their own subtle acrylic surfaces layered over the window-level Mica Alt backdrop, tinted toward the system accent color. Metric cards and the Active Downloads strip use the shared translucent Mica-layer brushes — per-card acrylic over Mica Alt reads as flat gray, so acrylic is reserved for large/overlay surfaces. Shared brushes, the acrylic backdrop instance, and an acrylic `FlyoutPresenterStyle` live in a new `Themes/Backdrops.xaml` ResourceDictionary, with a `helpers:Backdrop.Acrylic` attached property for applying surfaces to any panel. When Windows transparency effects are disabled or a high-contrast theme is active, surfaces are skipped and opaque theme brushes keep text contrast AA compliant.
+- **Live charts (LiveChartsCore.SkiaSharpView.WinUI 2.0.5, verified compatible with Windows App SDK 2.5.1)**:
+  - **Downloads page**: a live per-transfer download-speed sparkline on each active transfer card and a total-throughput chart (all active transfers, MB/s) that collapses to an empty state when nothing is downloading.
+  - **Installed page**: an accent-colored bar chart of CLI health-check probe latency (ms per tool) populated by "Check All CLIs", with an empty state before data exists.
+  - **Home page**: session trend sparklines for active downloads and updates available.
+  - All charts follow the system accent color and light/dark themes (repainted on `ActualThemeChanged`), sample at or below 4 updates/second (download pipeline 400 ms, page timers 250 ms–1 s), and release their timers, samples and series when navigating away (`OnNavigatedFrom`/`Unloaded`). Shared chart styling and bounded sample buffers live in `Helpers/ChartTelemetry.cs`.
 
 ### Changed
 - **Windows App SDK 2.5.1**: Upgraded the app framework from Windows App SDK 1.6 to the latest stable 2.x release (2.5.1). Minimum OS (Windows 10 1809) remains unchanged — 2.x still supports it.

@@ -4,7 +4,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
-    xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
+    xmlns:helpers="using:DevOpsToolsInstaller.Helpers"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
 
     <ScrollViewer Padding="32,24,32,32">
         <StackPanel Spacing="24" MaxWidth="1080">
@@ -263,6 +264,78 @@
                                        Style="{StaticResource MetricLabelStyle}" />
                         </Grid>
                     </Button>
+                </Grid>
+
+                <!-- ══════════════════════════════════ -->
+                <!--  2b. SESSION TRENDS (downloads / updates) -->
+                <!-- ══════════════════════════════════ -->
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Downloads trend -->
+                    <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="14,10">
+                        <StackPanel Spacing="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE896;" FontSize="12" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                    <TextBlock Text="Downloads trend (this session)" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
+                                </StackPanel>
+                                <TextBlock x:Name="DownloadsTrendValueText" Grid.Column="1" Text="0 active"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Grid Height="56">
+                                <lvc:CartesianChart x:Name="DownloadsTrendChart"
+                                                    Series="{x:Bind DownloadsTrendSeries, Mode=OneTime}"
+                                                    XAxes="{x:Bind DownloadsTrendXAxes, Mode=OneTime}"
+                                                    YAxes="{x:Bind DownloadsTrendYAxes, Mode=OneTime}"
+                                                    AutomationProperties.Name="Downloads trend chart" />
+                                <TextBlock x:Name="DownloadsTrendEmpty" Text="Sampling… trends appear as activity is detected."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" FontSize="10"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           TextWrapping="Wrap" TextAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Updates trend -->
+                    <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="14,10">
+                        <StackPanel Spacing="6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE895;" FontSize="12" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                    <TextBlock Text="Updates available trend (this session)" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
+                                </StackPanel>
+                                <TextBlock x:Name="UpdatesTrendValueText" Grid.Column="1" Text="0 outdated"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                            </Grid>
+                            <Grid Height="56">
+                                <lvc:CartesianChart x:Name="UpdatesTrendChart"
+                                                    Series="{x:Bind UpdatesTrendSeries, Mode=OneTime}"
+                                                    XAxes="{x:Bind UpdatesTrendXAxes, Mode=OneTime}"
+                                                    YAxes="{x:Bind UpdatesTrendYAxes, Mode=OneTime}"
+                                                    AutomationProperties.Name="Updates available trend chart" />
+                                <TextBlock x:Name="UpdatesTrendEmpty" Text="Sampling… trends appear as activity is detected."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" FontSize="10"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           TextWrapping="Wrap" TextAlignment="Center" />
+                            </Grid>
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
                 <!-- ══════════════════════════════════ -->

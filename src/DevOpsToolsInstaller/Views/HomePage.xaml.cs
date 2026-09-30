@@ -2,8 +2,13 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 using DevOpsToolsInstaller.ViewModels;
@@ -21,6 +26,81 @@ public sealed partial class HomePage : Page
         InitializeComponent();
 
         Loaded += HomePage_Loaded;
+        Unloaded += (s, e) => TeardownTrendCharts();
+        ActualThemeChanged += (s, e) => RebuildTrendChartPaints();
+    }
+
+    // ── Session trend charts (downloads / updates, 1 sample per second) ──
+
+    private readonly ChartTelemetry.BoundedValues _downloadsTrend = new();
+    private readonly ChartTelemetry.BoundedValues _updatesTrend = new();
+    private DispatcherQueueTimer? _trendTimer;
+
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> DownloadsTrendSeries { get; private set; } = new();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> DownloadsTrendXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> DownloadsTrendYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> UpdatesTrendSeries { get; private set; } = new();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> UpdatesTrendXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> UpdatesTrendYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+
+    private void InitializeTrendCharts()
+    {
+        RebuildTrendChartPaints();
+
+        if (_trendTimer is null)
+        {
+            // 1 sample/second — well under the 4/s throttle ceiling.
+            _trendTimer = DispatcherQueue.CreateTimer();
+            _trendTimer.Interval = TimeSpan.FromSeconds(1);
+            _trendTimer.Tick += (s, e) => SampleTrends();
+        }
+        _trendTimer.Start();
+    }
+
+    private void RebuildTrendChartPaints()
+    {
+        DownloadsTrendXAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        DownloadsTrendYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        DownloadsTrendSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        {
+            ChartTelemetry.CreateSparkLine(_downloadsTrend)
+        };
+        UpdatesTrendXAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        UpdatesTrendYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        UpdatesTrendSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        {
+            ChartTelemetry.CreateSparkLine(_updatesTrend)
+        };
+        Bindings.Update();
+    }
+
+    private void SampleTrends()
+    {
+        _downloadsTrend.Push(ViewModel.ActiveDownloadsCount);
+        _updatesTrend.Push(ViewModel.UpdateCount);
+
+        DownloadsTrendValueText.Text = $"{ViewModel.ActiveDownloadsCount} active";
+        UpdatesTrendValueText.Text = $"{ViewModel.UpdateCount} outdated";
+
+        // Empty state until a chart has something to draw.
+        bool downloadsDrawable = _downloadsTrend.Count >= 2 && _downloadsTrend.Any(v => v.Value > 0);
+        bool updatesDrawable = _updatesTrend.Count >= 2 && _updatesTrend.Any(v => v.Value > 0);
+        DownloadsTrendEmpty.Visibility = downloadsDrawable ? Visibility.Collapsed : Visibility.Visible;
+        UpdatesTrendEmpty.Visibility = updatesDrawable ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>Stops sampling and releases chart data (navigation away / unload).</summary>
+    private void TeardownTrendCharts()
+    {
+        _trendTimer?.Stop();
+        _downloadsTrend.ClearSamples();
+        _updatesTrend.ClearSamples();
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        TeardownTrendCharts();
     }
 
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)
@@ -30,6 +110,7 @@ public sealed partial class HomePage : Page
 
         await ViewModel.LoadDashboardAsync(mw);
         SeeAllStacksText.Text = $"See all {ViewModel.Stacks.Count}";
+        InitializeTrendCharts();
     }
 
     private async void RetryScan_Click(object sender, RoutedEventArgs e)

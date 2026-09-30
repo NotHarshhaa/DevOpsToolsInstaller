@@ -5,7 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:models="using:DevOpsToolsInstaller.Models"
-    xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
+    xmlns:helpers="using:DevOpsToolsInstaller.Helpers"
+    xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
 
     <Grid Padding="32,20,32,0" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -66,9 +67,59 @@
         </Grid>
 
         <!-- ══════════════════════════════════ -->
-        <!--  NATIVE COMMAND BAR                -->
+        <!--  COMMAND BAR + CLI HEALTH LATENCY  -->
         <!-- ══════════════════════════════════ -->
-        <CommandBar Grid.Row="1"
+        <StackPanel Grid.Row="1" Spacing="10">
+
+        <!-- CLI health-check latency chart (populated by "Check All CLIs") -->
+        <Border x:Name="LatencyChartCard"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="14,10"
+                Visibility="Collapsed">
+            <StackPanel Spacing="6">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                        <TextBlock Text="CLI health-check latency" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="13" />
+                        <TextBlock Text="probe execution time per tool, ms"
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button Grid.Column="1" Click="CloseLatencyChart_Click" Padding="6,2"
+                            ToolTipService.ToolTip="Hide latency chart"
+                            AutomationProperties.Name="Hide latency chart">
+                        <FontIcon Glyph="&#xE711;" FontSize="11" />
+                    </Button>
+                </Grid>
+                <lvc:CartesianChart x:Name="LatencyChart" Height="170"
+                                    Series="{x:Bind LatencySeries, Mode=OneTime}"
+                                    XAxes="{x:Bind LatencyXAxes, Mode=OneTime}"
+                                    YAxes="{x:Bind LatencyYAxes, Mode=OneTime}"
+                                    AutomationProperties.Name="CLI health-check latency bar chart" />
+            </StackPanel>
+        </Border>
+
+        <!-- Latency chart empty state -->
+        <Border x:Name="LatencyEmptyState"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="14,10"
+                Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                <TextBlock Text="No latency data yet — run “Check All CLIs” to measure the health-check response time of every installed command-line tool."
+                           Style="{StaticResource CaptionTextBlockStyle}"
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           TextWrapping="Wrap" VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <CommandBar
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     DefaultLabelPosition="Right"
@@ -117,6 +168,7 @@
                 </AppBarButton>
             </CommandBar.PrimaryCommands>
         </CommandBar>
+        </StackPanel>
 
         <!-- ══════════════════════════════════ -->
         <!--  TABLE HEADER ROW                  -->

@@ -1,6 +1,9 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using Microsoft.UI.Xaml;
 
 namespace DevOpsToolsInstaller.Models;
 
@@ -134,6 +137,76 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         }
     }
 
+    // ── Live download-speed telemetry (DownloadsPage sparkline) ─────────
+    // Numeric speed samples arrive on a download worker thread (~2.5/s,
+    // below the 4/s chart throttle); buffer mutations are marshaled to the
+    // UI thread where the LiveCharts control observes them.
+
+    private double _downloadSpeedMBps;
+    private Helpers.ChartTelemetry.BoundedValues? _speedSamples;
+    private System.Collections.ObjectModel.ObservableCollection<ISeries>? _speedSeries;
+    private Axis[]? _sparkXAxes;
+    private Axis[]? _sparkYAxes;
+
+    [JsonIgnore]
+    public double DownloadSpeedMBps
+    {
+        get => _downloadSpeedMBps;
+        set
+        {
+            if (Math.Abs(_downloadSpeedMBps - value) < 0.0001) return;
+            _downloadSpeedMBps = value;
+            OnPropertyChanged();
+
+            Services.UiDispatcher.Queue?.TryEnqueue(() =>
+            {
+                _speedSamples ??= new Helpers.ChartTelemetry.BoundedValues();
+                _speedSamples.Push(value);
+                HasSpeedSamples = _speedSamples.Count >= 2;
+            });
+        }
+    }
+
+    /// <summary>True once at least two speed samples exist (chart drawable).</summary>
+    [JsonIgnore]
+    public bool HasSpeedSamples
+    {
+        get => _hasSpeedSamples;
+        private set
+        {
+            if (_hasSpeedSamples == value) return;
+            _hasSpeedSamples = value;
+            OnPropertyChanged();
+        }
+    }
+    private bool _hasSpeedSamples;
+
+    /// <summary>Series for the per-transfer speed sparkline (lazy — only for tools that transfer).</summary>
+    [JsonIgnore]
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> SpeedChartSeries
+    {
+        get
+        {
+            if (_speedSeries is null)
+            {
+                _speedSamples ??= new Helpers.ChartTelemetry.BoundedValues();
+                _speedSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+                {
+                    Helpers.ChartTelemetry.CreateSparkLine(_speedSamples)
+                };
+            }
+            return _speedSeries;
+        }
+    }
+
+    /// <summary>X axes for the per-transfer speed sparkline (hidden).</summary>
+    [JsonIgnore]
+    public Axis[] SpeedChartXAxes => _sparkXAxes ??= Helpers.ChartTelemetry.HiddenAxes();
+
+    /// <summary>Y axes for the per-transfer speed sparkline (MB/s ticks).</summary>
+    [JsonIgnore]
+    public Axis[] SpeedChartYAxes => _sparkYAxes ??= Helpers.ChartTelemetry.CreateSparkAxes(ElementTheme.Default);
+
     private ToolStatus _status = ToolStatus.NotDownloaded;
     public ToolStatus Status
     {
@@ -150,6 +223,20 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(ActionStatusText));
                 OnPropertyChanged(nameof(ActionLabel));
                 UpdateStatusText();
+
+                // Transfer ended (or restarted): release the sparkline
+                // samples so charts dispose their data promptly.
+                if (value != ToolStatus.Downloading)
+                {
+                    Services.UiDispatcher.Queue?.TryEnqueue(() =>
+                    {
+                        _speedSamples?.ClearSamples();
+                        _downloadSpeedMBps = 0;
+                        _downloadSpeed = string.Empty;
+                        HasSpeedSamples = false;
+                        OnPropertyChanged(nameof(DownloadSpeed));
+                    });
+                }
             }
         }
     }
