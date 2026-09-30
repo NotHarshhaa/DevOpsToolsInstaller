@@ -292,7 +292,7 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                             </Grid>
                             <Grid Height="56">
-                                <lvc:CartesianChart x:Name="DownloadsTrendChart"
+                                <lvc:CartesianChart x:Name="DownloadsTrendChart" Visibility="Collapsed"
                                                     Series="{x:Bind DownloadsTrendSeries, Mode=OneTime}"
                                                     XAxes="{x:Bind DownloadsTrendXAxes, Mode=OneTime}"
                                                     YAxes="{x:Bind DownloadsTrendYAxes, Mode=OneTime}"
@@ -323,7 +323,7 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                             </Grid>
                             <Grid Height="56">
-                                <lvc:CartesianChart x:Name="UpdatesTrendChart"
+                                <lvc:CartesianChart x:Name="UpdatesTrendChart" Visibility="Collapsed"
                                                     Series="{x:Bind UpdatesTrendSeries, Mode=OneTime}"
                                                     XAxes="{x:Bind UpdatesTrendXAxes, Mode=OneTime}"
                                                     YAxes="{x:Bind UpdatesTrendYAxes, Mode=OneTime}"

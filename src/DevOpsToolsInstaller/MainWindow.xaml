@@ -6,6 +6,9 @@
 
     <!-- No Background set: the Mica backdrop shows through. -->
     <Grid x:Name="RootGrid">
+        <Grid.KeyboardAccelerators>
+            <KeyboardAccelerator Modifiers="Control" Key="K" Invoked="CommandPalette_Invoked" />
+        </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -13,15 +16,19 @@
 
         <!-- Built-in WinUI TitleBar control (Windows App SDK 2.x): handles the
              icon, title, drag regions and caption-button spacing automatically. -->
-        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer">
+        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer" Subtitle="v3.0.0">
             <controls:TitleBar.IconSource>
                 <controls:ImageIconSource x:Name="AppTitleBarIconSource" ImageSource="ms-appx:///Assets/app.png" />
             </controls:TitleBar.IconSource>
             <controls:TitleBar.Content>
-                <Border Style="{StaticResource BadgeStyle}" Padding="7,1" Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="v3.0.0" FontSize="11" FontWeight="SemiBold"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                </Border>
+                <AutoSuggestBox x:Name="NavSearchBox"
+                                Width="320"
+                                QueryIcon="Find"
+                                PlaceholderText="Search tools... (Ctrl+K)"
+                                QuerySubmitted="NavSearchBox_QuerySubmitted"
+                                TextChanged="NavSearchBox_TextChanged"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Global tool search" />
             </controls:TitleBar.Content>
         </controls:TitleBar>
 
@@ -36,15 +43,6 @@
             IsTabStop="False"
             SelectionChanged="NavView_SelectionChanged"
             OpenPaneLength="250">
-
-            <controls:NavigationView.AutoSuggestBox>
-                <AutoSuggestBox x:Name="NavSearchBox"
-                                QueryIcon="Find"
-                                PlaceholderText="Search tools…"
-                                QuerySubmitted="NavSearchBox_QuerySubmitted"
-                                TextChanged="NavSearchBox_TextChanged"
-                                Margin="0,0,12,0" />
-            </controls:NavigationView.AutoSuggestBox>
 
             <controls:NavigationView.MenuItems>
                 <controls:NavigationViewItem Content="Home" Tag="Home">

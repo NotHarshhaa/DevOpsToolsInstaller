@@ -16,6 +16,13 @@ public static class TrayIconService
     public static event Action? CatalogRequested;
     public static event Action? CheckUpdatesRequested;
     public static event Action? ExitRequested;
+    /// <summary>
+    /// Raised (with cursor screen coordinates) instead of showing the native
+    /// popup menu when <see cref="UseExternalContextMenu"/> is set — the app
+    /// opens a WinUI-styled MenuFlyout at that position.
+    /// </summary>
+    public static event Action<POINT>? ContextMenuRequested;
+    public static bool UseExternalContextMenu { get; set; }
 
     private const uint WM_APP = 0x8000;
     private static readonly uint WM_TRAYICON = WM_APP + 1;
@@ -55,6 +62,16 @@ public static class TrayIconService
     /// Creates the tray icon. Safe to call repeatedly; returns false when the
     /// icon could not be created (the app continues normally without it).
     /// </summary>
+    /// <summary>
+    /// Creates the tray icon in external-context-menu mode (right click
+    /// raises <see cref="ContextMenuRequested"/> instead of a native menu).
+    /// </summary>
+    public static bool InitializeExternalMenu(string iconPath, string tooltip)
+    {
+        UseExternalContextMenu = true;
+        return Initialize(iconPath, tooltip);
+    }
+
     public static bool Initialize(string iconPath, string tooltip)
     {
         if (_added) return true;
@@ -211,7 +228,7 @@ public static class TrayIconService
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetCursorPos(out POINT lpPoint);
+    public static extern bool GetCursorPos(out POINT lpPoint);
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
@@ -239,7 +256,7 @@ public static class TrayIconService
     private const uint MF_SEPARATOR = 0x00000800;
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
+    public struct POINT
     {
         public int X;
         public int Y;
@@ -279,7 +296,15 @@ public static class TrayIconService
             }
             else if (mouseMsg is WM_RBUTTONUP or WM_CONTEXTMENU)
             {
-                ShowContextMenu();
+                if (UseExternalContextMenu)
+                {
+                    GetCursorPos(out var pt);
+                    ContextMenuRequested?.Invoke(pt);
+                }
+                else
+                {
+                    ShowContextMenu();
+                }
             }
             return IntPtr.Zero;
         }

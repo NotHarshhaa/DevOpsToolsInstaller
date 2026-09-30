@@ -85,6 +85,8 @@ public sealed partial class HomePage : Page
         // Empty state until a chart has something to draw.
         bool downloadsDrawable = _downloadsTrend.Count >= 2 && _downloadsTrend.Any(v => v.Value > 0);
         bool updatesDrawable = _updatesTrend.Count >= 2 && _updatesTrend.Any(v => v.Value > 0);
+        DownloadsTrendChart.Visibility = downloadsDrawable ? Visibility.Visible : Visibility.Collapsed;
+        UpdatesTrendChart.Visibility = updatesDrawable ? Visibility.Visible : Visibility.Collapsed;
         DownloadsTrendEmpty.Visibility = downloadsDrawable ? Visibility.Collapsed : Visibility.Visible;
         UpdatesTrendEmpty.Visibility = updatesDrawable ? Visibility.Collapsed : Visibility.Visible;
     }

@@ -137,6 +137,14 @@
                                       OnContent="" OffContent=""
                                       AutomationProperties.Name="Close to system tray" />
                     </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="First-run onboarding tips"
+                                     Description="Show the three-step introduction (search, installed tools, tray) the next time the app starts.">
+                        <ToggleSwitch x:Name="OnboardingToggle"
+                                      Toggled="OnboardingToggle_Toggled"
+                                      OnContent="" OffContent=""
+                                      AutomationProperties.Name="First-run onboarding tips" />
+                    </tk:SettingsCard>
                 </tk:SettingsExpander.Items>
             </tk:SettingsExpander>
 

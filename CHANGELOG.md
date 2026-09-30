@@ -10,7 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Window, tray & onboarding improvements**:
+  - **WinUI-style tray menu**: The native tray icon now opens a Fluent `MenuFlyout` (Open, Open Tool Catalog, Check for tool updates, Exit) hosted in a borderless flyout window at the cursor — keyboard and Narrator accessible. (H.NotifyIcon.WinUI 2.4.1/2.3.1 was evaluated but its WinRT projection does not bind against Windows App SDK 2.5.1 on net8.0, so the tray icon stays native and only the menu moved to WinUI.)
+  - **Session persistence**: Window size/position and the last visited page are saved to `settings.json` and restored on launch.
+  - **Splash screen**: A borderless, centered splash shows at startup and closes when the main window activates.
+  - **TitleBar search**: The global search box moved into the built-in TitleBar (version shown as its Subtitle).
+  - **Ctrl+K command palette**: Jump to any page, install any tool, or open the update checker from a searchable palette.
+  - **First-run onboarding**: Three TeachingTips (search/Ctrl+K, Installed page, tray behavior), shown once, dismissible, and toggleable in Settings → Notifications & Tray ("First-run onboarding tips").
 - **In-app Mica/Acrylic surfaces (Windows App SDK 2.x `SystemBackdropElement`)**: The NavigationView sidebar pane and custom flyouts (e.g. PATH diagnostics) now render their own subtle acrylic surfaces layered over the window-level Mica Alt backdrop, tinted toward the system accent color. Metric cards and the Active Downloads strip use the shared translucent Mica-layer brushes — per-card acrylic over Mica Alt reads as flat gray, so acrylic is reserved for large/overlay surfaces. Shared brushes, the acrylic backdrop instance, and an acrylic `FlyoutPresenterStyle` live in a new `Themes/Backdrops.xaml` ResourceDictionary, with a `helpers:Backdrop.Acrylic` attached property for applying surfaces to any panel. When Windows transparency effects are disabled or a high-contrast theme is active, surfaces are skipped and opaque theme brushes keep text contrast AA compliant.
+- **Fixed**: Home-page trend charts no longer render empty axes behind the "Sampling…" empty-state text — the chart only appears once data exists.
 - **Live charts (LiveChartsCore.SkiaSharpView.WinUI 2.0.5, verified compatible with Windows App SDK 2.5.1)**:
   - **Downloads page**: a live per-transfer download-speed sparkline on each active transfer card and a total-throughput chart (all active transfers, MB/s) that collapses to an empty state when nothing is downloading.
   - **Installed page**: an accent-colored bar chart of CLI health-check probe latency (ms per tool) populated by "Check All CLIs", with an empty state before data exists.

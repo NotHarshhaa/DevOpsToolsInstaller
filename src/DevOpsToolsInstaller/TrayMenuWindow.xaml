@@ -1,0 +1,10 @@
+<Window
+    x:Class="DevOpsToolsInstaller.TrayMenuWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Hosts a WinUI MenuFlyout for the system tray icon: native icon,
+         Fluent menu. The window is borderless, always-on-top and non-activating;
+         it closes itself as soon as the flyout light-dismisses. -->
+    <Grid x:Name="MenuHost" Background="Transparent" />
+</Window>

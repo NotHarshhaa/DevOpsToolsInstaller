@@ -71,6 +71,16 @@ public static class SettingsService
     /// <summary>Route all HTTP(S) traffic (downloads, catalog, update checks) through a proxy.</summary>
     public static bool ProxyEnabled { get; set; } = false;
 
+    // ── Window & session state ───────────────────────────────────────────
+    /// <summary>Persisted window bounds as "x,y,w,h" in Win32 screen pixels.</summary>
+    public static string WindowBounds { get; set; } = string.Empty;
+    /// <summary>Last visited page tag (Home/Catalog/…), restored on launch.</summary>
+    public static string LastPage { get; set; } = string.Empty;
+    /// <summary>Whether the first-run TeachingTip onboarding should be offered.</summary>
+    public static bool ShowOnboardingTips { get; set; } = true;
+    /// <summary>Set once the onboarding sequence has been fully shown.</summary>
+    public static bool OnboardingCompleted { get; set; } = false;
+
     /// <summary>Proxy address, e.g. "http://proxy.corp.local:8080".</summary>
     public static string ProxyUrl { get; set; } = string.Empty;
 
@@ -147,6 +157,26 @@ public static class SettingsService
                 {
                     ProxyPassword = proxyPassProp.GetString() ?? string.Empty;
                 }
+
+                if (doc.RootElement.TryGetProperty("WindowBounds", out var boundsProp))
+                {
+                    WindowBounds = boundsProp.GetString() ?? string.Empty;
+                }
+
+                if (doc.RootElement.TryGetProperty("LastPage", out var lastPageProp))
+                {
+                    LastPage = lastPageProp.GetString() ?? string.Empty;
+                }
+
+                if (doc.RootElement.TryGetProperty("ShowOnboardingTips", out var onboardingProp))
+                {
+                    ShowOnboardingTips = onboardingProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("OnboardingCompleted", out var onboardingDoneProp))
+                {
+                    OnboardingCompleted = onboardingDoneProp.GetBoolean();
+                }
             }
         }
         catch
@@ -176,7 +206,11 @@ public static class SettingsService
                 ProxyEnabled = ProxyEnabled,
                 ProxyUrl = ProxyUrl,
                 ProxyUsername = ProxyUsername,
-                ProxyPassword = ProxyPassword
+                ProxyPassword = ProxyPassword,
+                WindowBounds = WindowBounds,
+                LastPage = LastPage,
+                ShowOnboardingTips = ShowOnboardingTips,
+                OnboardingCompleted = OnboardingCompleted
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

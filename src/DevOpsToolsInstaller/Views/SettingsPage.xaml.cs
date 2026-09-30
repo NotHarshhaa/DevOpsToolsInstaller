@@ -31,6 +31,7 @@ public sealed partial class SettingsPage : Page
         AutoUpdateToggle.IsOn = SettingsService.CheckForUpdatesOnStartup;
         NotificationsToggle.IsOn = SettingsService.EnableNotifications;
         CloseToTrayToggle.IsOn = SettingsService.CloseToTray;
+        OnboardingToggle.IsOn = SettingsService.ShowOnboardingTips || !SettingsService.OnboardingCompleted;
 
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
@@ -571,6 +572,16 @@ public sealed partial class SettingsPage : Page
     private void CloseToTrayToggle_Toggled(object sender, RoutedEventArgs e)
     {
         SettingsService.CloseToTray = CloseToTrayToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void OnboardingToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.ShowOnboardingTips = OnboardingToggle.IsOn;
+        if (!OnboardingToggle.IsOn)
+        {
+            SettingsService.OnboardingCompleted = true;
+        }
         SettingsService.SaveSettings();
     }
 }

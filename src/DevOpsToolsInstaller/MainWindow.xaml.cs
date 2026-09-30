@@ -2,6 +2,9 @@ using System.Collections.ObjectModel;
 using Windows.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using DevOpsToolsInstaller.Helpers;
+using static DevOpsToolsInstaller.Services.TrayIconService;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 using DevOpsToolsInstaller.Views;
@@ -39,6 +42,7 @@ public sealed partial class MainWindow : Window
     private readonly SemaphoreSlim _catalogLoadLock = new(1, 1);
     private bool _catalogLoaded;
     private bool _forceExit;
+    private bool _onboardingStarted;
     private int _lastUpdateBadgeCount;
 
     /// <summary>
@@ -150,9 +154,27 @@ public sealed partial class MainWindow : Window
 
         AppTitleBarIconSource.ImageSource = AppLogoHelper.GetLogoImage();
 
+        RestoreSavedWindowBounds();
         ApplyTheme(SettingsService.Theme);
 
         InitializeTray();
+
+        // Track the last visited page so it can be restored on next launch.
+        ContentFrame.Navigated += (s, e) =>
+        {
+            if (e is not Microsoft.UI.Xaml.Navigation.NavigationEventArgs nav) return;
+            SettingsService.LastPage = nav.Content?.GetType().Name switch
+            {
+                nameof(HomePage) => "Home",
+                nameof(CatalogPage) => "Catalog",
+                nameof(StacksPage) => "Stacks",
+                nameof(DownloadsPage) => "Downloads",
+                nameof(InstalledPage) => "Installed",
+                nameof(SettingsPage) => "Settings",
+                nameof(AboutPage) => "About",
+                _ => SettingsService.LastPage
+            };
+        };
 
         // Close-to-tray: hide the window instead of exiting (unless the user
         // picked Exit from the tray menu).
@@ -165,6 +187,7 @@ public sealed partial class MainWindow : Window
                     return;
                 }
                 e.Cancel = true;
+                SaveWindowState();
                 _ = DispatcherQueue.TryEnqueue(() => AppWindow.Hide());
             };
         }
@@ -172,7 +195,18 @@ public sealed partial class MainWindow : Window
         Closed += (s, e) =>
         {
             TrayIconService.Shutdown();
+            SaveWindowState();
             ToastService.Shutdown();
+        };
+
+        Activated += async (s, e) =>
+        {
+            if (e.WindowActivationState != WindowActivationState.Deactivated && !_onboardingStarted)
+            {
+                _onboardingStarted = true;
+                SaveWindowState();
+                await RunOnboardingIfFirstRunAsync();
+            }
         };
 
         SetupUpdateScheduler();
@@ -186,6 +220,13 @@ public sealed partial class MainWindow : Window
         // HomePage. Do NOT also call ContentFrame.Navigate here — that would
         // create a second HomePage instance and race the catalog load.
         NavView.SelectedItem = NavView.MenuItems[0];
+
+        // Restore the last visited page from the previous session.
+        var lastPage = SettingsService.LastPage;
+        if (!string.IsNullOrEmpty(lastPage) && lastPage != "Home")
+        {
+            NavigateTo(lastPage);
+        }
 
         NavView.Loaded += (s, e) =>
         {
@@ -372,22 +413,35 @@ public sealed partial class MainWindow : Window
     }
 
     // ── System tray ──────────────────────────────────────────────────────
+    // Native Shell_NotifyIcon icon; right-click opens a WinUI-styled
+    // MenuFlyout hosted in a borderless flyout window (TrayMenuWindow).
+
+    private TrayMenuWindow? _trayMenuWindow;
 
     private void InitializeTray()
     {
         var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
         if (!System.IO.File.Exists(iconPath)) return;
 
-        if (!TrayIconService.Initialize(iconPath, "DevOps Tools Installer")) return;
+        if (!TrayIconService.InitializeExternalMenu(iconPath, "DevOps Tools Installer")) return;
 
         TrayIconService.OpenRequested += () =>
-            _ = DispatcherQueue.TryEnqueue(ShowMainWindow);
-        TrayIconService.CatalogRequested += () =>
-            _ = DispatcherQueue.TryEnqueue(() => NavigateTo("Catalog"));
-        TrayIconService.CheckUpdatesRequested += () =>
-            _ = DispatcherQueue.TryEnqueue(() => NavigateTo("Installed"));
-        TrayIconService.ExitRequested += () =>
-            _ = DispatcherQueue.TryEnqueue(ExitApplication);
+            DispatcherQueue.TryEnqueue(ShowMainWindow);
+        TrayIconService.ContextMenuRequested += point =>
+            DispatcherQueue.TryEnqueue(() => ShowTrayMenu(point));
+    }
+
+    private void ShowTrayMenu(POINT point)
+    {
+        if (_trayMenuWindow is null)
+        {
+            _trayMenuWindow = new TrayMenuWindow(
+                () => DispatcherQueue.TryEnqueue(ShowMainWindow),
+                () => DispatcherQueue.TryEnqueue(() => NavigateTo("Catalog")),
+                () => DispatcherQueue.TryEnqueue(() => NavigateTo("Installed")),
+                () => DispatcherQueue.TryEnqueue(ExitApplication));
+        }
+        _trayMenuWindow.ShowAt(point);
     }
 
     private void ShowMainWindow()
@@ -400,7 +454,216 @@ public sealed partial class MainWindow : Window
     {
         _forceExit = true;
         TrayIconService.Shutdown();
+        _trayMenuWindow?.CloseWindow();
         Close();
+    }
+
+    // ── Window state persistence ─────────────────────────────────────────
+
+    /// <summary>Applies the saved window bounds ("x,y,w,h") from the last session.</summary>
+    private void RestoreSavedWindowBounds()
+    {
+        try
+        {
+            var parts = SettingsService.WindowBounds.Split(',');
+            if (parts.Length == 4 &&
+                int.TryParse(parts[0], out var x) && int.TryParse(parts[1], out var y) &&
+                int.TryParse(parts[2], out var w) && int.TryParse(parts[3], out var h) &&
+                w > 200 && h > 200)
+            {
+                AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
+                AppWindow.Resize(new Windows.Graphics.SizeInt32(w, h));
+                return;
+            }
+        }
+        catch
+        {
+            // Fall through to the default size.
+        }
+
+        AppWindow?.Resize(new Windows.Graphics.SizeInt32(1280, 820));
+    }
+
+    private void SaveWindowState()
+    {
+        try
+        {
+            var pos = AppWindow.Position;
+            var size = AppWindow.Size;
+            SettingsService.WindowBounds = $"{pos.X},{pos.Y},{size.Width},{size.Height}";
+            SettingsService.SaveSettings();
+        }
+        catch
+        {
+            // Persistence is best-effort.
+        }
+    }
+
+    // ── Ctrl+K command palette ───────────────────────────────────────────
+
+    private sealed record PaletteCommand(string Title, string Glyph, Action Run);
+
+    private void CommandPalette_Invoked(
+        Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
+        Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        _ = ShowCommandPaletteAsync();
+    }
+
+    private async System.Threading.Tasks.Task ShowCommandPaletteAsync()
+    {
+        if (ContentFrame.XamlRoot is null) return;
+
+        var search = new AutoSuggestBox
+        {
+            PlaceholderText = "Type a page, tool, or action...",
+            QueryIcon = new FontIcon { Glyph = "\uE721" },
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 8, 0, 0)
+        };
+
+        var hint = new TextBlock
+        {
+            Text = "Enter runs the highlighted command. Pages, tools (install), and update checks are all here.",
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 11,
+            Opacity = 0.7,
+            Margin = new Thickness(0, 10, 0, 0)
+        };
+
+        var panel = new StackPanel { Spacing = 4, MinWidth = 460 };
+        panel.Children.Add(search);
+        panel.Children.Add(hint);
+
+        var dialog = new ContentDialog
+        {
+            Title = "Quick actions  (Ctrl+K)",
+            Content = panel,
+            CloseButtonText = "Close",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = ContentFrame.XamlRoot
+        };
+
+        PaletteCommand? chosen = null;
+
+        search.TextChanged += (s, e) =>
+        {
+            s.ItemsSource = BuildPaletteCommands(s.Text).Take(8).ToList();
+        };
+
+        search.QuerySubmitted += (s, e) =>
+        {
+            if (e.ChosenSuggestion is PaletteCommand cmd)
+            {
+                chosen = cmd;
+            }
+            else
+            {
+                var top = BuildPaletteCommands(e.QueryText).FirstOrDefault();
+                if (top is not null) chosen = top;
+            }
+            dialog.Hide();
+        };
+
+        await dialog.ShowAsync();
+
+        if (chosen is not null)
+        {
+            DispatcherQueue.TryEnqueue(() => chosen.Run());
+        }
+    }
+
+    private System.Collections.Generic.IEnumerable<PaletteCommand> BuildPaletteCommands(string query)
+    {
+        query = query?.Trim() ?? string.Empty;
+        bool match(string text) => string.IsNullOrEmpty(query) ||
+            text.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+        var commands = new System.Collections.Generic.List<PaletteCommand>
+        {
+            new("Go to Home", "\uE80F", () => NavigateTo("Home")),
+            new("Go to Tool Catalog", "\uE8F1", () => NavigateTo("Catalog")),
+            new("Go to Stacks", "\uE71D", () => NavigateTo("Stacks")),
+            new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
+            new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
+            new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
+            new("Go to About", "\uE946", () => NavigateTo("About")),
+            new("Check for tool updates", "\uE895", () => NavigateTo("Installed")),
+        };
+
+        foreach (var tool in Tools)
+        {
+            if (match(tool.Name) && tool.Status != ToolStatus.Downloaded && tool.Status != ToolStatus.Downloading)
+            {
+                commands.Add(new PaletteCommand($"Install {tool.Name}", "\uE896",
+                    () => ToolActions.RunInBackground(tool, installAfter: true)));
+            }
+        }
+
+        return commands.Where(c => match(c.Title));
+    }
+
+    // ── First-run onboarding (TeachingTips, 3 steps max) ─────────────────
+
+    private async System.Threading.Tasks.Task RunOnboardingIfFirstRunAsync()
+    {
+        if (!SettingsService.ShowOnboardingTips || SettingsService.OnboardingCompleted) return;
+        if (ContentFrame.XamlRoot is null) return;
+
+        await System.Threading.Tasks.Task.Delay(1200);
+
+        if (!SettingsService.ShowOnboardingTips || SettingsService.OnboardingCompleted) return;
+
+        var tip1 = new TeachingTip
+        {
+            Title = "Search anything, instantly",
+            Content = "Use the search box up here — or press Ctrl+K anywhere — to jump to pages, install tools, and run actions.",
+            Target = AppTitleBar,
+            PreferredPlacement = TeachingTipPlacementMode.Bottom,
+            CloseButtonContent = "Next",
+            IsLightDismissEnabled = false
+        };
+        tip1.Closed += (s, e) => ShowOnboardingTip2();
+        tip1.IsOpen = true;
+    }
+
+    private void ShowOnboardingTip2()
+    {
+        if (!SettingsService.ShowOnboardingTips) return;
+
+        var tip2 = new TeachingTip
+        {
+            Title = "Track what's installed",
+            Content = "The Installed page shows everything on your workstation, with update badges when new versions ship.",
+            Target = InstalledNavItem,
+            PreferredPlacement = TeachingTipPlacementMode.Right,
+            CloseButtonContent = "Next",
+            IsLightDismissEnabled = false
+        };
+        tip2.Closed += (s, e) => ShowOnboardingTip3();
+        tip2.IsOpen = true;
+    }
+
+    private void ShowOnboardingTip3()
+    {
+        if (!SettingsService.ShowOnboardingTips) return;
+
+        var tip3 = new TeachingTip
+        {
+            Title = "Made to stay out of your way",
+            Content = "Closing the window keeps the app in your system tray. You can turn these tips off in Settings.",
+            Target = NavView.FooterMenuItems.OfType<NavigationViewItem>().FirstOrDefault(i => i.Tag as string == "Settings"),
+            PreferredPlacement = TeachingTipPlacementMode.Left,
+            CloseButtonContent = "Got it",
+            IsLightDismissEnabled = false
+        };
+        tip3.Closed += (s, e) =>
+        {
+            SettingsService.OnboardingCompleted = true;
+            SettingsService.SaveSettings();
+        };
+        tip3.IsOpen = true;
     }
 
     // ── Background tool-update scheduler ─────────────────────────────────

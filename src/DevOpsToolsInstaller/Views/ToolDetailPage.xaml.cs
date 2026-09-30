@@ -153,48 +153,7 @@ public sealed partial class ToolDetailPage : Page
 
     private void DownloadOnly_Click(object sender, RoutedEventArgs e) => RunTool(installAfter: false);
 
-    private void RunTool(bool installAfter)
-    {
-        var mw = App.MainWindowInstance;
-        if (mw is null) return;
-        if (Tool.IsDownloadedOrInstalled || Tool.Status == ToolStatus.Downloading) return;
-
-        if (!mw.DownloadQueue.Contains(Tool))
-        {
-            mw.DownloadQueue.Add(Tool);
-        }
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                var dlFolder = DownloadService.DefaultDownloadsFolder;
-                await mw.DownloadSvc.DownloadBatchAsync(new[] { Tool }, dlFolder, maxConcurrency: 1);
-
-                if (Tool.Status == ToolStatus.Downloaded && installAfter)
-                {
-                    var res = ArtifactService.Perform(Tool, dlFolder);
-                    ToastService.Show(
-                        $"{Tool.Name} ready",
-                        res.Success ? res.Message : $"{Tool.Name} was downloaded but the install step needs attention.");
-                }
-                else if (Tool.Status == ToolStatus.Downloaded)
-                {
-                    ToastService.Show($"{Tool.Name} downloaded", "Ready to install from the Downloads page.");
-                }
-                else
-                {
-                    ToastService.Show($"{Tool.Name} download failed", "Check your connection and try again.");
-                }
-            }
-            catch
-            {
-                // Failures surface through the Downloads page and toasts.
-            }
-        });
-
-        mw.NavigateTo("Downloads");
-    }
+    private void RunTool(bool installAfter) => ToolActions.RunInBackground(Tool, installAfter);
 
     private async void ChooseVersion_Click(object sender, RoutedEventArgs e)
     {
