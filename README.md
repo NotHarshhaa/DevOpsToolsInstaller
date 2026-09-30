@@ -70,6 +70,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
 - [Contributing](#contributing)
+- [Changelog](CHANGELOG.md)
 - [License](#license)
 
 ---
