@@ -148,7 +148,7 @@ public sealed partial class MainWindow : Window
         // Sensible default window size on first display.
         AppWindow?.Resize(new Windows.Graphics.SizeInt32(1280, 820));
 
-        AppTitleBarLogo.Source = AppLogoHelper.GetLogoImage();
+        AppTitleBarIconSource.ImageSource = AppLogoHelper.GetLogoImage();
 
         ApplyTheme(SettingsService.Theme);
 
@@ -169,7 +169,11 @@ public sealed partial class MainWindow : Window
             };
         }
 
-        Closed += (s, e) => TrayIconService.Shutdown();
+        Closed += (s, e) =>
+        {
+            TrayIconService.Shutdown();
+            ToastService.Shutdown();
+        };
 
         SetupUpdateScheduler();
 

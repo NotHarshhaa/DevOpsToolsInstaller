@@ -23,11 +23,11 @@
   </Properties>
 
   <Dependencies>
-    <!-- Windows 10 1809 (Build 17763) minimum, targeting 19041 -->
+    <!-- Windows 10 1809 (Build 17763) minimum, validated through Windows 11 24H2 -->
     <TargetDeviceFamily
       Name="Windows.Desktop"
       MinVersion="10.0.17763.0"
-      MaxVersionTested="10.0.19041.0" />
+      MaxVersionTested="10.0.26100.0" />
   </Dependencies>
 
   <Resources>

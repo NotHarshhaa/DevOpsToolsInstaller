@@ -47,6 +47,11 @@ public partial class App : Application
 
         MainWindowInstance = new MainWindow();
         MainWindowInstance.Activate();
+
+        // Register for app notifications (toasts). Done after window creation
+        // so the process is fully initialized; for unpackaged installs this
+        // also creates the AUMID registration.
+        ToastService.Register();
     }
 
     private async System.Threading.Tasks.Task RunCliAsync(string[] args)

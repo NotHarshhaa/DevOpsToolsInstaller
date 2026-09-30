@@ -11,24 +11,19 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Custom title bar (transparent so Mica shows through) -->
-        <Grid x:Name="AppTitleBar" Grid.Row="0" Height="48" Background="Transparent">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0" Spacing="10">
-                <Border Width="24" Height="24" CornerRadius="6" VerticalAlignment="Center">
-                    <Image x:Name="AppTitleBarLogo" Source="ms-appx:///Assets/app.png" Width="20" Height="20" Stretch="Uniform" />
-                </Border>
-                <TextBlock
-                    Text="DevOps Tools Installer"
-                    Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                    FontWeight="SemiBold"
-                    FontSize="13"
-                    VerticalAlignment="Center" />
-                <Border Style="{StaticResource BadgeStyle}" Padding="7,1" Margin="2,0,0,0">
+        <!-- Built-in WinUI TitleBar control (Windows App SDK 2.x): handles the
+             icon, title, drag regions and caption-button spacing automatically. -->
+        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer">
+            <controls:TitleBar.IconSource>
+                <controls:ImageIconSource x:Name="AppTitleBarIconSource" ImageSource="ms-appx:///Assets/app.png" />
+            </controls:TitleBar.IconSource>
+            <controls:TitleBar.Content>
+                <Border Style="{StaticResource BadgeStyle}" Padding="7,1" Margin="10,0,0,0" VerticalAlignment="Center">
                     <TextBlock Text="v3.0.0" FontSize="11" FontWeight="SemiBold"
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                 </Border>
-            </StackPanel>
-        </Grid>
+            </controls:TitleBar.Content>
+        </controls:TitleBar>
 
         <!-- Navigation + content -->
         <controls:NavigationView
