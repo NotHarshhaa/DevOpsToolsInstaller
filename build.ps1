@@ -273,8 +273,8 @@ if ($Msix) {
     }
 
     if ($LASTEXITCODE -eq 0) {
-        # Find the produced .msixupload or .msix file
-        $msixFile = Get-ChildItem -Path $msixOutDir -Include '*.msixupload','*.msix' -Recurse |
+        # Find the produced .msixupload, .msixbundle, or .msix file
+        $msixFile = Get-ChildItem -Path $msixOutDir -Include '*.msixupload','*.msixbundle','*.msix' -Recurse |
                     Sort-Object LastWriteTime -Descending | Select-Object -First 1
         if ($msixFile) {
             $sizeMB = [math]::Round($msixFile.Length / 1MB, 1)
@@ -335,7 +335,7 @@ if ($Msi) {
         $distDir = Join-Path $root 'dist'
         if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
 
-        $version = "2.9.0"
+        $version = "3.0.0"
         if (Test-Path $project) {
             $csprojXml = [xml](Get-Content $project)
             $verNode = $csprojXml.SelectSingleNode("//Version")

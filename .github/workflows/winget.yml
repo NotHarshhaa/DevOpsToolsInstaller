@@ -1,13 +1,12 @@
 name: Publish to WinGet
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag (e.g. 2.1.0)'
+        description: 'Release tag (e.g. v3.0.0, or leave empty for latest release)'
         required: false
+        default: 'v3.0.0'
 
 jobs:
   winget:
@@ -23,3 +22,4 @@ jobs:
           identifier: NotHarshhaa.DevOpsToolsInstaller
           installers-regex: 'DevOpsToolsInstaller_x64_Setup\.exe$'
           token: ${{ secrets.WINGET_TOKEN || secrets.GH_TOKEN }}
+          release-tag: ${{ github.event.inputs.version }}

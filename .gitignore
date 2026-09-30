@@ -59,6 +59,8 @@ Desktop.ini
 # Output installer directories
 dist/
 release_assets/
+BundleArtifacts/
+.zcodeignore
 
 # Catalog signing private key — NEVER commit
 catalog/keys/

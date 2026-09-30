@@ -5,7 +5,8 @@
 </p>
 
 <p align="center">
-  <img alt="Release" src="https://img.shields.io/badge/release-v2.9.0-blue?logo=github" />
+  <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v3.0.0-blue?logo=github" /></a>
+  <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG"><img alt="Microsoft Store" src="https://img.shields.io/badge/Microsoft_Store-Get_it_here-0078D6?logo=windows&logoColor=white" /></a>
   <img alt="Build" src="https://github.com/NotHarshhaa/DevOpsToolsInstaller/actions/workflows/release.yml/badge.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows" />
   <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet" />
@@ -14,6 +15,12 @@
   <img alt="Security" src="https://img.shields.io/badge/security-signed%20catalog%20%7C%20HTTPS--only%20%7C%20MOTW-107C41?logo=shield" />
   <img alt="Arch" src="https://img.shields.io/badge/arch-x64%20%7C%20arm64-lightgrey" />
   <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-green" />
+</p>
+
+<p align="center">
+  <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG">
+    <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" width="190"/>
+  </a>
 </p>
 
 <p align="center">
@@ -361,28 +368,40 @@ DevOpsToolsInstaller includes an integrated, zero-friction updater:
 
 ## Installation & Deployment Options
 
-DevOpsToolsInstaller provides official distribution formats available from [GitHub Releases](https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest):
+DevOpsToolsInstaller is available across multiple official distribution channels:
 
-### ⚡ Option 1: Windows Package Manager (WinGet)
+### 🏪 Option 1: Microsoft Store (Official & Automatic Updates)
+Get it directly from the Microsoft Store with seamless automatic background updates:
+
+<a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG">
+  <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" width="180"/>
+</a>
+
+Or install directly from the terminal via WinGet:
+```powershell
+winget install 9PJL0VR3H7VG
+```
+
+### ⚡ Option 2: Windows Package Manager (WinGet Community Repository)
 Install directly from your terminal using native Windows Package Manager:
 ```powershell
 winget install DevOpsToolsInstaller
 ```
 *(or explicitly by package ID: `winget install --id NotHarshhaa.DevOpsToolsInstaller`)*
 
-### 🧙 Option 2: Windows Setup Wizard (Recommended)
+### 🧙 Option 3: Windows Setup Wizard (Recommended for Standalone Setup)
 Download **`DevOpsToolsInstaller_x64_Setup.exe`**:
 - **App-branded Fluent wizard** with custom welcome page and logo.
 - **Running-instance detection**: politely closes a running app (including tray-resident instances) before upgrading.
 - **Optional PATH registration** and **clean uninstall** with an optional "remove my downloads, tools, and settings" prompt.
 - Fully integrated with Windows Settings (*Installed apps* / *Programs and Features*).
 
-### 🚀 Option 3: Portable Single-File Executable
+### 🚀 Option 4: Portable Single-File Executable
 Download **`DevOpsToolsInstaller_x64.exe`** (or `_arm64.exe` for ARM64 devices):
 - Single self-contained executable with embedded compression.
 - Completely portable: drop it onto a USB drive, `Downloads`, or `Desktop` and launch immediately with zero installation.
 
-### 🖥️ Option 4: Scripted / Headless Provisioning
+### 🖥️ Option 5: Scripted / Headless Provisioning
 The portable executable doubles as a CLI for unattended setups:
 ```powershell
 # Bootstrap a Kubernetes workstation from a provisioning script
