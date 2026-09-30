@@ -182,13 +182,6 @@
     </Style>
 
     <!-- Quick action navigation card -->
-    <!-- Split button whose primary action is an accent CTA (tool cards) -->
-    <Style x:Key="AccentSplitButtonStyle" TargetType="SplitButton" BasedOn="{StaticResource SplitButtonStyle}">
-        <Setter Property="Background" Value="{ThemeResource AccentFillColorDefaultBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-        <Setter Property="CornerRadius" Value="4" />
-    </Style>
-
     <Style x:Key="QuickActionCardStyle" TargetType="Button">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />

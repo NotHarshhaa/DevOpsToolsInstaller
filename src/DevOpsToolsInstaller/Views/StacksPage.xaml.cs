@@ -81,6 +81,7 @@ public sealed partial class StacksPage : Page
     public StacksPage()
     {
         InitializeComponent();
+        CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
         Loaded += StacksPage_Loaded;
     }
 
@@ -153,7 +154,13 @@ public sealed partial class StacksPage : Page
 
     private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CategorySegmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected) return;
+        // Use the sender: this event can fire during XAML parse (initial
+        // IsSelected) before the generated field is connected.
+        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
+            segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
+        {
+            return;
+        }
         _selectedCategory = selected.Tag as string ?? "All";
         selected.StartBringIntoView();
         ApplyFilter();

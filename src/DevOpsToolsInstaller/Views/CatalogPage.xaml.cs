@@ -39,6 +39,7 @@ public sealed partial class CatalogPage : Page
     public CatalogPage()
     {
         InitializeComponent();
+        CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
 
         ToolsGridView.ItemsSource = _filteredTools;
 
@@ -180,7 +181,13 @@ public sealed partial class CatalogPage : Page
 
     private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CategorySegmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected) return;
+        // Use the sender: this event can fire during XAML parse (initial
+        // IsSelected) before the generated field is connected.
+        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
+            segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
+        {
+            return;
+        }
         _selectedCategory = selected.Tag as string ?? "All";
         selected.StartBringIntoView();
         ApplyFilter();

@@ -215,7 +215,7 @@
                           ViewChanged="ChipsScrollViewer_ViewChanged"
                           SizeChanged="ChipsScrollViewer_SizeChanged">
                 <tk:Segmented x:Name="CategorySegmented" Padding="0,2,0,2"
-                              SelectionChanged="CategorySegmented_SelectionChanged"
+                             
                               AutomationProperties.Name="Category filter">
                     <tk:SegmentedItem Content="All Tools" Tag="All" IsSelected="True" />
                     <tk:SegmentedItem Content="Favorites" Tag="Favorites" />
@@ -397,7 +397,9 @@
 
                                     <!-- Install SplitButton: primary = Install;
                                          chevron menu = choose version / download only / homepage -->
-                                    <SplitButton Style="{StaticResource AccentSplitButtonStyle}"
+                                    <SplitButton
+                                                 Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                 Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                                  Click="InstallSingleTool_Click"
                                                  ToolTipService.ToolTip="Download and install this tool"
                                                  AutomationProperties.Name="Install tool"

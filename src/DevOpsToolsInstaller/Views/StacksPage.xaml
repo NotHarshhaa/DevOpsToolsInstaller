@@ -105,7 +105,7 @@
                           ViewChanged="ChipsScrollViewer_ViewChanged"
                           SizeChanged="ChipsScrollViewer_SizeChanged">
                 <tk:Segmented x:Name="CategorySegmented" Padding="0,2,0,2"
-                              SelectionChanged="CategorySegmented_SelectionChanged"
+                             
                               AutomationProperties.Name="Stack category filter">
                     <tk:SegmentedItem Content="All Stacks" Tag="All" IsSelected="True" />
                     <tk:SegmentedItem Content="Containerization" Tag="Containerization" />
@@ -272,7 +272,9 @@
                                 <!-- Install Stack SplitButton: primary = install stack;
                                      chevron menu = customize / view downloads -->
                                 <SplitButton Grid.Column="0"
-                                             Style="{StaticResource AccentSplitButtonStyle}"
+                                            
+                                                 Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                 Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                              Click="InstallStack_Click" Tag="{Binding Id}"
                                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                              Visibility="{Binding CanDownload, Converter={StaticResource BoolToVisibilityConverter}}"

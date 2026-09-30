@@ -71,7 +71,9 @@
 
                 <!-- Primary action: Install SplitButton (same options as the catalog card) -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <SplitButton x:Name="HeroInstallButton" Style="{StaticResource AccentSplitButtonStyle}"
+                    <SplitButton x:Name="HeroInstallButton"
+                                                 Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                                 Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
                                  Click="Install_Click" Padding="14,7"
                                  AutomationProperties.Name="Install tool">
                         <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,0,6,0">
