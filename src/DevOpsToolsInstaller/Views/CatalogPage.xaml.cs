@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
+using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
@@ -51,6 +52,10 @@ public sealed partial class CatalogPage : Page
 
         if (mw.Tools.Count == 0)
         {
+            // Shimmer placeholders while the catalog loads; suppressed under
+            // the Windows "reduce animations" setting (falls back to the ring).
+            var showShimmer = AnimationSettingsHelper.AnimationsEnabled;
+            LoadingShimmerPanel.Visibility = showShimmer ? Visibility.Visible : Visibility.Collapsed;
             SetBusy(true, "Loading catalog...");
             try
             {
@@ -62,6 +67,7 @@ public sealed partial class CatalogPage : Page
             }
             finally
             {
+                LoadingShimmerPanel.Visibility = Visibility.Collapsed;
                 SetBusy(false);
             }
         }
@@ -172,26 +178,11 @@ public sealed partial class CatalogPage : Page
 
     // ── Category Chips ──────────────────────────────────────────────────
 
-    private void CategoryChip_Click(object sender, RoutedEventArgs e)
+    private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not Button clickedBtn) return;
-        var tag = clickedBtn.Tag as string ?? "All";
-        _selectedCategory = tag;
-
-        // Visual update on chips
-        foreach (var child in CategoryChipsPanel.Children)
-        {
-            if (child is Button btn)
-            {
-                var isSelected = (btn.Tag as string) == tag;
-                btn.Style = (Style)Application.Current.Resources[isSelected ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-                btn.CornerRadius = new CornerRadius(4);
-            }
-        }
-
-        // Bring clicked chip into view smoothly
-        clickedBtn.StartBringIntoView();
-
+        if (CategorySegmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected) return;
+        _selectedCategory = selected.Tag as string ?? "All";
+        selected.StartBringIntoView();
         ApplyFilter();
     }
 
@@ -501,157 +492,31 @@ public sealed partial class CatalogPage : Page
 
     // ── Tool Detail Dialog ──────────────────────────────────────────────
 
-    private async void ToolDetails_Click(object sender, RoutedEventArgs e)
+    private void ToolDetails_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
-        var panel = new StackPanel { Spacing = 14, MaxWidth = 520 };
-
-        // Header with icon + name
-        var headerGrid = new Grid { ColumnSpacing = 14 };
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        var iconBorder = new Border
+        // Animate the whole card into the detail page (when allowed).
+        FrameworkElement? animationSource = sender as FrameworkElement;
+        var parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(animationSource!);
+        while (parent is not null)
         {
-            Width = 48,
-            Height = 48,
-            CornerRadius = new CornerRadius(4),
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
-            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1)
-        };
-        var logoSource = Services.ToolLogoService.GetLogo(tool.LogoUrl);
-        if (logoSource is not null)
-        {
-            iconBorder.Child = new Image
+            if (parent is Border border && border.Child is not null &&
+                Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(border) is Microsoft.UI.Xaml.Controls.GridViewItem)
             {
-                Source = logoSource,
-                Width = 32,
-                Height = 32,
-                Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+                animationSource = border;
+                break;
+            }
+            parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(parent);
         }
-        else
+
+        if (Helpers.AnimationSettingsHelper.AnimationsEnabled && animationSource is not null)
         {
-            iconBorder.Child = new FontIcon
-            {
-                Glyph = tool.IconGlyph,
-                FontSize = 20,
-                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorPrimaryBrush"],
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            };
+            Microsoft.UI.Xaml.Media.Animation.ConnectedAnimationService
+                .GetForCurrentView().PrepareToAnimate("toolCard", animationSource);
         }
-        Grid.SetColumn(iconBorder, 0);
-        headerGrid.Children.Add(iconBorder);
 
-        var titleStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 4 };
-        titleStack.Children.Add(new TextBlock { Text = tool.NameWithVersion, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 16 });
-
-        var badgeStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
-        badgeStack.Children.Add(new TextBlock { Text = $"{tool.Category}  •  {tool.KindLabel}", Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"], FontSize = 12 });
-        if (tool.IsFavorite)
-        {
-            badgeStack.Children.Add(new FontIcon { Glyph = "\uE735", FontSize = 13, Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
-        }
-        titleStack.Children.Add(badgeStack);
-
-        Grid.SetColumn(titleStack, 1);
-        headerGrid.Children.Add(titleStack);
-        panel.Children.Add(headerGrid);
-
-        // Description
-        panel.Children.Add(new TextBlock { Text = tool.Description, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 4, 0, 0), Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"] });
-
-        // Metadata grid
-        var metaBorder = new Border
-        {
-            Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
-            BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(6),
-            Padding = new Thickness(14)
-        };
-        var metaStack = new StackPanel { Spacing = 6 };
-        metaStack.Children.Add(new TextBlock { Text = $"File: {tool.FileName}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"Deployment: {tool.ActionLabel}", FontSize = 12 });
-        metaStack.Children.Add(new TextBlock { Text = $"Status: {tool.StatusText}", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        metaStack.Children.Add(new TextBlock { Text = $"Version: {tool.SelectedVersion} ({(tool.IsPreviousVersionSelected ? "Custom Selection" : "Latest Stable")})", FontSize = 12, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
-        if (!string.IsNullOrWhiteSpace(tool.Sha256))
-        {
-            metaStack.Children.Add(new TextBlock { Text = $"SHA256: {tool.Sha256}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
-        }
-        if (!string.IsNullOrWhiteSpace(tool.Homepage))
-            metaStack.Children.Add(new TextBlock { Text = $"Homepage: {tool.Homepage}", FontSize = 11, TextWrapping = TextWrapping.Wrap, IsTextSelectionEnabled = true });
-        metaBorder.Child = metaStack;
-        panel.Children.Add(metaBorder);
-
-        // Action buttons row
-        var actionPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right };
-
-        // Switch version button
-        var switchVerBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
-        var switchVerStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        switchVerStack.Children.Add(new FontIcon { Glyph = "\uE8EC", FontSize = 13 });
-        switchVerStack.Children.Add(new TextBlock { Text = "Switch Version" });
-        switchVerBtn.Content = switchVerStack;
-
-        // Copy CLI name button
-        var copyNameBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
-        var copyNameStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        copyNameStack.Children.Add(new FontIcon { Glyph = "\uE8C8", FontSize = 13 });
-        copyNameStack.Children.Add(new TextBlock { Text = "Copy CLI name" });
-        copyNameBtn.Content = copyNameStack;
-        copyNameBtn.Click += (_, _) =>
-        {
-            var dp = new DataPackage();
-            dp.SetText(tool.Id);
-            Clipboard.SetContent(dp);
-            StatusText.Text = $"Copied '{tool.Id}' to clipboard";
-        };
-        actionPanel.Children.Add(copyNameBtn);
-
-        // Copy command button
-        var copyCmdBtn = new Button { Padding = new Thickness(14, 8, 14, 8), CornerRadius = new CornerRadius(8) };
-        var copyCmdStack = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
-        copyCmdStack.Children.Add(new FontIcon { Glyph = "\uE756", FontSize = 13 });
-        copyCmdStack.Children.Add(new TextBlock { Text = "Copy download URL" });
-        copyCmdBtn.Content = copyCmdStack;
-        copyCmdBtn.Click += (_, _) =>
-        {
-            var dp = new DataPackage();
-            dp.SetText(tool.DownloadUrl);
-            Clipboard.SetContent(dp);
-            StatusText.Text = $"Copied download URL for {tool.Name}";
-        };
-        actionPanel.Children.Add(copyCmdBtn);
-        actionPanel.Children.Add(switchVerBtn);
-
-        panel.Children.Add(actionPanel);
-
-        var dialog = new ContentDialog
-        {
-            Title = "Tool Specifications",
-            Content = panel,
-            PrimaryButtonText = !string.IsNullOrWhiteSpace(tool.Homepage) ? "Open Documentation" : "",
-            CloseButtonText = "Close",
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = this.XamlRoot
-        };
-
-        switchVerBtn.Click += async (_, _) =>
-        {
-            dialog.Hide();
-            await ShowVersionPickerDialogAsync(tool);
-        };
-
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary && !string.IsNullOrWhiteSpace(tool.Homepage))
-        {
-            LauncherService.OpenUrl(tool.Homepage);
-        }
+        Frame.Navigate(typeof(ToolDetailPage), tool);
     }
 
     // ── Busy state ──────────────────────────────────────────────────────
@@ -811,9 +676,31 @@ public sealed partial class CatalogPage : Page
 
     // ── 1-Click Install Button on Card ──────────────────────────────────
 
-    private async void InstallSingleTool_Click(object sender, RoutedEventArgs e)
+    private async void InstallSingleTool_Click(Microsoft.UI.Xaml.Controls.SplitButton sender, Microsoft.UI.Xaml.Controls.SplitButtonClickEventArgs args)
     {
-        if (sender is not Button { DataContext: ToolDefinition tool }) return;
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
+        await RunSingleToolAsync(tool, installAfter: true);
+    }
+
+    /// <summary>SplitButton menu: download without running the install step.</summary>
+    private async void DownloadOnly_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
+        await RunSingleToolAsync(tool, installAfter: false);
+    }
+
+    /// <summary>SplitButton menu: open the tool's vendor homepage.</summary>
+    private void OpenHomepage_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
+        if (!string.IsNullOrWhiteSpace(tool.Homepage))
+        {
+            LauncherService.OpenUrl(tool.Homepage);
+        }
+    }
+
+    private async Task RunSingleToolAsync(ToolDefinition tool, bool installAfter)
+    {
         var mw = App.MainWindowInstance;
         if (mw is null || _busy) return;
 
@@ -833,16 +720,24 @@ public sealed partial class CatalogPage : Page
 
             if (tool.Status == ToolStatus.Downloaded)
             {
-                StatusText.Text = $"{tool.Name} downloaded successfully.";
-                var res = ArtifactService.Perform(tool, dlFolder);
-                if (!string.IsNullOrWhiteSpace(res.Message))
+                if (installAfter)
                 {
-                    StatusText.Text = res.Message;
-                }
+                    StatusText.Text = $"{tool.Name} downloaded successfully.";
+                    var res = ArtifactService.Perform(tool, dlFolder);
+                    if (!string.IsNullOrWhiteSpace(res.Message))
+                    {
+                        StatusText.Text = res.Message;
+                    }
 
-                ToastService.Show(
-                    $"{tool.Name} ready",
-                    res.Success ? res.Message : $"{tool.Name} was downloaded but the install step needs attention.");
+                    ToastService.Show(
+                        $"{tool.Name} ready",
+                        res.Success ? res.Message : $"{tool.Name} was downloaded but the install step needs attention.");
+                }
+                else
+                {
+                    StatusText.Text = $"{tool.Name} downloaded (install skipped).";
+                    ToastService.Show($"{tool.Name} downloaded", "Install it from the Downloads page whenever you're ready.");
+                }
             }
             else
             {

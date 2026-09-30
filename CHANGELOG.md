@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - All charts follow the system accent color and light/dark themes (repainted on `ActualThemeChanged`), sample at or below 4 updates/second (download pipeline 400 ms, page timers 250 ms–1 s), and release their timers, samples and series when navigating away (`OnNavigatedFrom`/`Unloaded`). Shared chart styling and bounded sample buffers live in `Helpers/ChartTelemetry.cs`.
 
 ### Changed
+- **Tool card & catalog UX overhaul**:
+  - **SplitButton install cards**: The catalog card's primary action is an accent `SplitButton` — Install — with a chevron menu offering "Choose version…", "Download only (skip install)", and "Open homepage". Stack cards on the Stacks page get the same treatment (Install stack, with "Customize in catalog" / "View downloads").
+  - **Tool detail page with ConnectedAnimation**: Clicking a card's details (or context menu) now navigates to a new full-page `ToolDetailPage` — description, current version with known previous versions, vendor homepage, SHA-256 (copyable), favorite toggle and the same Install SplitButton. The card animates into the page via `ConnectedAnimationService` (forward direction).
+  - **Segmented filters**: The category chip rows on Catalog and Stacks were replaced with the CommunityToolkit `Segmented` control (same filter behavior; favorites and multi-select unchanged).
+  - **Skeleton loading**: Pulsing skeleton cards show while the catalog loads, instead of only a spinner.
+  - **Reduce-motion respected**: All new motion (ConnectedAnimation, hover lift, pulse, skeletons) is suppressed when the Windows "reduce animations" accessibility setting is off (`Helpers/AnimationSettingsHelper`), showing final-state content instead.
+  - The 90-tool grid keeps its `GridView` + `ItemsWrapGrid` panel, which already provides UI virtualization; converting to `ItemsView` would have risked the model-driven multi-select and favorites behavior for no virtualization gain.
 - **Windows App SDK 2.5.1**: Upgraded the app framework from Windows App SDK 1.6 to the latest stable 2.x release (2.5.1). Minimum OS (Windows 10 1809) remains unchanged — 2.x still supports it.
 - **SDK projection update**: Moved the TFM projection band to `net8.0-windows10.0.26100.0` and removed the stale `WindowsSdkPackageVersion 10.0.19041.38` pin to resolve the `WinRT.Runtime 2.1 vs 2.2` assembly conflict introduced by the Toolkit/WinUI 2.x references. Minimum OS stays Windows 10 1809.
 - **Built-in TitleBar control**: Replaced the hand-rolled custom title bar grid with the Windows App SDK `Microsoft.UI.Xaml.Controls.TitleBar` control (icon, title, version badge, automatic drag regions and caption-button spacing).

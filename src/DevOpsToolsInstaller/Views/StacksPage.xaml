@@ -5,7 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:controls="using:DevOpsToolsInstaller.Controls"
-    xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
+    xmlns:helpers="using:DevOpsToolsInstaller.Helpers"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls">
 
     <Grid Padding="32,20,32,0" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -103,18 +104,20 @@
                           VerticalScrollMode="Disabled"
                           ViewChanged="ChipsScrollViewer_ViewChanged"
                           SizeChanged="ChipsScrollViewer_SizeChanged">
-                <StackPanel x:Name="CategoryChipsPanel" Orientation="Horizontal" Spacing="6" Padding="0,2,0,2">
-                    <Button Content="All Stacks"         Tag="All"              Click="CategoryChip_Click" Style="{StaticResource SelectedCategoryChipStyle}" />
-                    <Button Content="Containerization"  Tag="Containerization" Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="CI/CD"             Tag="CI/CD"            Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Cloud"             Tag="Cloud"            Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Security"          Tag="Security"         Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Monitoring"        Tag="Monitoring"       Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="IaC"               Tag="IaC"              Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Terminal"          Tag="Terminal"         Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Workstation"       Tag="Workstation"      Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                    <Button Content="Networking"        Tag="Networking"       Click="CategoryChip_Click" Style="{StaticResource CategoryChipStyle}" />
-                </StackPanel>
+                <tk:Segmented x:Name="CategorySegmented" Padding="0,2,0,2"
+                              SelectionChanged="CategorySegmented_SelectionChanged"
+                              AutomationProperties.Name="Stack category filter">
+                    <tk:SegmentedItem Content="All Stacks" Tag="All" IsSelected="True" />
+                    <tk:SegmentedItem Content="Containerization" Tag="Containerization" />
+                    <tk:SegmentedItem Content="CI/CD" Tag="CI/CD" />
+                    <tk:SegmentedItem Content="Cloud" Tag="Cloud" />
+                    <tk:SegmentedItem Content="Security" Tag="Security" />
+                    <tk:SegmentedItem Content="Monitoring" Tag="Monitoring" />
+                    <tk:SegmentedItem Content="IaC" Tag="IaC" />
+                    <tk:SegmentedItem Content="Terminal" Tag="Terminal" />
+                    <tk:SegmentedItem Content="Workstation" Tag="Workstation" />
+                    <tk:SegmentedItem Content="Networking" Tag="Networking" />
+                </tk:Segmented>
             </ScrollViewer>
 
             <!-- Scroll Right Button -->
@@ -266,19 +269,34 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- Install Stack Button (When not fully installed) -->
-                                <Button Grid.Column="0"
-                                        Style="{StaticResource AccentButtonStyle}"
-                                        Click="InstallStack_Click" Tag="{Binding Id}"
-                                        HorizontalAlignment="Stretch"
-                                        Padding="14,8" CornerRadius="6"
-                                        Visibility="{Binding CanDownload, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        ToolTipService.ToolTip="Download and install all tools in this stack">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+                                <!-- Install Stack SplitButton: primary = install stack;
+                                     chevron menu = customize / view downloads -->
+                                <SplitButton Grid.Column="0"
+                                             Style="{StaticResource AccentSplitButtonStyle}"
+                                             Click="InstallStack_Click" Tag="{Binding Id}"
+                                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                             Visibility="{Binding CanDownload, Converter={StaticResource BoolToVisibilityConverter}}"
+                                             ToolTipService.ToolTip="Download all tools in this stack"
+                                             AutomationProperties.Name="Install stack">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" Margin="2,0,6,0">
                                         <FontIcon Glyph="&#xE896;" FontSize="13" />
                                         <TextBlock Text="{Binding DownloadButtonText}" FontWeight="SemiBold" FontSize="12" />
                                     </StackPanel>
-                                </Button>
+                                    <SplitButton.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Customize in catalog" Click="CustomizeInCatalog_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8F1;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="View downloads" Click="MenuViewDownloads_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE896;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </SplitButton.Flyout>
+                                </SplitButton>
 
                                 <!-- All Installed Button (When 100% installed) -->
                                 <Button Grid.Column="0"

@@ -57,7 +57,11 @@ public static class Motion
     }
 
     private static void OnHoverLiftEntered(object sender, PointerRoutedEventArgs e)
-        => AnimateScale((UIElement)sender, 1.02f);
+    {
+        // Respect the Windows "reduce animations" accessibility setting.
+        if (!AnimationSettingsHelper.AnimationsEnabled) return;
+        AnimateScale((UIElement)sender, 1.02f);
+    }
 
     private static void OnHoverLiftLeft(object sender, PointerRoutedEventArgs e)
         => AnimateScale((UIElement)sender, 1f);
@@ -116,6 +120,9 @@ public static class Motion
 
     private static void StartPulse(UIElement el)
     {
+        // Respect the Windows "reduce animations" accessibility setting.
+        if (!AnimationSettingsHelper.AnimationsEnabled) return;
+
         var visual = ElementCompositionPreview.GetElementVisual(el);
         var compositor = visual.Compositor;
 

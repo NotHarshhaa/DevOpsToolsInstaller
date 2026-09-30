@@ -151,25 +151,11 @@ public sealed partial class StacksPage : Page
         ApplyFilter();
     }
 
-    private void CategoryChip_Click(object sender, RoutedEventArgs e)
+    private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not Button clickedBtn) return;
-        var tag = clickedBtn.Tag as string ?? "All";
-        _selectedCategory = tag;
-
-        if (CategoryChipsPanel != null)
-        {
-            foreach (var child in CategoryChipsPanel.Children)
-            {
-                if (child is Button btn)
-                {
-                    bool isSelected = string.Equals(btn.Tag as string, _selectedCategory, StringComparison.OrdinalIgnoreCase);
-                    btn.Style = (Style)Application.Current.Resources[isSelected ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-                }
-            }
-        }
-
-        clickedBtn.StartBringIntoView();
+        if (CategorySegmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected) return;
+        _selectedCategory = selected.Tag as string ?? "All";
+        selected.StartBringIntoView();
         ApplyFilter();
     }
 
@@ -269,9 +255,9 @@ public sealed partial class StacksPage : Page
         }
     }
 
-    private async void InstallStack_Click(object sender, RoutedEventArgs e)
+    private async void InstallStack_Click(Microsoft.UI.Xaml.Controls.SplitButton sender, Microsoft.UI.Xaml.Controls.SplitButtonClickEventArgs args)
     {
-        if (sender is not Button btn || btn.Tag is not string bundleId) return;
+        if (sender is not FrameworkElement btn || btn.Tag is not string bundleId) return;
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
@@ -337,5 +323,10 @@ public sealed partial class StacksPage : Page
     private void BrowseCatalog_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindowInstance?.NavigateTo("Catalog");
+    }
+
+    private void MenuViewDownloads_Click(object sender, RoutedEventArgs e)
+    {
+        App.MainWindowInstance?.NavigateTo("Downloads");
     }
 }
