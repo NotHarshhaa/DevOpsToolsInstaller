@@ -66,6 +66,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [In-App Auto-Updater & Tray](#in-app-auto-updater--tray)
 - [Installation & Deployment Options](#installation--deployment-options)
 - [Tech Stack](#tech-stack)
+- [Roadmap](#roadmap)
 - [Catalog Format, Signing & Custom Tools](#catalog-format-signing--custom-tools)
 - [Troubleshooting](#troubleshooting)
 - [FAQ](#faq)
@@ -166,7 +167,7 @@ Everything the UI does is scriptable. Point it at a fresh machine, a rebuild scr
 
 ```text
 PS> DevOpsToolsInstaller.exe --list
-DevOps Tools Installer v2.9.0 — 90 tools available
+DevOps Tools Installer v3.0.0 — 90 tools available
 
   act                      act                          CI/CD and Version Control
   dagger                   Dagger                       CI/CD and Version Control
@@ -183,7 +184,7 @@ PS> DevOpsToolsInstaller.exe --install-bundle k8s-starter
 Done. 5 installed, 0 already present, 0 failed.
 
 PS> DevOpsToolsInstaller.exe --uninstall kubectl,terraform
-[ok  ] kubectl: removed Toolsin\kubectl.exe and extracted files.
+[ok  ] kubectl: removed Tools\bin\kubectl.exe and extracted files.
 Done. 2 uninstalled, 0 not present, 0 failed.
 ```
 
@@ -414,12 +415,29 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 
 ## Tech Stack
 
-- **Framework**: WinUI 3 via Windows App SDK 1.6 (Mica Alt, CommandBar, InfoBadge, NavigationView)
-- **Runtime**: .NET 8.0 (Self-Contained, Single-File Compressed)
+- **Framework**: WinUI 3 via **Windows App SDK 2.5.1** (built-in `TitleBar` control, `SystemBackdropElement` in-app Mica/Acrylic surfaces, `NavigationView`, `CommandBar`, `InfoBadge`, TeachingTips)
+- **Runtime**: .NET 8.0 (Self-Contained, Single-File Compressed) on the `net8.0-windows10.0.26100.0` projection
 - **Architecture**: MVVM with CommunityToolkit.Mvvm
-- **Styling**: Windows 11 Fluent Design — system accent color, Mica Alt backdrop, Segoe Fluent Icons
+- **UI Libraries**:
+  - `CommunityToolkit.WinUI.Controls.SettingsControls` — Windows 11 Settings-style `SettingsCard` / `SettingsExpander`
+  - `CommunityToolkit.WinUI.Controls.Segmented` — category/status filter segments
+  - `LiveChartsCore.SkiaSharpView.WinUI` — live download-throughput sparklines and CLI health-check latency charts (accent-themed, throttled to ≤4 updates/s)
+- **Styling**: Windows 11 Fluent Design — system accent color, Mica Alt window backdrop, in-app acrylic surfaces, Segoe Fluent Icons
 - **Security**: Win32 `WinVerifyTrust`, .NET `ECDsa` (P-256) pinned-key catalog verification, SHA-256 integrity pipeline, Mark-of-the-Web tagging
-- **Packaging**: Inno Setup 6 (branded setup wizard), MSIX, WinGet manifests, GitHub Actions release pipeline
+- **Packaging**: Inno Setup 6 (branded setup wizard), WiX 5 MSI, MSIX, WinGet manifests, GitHub Actions release pipeline
+
+---
+
+## Roadmap
+
+- [ ] ARM64 MSIX build and Store submission
+- [ ] Custom / private catalog sources (bring your own signed tool feeds)
+- [ ] Cloud-synced workstation profiles across machines
+- [ ] Download scheduling and bandwidth throttling
+- [ ] Per-tool pre/post-install scripts (user-reviewed, never silent)
+- [ ] In-app catalog editor with signature workflow
+
+> The Unreleased section of the [CHANGELOG](CHANGELOG.md) tracks what has already landed.
 
 ---
 
