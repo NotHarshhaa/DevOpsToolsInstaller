@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-10-11
+
 ### Added
 - **HomePage Hero Banner & Overview Redesign**:
   - Rebuilt the top section of `HomePage` with an isometric modern DevOps hero banner illustration (`Assets/HeroBanner.jpg`).

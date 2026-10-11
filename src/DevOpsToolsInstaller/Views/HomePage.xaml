@@ -63,7 +63,7 @@
                                     <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center" Padding="8,3">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE770;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                            <TextBlock Text="v3.0.0 • WinUI 3" FontSize="11" FontWeight="Medium"
+                                            <TextBlock Text="v3.0.1 • WinUI 3" FontSize="11" FontWeight="Medium"
                                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                     </Border>

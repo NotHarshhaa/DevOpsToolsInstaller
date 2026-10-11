@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v3.0.0",
+    [string]$Tag = "v3.0.1",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -35,47 +35,45 @@ if (Test-Path $AssetsDir) {
 }
 
 $template = @'
-# 🚀 DevOps Tools Installer __TAG__ Major Milestone Release
+# 🚀 DevOps Tools Installer __TAG__ Release
 
-Welcome to the **__TAG__** major release of **DevOps Tools Installer**!
-This milestone delivers **Migration & Package Import from WinGet & Chocolatey**, **Corporate Proxy Support**, an **Automated Workstation Markdown Report Generator**, **Motion Helpers with Fluid Micro-Animations**, and an **Expanded Headless CLI Engine** — alongside official **Microsoft Store** availability and our security-first pipeline with signed catalogs.
+Welcome to the **__TAG__** release of **DevOps Tools Installer**!
+This release brings a redesigned **HomePage with modern Hero Banner & quick action navigation**, **comprehensive UI smoothness & lag reduction**, **Catalog Quick Status Filters**, **Download Bandwidth Throttling / Speed Limiter**, **Custom Tool Catalog Feeds**, **Workstation Profile & PowerShell Bootstrap exports from the UI**, upgraded **Windows App SDK 2.5.1 runtime**, and live **telemetry sparklines**.
 
 ---
 
-### ✨ Major Features & What's New in __TAG__
+### ✨ What's New & Highlights in __TAG__
 
-#### 🔄 Workstation Migration, Import/Export & Reporting
-- **Import from WinGet & Chocolatey**: Easily migrate your workstation by discovering and importing existing developer tools installed via `winget` or `chocolatey` directly into DevOpsToolsInstaller (`--import-winget`, `--import-choco`).
-- **Markdown Workstation Health & Audit Reports**: Generate a comprehensive Markdown workstation audit report (`--export-report` or UI button) detailing installed tools, current versions, health status, and environment PATH configuration.
-- **Tool Profile Export & Import**: Share and synchronize workstation setups across machines with JSON tool profiles (`--export-profile <file>`, `--import-profile <file>`).
-- **Standalone Bootstrap Generator**: Create a self-contained, portable PowerShell bootstrap script (`--generate-bootstrap <file>`) to reprovision an identical developer workstation on new machines with zero dependencies.
+#### 🎨 Redesigned HomePage & Modern Hero Banner
+- **Isometric DevOps Hero Banner**: Sleek developer workstation visual banner with alpha-blended gradients and dark glassmorphic styling.
+- **Quick Action Navigation**: Direct 1-click pills to jump into *Curated Stacks*, *Installed Tools*, and *Download Queue*.
+- **Fluent WinUI 3 Polish**: Upgraded across all pages with unified system accent colors and accessible text contrast.
 
-#### 🌐 Corporate Proxy & Network Configuration
-- **Enterprise Proxy Support**: Configure custom HTTP/HTTPS/SOCKS proxy endpoints with optional credential authentication directly from **Settings → Network**.
-- **Proxy-Aware Pipeline**: Tool downloads, catalog updates, and GitHub release checks seamlessly route through your corporate proxy to operate behind enterprise firewalls.
+#### ⚡ Performance, Smoothness & Lag Elimination
+- **Search & Filter Debouncing**: 150ms debouncing across Catalog, Installed, Downloads, and TitleBar search boxes prevents UI freezes on rapid typing.
+- **In-Place Collection Diffing**: Replaced full list reloads with smart in-place mutations, eliminating grid flickers and scroll resets.
+- **Zero-Stutter Grid Scrolling**: Removed heavy staggered entrance transitions on catalog cards for 60+ FPS smooth scrolling.
+- **Startup Disk I/O Removed**: Pre-cached local SVG/PNG tool logos in-memory and constrained texture decodes (`DecodePixelWidth/Height = 48`) to eliminate UI-thread disk bottlenecks.
+- **Chart Telemetry Optimization**: Eliminated CPU interpolation overhead on sparklines with `AnimationsSpeed = TimeSpan.Zero`.
+- **Bounded Background Probing**: Throttled CLI version detection to 3 concurrent worker tasks with instant cancellation on page unload.
 
-#### 🎨 Fluid Motion Helpers & WinUI 3 Polish
-- **Motion System with Micro-Animations**: Introduced lightweight attached animation properties for smooth `HoverLift` elevations and interactive `Pulse` feedback on tool cards, stack items, and primary action buttons.
-- **Tool Release Notes Viewer**: View full upstream vendor release notes directly inside the application via a sleek in-app dialog.
+#### 🎛️ Catalog Status Filters & Batch Presets
+- **Quick Status Filter**: Instant filtering by `All`, `Not Installed`, `Installed`, `Updates Available`, and `Favorites Only`.
+- **Batch Selection Presets**: Quick select all uninstalled tools or outdated tools with one click.
+- **Tool Detail Enhancements**: Copy direct vendor download mirror URLs directly from the detail view.
 
-#### 🖥️ Expanded Headless CLI Engine
-- **`--update-all` & `--update <tools>`**: Automate checking and downloading updates for all or specific managed tools.
-- **`--download-only <tools>`**: Pre-cache vendor installers and archives locally without executing them immediately.
-- **`--export-report [file]`**: Export an instant markdown workstation inventory for compliance and documentation.
-- **`--generate-bootstrap [file]`**: Generate an unattended PowerShell provisioning script from currently installed tools.
+#### 🌐 Enterprise Network & Bandwidth Limiter
+- **Download Speed Throttling**: Configure download bandwidth limits (*Unlimited, 2, 5, 10, 25, 50 MB/s*) under **Settings → Network** with high-precision token rate limiting.
+- **Custom / Private Catalog Feeds**: Subscribe to private tool catalogs via HTTPS URL or local JSON files under **Settings → Updates** with automatic fail-closed security.
+- **Corporate Proxy Engine**: Full HTTP/HTTPS/SOCKS proxy support with authentication.
 
-#### 🏪 Official Microsoft Store Distribution
-- **Microsoft Store App**: Install directly from the Store with silent, automatic background updates:
-  ```powershell
-  winget install 9PJL0VR3H7VG
-  ```
-- Also available on the web: [Microsoft Store Page](https://apps.microsoft.com/detail/9PJL0VR3H7VG).
+#### 🔄 Workstation Migration, Export & Provisioning
+- **Export from Installed Page**: One-click flyout to export Markdown Audit Reports, JSON Workstation Profiles, and Standalone PowerShell Bootstrap Scripts.
+- **WinGet & Chocolatey Discovery**: Import already-installed packages directly into the catalog.
+- **Headless CLI Capabilities**: Unattended installations, batch updates, and profile generation via CLI flags.
 
-#### 🛡️ Hardened Security & Resilient Downloads
-- **Fail-Closed Authenticode Verification**: `WinVerifyTrust` validates the entire certificate chain (`WTD_REVOKE_WHOLECHAIN`) with explicit revocation handling.
-- **ECDSA Signed Catalog**: Remote catalogs are cryptographically verified using publisher-pinned ECDSA P-256 public keys.
-- **Resumable Transfers**: Interrupted downloads continue via HTTP `Range` with ETag validation.
-- **Native Tar Archive Support**: Automatic in-app extraction of `.tar.gz`, `.tar.bz2`, and `.tar.xz` archives via Windows built-in `tar.exe`.
+#### 🛠️ Upgraded Runtime & Platform
+- **Windows App SDK 2.5.1**: Modern desktop framework with Windows 11 TitleBar control, in-app Mica/Acrylic backdrops, and modern toast notifications.
 
 ---
 

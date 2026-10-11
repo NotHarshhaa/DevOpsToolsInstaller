@@ -16,7 +16,7 @@
 
         <!-- Built-in WinUI TitleBar control (Windows App SDK 2.x): handles the
              icon, title, drag regions and caption-button spacing automatically. -->
-        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer" Subtitle="v3.0.0">
+        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer" Subtitle="v3.0.1">
             <controls:TitleBar.IconSource>
                 <controls:ImageIconSource x:Name="AppTitleBarIconSource" ImageSource="ms-appx:///Assets/app.png" />
             </controls:TitleBar.IconSource>
