@@ -87,6 +87,10 @@ public sealed partial class ToolDetailPage : Page
         ShaCard.Visibility = hasSha ? Visibility.Visible : Visibility.Collapsed;
         ShaText.Text = Tool.Sha256;
 
+        var hasUrl = !string.IsNullOrWhiteSpace(Tool.DownloadUrl);
+        DownloadUrlCard.Visibility = hasUrl ? Visibility.Visible : Visibility.Collapsed;
+        DownloadUrlText.Text = Tool.DownloadUrl;
+
         // Known previous versions as cards inside the expander
         var previous = Tool.PreviousVersions?
             .Where(v => !string.IsNullOrWhiteSpace(v))
@@ -132,6 +136,20 @@ public sealed partial class ToolDetailPage : Page
         {
             var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
             package.SetText(Tool.Sha256);
+            Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+        }
+        catch
+        {
+            // Clipboard is a convenience — never throw.
+        }
+    }
+
+    private void CopyDownloadUrl_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+            package.SetText(Tool.DownloadUrl);
             Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
         }
         catch

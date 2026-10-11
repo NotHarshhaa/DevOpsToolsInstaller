@@ -117,12 +117,38 @@
                         </AppBarButton.Flyout>
                     </AppBarButton>
 
-                    <AppBarToggleButton x:Name="DownloadedOnlyToggle" Label="Downloaded" Click="DownloadedOnly_Click"
-                                        ToolTipService.ToolTip="Filter downloaded tools only">
-                        <AppBarToggleButton.Icon>
-                            <FontIcon Glyph="&#xE896;" />
-                        </AppBarToggleButton.Icon>
-                    </AppBarToggleButton>
+                    <AppBarButton x:Name="StatusFilterButton" Label="All" ToolTipService.ToolTip="Filter by status (All, Not Installed, Installed, Updates)">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE71C;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="All Tools" Tag="all" Click="StatusFilter_Click" />
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Not Installed (Ready to Install)" Tag="not_installed" Click="StatusFilter_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE896;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Installed &amp; Deployed" Tag="installed" Click="StatusFilter_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE73E;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Updates Available" Tag="updates" Click="StatusFilter_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE72C;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Favorites Only" Tag="favorites" Click="StatusFilter_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE734;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
 
                     <AppBarButton x:Name="PresetsButton" Label="Presets" ToolTipService.ToolTip="Curated tool preset stacks">
                         <AppBarButton.Icon>
@@ -253,12 +279,6 @@
             Padding="0,6,0,8"
             HorizontalAlignment="Stretch"
             SizeChanged="ToolsGridView_SizeChanged">
-            <GridView.ItemContainerTransitions>
-                <TransitionCollection>
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
-                    <RepositionThemeTransition />
-                </TransitionCollection>
-            </GridView.ItemContainerTransitions>
             <GridView.ItemsPanel>
                 <ItemsPanelTemplate>
                     <ItemsWrapGrid x:Name="ToolsItemsWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="145" />

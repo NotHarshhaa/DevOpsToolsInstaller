@@ -22,6 +22,7 @@ public sealed partial class DownloadsPage : Page
     private string _searchFilter = string.Empty;
     private string _statusFilter = "All";
     private readonly ObservableCollection<ToolDefinition> _filteredQueue = new();
+    private DispatcherQueueTimer? _searchDebounceTimer;
 
     public DownloadsPage()
     {
@@ -161,10 +162,25 @@ public sealed partial class DownloadsPage : Page
         };
 
         var list = items.ToList();
-        _filteredQueue.Clear();
-        foreach (var item in list)
+        if (_filteredQueue.Count != list.Count || !_filteredQueue.SequenceEqual(list))
         {
-            _filteredQueue.Add(item);
+            for (int i = _filteredQueue.Count - 1; i >= 0; i--)
+            {
+                if (!list.Contains(_filteredQueue[i]))
+                    _filteredQueue.RemoveAt(i);
+            }
+            for (int i = 0; i < list.Count; i++)
+            {
+                var item = list[i];
+                if (i >= _filteredQueue.Count)
+                    _filteredQueue.Add(item);
+                else if (_filteredQueue[i] != item)
+                {
+                    int idx = _filteredQueue.IndexOf(item);
+                    if (idx >= 0) _filteredQueue.Move(idx, i);
+                    else _filteredQueue.Insert(i, item);
+                }
+            }
         }
 
         var total = mw.DownloadQueue.Count;
@@ -208,7 +224,15 @@ public sealed partial class DownloadsPage : Page
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         _searchFilter = SearchBox.Text;
-        ApplyFilter();
+        _searchDebounceTimer?.Stop();
+        _searchDebounceTimer = DispatcherQueue.CreateTimer();
+        _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+        _searchDebounceTimer.Tick += (s, ev) =>
+        {
+            _searchDebounceTimer?.Stop();
+            ApplyFilter();
+        };
+        _searchDebounceTimer.Start();
     }
 
     private void FilterTab_Click(object sender, RoutedEventArgs e)

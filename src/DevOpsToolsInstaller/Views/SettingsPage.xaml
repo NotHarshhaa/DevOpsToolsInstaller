@@ -178,6 +178,19 @@
                                          AutomationProperties.Name="Proxy password" />
                         </StackPanel>
                     </tk:SettingsCard>
+                    <tk:SettingsCard Header="Download bandwidth limit"
+                                     Description="Cap download throughput to avoid saturating network connections during large artifact transfers.">
+                        <ComboBox x:Name="BandwidthLimitComboBox" Width="170"
+                                  SelectionChanged="BandwidthLimitComboBox_SelectionChanged"
+                                  AutomationProperties.Name="Download bandwidth limit">
+                            <ComboBoxItem Content="Unlimited" Tag="0" />
+                            <ComboBoxItem Content="2 MB/s" Tag="2" />
+                            <ComboBoxItem Content="5 MB/s" Tag="5" />
+                            <ComboBoxItem Content="10 MB/s" Tag="10" />
+                            <ComboBoxItem Content="25 MB/s" Tag="25" />
+                            <ComboBoxItem Content="50 MB/s" Tag="50" />
+                        </ComboBox>
+                    </tk:SettingsCard>
                 </tk:SettingsExpander.Items>
             </tk:SettingsExpander>
 
@@ -369,6 +382,24 @@
                                       Toggled="AutoUpdateToggle_Toggled"
                                       OnContent="" OffContent=""
                                       AutomationProperties.Name="Automatically check for updates on startup" />
+                    </tk:SettingsCard>
+
+                    <!-- Custom Catalog Feed -->
+                    <tk:SettingsCard Header="Custom tool catalog feed"
+                                     Description="Load a private, team, or internal enterprise catalog (HTTPS URL or local JSON path). Leave empty for standard official catalog.">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBox x:Name="CustomCatalogSourceBox" Width="260"
+                                     PlaceholderText="https://.../catalog.json"
+                                     LostFocus="CustomCatalogSource_LostFocus"
+                                     AutomationProperties.Name="Custom catalog feed" />
+                            <Button Click="ApplyCustomCatalog_Click"
+                                    AutomationProperties.Name="Apply custom catalog">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                    <TextBlock Text="Apply" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
                     </tk:SettingsCard>
                 </tk:SettingsExpander.Items>
             </tk:SettingsExpander>

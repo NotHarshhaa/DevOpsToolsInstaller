@@ -88,6 +88,12 @@ public static class SettingsService
     public static string ProxyUsername { get; set; } = string.Empty;
     public static string ProxyPassword { get; set; } = string.Empty;
 
+    /// <summary>Maximum download bandwidth limit in MB/s. 0 means unlimited.</summary>
+    public static int BandwidthLimitMBps { get; set; } = 0;
+
+    /// <summary>Optional custom or private catalog feed URL or local json file path.</summary>
+    public static string CustomCatalogSource { get; set; } = string.Empty;
+
     public static void LoadSettings()
     {
         try
@@ -177,6 +183,16 @@ public static class SettingsService
                 {
                     OnboardingCompleted = onboardingDoneProp.GetBoolean();
                 }
+
+                if (doc.RootElement.TryGetProperty("BandwidthLimitMBps", out var bwProp))
+                {
+                    BandwidthLimitMBps = bwProp.GetInt32();
+                }
+
+                if (doc.RootElement.TryGetProperty("CustomCatalogSource", out var catSrcProp))
+                {
+                    CustomCatalogSource = catSrcProp.GetString() ?? string.Empty;
+                }
             }
         }
         catch
@@ -210,7 +226,9 @@ public static class SettingsService
                 WindowBounds = WindowBounds,
                 LastPage = LastPage,
                 ShowOnboardingTips = ShowOnboardingTips,
-                OnboardingCompleted = OnboardingCompleted
+                OnboardingCompleted = OnboardingCompleted,
+                BandwidthLimitMBps = BandwidthLimitMBps,
+                CustomCatalogSource = CustomCatalogSource
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

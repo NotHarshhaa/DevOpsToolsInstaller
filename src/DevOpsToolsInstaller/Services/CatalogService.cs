@@ -37,6 +37,40 @@ public sealed class CatalogService
     /// </summary>
     public async Task<List<ToolDefinition>> LoadCatalogAsync(CancellationToken ct = default)
     {
+        // 0. Check for custom catalog source (Settings -> Updates)
+        if (!string.IsNullOrWhiteSpace(SettingsService.CustomCatalogSource))
+        {
+            try
+            {
+                var src = SettingsService.CustomCatalogSource.Trim();
+                string json;
+                if (Uri.TryCreate(src, UriKind.Absolute, out var customUri) &&
+                    (customUri.Scheme == Uri.UriSchemeHttp || customUri.Scheme == Uri.UriSchemeHttps))
+                {
+                    json = await Http.GetStringAsync(src, ct);
+                }
+                else if (File.Exists(src))
+                {
+                    json = await File.ReadAllTextAsync(src, ct);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"Custom catalog source '{src}' was not found.");
+                }
+
+                var customTools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
+                if (customTools is { Count: > 0 })
+                {
+                    ActivityLogService.Info("Catalog", $"Loaded {customTools.Count} tools from custom catalog source.");
+                    return customTools;
+                }
+            }
+            catch (Exception ex)
+            {
+                ActivityLogService.Warn("Catalog", $"Could not load custom catalog feed ({ex.Message}) — falling back to standard catalog.");
+            }
+        }
+
         // 1. Try remote (signature-verified)
         try
         {

@@ -62,6 +62,71 @@ public sealed partial class SettingsPage : Page
         ProxyUrlBox.Text = SettingsService.ProxyUrl;
         ProxyUsernameBox.Text = SettingsService.ProxyUsername;
         ProxyPasswordBox.Password = SettingsService.ProxyPassword;
+
+        foreach (ComboBoxItem item in BandwidthLimitComboBox.Items)
+        {
+            if (item.Tag as string == SettingsService.BandwidthLimitMBps.ToString())
+            {
+                BandwidthLimitComboBox.SelectedItem = item;
+                break;
+            }
+        }
+        if (BandwidthLimitComboBox.SelectedItem is null)
+        {
+            BandwidthLimitComboBox.SelectedIndex = 0;
+        }
+
+        // Custom catalog source
+        CustomCatalogSourceBox.Text = SettingsService.CustomCatalogSource;
+    }
+
+    private void BandwidthLimitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BandwidthLimitComboBox.SelectedItem is ComboBoxItem item &&
+            item.Tag is string tag &&
+            int.TryParse(tag, out var limit) &&
+            SettingsService.BandwidthLimitMBps != limit)
+        {
+            SettingsService.BandwidthLimitMBps = limit;
+            SettingsService.SaveSettings();
+            ShowNotice(
+                limit > 0
+                    ? $"Download speed limit set to {limit} MB/s."
+                    : "Download bandwidth limit disabled (unlimited).",
+                InfoBarSeverity.Success);
+        }
+    }
+
+    private void CustomCatalogSource_LostFocus(object sender, RoutedEventArgs e)
+    {
+        SettingsService.CustomCatalogSource = CustomCatalogSourceBox.Text.Trim();
+        SettingsService.SaveSettings();
+    }
+
+    private async void ApplyCustomCatalog_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.CustomCatalogSource = CustomCatalogSourceBox.Text.Trim();
+        SettingsService.SaveSettings();
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            ShowNotice("Reloading tool catalog...", InfoBarSeverity.Informational);
+            var tools = await mw.CatalogSvc.LoadCatalogAsync();
+            mw.Tools.Clear();
+            foreach (var t in tools)
+            {
+                t.IsFavorite = FavoritesService.IsFavorite(t.Id);
+                mw.Tools.Add(t);
+            }
+            ShowNotice($"Catalog successfully updated! {mw.Tools.Count} tools loaded.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to reload catalog: {ex.Message}", InfoBarSeverity.Error);
+        }
     }
 
     private void ProxyToggle_Toggled(object sender, RoutedEventArgs e)

@@ -254,10 +254,36 @@ public sealed class DownloadService
                 int bytesRead;
                 int lastReportedPct = -1;
 
+                long throttleWindowBytes = 0;
+                long throttleWindowStartMs = sw.ElapsedMilliseconds;
+
                 while ((bytesRead = await stream.ReadAsync(buffer, ct)) > 0)
                 {
                     await fileStream.WriteAsync(buffer.AsMemory(0, bytesRead), ct);
                     totalRead += bytesRead;
+
+                    // Bandwidth throttling / speed limit (Settings -> Network)
+                    var limitMBps = SettingsService.BandwidthLimitMBps;
+                    if (limitMBps > 0)
+                    {
+                        long limitBytesPerSec = (long)limitMBps * 1024 * 1024;
+                        throttleWindowBytes += bytesRead;
+                        var windowElapsedMs = sw.ElapsedMilliseconds - throttleWindowStartMs;
+                        var targetTimeMs = (double)throttleWindowBytes / limitBytesPerSec * 1000.0;
+                        if (targetTimeMs > windowElapsedMs)
+                        {
+                            var delayMs = (int)(targetTimeMs - windowElapsedMs);
+                            if (delayMs > 2)
+                            {
+                                await Task.Delay(Math.Min(delayMs, 1000), ct);
+                            }
+                        }
+                        if (sw.ElapsedMilliseconds - throttleWindowStartMs >= 1000)
+                        {
+                            throttleWindowStartMs = sw.ElapsedMilliseconds;
+                            throttleWindowBytes = 0;
+                        }
+                    }
 
                     var elapsedMs = sw.ElapsedMilliseconds;
                     if (elapsedMs - lastSpeedTimeMs >= 400)

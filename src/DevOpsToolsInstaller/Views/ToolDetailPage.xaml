@@ -158,6 +158,25 @@
                     </StackPanel>
                 </tk:SettingsCard>
 
+                <tk:SettingsCard x:Name="DownloadUrlCard"
+                                       Header="Direct download URL"
+                                       Description="Direct vendor binary mirror link used for downloading this tool.">
+                    <tk:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE896;" />
+                    </tk:SettingsCard.HeaderIcon>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock x:Name="DownloadUrlText" FontFamily="Consolas" FontSize="11"
+                                   IsTextSelectionEnabled="True" TextTrimming="CharacterEllipsis"
+                                   MaxWidth="300" VerticalAlignment="Center"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <Button Click="CopyDownloadUrl_Click" Padding="8,4"
+                                ToolTipService.ToolTip="Copy direct download link to clipboard"
+                                AutomationProperties.Name="Copy download link">
+                            <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                        </Button>
+                    </StackPanel>
+                </tk:SettingsCard>
+
                 <tk:SettingsExpander x:Name="VersionsExpander"
                                            Header="Versions"
                                            Description="Currently pinned release and known previous versions.">

@@ -82,7 +82,8 @@ public static class ChartTelemetry
             GeometryFill = null,
             GeometryStroke = null,
             LineSmoothness = 0.7,
-            DataPadding = new LiveChartsCore.Drawing.LvcPoint(0, 0.4f)
+            DataPadding = new LiveChartsCore.Drawing.LvcPoint(0, 0.4f),
+            AnimationsSpeed = TimeSpan.Zero
         };
 
     /// <summary>A rounded accent bar series (for per-tool latency).</summary>

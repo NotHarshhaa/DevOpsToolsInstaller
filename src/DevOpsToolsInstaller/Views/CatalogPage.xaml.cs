@@ -32,9 +32,10 @@ public sealed partial class CatalogPage : Page
     private CancellationTokenSource? _downloadCts;
     private string _selectedCategory = "All";
     private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
-    private bool _downloadedOnly;
+    private string _statusFilter = "all"; // all, not_installed, installed, updates, favorites
     private ToolBundle? _activeBundle;
     private DateTime _lastCatalogSync = DateTime.Now;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _searchDebounceTimer;
 
     public CatalogPage()
     {
@@ -147,9 +148,16 @@ public sealed partial class CatalogPage : Page
             else
                 categoryMatch = string.Equals(tool.Category, _selectedCategory, StringComparison.OrdinalIgnoreCase);
 
-            var downloadedMatch = !_downloadedOnly || tool.IsDownloadedOrInstalled;
+            bool statusMatch = _statusFilter switch
+            {
+                "not_installed" => !tool.IsDownloadedOrInstalled,
+                "installed" => tool.IsDownloadedOrInstalled,
+                "updates" => tool.HasUpdate,
+                "favorites" => tool.IsFavorite,
+                _ => true
+            };
 
-            return textMatch && categoryMatch && downloadedMatch;
+            return textMatch && categoryMatch && statusMatch;
         }
 
         var filtered = mw.Tools.Where(Matches);
@@ -165,15 +173,55 @@ public sealed partial class CatalogPage : Page
             _ => filtered.OrderBy(t => t.Category).ThenBy(t => t.Name), // "category" (default)
         };
 
-        _filteredTools.Clear();
-        foreach (var tool in sorted)
-            _filteredTools.Add(tool);
+        var sortedList = sorted.ToList();
 
-        var count = _filteredTools.Count;
-        StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
+        // Fast path: if items match exactly, do not churn the ObservableCollection
+        if (_filteredTools.Count == sortedList.Count && _filteredTools.SequenceEqual(sortedList))
+        {
+            var count = _filteredTools.Count;
+            StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
+            if (FooterStatusText != null)
+            {
+                FooterStatusText.Text = $"{count} Tools Available | Last Sync: {GetLastSyncText()}";
+            }
+            return;
+        }
+
+        // Smart diff update: remove only missing items and insert/move new items
+        for (int i = _filteredTools.Count - 1; i >= 0; i--)
+        {
+            if (!sortedList.Contains(_filteredTools[i]))
+            {
+                _filteredTools.RemoveAt(i);
+            }
+        }
+
+        for (int i = 0; i < sortedList.Count; i++)
+        {
+            var item = sortedList[i];
+            if (i >= _filteredTools.Count)
+            {
+                _filteredTools.Add(item);
+            }
+            else if (_filteredTools[i] != item)
+            {
+                int existingIdx = _filteredTools.IndexOf(item);
+                if (existingIdx >= 0)
+                {
+                    _filteredTools.Move(existingIdx, i);
+                }
+                else
+                {
+                    _filteredTools.Insert(i, item);
+                }
+            }
+        }
+
+        var totalShown = _filteredTools.Count;
+        StatusText.Text = $"{totalShown} of {mw.Tools.Count} tools shown";
         if (FooterStatusText != null)
         {
-            FooterStatusText.Text = $"{count} Tools Available | Last Sync: {GetLastSyncText()}";
+            FooterStatusText.Text = $"{totalShown} Tools Available | Last Sync: {GetLastSyncText()}";
         }
     }
 
@@ -234,7 +282,17 @@ public sealed partial class CatalogPage : Page
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
-            ApplyFilter();
+        {
+            _searchDebounceTimer?.Stop();
+            _searchDebounceTimer = DispatcherQueue.CreateTimer();
+            _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer?.Stop();
+                ApplyFilter();
+            };
+            _searchDebounceTimer.Start();
+        }
     }
 
     // ── Sort & Filter ───────────────────────────────────────────────────
@@ -246,9 +304,18 @@ public sealed partial class CatalogPage : Page
         ApplyFilter();
     }
 
-    private void DownloadedOnly_Click(object sender, RoutedEventArgs e)
+    private void StatusFilter_Click(object sender, RoutedEventArgs e)
     {
-        _downloadedOnly = DownloadedOnlyToggle.IsChecked == true;
+        if (sender is not MenuFlyoutItem item || item.Tag is not string tag) return;
+        _statusFilter = tag;
+        StatusFilterButton.Label = tag switch
+        {
+            "not_installed" => "Not Installed",
+            "installed" => "Installed",
+            "updates" => "Updates",
+            "favorites" => "Favorites",
+            _ => "All"
+        };
         ApplyFilter();
     }
 
@@ -297,7 +364,41 @@ public sealed partial class CatalogPage : Page
 
         PresetsMenuFlyout.Items.Clear();
 
-        // 1. "Browse All Stacks…" at the top
+        // 1. Quick batch actions
+        var selectNotInstalledItem = new MenuFlyoutItem
+        {
+            Text = "Select All Not Installed",
+            Icon = new FontIcon { Glyph = "\uE896" }
+        };
+        selectNotInstalledItem.Click += (s, e) =>
+        {
+            int count = 0;
+            foreach (var tool in mw.Tools)
+            {
+                tool.IsSelected = !tool.IsDownloadedOrInstalled;
+                if (tool.IsSelected) count++;
+            }
+            StatusText.Text = $"Selected {count} uninstalled tool(s).";
+        };
+        PresetsMenuFlyout.Items.Add(selectNotInstalledItem);
+
+        var selectUpdatesItem = new MenuFlyoutItem
+        {
+            Text = "Select All with Updates Available",
+            Icon = new FontIcon { Glyph = "\uE72C" }
+        };
+        selectUpdatesItem.Click += (s, e) =>
+        {
+            int count = 0;
+            foreach (var tool in mw.Tools)
+            {
+                tool.IsSelected = tool.HasUpdate;
+                if (tool.IsSelected) count++;
+            }
+            StatusText.Text = $"Selected {count} tool(s) with available updates.";
+        };
+        PresetsMenuFlyout.Items.Add(selectUpdatesItem);
+
         var browseAllItem = new MenuFlyoutItem
         {
             Text = "Explore All Stacks Section…",
@@ -666,7 +767,8 @@ public sealed partial class CatalogPage : Page
         }
     }
 
-    // ── Responsive Grid Sizing ──────────────────────────────────────────
+    private double _lastItemWidth;
+    private int _lastColumnCount;
 
     private void ToolsGridView_SizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -676,7 +778,13 @@ public sealed partial class CatalogPage : Page
             if (width > 200)
             {
                 int columns = width >= 1080 ? 3 : (width >= 700 ? 2 : 1);
-                wrapGrid.ItemWidth = Math.Floor(width / columns);
+                var itemWidth = Math.Floor(width / columns);
+                if (columns != _lastColumnCount || Math.Abs(itemWidth - _lastItemWidth) > 3)
+                {
+                    _lastColumnCount = columns;
+                    _lastItemWidth = itemWidth;
+                    wrapGrid.ItemWidth = itemWidth;
+                }
             }
         }
     }

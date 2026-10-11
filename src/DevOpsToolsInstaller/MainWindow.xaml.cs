@@ -216,17 +216,17 @@ public sealed partial class MainWindow : Window
             UpdateTitleBarButtonColors();
         };
 
-        // Selecting the first item raises SelectionChanged, which navigates to
-        // HomePage. Do NOT also call ContentFrame.Navigate here — that would
-        // create a second HomePage instance and race the catalog load.
-        NavView.SelectedItem = NavView.MenuItems[0];
-
-        // Restore the last visited page from the previous session.
+        // Restore the last visited page from the previous session directly,
+        // avoiding instantiating HomePage and immediately tearing it down.
         var lastPage = SettingsService.LastPage;
-        if (!string.IsNullOrEmpty(lastPage) && lastPage != "Home")
+        NavigationViewItem? initialItem = null;
+        if (!string.IsNullOrEmpty(lastPage))
         {
-            NavigateTo(lastPage);
+            var allItems = NavView.MenuItems.OfType<NavigationViewItem>()
+                .Concat(NavView.FooterMenuItems.OfType<NavigationViewItem>());
+            initialItem = allItems.FirstOrDefault(i => (i.Tag as string) == lastPage);
         }
+        NavView.SelectedItem = initialItem ?? NavView.MenuItems[0];
 
         NavView.Loaded += (s, e) =>
         {
@@ -366,24 +366,34 @@ public sealed partial class MainWindow : Window
         }
     }
 
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _navSearchDebounceTimer;
+
     private void NavSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
         if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
         {
-            var text = sender.Text?.Trim();
-            if (string.IsNullOrEmpty(text))
+            _navSearchDebounceTimer?.Stop();
+            _navSearchDebounceTimer = DispatcherQueue.CreateTimer();
+            _navSearchDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _navSearchDebounceTimer.Tick += (s, e) =>
             {
-                sender.ItemsSource = null;
-                return;
-            }
+                _navSearchDebounceTimer?.Stop();
+                var text = sender.Text?.Trim();
+                if (string.IsNullOrEmpty(text))
+                {
+                    sender.ItemsSource = null;
+                    return;
+                }
 
-            var matches = Tools
-                .Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                            t.Category.Contains(text, StringComparison.OrdinalIgnoreCase))
-                .Take(5)
-                .Select(t => t.Name)
-                .ToList();
-            sender.ItemsSource = matches;
+                var matches = Tools
+                    .Where(t => t.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                                t.Category.Contains(text, StringComparison.OrdinalIgnoreCase))
+                    .Take(5)
+                    .Select(t => t.Name)
+                    .ToList();
+                sender.ItemsSource = matches;
+            };
+            _navSearchDebounceTimer.Start();
         }
     }
 

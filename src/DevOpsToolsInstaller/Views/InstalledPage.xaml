@@ -153,11 +153,30 @@
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Export Report" Click="ExportReport_Click"
-                              ToolTipService.ToolTip="Write a markdown inventory of installed tools, versions, and pending updates to your Documents folder">
+                <AppBarButton Label="Export" ToolTipService.ToolTip="Export workstation profile, audit report, and scripts">
                     <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE9F9;" />
+                        <FontIcon Glyph="&#xEDE1;" />
                     </AppBarButton.Icon>
+                    <AppBarButton.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Export Audit Report (Markdown)" Click="ExportReport_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE9F9;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Export Selection Profile (JSON)…" Click="ExportProfile_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8B7;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Text="Generate PowerShell Setup Script (.ps1)…" Click="ExportBootstrap_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE756;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </AppBarButton.Flyout>
                 </AppBarButton>
 
                 <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"

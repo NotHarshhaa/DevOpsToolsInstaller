@@ -10,6 +10,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Catalog Quick Status Filter & Selection Presets**:
+  - Filter catalog tools instantaneously with the Fluent status filter: `All`, `Not Installed`, `Installed`, `Updates Available`, and `Favorites Only`.
+  - Batch selection presets added to catalog selection bar: "Select All Not Installed" and "Select All with Updates Available".
+- **Download Bandwidth Throttling / Speed Limiter**:
+  - Configurable download speed cap under **Settings → Network** (`Unlimited`, `2 MB/s`, `5 MB/s`, `10 MB/s`, `25 MB/s`, `50 MB/s`).
+  - Integrated into `DownloadService` using a high-precision token rate limiter to avoid saturating network connections during artifact downloads.
+- **Custom / Private Tool Catalog Feed**:
+  - Support for custom JSON catalog URLs (HTTPS or local files) configured in **Settings → Updates**.
+  - Secure loading in `CatalogService` with automatic fail-closed fallback to the standard catalog if the custom feed is unreachable or invalid.
+- **Workstation Profile & PowerShell Bootstrap Export from Installed Page**:
+  - One-click export dropdown menu on Installed page offering Markdown Audit Report, JSON Workstation Profile, and Standalone PowerShell Bootstrap Script.
+- **Tool Detail Page direct download copy**:
+  - Added dedicated Direct Download URL card with one-click clipboard copy on `ToolDetailPage`.
+
+### Performance & UI Smoothness (Lag Reduction)
+- **Eliminated Search and Filter Lag**:
+  - Added 150ms debouncing across all search and filter input fields (`CatalogPage`, `InstalledPage`, `DownloadsPage`, and TitleBar search box) to eliminate UI thread lockup on fast typing.
+  - Implemented smart in-place collection diffing instead of clearing and re-adding entire collections on filter changes, avoiding mass visual re-renders and scroll resets.
+- **Zero-Stutter Grid Scrolling & Layout**:
+  - Removed staggered entrance transitions (`EntranceThemeTransition IsStaggeringEnabled="True"`) on catalog `GridView` item containers which caused animation frame drops on large collections.
+  - Pre-cached local SVG/PNG tool logos in memory (`HashSet<string>`) at startup to eliminate synchronous disk I/O (`Directory.Exists` / `File.Exists`) on the UI thread during scrolling.
+  - Restricted logo bitmap decoding to `DecodePixelWidth/Height = 48` to reduce GPU texture memory overhead.
+  - Added threshold guards to `GridView_SizeChanged` to prevent layout thrashing on sub-pixel window resizing.
+- **Startup & Navigation Optimization**:
+  - Eliminated redundant page instantiation during startup navigation (navigates directly to `SettingsService.LastPage` without instantiating and immediately discarding `HomePage`).
+  - Disabled chart animation interpolation (`AnimationsSpeed = TimeSpan.Zero`) on telemetry sparklines to eliminate CPU interpolation frame drops on high-frequency timers (250ms–1s).
+  - Bounded background version probing on `InstalledPage` to a concurrent throttle of 3 tasks via `SemaphoreSlim`, with immediate cooperative cancellation on page unload.
 - **Window, tray & onboarding improvements**:
   - **WinUI-style tray menu**: The native tray icon now opens a Fluent `MenuFlyout` (Open, Open Tool Catalog, Check for tool updates, Exit) hosted in a borderless flyout window at the cursor — keyboard and Narrator accessible. (H.NotifyIcon.WinUI 2.4.1/2.3.1 was evaluated but its WinRT projection does not bind against Windows App SDK 2.5.1 on net8.0, so the tray icon stays native and only the menu moved to WinUI.)
   - **Session persistence**: Window size/position and the last visited page are saved to `settings.json` and restored on launch.

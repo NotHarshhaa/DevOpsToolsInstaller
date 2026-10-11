@@ -18,11 +18,19 @@ public sealed partial class InstalledPage : Page
 {
     private List<ToolDefinition> _allInstalledTools = new();
     private DateTime _lastChecked = DateTime.Now;
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _searchDebounceTimer;
+    private CancellationTokenSource? _scanCts;
 
     public InstalledPage()
     {
         InitializeComponent();
         Loaded += InstalledPage_Loaded;
+        Unloaded += (s, e) =>
+        {
+            _scanCts?.Cancel();
+            _scanCts?.Dispose();
+            _scanCts = null;
+        };
         ActualThemeChanged += (s, e) =>
         {
             if (_latencyNames.Count > 0)
@@ -138,13 +146,22 @@ public sealed partial class InstalledPage : Page
             InstalledList.Visibility = Visibility.Visible;
             StatusText.Text = $"{count} tool(s) detected on your workstation";
 
-            // Asynchronously resolve CLI versions in the background for tools missing version
+            // Asynchronously resolve CLI versions in the background with bounded concurrency (3 parallel)
+            _scanCts?.Cancel();
+            _scanCts?.Dispose();
+            _scanCts = new CancellationTokenSource();
+            var token = _scanCts.Token;
+
             _ = Task.Run(async () =>
             {
-                foreach (var tool in _allInstalledTools)
+                var sem = new System.Threading.SemaphoreSlim(3, 3);
+                var unverified = _allInstalledTools.Where(t => string.IsNullOrWhiteSpace(t.DetectedVersion)).ToList();
+                var tasks = unverified.Select(async tool =>
                 {
-                    if (string.IsNullOrWhiteSpace(tool.DetectedVersion))
+                    try
                     {
+                        await sem.WaitAsync(token);
+                        if (token.IsCancellationRequested) return;
                         var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2);
                         if (probe.Success && !string.IsNullOrWhiteSpace(probe.DetectedVersion))
                         {
@@ -156,8 +173,19 @@ public sealed partial class InstalledPage : Page
                             });
                         }
                     }
+                    catch { }
+                    finally
+                    {
+                        sem.Release();
+                    }
+                });
+
+                try
+                {
+                    await Task.WhenAll(tasks);
                 }
-            });
+                catch { }
+            }, token);
         }
         else
         {
@@ -169,7 +197,18 @@ public sealed partial class InstalledPage : Page
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        ApplyFilter();
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            _searchDebounceTimer?.Stop();
+            _searchDebounceTimer = DispatcherQueue.CreateTimer();
+            _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer?.Stop();
+                ApplyFilter();
+            };
+            _searchDebounceTimer.Start();
+        }
     }
 
     private void ApplyFilter()
@@ -677,6 +716,89 @@ public sealed partial class InstalledPage : Page
         catch (Exception ex)
         {
             StatusText.Text = $"Report export failed: {ex.Message}";
+        }
+    }
+
+    private async void ExportProfile_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var filePath = Path.Combine(folder, $"workstation-profile-{DateTime.Now:yyyyMMdd-HHmm}.json");
+
+            foreach (var tool in _allInstalledTools)
+            {
+                tool.IsSelected = true;
+            }
+
+            var json = ProfileService.Export(_allInstalledTools, "Installed Tools Profile");
+            await File.WriteAllTextAsync(filePath, json);
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "Workstation Profile Exported",
+                Content = new StackPanel
+                {
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock { Text = $"Profile containing {_allInstalledTools.Count} tool(s) saved to:", TextWrapping = TextWrapping.Wrap },
+                        new TextBox { Text = filePath, IsReadOnly = true, TextWrapping = TextWrapping.Wrap }
+                    }
+                },
+                CloseButtonText = "OK",
+                DefaultButton = ContentDialogButton.Close
+            };
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Profile export failed: {ex.Message}";
+        }
+    }
+
+    private async void ExportBootstrap_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var filePath = Path.Combine(folder, $"devops-bootstrap-{DateTime.Now:yyyyMMdd-HHmm}.ps1");
+            var script = BootstrapScriptService.Generate(_allInstalledTools, SettingsService.DownloadsFolder);
+            await File.WriteAllTextAsync(filePath, script);
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "PowerShell Setup Script Generated",
+                Content = new StackPanel
+                {
+                    Spacing = 8,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = $"Self-contained unattended bootstrap script for {_allInstalledTools.Count} tool(s) generated at:",
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        new TextBox { Text = filePath, IsReadOnly = true, TextWrapping = TextWrapping.Wrap },
+                        new TextBlock
+                        {
+                            Text = "Execute this script in an elevated PowerShell session to provision any machine from scratch with zero prerequisites.",
+                            FontSize = 12,
+                            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                            TextWrapping = TextWrapping.Wrap
+                        }
+                    }
+                },
+                CloseButtonText = "OK",
+                DefaultButton = ContentDialogButton.Close
+            };
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Bootstrap generation failed: {ex.Message}";
         }
     }
 
