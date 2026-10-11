@@ -17,39 +17,111 @@
             </StackPanel.ChildrenTransitions>
 
             <!-- ══════════════════════════════════ -->
-            <!--  1. HEADER                         -->
+            <!--  1. HERO BANNER & HEADER           -->
             <!-- ══════════════════════════════════ -->
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+            <Border CornerRadius="12"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                <Grid MinHeight="170">
+                    <!-- Hero Banner Image (Right-aligned / Cover) -->
+                    <Grid HorizontalAlignment="Right" Width="440" Opacity="0.55">
+                        <Image Source="ms-appx:///Assets/HeroBanner.jpg"
+                               Stretch="UniformToFill"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center" />
+                        <!-- Subtle gradient mask blending image smoothly into background -->
+                        <Grid>
+                            <Grid.Background>
+                                <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                    <GradientStop Color="{ThemeResource SolidBackgroundFillColorBase}" Offset="0.0" />
+                                    <GradientStop Color="#501A1A1A" Offset="0.45" />
+                                    <GradientStop Color="Transparent" Offset="1.0" />
+                                </LinearGradientBrush>
+                            </Grid.Background>
+                        </Grid>
+                    </Grid>
 
-                <StackPanel Grid.Column="0" Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                        <TextBlock Text="Workstation overview" Style="{StaticResource PageTitleStyle}" />
-                        <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
-                            <TextBlock Text="v3.0.0 • WinUI 3" FontSize="11"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </Border>
-                    </StackPanel>
-                    <TextBlock Text="{Binding DynamicSubtitle}"
-                               Style="{StaticResource PageSubtitleStyle}" />
-                </StackPanel>
+                    <!-- Hero Content Container -->
+                    <Grid Padding="28,24" RowSpacing="14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                <!-- Single primary filled button on the entire page -->
-                <Button Grid.Column="1"
-                        Style="{StaticResource AccentButtonStyle}"
-                        Click="BrowseCatalog_Click"
-                        Padding="14,8"
-                        VerticalAlignment="Center"
-                        AutomationProperties.Name="Browse tool catalog">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                        <TextBlock Text="Browse catalog" FontWeight="SemiBold" FontSize="13" />
-                    </StackPanel>
-                </Button>
-            </Grid>
+                        <!-- Top row: Title, Version, and Browse Catalog CTA -->
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Spacing="4">
+                                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                    <TextBlock Text="Workstation Overview" Style="{StaticResource PageTitleStyle}" />
+                                    <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center" Padding="8,3">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE770;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <TextBlock Text="v3.0.0 • WinUI 3" FontSize="11" FontWeight="Medium"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                                <TextBlock Text="{Binding DynamicSubtitle}"
+                                           Style="{StaticResource PageSubtitleStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <Button Grid.Column="1"
+                                    Style="{StaticResource AccentButtonStyle}"
+                                    Click="BrowseCatalog_Click"
+                                    Padding="16,8"
+                                    VerticalAlignment="Top"
+                                    CornerRadius="6"
+                                    AutomationProperties.Name="Browse tool catalog">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE8F1;" FontSize="13" />
+                                    <TextBlock Text="Browse Catalog" FontWeight="SemiBold" FontSize="13" />
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Middle / Bottom Quick Action Pills & Workstation Tags -->
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <Button Style="{StaticResource SubtleButtonStyle}"
+                                    Click="SeeAllStacks_Click"
+                                    Padding="10,5" CornerRadius="4"
+                                    AutomationProperties.Name="Explore tool stacks">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8EC;" FontSize="12" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                    <TextBlock Text="Curated Stacks" FontSize="12" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource SubtleButtonStyle}"
+                                    Click="InstalledMetric_Click"
+                                    Padding="10,5" CornerRadius="4"
+                                    AutomationProperties.Name="View installed tools">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock Text="Installed Tools" FontSize="12" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource SubtleButtonStyle}"
+                                    Click="DownloadsMetric_Click"
+                                    Padding="10,5" CornerRadius="4"
+                                    AutomationProperties.Name="Check downloads queue">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE896;" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="Download Queue" FontSize="12" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
 
             <!-- Loading Spinner (Non-blocking skeleton) -->
             <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"

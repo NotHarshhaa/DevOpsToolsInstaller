@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **HomePage Hero Banner & Overview Redesign**:
+  - Rebuilt the top section of `HomePage` with an isometric modern DevOps hero banner illustration (`Assets/HeroBanner.jpg`).
+  - Added seamless gradient masking, version tag badge, primary "Browse Catalog" CTA button, and quick-action navigation pills ("Curated Stacks", "Installed Tools", "Download Queue").
 - **Catalog Quick Status Filter & Selection Presets**:
   - Filter catalog tools instantaneously with the Fluent status filter: `All`, `Not Installed`, `Installed`, `Updates Available`, and `Favorites Only`.
   - Batch selection presets added to catalog selection bar: "Select All Not Installed" and "Select All with Updates Available".
