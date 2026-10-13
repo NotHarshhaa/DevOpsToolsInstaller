@@ -24,7 +24,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/banner.png" alt="DevOps Tools Installer Showcase Banner" width="100%" />
+  <img src="assets/banner.png" alt="DevOps Tools Installer Banner" width="100%" />
 </p>
 
 A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) designed to provision cloud, container, Kubernetes, IaC, security, database, and terminal tools on a fresh workstation in minutes — with the visual polish and the security posture of a first-party Windows app.
