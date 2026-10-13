@@ -7,8 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [3.0.2] - 2026-10-13
 
+### Added
+- **HomePage Showcase Redesign & Core Features Grid**:
+  - Built an immersive Hero header with in-app Acrylic material, value proposition statement, and primary **"Browse catalog"** and secondary **"Build a stack"** CTA buttons.
+  - 3-step **Quick Start** horizontal stepper providing an intuitive workstation onboarding overview (*Pick tools* → *Verify & download* → *Install*).
+  - 9-card responsive **Core Features Showcase** grid (3 columns wide, 2 medium, 1 narrow) using `ItemsRepeater` and `UniformGridLayout`.
+  - Dynamic data bindings for real counts (*90+ tools*, *8 curated stacks*, *live installed count*).
+  - Smooth hover and focus elevation lift (`helpers:Motion.HoverLift`) respecting the Windows *Reduce animations* accessibility setting.
+  - Skeleton shimmer pulse placeholders (`helpers:Motion.Pulse`) during catalog data hydration.
+  - First-run 3-step **TeachingTip** 30-second onboarding tour with skip and settings dismissal options.
+  - Headless CLI documentation modal dialog with quick copy for unattended script commands.
+  - Footer bar with links to GitHub repository, issue reporting, and official documentation.
 - **Custom Stack Builder (`StacksPage`)**:
   - Interactive 2-column composer with a smooth Segmented switcher between "Presets" and "Stack Builder" (`ViewModels/StackBuilderViewModel.cs`, `Services/CustomStacksService.cs`).
   - Searchable catalog on the left with vector logos, badges, and keyboard-accessible **"+ Add"** buttons.
@@ -50,6 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Interactive "Start All Now (Bypass Schedule)" action on `DownloadsPage` InfoBar for on-demand execution.
   - Dedicated "Scheduled" filter chip on `DownloadsPage`.
   - Automated exponential retry mechanism for failed downloads to recover from transient Wi-Fi drops or network disconnects.
+
+### Fixed
+- **Persistent Floating Keyboard Accelerator Badges**:
+  - Set `KeyboardAcceleratorPlacementMode="Hidden"` on the root container to prevent WinUI 3 from displaying an undismissible floating "Ctrl+K" badge overlay on the window surface while retaining full shortcut functionality.
 
 ## [3.0.1] - 2026-10-11
 
