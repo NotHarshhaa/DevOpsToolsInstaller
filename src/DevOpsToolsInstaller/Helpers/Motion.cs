@@ -43,6 +43,8 @@ public static class Motion
             el.PointerEntered += OnHoverLiftEntered;
             el.PointerExited += OnHoverLiftLeft;
             el.PointerCanceled += OnHoverLiftLeft;
+            el.GotFocus += OnHoverLiftFocused;
+            el.LostFocus += OnHoverLiftUnfocused;
             el.SizeChanged += OnHoverLiftSizeChanged;
             el.Unloaded += OnHoverLiftUnloaded;
         }
@@ -51,6 +53,8 @@ public static class Motion
             el.PointerEntered -= OnHoverLiftEntered;
             el.PointerExited -= OnHoverLiftLeft;
             el.PointerCanceled -= OnHoverLiftLeft;
+            el.GotFocus -= OnHoverLiftFocused;
+            el.LostFocus -= OnHoverLiftUnfocused;
             el.SizeChanged -= OnHoverLiftSizeChanged;
             el.Unloaded -= OnHoverLiftUnloaded;
         }
@@ -64,6 +68,15 @@ public static class Motion
     }
 
     private static void OnHoverLiftLeft(object sender, PointerRoutedEventArgs e)
+        => AnimateScale((UIElement)sender, 1f);
+
+    private static void OnHoverLiftFocused(object sender, RoutedEventArgs e)
+    {
+        if (!AnimationSettingsHelper.AnimationsEnabled) return;
+        AnimateScale((UIElement)sender, 1.02f);
+    }
+
+    private static void OnHoverLiftUnfocused(object sender, RoutedEventArgs e)
         => AnimateScale((UIElement)sender, 1f);
 
     private static void OnHoverLiftSizeChanged(object sender, SizeChangedEventArgs e)

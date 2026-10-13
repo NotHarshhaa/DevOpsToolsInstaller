@@ -6,7 +6,7 @@
     xmlns:customControls="using:DevOpsToolsInstaller.Controls">
 
     <!-- No Background set: the Mica backdrop shows through. -->
-    <Grid x:Name="RootGrid">
+    <Grid x:Name="RootGrid" KeyboardAcceleratorPlacementMode="Hidden">
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Modifiers="Control" Key="K" Invoked="CommandPalette_Invoked" />
         </Grid.KeyboardAccelerators>

@@ -200,7 +200,7 @@ public sealed partial class StacksPage : Page
         }
     }
 
-    private void SelectBuilderMode()
+    public void SelectBuilderMode()
     {
         if (ViewModeSegmented != null)
         {

@@ -226,6 +226,17 @@ public sealed class HomePopularToolItemViewModel : ObservableObject
     }
 }
 
+public sealed class HomeFeatureCardViewModel : ObservableObject
+{
+    public string Id { get; init; } = string.Empty;
+    public string Glyph { get; init; } = string.Empty;
+    public string Title { get; init; } = string.Empty;
+    public string Benefit { get; set; } = string.Empty;
+    public string ActionLabel { get; init; } = string.Empty;
+    public string NavigationTarget { get; init; } = string.Empty;
+    public string AutomationName => $"{Title}: {Benefit}. Action: {ActionLabel}.";
+}
+
 public sealed partial class HomeViewModel : ObservableObject
 {
     private readonly IPathHealthService _pathHealthService;
@@ -248,6 +259,15 @@ public sealed partial class HomeViewModel : ObservableObject
 
     [ObservableProperty]
     private int _updateCount;
+
+    [ObservableProperty]
+    private int _totalCatalogToolsCount;
+
+    [ObservableProperty]
+    private int _totalStacksCount;
+
+    [ObservableProperty]
+    private bool _showTourBanner;
 
     [ObservableProperty]
     private int _activeDownloadsCount;
@@ -298,6 +318,7 @@ public sealed partial class HomeViewModel : ObservableObject
     partial void OnActiveDownloadsCountChanged(int value) => OnPropertyChanged(nameof(DownloadsMetricAutomationName));
     partial void OnPathStatusChanged(string value) => OnPropertyChanged(nameof(PathMetricAutomationName));
 
+    public ObservableCollection<HomeFeatureCardViewModel> CoreFeatures { get; } = new();
     public ObservableCollection<ActiveDownloadItemViewModel> ActiveDownloads { get; } = new();
     public ObservableCollection<HomeStackItemViewModel> Stacks { get; } = new();
     public ObservableCollection<HomeUpdateItemViewModel> Updates { get; } = new();
@@ -457,6 +478,12 @@ public sealed partial class HomeViewModel : ObservableObject
             // 5. Popular Tools
             BuildPopularTools(mw);
 
+            // 6. Core Features Showcase
+            BuildCoreFeatures(mw);
+
+            // 7. Tour eligibility
+            CheckTourEligibility();
+
             IsLoading = false;
         }
         catch (Exception ex)
@@ -548,6 +575,116 @@ public sealed partial class HomeViewModel : ObservableObject
                 PopularTools.Add(new HomePopularToolItemViewModel(tool));
             }
         }
+    }
+
+    public void BuildCoreFeatures(MainWindow mw)
+    {
+        TotalCatalogToolsCount = mw.Tools.Count;
+        TotalStacksCount = mw.Bundles.Count;
+
+        CoreFeatures.Clear();
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "catalog",
+            Glyph = "\uE8F1",
+            Title = "Tool Catalog",
+            Benefit = $"{TotalCatalogToolsCount} DevOps tools and cloud CLIs (AWS, Azure, GCP) from official sources.",
+            ActionLabel = "Explore Catalog",
+            NavigationTarget = "Catalog"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "official",
+            Glyph = "\uE897",
+            Title = "Official Installers Only",
+            Benefit = "Nothing bundled, nothing repackaged, and zero silent background changes.",
+            ActionLabel = "Security Model",
+            NavigationTarget = "About"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "verified",
+            Glyph = "\uEA18",
+            Title = "Verified Downloads",
+            Benefit = "HTTPS-only, SHA-256 integrity checks, and Authenticode signature verification.",
+            ActionLabel = "Signature Policy",
+            NavigationTarget = "Settings"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "stacks",
+            Glyph = "\uE8EC",
+            Title = "Stacks & Bundles",
+            Benefit = $"{TotalStacksCount} one-click role bundles and an interactive drag-and-drop stack builder.",
+            ActionLabel = "Browse Stacks",
+            NavigationTarget = "Stacks"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "downloads",
+            Glyph = "\uE896",
+            Title = "Live Progress",
+            Benefit = "Real-time download speeds, checksum validation, and a collapsible diagnostic log.",
+            ActionLabel = "View Downloads",
+            NavigationTarget = "Downloads"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "installed",
+            Glyph = "\uE73E",
+            Title = "Installed & Updates",
+            Benefit = $"{InstalledCount} tools detected; automated update checks with 1-click upgrade.",
+            ActionLabel = "Manage Tools",
+            NavigationTarget = "Installed"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "doctor",
+            Glyph = "\uE95E",
+            Title = "Workstation Doctor",
+            Benefit = "5-point health check: PATH duplicates, multi-version CLIs, and missing prerequisites.",
+            ActionLabel = "Run Diagnostics",
+            NavigationTarget = "Doctor"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "cli",
+            Glyph = "\uE756",
+            Title = "Headless CLI Mode",
+            Benefit = "Automate machine provisioning and CI with native flags (--install, --status).",
+            ActionLabel = "View CLI Commands",
+            NavigationTarget = "CLI:Docs"
+        });
+
+        CoreFeatures.Add(new HomeFeatureCardViewModel
+        {
+            Id = "notifications",
+            Glyph = "\uEA8F",
+            Title = "Tray & Notifications",
+            Benefit = "Close-to-tray background scans, scheduler off-peak hours, and toast alerts.",
+            ActionLabel = "Configure Alerts",
+            NavigationTarget = "Settings"
+        });
+    }
+
+    public void CheckTourEligibility()
+    {
+        ShowTourBanner = SettingsService.ShowOnboardingTips && !SettingsService.OnboardingCompleted;
+    }
+
+    public void DismissTour()
+    {
+        ShowTourBanner = false;
+        SettingsService.OnboardingCompleted = true;
+        SettingsService.SaveSettings();
     }
 
     public void UpdateSearchSuggestions(string query, MainWindow mw)

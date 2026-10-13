@@ -23,6 +23,7 @@ public sealed partial class HomePage : Page
     {
         ViewModel = new HomeViewModel();
         DataContext = ViewModel;
+        NavigationCacheMode = NavigationCacheMode.Required;
         InitializeComponent();
 
         Loaded += HomePage_Loaded;
@@ -125,6 +126,150 @@ public sealed partial class HomePage : Page
 
     private void BrowseCatalog_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Catalog");
+
+    private void BuildStack_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateToStackBuilder();
+
+    private void StartTour_Click(object sender, RoutedEventArgs e)
+    {
+        TourStep1Tip.IsOpen = true;
+    }
+
+    private void DismissTour_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel.DismissTour();
+    }
+
+    private void TourStep1_NextClick(TeachingTip sender, object args)
+    {
+        sender.IsOpen = false;
+        TourStep2Tip.IsOpen = true;
+    }
+
+    private void TourStep2_NextClick(TeachingTip sender, object args)
+    {
+        sender.IsOpen = false;
+        TourStep3Tip.IsOpen = true;
+    }
+
+    private void Tour_DismissClick(TeachingTip sender, object args)
+    {
+        sender.IsOpen = false;
+        ViewModel.DismissTour();
+    }
+
+    private async void FeatureCardAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { Tag: string actionTag }) return;
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        switch (actionTag)
+        {
+            case "Catalog":
+                mw.NavigateTo("Catalog");
+                break;
+            case "Stacks":
+                mw.NavigateTo("Stacks");
+                break;
+            case "Downloads":
+                mw.NavigateTo("Downloads");
+                break;
+            case "Installed":
+                mw.NavigateTo("Installed");
+                break;
+            case "Doctor":
+                mw.NavigateTo("Doctor");
+                break;
+            case "Settings":
+            case "Settings:Security":
+            case "Settings:Notifications":
+                mw.NavigateTo("Settings");
+                break;
+            case "About":
+                mw.NavigateTo("About");
+                break;
+            case "CLI:Docs":
+                await ShowCliDocsDialogAsync();
+                break;
+            default:
+                mw.NavigateTo(actionTag);
+                break;
+        }
+    }
+
+    private async Task ShowCliDocsDialogAsync()
+    {
+        var mw = App.MainWindowInstance;
+        if (mw?.Content?.XamlRoot is null) return;
+
+        var stack = new StackPanel { Spacing = 14, MinWidth = 460 };
+
+        var introText = new TextBlock
+        {
+            Text = "DevOpsToolsInstaller includes a headless command-line mode for unattended setup, CI/CD runners, and developer provisioning scripts.",
+            TextWrapping = TextWrapping.Wrap,
+            FontSize = 13,
+            Foreground = Application.Current.Resources["TextFillColorSecondaryBrush"] as Microsoft.UI.Xaml.Media.Brush
+        };
+        stack.Children.Add(introText);
+
+        var codeBlock = new Border
+        {
+            Background = Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"] as Microsoft.UI.Xaml.Media.Brush,
+            BorderBrush = Application.Current.Resources["CardStrokeColorDefaultBrush"] as Microsoft.UI.Xaml.Media.Brush,
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12)
+        };
+
+        var codeText = new TextBlock
+        {
+            Text = "DevOpsToolsInstaller.exe --list\n" +
+                   "DevOpsToolsInstaller.exe --install kubectl,terraform,helm\n" +
+                   "DevOpsToolsInstaller.exe --install-bundle k8s-starter\n" +
+                   "DevOpsToolsInstaller.exe --update\n" +
+                   "DevOpsToolsInstaller.exe --path-doctor\n" +
+                   "DevOpsToolsInstaller.exe --export-profile my-tools.json\n" +
+                   "DevOpsToolsInstaller.exe --report workstation.md",
+            FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Consolas, monospace"),
+            FontSize = 12,
+            LineHeight = 18,
+            IsTextSelectionEnabled = true
+        };
+        codeBlock.Child = codeText;
+        stack.Children.Add(codeBlock);
+
+        var copyButton = new Button
+        {
+            Content = "Copy CLI examples",
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        copyButton.Click += (s, e) =>
+        {
+            try
+            {
+                var package = new DataPackage();
+                package.SetText(codeText.Text);
+                Clipboard.SetContent(package);
+                copyButton.Content = "Copied!";
+            }
+            catch { }
+        };
+        stack.Children.Add(copyButton);
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = mw.Content.XamlRoot,
+            Title = "Headless CLI Documentation",
+            Content = stack,
+            CloseButtonText = "Close",
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        await dialog.ShowAsync();
+    }
 
     private void SeeAllStacks_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Stacks");

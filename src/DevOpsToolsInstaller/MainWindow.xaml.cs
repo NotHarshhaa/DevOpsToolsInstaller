@@ -250,6 +250,9 @@ public sealed partial class MainWindow : Window
             RemoveTogglePaneButtonFocusVisual(NavView);
         };
 
+        // Ensure keyboard accelerator tooltips (such as floating 'Ctrl+K' badge) are suppressed
+        RootGrid.KeyboardAcceleratorPlacementMode = Microsoft.UI.Xaml.Input.KeyboardAcceleratorPlacementMode.Hidden;
+
         // Shortcut Ctrl+` to toggle collapsible bottom live log drawer
         var logDrawerAccel = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
         {
@@ -270,6 +273,11 @@ public sealed partial class MainWindow : Window
             if (ctrl && ((int)e.Key == 192 || (int)e.OriginalKey == 192))
             {
                 BottomLogDrawer.Toggle(animate: true);
+                e.Handled = true;
+            }
+            else if (ctrl && (e.Key == Windows.System.VirtualKey.K || e.OriginalKey == Windows.System.VirtualKey.K))
+            {
+                _ = ShowCommandPaletteAsync();
                 e.Handled = true;
             }
         };
@@ -459,6 +467,18 @@ public sealed partial class MainWindow : Window
                 }
                 return;
             }
+        }
+    }
+
+    /// <summary>
+    /// Navigates to the Stacks page and switches to Custom Stack Builder mode.
+    /// </summary>
+    public void NavigateToStackBuilder()
+    {
+        NavigateTo("Stacks");
+        if (ContentFrame.Content is StacksPage sp)
+        {
+            sp.SelectBuilderMode();
         }
     }
 
