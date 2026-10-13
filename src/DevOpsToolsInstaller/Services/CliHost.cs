@@ -31,7 +31,8 @@ public static class CliHost
         "--download-only", "--download-only-bundle",
         "--export-profile", "--import-profile",
         "--import-winget", "--import-choco",
-        "--generate-script", "--report",
+        "--generate-script", "--generate-devcontainer", "--report",
+        "--path-doctor", "--check-path", "--fix-path",
         "--downloads-folder", "--list", "--status", "--version", "--help", "-h"
     };
 
@@ -219,6 +220,19 @@ public static class CliHost
             else if (arg.Equals("--generate-script", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
                 return GenerateBootstrapScript(args[++i], tools);
+            }
+            else if (arg.Equals("--generate-devcontainer", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return GenerateDevContainer(args[++i], tools);
+            }
+            else if (arg.Equals("--path-doctor", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--check-path", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunPathDoctor();
+            }
+            else if (arg.Equals("--fix-path", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunFixPath();
             }
         }
 
@@ -813,6 +827,99 @@ public static class CliHost
         }
     }
 
+    private static int RunPathDoctor()
+    {
+        WriteLine("Running PATH Environment Doctor...\n");
+        var report = PathDoctorService.Diagnose();
+
+        WriteLine($"Status: {(report.IsHealthy ? "[OK] Healthy" : "[WARN] Issues Detected")}");
+        WriteLine($"Summary: {report.Summary}\n");
+
+        WriteLine($"Total User PATH entries: {report.TotalEntries}");
+        WriteLine($"Valid existing directories: {report.CleanedEntries.Count}");
+        WriteLine($"Tools\\bin on User PATH: {(report.IsBinOnUserPath ? "Yes" : "No (Missing)")}");
+
+        if (report.DuplicateEntries.Count > 0)
+        {
+            WriteLine($"\n[!] Duplicate Entries ({report.DuplicateEntries.Count}):");
+            foreach (var dup in report.DuplicateEntries)
+            {
+                WriteLine($"    - {dup}");
+            }
+        }
+
+        if (report.MissingDirectories.Count > 0)
+        {
+            WriteLine($"\n[!] Non-Existent / Broken Directories ({report.MissingDirectories.Count}):");
+            foreach (var miss in report.MissingDirectories)
+            {
+                WriteLine($"    - {miss}");
+            }
+        }
+
+        if (!report.IsHealthy)
+        {
+            WriteLine("\nRun 'DevOpsToolsInstaller.exe --fix-path' to automatically backup and clean your PATH.");
+        }
+
+        return report.IsHealthy ? 0 : 1;
+    }
+
+    private static int RunFixPath()
+    {
+        WriteLine("Optimizing User PATH Environment Variable...");
+        var result = PathDoctorService.FixUserPath();
+
+        if (result.Success)
+        {
+            WriteLine($"[OK] {result.Message}");
+            WriteLine($"     Backup created at: {result.BackupFilePath}");
+            WriteLine($"     Removed duplicates: {result.RemovedDuplicatesCount}");
+            WriteLine($"     Removed broken paths: {result.RemovedMissingCount}");
+            if (result.AddedBinFolder)
+            {
+                WriteLine($"     Added Tools\\bin: {ArtifactService.BinFolder}");
+            }
+            return 0;
+        }
+        else
+        {
+            WriteLine($"[ERR] {result.Message}");
+            return 1;
+        }
+    }
+
+    private static int GenerateDevContainer(string destinationPath, IReadOnlyList<ToolDefinition> allTools)
+    {
+        var dlFolder = DownloadService.DefaultDownloadsFolder;
+        var installedTools = allTools
+            .Where(t => UninstallService.IsInstalled(t, dlFolder) || t.Status == ToolStatus.Downloaded)
+            .ToList();
+
+        var toolsToExport = installedTools.Count > 0 ? installedTools : allTools.ToList();
+        WriteLine($"Generating DevContainer configuration for {toolsToExport.Count} tool(s)...");
+
+        try
+        {
+            if (destinationPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                DevContainerGeneratorService.ExportDevContainerZip(toolsToExport, destinationPath);
+            }
+            else
+            {
+                DevContainerGeneratorService.ExportDevContainerFolder(toolsToExport, destinationPath);
+            }
+
+            WriteLine($"[OK] DevContainer package generated successfully at: {destinationPath}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"[ERR] Failed to generate DevContainer: {ex.Message}");
+            return 1;
+        }
+    }
+
     /// <summary>
     /// Returns the value following a global option flag, or null when absent.
     /// </summary>
@@ -847,6 +954,9 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --import-choco <file>        Migrate packages from chocolatey list output");
         WriteLine("  DevOpsToolsInstaller.exe --report <file>              Write a markdown workstation report (for audits)");
         WriteLine("  DevOpsToolsInstaller.exe --generate-script <file>     Generate a standalone PowerShell bootstrap script");
+        WriteLine("  DevOpsToolsInstaller.exe --generate-devcontainer <zip/dir> Generate VS Code DevContainer & Dockerfile");
+        WriteLine("  DevOpsToolsInstaller.exe --path-doctor                Diagnose User PATH duplicates and broken paths");
+        WriteLine("  DevOpsToolsInstaller.exe --fix-path                   Clean, deduplicate, and backup User PATH");
         WriteLine("  DevOpsToolsInstaller.exe --downloads-folder <path>    Redirect downloads (e.g. a USB drive)");
         WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");
         WriteLine("  DevOpsToolsInstaller.exe --help                       Show this help");

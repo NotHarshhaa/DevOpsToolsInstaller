@@ -296,6 +296,12 @@
                                                     <FontIcon Glyph="&#xE896;" />
                                                 </MenuFlyoutItem.Icon>
                                             </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Export as DevContainer (.zip)…" Click="ExportStackDevContainer_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE7B8;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
                                         </MenuFlyout>
                                     </SplitButton.Flyout>
                                 </SplitButton>

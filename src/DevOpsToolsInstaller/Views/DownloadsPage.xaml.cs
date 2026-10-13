@@ -28,8 +28,18 @@ public sealed partial class DownloadsPage : Page
     {
         InitializeComponent();
         Loaded += DownloadsPage_Loaded;
-        Unloaded += (s, e) => TeardownThroughputChart();
+        Unloaded += (s, e) =>
+        {
+            TeardownThroughputChart();
+            DownloadSchedulerService.Instance.SchedulerTicked -= OnSchedulerTicked;
+        };
+        DownloadSchedulerService.Instance.SchedulerTicked += OnSchedulerTicked;
         LogList.ItemsSource = ActivityLogService.Entries;
+    }
+
+    private void OnSchedulerTicked()
+    {
+        ApplyFilter();
     }
 
     // ── Total throughput chart (LiveCharts, throttled to ≤4 samples/s) ──
@@ -156,6 +166,7 @@ public sealed partial class DownloadsPage : Page
         items = _statusFilter switch
         {
             "Downloading" => items.Where(t => t.Status == ToolStatus.Downloading),
+            "Scheduled" => items.Where(t => t.Status == ToolStatus.Scheduled),
             "Ready" => items.Where(t => t.Status == ToolStatus.Downloaded && !t.IsInstalled),
             "Installed" => items.Where(t => t.IsInstalled),
             _ => items
@@ -198,16 +209,31 @@ public sealed partial class DownloadsPage : Page
 
         var total = mw.DownloadQueue.Count;
         var downloading = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Downloading);
+        var scheduled = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Scheduled);
         var ready = mw.DownloadQueue.Count(t => t.Status == ToolStatus.Downloaded && !t.IsInstalled);
         var installed = mw.DownloadQueue.Count(t => t.IsInstalled);
 
+        if (scheduled > 0)
+        {
+            ScheduleInfoBar.IsOpen = true;
+            ScheduleInfoBar.Message = $"{scheduled} tool transfer(s) queued for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).";
+        }
+        else
+        {
+            ScheduleInfoBar.IsOpen = false;
+        }
+
         ActiveCountBadge.Text = downloading > 0
             ? $"{downloading} downloading"
-            : ready > 0 ? $"{ready} ready" : $"{total} items";
+            : scheduled > 0
+                ? $"{scheduled} scheduled"
+                : ready > 0 ? $"{ready} ready" : $"{total} items";
 
         StatusText.Text = downloading > 0
             ? $"{downloading} downloading, {ready} ready to install"
-            : $"{ready} ready to install • {installed} deployed";
+            : scheduled > 0
+                ? $"{scheduled} scheduled for off-peak ({SettingsService.GetScheduleWindowDescription()})"
+                : $"{ready} ready to install • {installed} deployed";
 
         if (InstallAllReadyButton != null)
         {
@@ -242,9 +268,17 @@ public sealed partial class DownloadsPage : Page
 
         FilterAllBtn.Style = (Style)Application.Current.Resources[tag == "All" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
         FilterDownloadingBtn.Style = (Style)Application.Current.Resources[tag == "Downloading" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
+        FilterScheduledBtn.Style = (Style)Application.Current.Resources[tag == "Scheduled" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
         FilterReadyBtn.Style = (Style)Application.Current.Resources[tag == "Ready" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
         FilterInstalledBtn.Style = (Style)Application.Current.Resources[tag == "Installed" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
 
+        ApplyFilter();
+    }
+
+    private void StartAllScheduled_Click(object sender, RoutedEventArgs e)
+    {
+        DownloadSchedulerService.Instance.StartAllScheduledNow();
+        ScheduleInfoBar.IsOpen = false;
         ApplyFilter();
     }
 

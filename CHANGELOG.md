@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **PATH Environment Doctor & Fixer**:
+  - Comprehensive inspection of User and Process PATH environment variables detecting duplicate entries, non-existent directories, malformed entries, and missing `Tools\bin` directory (`Services/PathDoctorService.cs`).
+  - Automatic timestamped backups prior to any modifications stored in `%LOCALAPPDATA%\DevOpsToolsInstaller\Backups\PATH`.
+  - 1-click "Clean & Fix" optimization in **Settings → PATH & Terminal** that prunes dead directories, deduplicates paths, ensures `Tools\bin` is configured, and broadcasts Windows environment updates (`WM_SETTINGCHANGE`).
+  - One-click restore flyout to rollback User PATH to any previous timestamped state.
+  - Headless CLI integration via `--path-doctor` (audit report) and `--fix-path` (safe cleanup and backup).
+- **VS Code DevContainer & Dockerfile Generator**:
+  - Export installed workstation toolchains or curated stacks into production-grade `.devcontainer/devcontainer.json` and multi-stage `Dockerfile` (`Services/DevContainerGeneratorService.cs`).
+  - Automatically translates catalog tools to official DevContainer features (`ghcr.io/devcontainers/features/...` for kubectl, terraform, docker, cloud CLIs, etc.) and installs Linux CLI binaries (`k9s`, `trivy`, `sops`, `yq`, `starship`).
+  - Generates recommended VS Code extension manifests and default zsh/bash configuration.
+  - Export directly from **Installed Tools → Export → Export DevContainer & Dockerfile (.zip)** or **Curated Stacks → Stack menu → Export as DevContainer (.zip)**, as well as via headless CLI with `--generate-devcontainer <zip/folder>`.
+- **Off-Peak Download Scheduler & Auto-Retry Engine**:
+  - Configure scheduled off-peak download windows (e.g., 11:00 PM to 07:00 AM) under **Settings → Network** to preserve daytime network bandwidth (`Services/DownloadSchedulerService.cs`).
+  - Background scheduler automatically tracks queued transfers in `ToolStatus.Scheduled` and executes them upon entering the active schedule window.
+  - Interactive "Start All Now (Bypass Schedule)" action on `DownloadsPage` InfoBar for on-demand execution.
+  - Dedicated "Scheduled" filter chip on `DownloadsPage`.
+  - Automated exponential retry mechanism for failed downloads to recover from transient Wi-Fi drops or network disconnects.
+
 ## [3.0.1] - 2026-10-11
 
 ### Added

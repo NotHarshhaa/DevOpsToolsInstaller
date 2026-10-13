@@ -204,6 +204,9 @@ Done. 2 uninstalled, 0 not present, 0 failed.
 | `--import-choco <file>` | Migrate packages from chocolatey `list` output. |
 | `--report <file>` | Write a markdown workstation report — installed tools, versions, pending updates, security settings. |
 | `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
+| `--generate-devcontainer <zip/dir>` | Generate a VS Code `.devcontainer/devcontainer.json` and `Dockerfile` matching workstation tools. |
+| `--path-doctor` | Inspect User PATH for duplicate entries, non-existent directories, and missing tools folder. |
+| `--fix-path` | Automatically clean and deduplicate User PATH with timestamped backup. |
 | `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
 | `--version` | Print the application version. |
 | `--help` | Show usage. |
@@ -431,9 +434,11 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 ## Roadmap
 
 - [ ] ARM64 MSIX build and Store submission
-- [ ] Custom / private catalog sources (bring your own signed tool feeds)
+- [x] Custom / private catalog sources (bring your own signed tool feeds)
+- [x] Download scheduling and bandwidth throttling
+- [x] Interactive PATH Environment Doctor & Fixer
+- [x] VS Code DevContainer & Dockerfile workstation generator
 - [ ] Cloud-synced workstation profiles across machines
-- [ ] Download scheduling and bandwidth throttling
 - [ ] Per-tool pre/post-install scripts (user-reviewed, never silent)
 - [ ] In-app catalog editor with signature workflow
 

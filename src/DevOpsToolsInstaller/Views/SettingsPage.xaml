@@ -194,6 +194,54 @@
                 </tk:SettingsExpander.Items>
             </tk:SettingsExpander>
 
+            <tk:SettingsExpander x:Name="SchedulerExpander"
+                                 Description="Schedule artifact downloads to run during off-peak hours (e.g. overnight) and configure auto-retry rules.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xED5A;" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <ToggleSwitch x:Name="ScheduleToggle"
+                                  Toggled="ScheduleToggle_Toggled"
+                                  OnContent="" OffContent=""
+                                  AutomationProperties.Name="Off-peak scheduler toggle" />
+                </tk:SettingsExpander.Content>
+
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="Off-peak schedule window"
+                                     Description="Downloads run automatically within this local time window. Transfers outside this range queue safely.">
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <ComboBox x:Name="ScheduleStartComboBox" Width="135"
+                                      SelectionChanged="ScheduleTime_SelectionChanged"
+                                      AutomationProperties.Name="Schedule start time" />
+                            <TextBlock Text="to" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <ComboBox x:Name="ScheduleEndComboBox" Width="135"
+                                      SelectionChanged="ScheduleTime_SelectionChanged"
+                                      AutomationProperties.Name="Schedule end time" />
+                        </StackPanel>
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="Automatic download retries"
+                                     Description="Automatically retry failed transfers after network disruptions or timeouts.">
+                        <ToggleSwitch x:Name="AutoRetryToggle"
+                                      Toggled="AutoRetryToggle_Toggled"
+                                      OnContent="" OffContent=""
+                                      AutomationProperties.Name="Auto retry toggle" />
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="Retry backoff interval"
+                                     Description="Time to wait before retrying a failed download.">
+                        <ComboBox x:Name="AutoRetryIntervalComboBox" Width="150"
+                                  SelectionChanged="AutoRetryInterval_SelectionChanged"
+                                  AutomationProperties.Name="Retry interval">
+                            <ComboBoxItem Content="5 minutes" Tag="5" />
+                            <ComboBoxItem Content="10 minutes" Tag="10" />
+                            <ComboBoxItem Content="15 minutes" Tag="15" />
+                            <ComboBoxItem Content="30 minutes" Tag="30" />
+                        </ComboBox>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
+
             <!-- ══════════ GROUP: PATH & TERMINAL ══════════ -->
             <TextBlock Text="PATH &amp; Terminal" Style="{StaticResource BodyStrongTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
@@ -231,6 +279,45 @@
                             <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer"
                                     AutomationProperties.Name="Open tools bin folder">
                                 <FontIcon Glyph="&#xE838;" FontSize="13" />
+                            </Button>
+                        </StackPanel>
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="PATH Environment Doctor &amp; Fixer">
+                        <tk:SettingsCard.Description>
+                            <StackPanel Spacing="4">
+                                <TextBlock x:Name="PathDoctorSummaryText"
+                                           Text="Inspects User PATH for duplicate entries, non-existent directories, and missing tools\bin."
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock x:Name="PathDoctorDetailsText"
+                                           Text=""
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                           Visibility="Collapsed"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </tk:SettingsCard.Description>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Click="DiagnosePath_Click" ToolTipService.ToolTip="Inspect User PATH issues"
+                                    AutomationProperties.Name="Diagnose PATH">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE9D9;" FontSize="12" />
+                                    <TextBlock Text="Diagnose" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="FixPathButton" Click="FixPath_Click" Style="{StaticResource AccentButtonStyle}"
+                                    ToolTipService.ToolTip="Deduplicate, clean broken entries, and backup User PATH"
+                                    AutomationProperties.Name="Clean and fix PATH">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE909;" FontSize="12" />
+                                    <TextBlock Text="Clean &amp; Fix" FontWeight="SemiBold" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="RestorePathBackup_Click" ToolTipService.ToolTip="Restore previous User PATH from backup"
+                                    AutomationProperties.Name="Restore PATH backup">
+                                <FontIcon Glyph="&#xE777;" FontSize="13" />
                             </Button>
                         </StackPanel>
                     </tk:SettingsCard>

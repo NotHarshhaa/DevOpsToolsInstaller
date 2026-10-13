@@ -26,6 +26,7 @@ public sealed partial class SettingsPage : Page
         ToolsPathText.Text = ArtifactService.BinFolder;
         UpdateStorageInfo(dlFolder);
         UpdatePathStatus();
+        UpdatePathDoctorSummary();
         UpdateCompletionStatus();
         UpdateLastCheckedDisplay();
         AutoUpdateToggle.IsOn = SettingsService.CheckForUpdatesOnStartup;
@@ -76,8 +77,41 @@ public sealed partial class SettingsPage : Page
             BandwidthLimitComboBox.SelectedIndex = 0;
         }
 
+        // Off-peak scheduler & retries
+        ScheduleToggle.IsOn = SettingsService.DownloadScheduleEnabled;
+        PopulateScheduleHourComboBoxes();
+        AutoRetryToggle.IsOn = SettingsService.AutoRetryFailedDownloads;
+        foreach (ComboBoxItem item in AutoRetryIntervalComboBox.Items)
+        {
+            if (item.Tag as string == SettingsService.AutoRetryIntervalMinutes.ToString())
+            {
+                AutoRetryIntervalComboBox.SelectedItem = item;
+                break;
+            }
+        }
+        if (AutoRetryIntervalComboBox.SelectedItem is null)
+        {
+            AutoRetryIntervalComboBox.SelectedIndex = 1;
+        }
+
         // Custom catalog source
         CustomCatalogSourceBox.Text = SettingsService.CustomCatalogSource;
+    }
+
+    private void PopulateScheduleHourComboBoxes()
+    {
+        ScheduleStartComboBox.Items.Clear();
+        ScheduleEndComboBox.Items.Clear();
+        for (int h = 0; h < 24; h++)
+        {
+            var text = DateTime.Today.AddHours(h).ToString("h:00 tt");
+            var itemStart = new ComboBoxItem { Content = text, Tag = h };
+            var itemEnd = new ComboBoxItem { Content = text, Tag = h };
+            ScheduleStartComboBox.Items.Add(itemStart);
+            ScheduleEndComboBox.Items.Add(itemEnd);
+            if (h == SettingsService.ScheduleStartHour) ScheduleStartComboBox.SelectedItem = itemStart;
+            if (h == SettingsService.ScheduleEndHour) ScheduleEndComboBox.SelectedItem = itemEnd;
+        }
     }
 
     private void BandwidthLimitComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -250,6 +284,190 @@ public sealed partial class SettingsPage : Page
             NoticeInfoBar.Severity = InfoBarSeverity.Informational;
             NoticeInfoBar.Title = "Already on PATH";
             NoticeInfoBar.Message = $"{binFolder} is already present in your PATH.";
+        }
+        UpdatePathDoctorSummary();
+    }
+
+    private void ScheduleToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.DownloadScheduleEnabled = ScheduleToggle.IsOn;
+        SettingsService.SaveSettings();
+        ShowNotice(
+            SettingsService.DownloadScheduleEnabled
+                ? $"Off-peak download scheduler enabled ({SettingsService.GetScheduleWindowDescription()})."
+                : "Off-peak download scheduler disabled. Downloads will run immediately.",
+            InfoBarSeverity.Success);
+    }
+
+    private void ScheduleTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ScheduleStartComboBox.SelectedItem is ComboBoxItem startItem && startItem.Tag is int startHour)
+        {
+            SettingsService.ScheduleStartHour = startHour;
+        }
+        if (ScheduleEndComboBox.SelectedItem is ComboBoxItem endItem && endItem.Tag is int endHour)
+        {
+            SettingsService.ScheduleEndHour = endHour;
+        }
+        SettingsService.SaveSettings();
+    }
+
+    private void AutoRetryToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.AutoRetryFailedDownloads = AutoRetryToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void AutoRetryInterval_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AutoRetryIntervalComboBox.SelectedItem is ComboBoxItem item &&
+            item.Tag is string tag &&
+            int.TryParse(tag, out var mins))
+        {
+            SettingsService.AutoRetryIntervalMinutes = mins;
+            SettingsService.SaveSettings();
+        }
+    }
+
+    private void UpdatePathDoctorSummary()
+    {
+        var doc = PathDoctorService.Diagnose();
+        PathDoctorSummaryText.Text = doc.Summary;
+        if (!doc.IsHealthy)
+        {
+            var details = new List<string>();
+            if (doc.DuplicateEntries.Count > 0)
+                details.Add($"Duplicates: {string.Join(", ", doc.DuplicateEntries.Take(2))}{(doc.DuplicateEntries.Count > 2 ? "..." : "")}");
+            if (doc.MissingDirectories.Count > 0)
+                details.Add($"Broken: {string.Join(", ", doc.MissingDirectories.Take(2))}{(doc.MissingDirectories.Count > 2 ? "..." : "")}");
+            PathDoctorDetailsText.Text = string.Join(" • ", details);
+            PathDoctorDetailsText.Visibility = Visibility.Visible;
+            FixPathButton.IsEnabled = true;
+        }
+        else
+        {
+            PathDoctorDetailsText.Visibility = Visibility.Collapsed;
+            FixPathButton.IsEnabled = false;
+        }
+    }
+
+    private async void DiagnosePath_Click(object sender, RoutedEventArgs e)
+    {
+        var doc = PathDoctorService.Diagnose();
+        UpdatePathDoctorSummary();
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = this.XamlRoot,
+            Title = "PATH Environment Doctor Report",
+            CloseButtonText = "Close",
+            DefaultButton = ContentDialogButton.Close
+        };
+
+        var sp = new StackPanel { Spacing = 12, MaxWidth = 520 };
+        sp.Children.Add(new TextBlock
+        {
+            Text = doc.Summary,
+            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        if (doc.Diagnostics.Count > 0)
+        {
+            sp.Children.Add(new TextBlock
+            {
+                Text = "Detected Issues:",
+                Style = (Style)Application.Current.Resources["BaseTextBlockStyle"]
+            });
+
+            var issueList = new ListView { MaxHeight = 220, SelectionMode = ListViewSelectionMode.None };
+            issueList.ItemsSource = doc.Diagnostics.Select(d => $"[{d.IssueType}] {d.Entry} - {d.Message}").ToList();
+            sp.Children.Add(issueList);
+        }
+
+        sp.Children.Add(new TextBlock
+        {
+            Text = $"Total entries: {doc.TotalEntries} • Unique valid entries: {doc.CleanedEntries.Count}",
+            Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        });
+
+        dialog.Content = sp;
+        await dialog.ShowAsync();
+    }
+
+    private void FixPath_Click(object sender, RoutedEventArgs e)
+    {
+        var res = PathDoctorService.FixUserPath();
+        UpdatePathStatus();
+        UpdatePathDoctorSummary();
+
+        if (res.Success)
+        {
+            ShowNotice(
+                $"{res.Message} Removed {res.RemovedDuplicatesCount} duplicate(s) and {res.RemovedMissingCount} broken path(s).",
+                InfoBarSeverity.Success);
+        }
+        else
+        {
+            ShowNotice(res.Message, InfoBarSeverity.Error);
+        }
+    }
+
+    private async void RestorePathBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var backups = PathDoctorService.GetBackups();
+        if (backups.Count == 0)
+        {
+            ShowNotice("No previous PATH backups found to restore.", InfoBarSeverity.Informational);
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            XamlRoot = this.XamlRoot,
+            Title = "Restore PATH Backup",
+            PrimaryButtonText = "Restore Selected",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary
+        };
+
+        var sp = new StackPanel { Spacing = 10, MaxWidth = 480 };
+        sp.Children.Add(new TextBlock
+        {
+            Text = "Select a timestamped PATH backup created prior to an optimization:",
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        var combo = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch };
+        foreach (var b in backups)
+        {
+            combo.Items.Add(new ComboBoxItem
+            {
+                Content = $"{b.Timestamp:yyyy-MM-dd HH:mm:ss} ({b.EntryCount} entries) - {b.FileName}",
+                Tag = b.FilePath
+            });
+        }
+        combo.SelectedIndex = 0;
+        sp.Children.Add(combo);
+
+        dialog.Content = sp;
+        var result = await dialog.ShowAsync();
+
+        if (result == ContentDialogResult.Primary &&
+            combo.SelectedItem is ComboBoxItem selItem &&
+            selItem.Tag is string backupPath)
+        {
+            if (PathDoctorService.RestoreBackup(backupPath))
+            {
+                UpdatePathStatus();
+                UpdatePathDoctorSummary();
+                ShowNotice($"Successfully restored User PATH from {Path.GetFileName(backupPath)}.", InfoBarSeverity.Success);
+            }
+            else
+            {
+                ShowNotice("Failed to restore PATH backup.", InfoBarSeverity.Error);
+            }
         }
     }
 

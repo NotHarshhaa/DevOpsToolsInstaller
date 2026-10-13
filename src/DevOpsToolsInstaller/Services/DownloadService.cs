@@ -125,6 +125,7 @@ public sealed class DownloadService
             tool.DownloadSpeed = string.Empty;
             tool.Progress = 100;
             tool.Status = ToolStatus.Downloaded;
+            DownloadSchedulerService.Instance.ClearFailure(tool.Id);
             ActivityLogService.Success(tool.Name, "Download completed successfully");
         }
         catch (OperationCanceledException)
@@ -148,6 +149,7 @@ public sealed class DownloadService
             tool.Status = ToolStatus.Failed;
             tool.StatusText = $"Failed: {ex.Message}";
             tool.Progress = 0;
+            DownloadSchedulerService.Instance.RecordFailure(tool.Id);
             ActivityLogService.Error(tool.Name, $"Download failed: {ex.Message}");
             throw;
         }
@@ -400,6 +402,7 @@ public sealed class DownloadService
             {
                 tool.Status = ToolStatus.Failed;
                 tool.StatusText = $"Failed: {ex.Message}";
+                DownloadSchedulerService.Instance.RecordFailure(tool.Id);
             }
             finally
             {

@@ -94,6 +94,42 @@ public static class SettingsService
     /// <summary>Optional custom or private catalog feed URL or local json file path.</summary>
     public static string CustomCatalogSource { get; set; } = string.Empty;
 
+    /// <summary>Schedule artifact downloads during off-peak hours only.</summary>
+    public static bool DownloadScheduleEnabled { get; set; } = false;
+
+    /// <summary>Off-peak schedule start hour (0-23, 24-hour format). Default is 23 (11 PM).</summary>
+    public static int ScheduleStartHour { get; set; } = 23;
+
+    /// <summary>Off-peak schedule end hour (0-23, 24-hour format). Default is 7 (7 AM).</summary>
+    public static int ScheduleEndHour { get; set; } = 7;
+
+    /// <summary>Automatically retry failed downloads after network drops or transient errors.</summary>
+    public static bool AutoRetryFailedDownloads { get; set; } = true;
+
+    /// <summary>Interval in minutes between automatic download retries.</summary>
+    public static int AutoRetryIntervalMinutes { get; set; } = 10;
+
+    public static bool IsWithinScheduleWindow()
+    {
+        if (!DownloadScheduleEnabled) return true;
+        var nowHour = DateTime.Now.Hour;
+        if (ScheduleStartHour <= ScheduleEndHour)
+        {
+            return nowHour >= ScheduleStartHour && nowHour < ScheduleEndHour;
+        }
+        else
+        {
+            return nowHour >= ScheduleStartHour || nowHour < ScheduleEndHour;
+        }
+    }
+
+    public static string GetScheduleWindowDescription()
+    {
+        var startAmPm = DateTime.Today.AddHours(ScheduleStartHour).ToString("h:mm tt");
+        var endAmPm = DateTime.Today.AddHours(ScheduleEndHour).ToString("h:mm tt");
+        return $"{startAmPm} – {endAmPm}";
+    }
+
     public static void LoadSettings()
     {
         try
@@ -193,6 +229,31 @@ public static class SettingsService
                 {
                     CustomCatalogSource = catSrcProp.GetString() ?? string.Empty;
                 }
+
+                if (doc.RootElement.TryGetProperty("DownloadScheduleEnabled", out var schedProp))
+                {
+                    DownloadScheduleEnabled = schedProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("ScheduleStartHour", out var sStartProp))
+                {
+                    ScheduleStartHour = sStartProp.GetInt32();
+                }
+
+                if (doc.RootElement.TryGetProperty("ScheduleEndHour", out var sEndProp))
+                {
+                    ScheduleEndHour = sEndProp.GetInt32();
+                }
+
+                if (doc.RootElement.TryGetProperty("AutoRetryFailedDownloads", out var retryProp))
+                {
+                    AutoRetryFailedDownloads = retryProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("AutoRetryIntervalMinutes", out var rIntProp))
+                {
+                    AutoRetryIntervalMinutes = rIntProp.GetInt32();
+                }
             }
         }
         catch
@@ -228,7 +289,12 @@ public static class SettingsService
                 ShowOnboardingTips = ShowOnboardingTips,
                 OnboardingCompleted = OnboardingCompleted,
                 BandwidthLimitMBps = BandwidthLimitMBps,
-                CustomCatalogSource = CustomCatalogSource
+                CustomCatalogSource = CustomCatalogSource,
+                DownloadScheduleEnabled = DownloadScheduleEnabled,
+                ScheduleStartHour = ScheduleStartHour,
+                ScheduleEndHour = ScheduleEndHour,
+                AutoRetryFailedDownloads = AutoRetryFailedDownloads,
+                AutoRetryIntervalMinutes = AutoRetryIntervalMinutes
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

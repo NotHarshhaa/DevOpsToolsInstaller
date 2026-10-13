@@ -304,6 +304,22 @@ public sealed partial class StacksPage : Page
             }
         }
 
+        if (DownloadSchedulerService.IsOffPeakActive)
+        {
+            foreach (var tool in toDownload)
+            {
+                tool.Status = ToolStatus.Scheduled;
+                tool.Progress = 0;
+            }
+            ActivityLogService.Info(targetBundle.Name, $"Stack transfer scheduled for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+            if (SettingsService.EnableNotifications)
+            {
+                ToastService.Show($"{targetBundle.Name} Scheduled", $"Stack queued for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+            }
+            mw.NavigateTo("Downloads");
+            return;
+        }
+
         // Start background download
         _ = Task.Run(async () =>
         {
@@ -325,6 +341,73 @@ public sealed partial class StacksPage : Page
 
         // Navigate directly to Downloads page so the user immediately sees the live progress!
         mw.NavigateTo("Downloads");
+    }
+
+    private async void ExportStackDevContainer_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        ToolBundle? targetBundle = null;
+        if (sender is FrameworkElement { DataContext: BundleCardViewModel vm })
+        {
+            targetBundle = vm.Bundle;
+        }
+        else if (sender is FrameworkElement { Tag: string bundleId })
+        {
+            var card = _allCardModels.FirstOrDefault(c => c.Id == bundleId);
+            targetBundle = card?.Bundle;
+        }
+
+        if (targetBundle is null) return;
+
+        var stackTools = mw.Tools.Where(t => targetBundle.Tools.Contains(t.Id, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (stackTools.Count == 0) return;
+
+        try
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var safeName = targetBundle.Id.ToLowerInvariant().Replace(' ', '-');
+            var filePath = System.IO.Path.Combine(folder, $"devcontainer-stack-{safeName}-{DateTime.Now:yyyyMMdd-HHmm}.zip");
+
+            DevContainerGeneratorService.ExportDevContainerZip(stackTools, filePath, targetBundle.Name);
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "DevContainer Stack Exported",
+                Content = new ScrollViewer
+                {
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = $"DevContainer package for {targetBundle.Name} ({stackTools.Count} tools) generated at:",
+                                TextWrapping = TextWrapping.Wrap
+                            },
+                            new TextBox { Text = filePath, IsReadOnly = true, TextWrapping = TextWrapping.Wrap },
+                            new TextBlock
+                            {
+                                Text = "Extract into your repository root and launch in VS Code with Remote-Containers to develop inside an isolated environment with this exact stack pre-configured.",
+                                FontSize = 12,
+                                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                                TextWrapping = TextWrapping.Wrap
+                            }
+                        }
+                    }
+                },
+                CloseButtonText = "OK",
+                DefaultButton = ContentDialogButton.Close
+            };
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"DevContainer export failed: {ex.Message}";
+        }
     }
 
     private void BrowseCatalog_Click(object sender, RoutedEventArgs e)

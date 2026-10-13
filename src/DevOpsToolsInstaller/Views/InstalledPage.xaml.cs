@@ -802,6 +802,57 @@ public sealed partial class InstalledPage : Page
         }
     }
 
+    private async void ExportDevContainer_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            var filePath = Path.Combine(folder, $"devcontainer-workstation-{DateTime.Now:yyyyMMdd-HHmm}.zip");
+
+            var toolsToExport = _allInstalledTools.Count > 0
+                ? _allInstalledTools
+                : App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+
+            DevContainerGeneratorService.ExportDevContainerZip(toolsToExport, filePath, "DevOps Workstation");
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = "DevContainer Exported",
+                Content = new ScrollViewer
+                {
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = $"DevContainer package containing {toolsToExport.Count} tool configuration(s) generated at:",
+                                TextWrapping = TextWrapping.Wrap
+                            },
+                            new TextBox { Text = filePath, IsReadOnly = true, TextWrapping = TextWrapping.Wrap },
+                            new TextBlock
+                            {
+                                Text = "Extract the .devcontainer folder into your project root and open in VS Code with the Dev Containers extension to develop in an isolated Linux container matching your DevOps toolchain.",
+                                FontSize = 12,
+                                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                                TextWrapping = TextWrapping.Wrap
+                            }
+                        }
+                    }
+                },
+                CloseButtonText = "OK",
+                DefaultButton = ContentDialogButton.Close
+            };
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"DevContainer export failed: {ex.Message}";
+        }
+    }
+
     private void GoToCatalog_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindowInstance?.NavigateTo("Catalog");

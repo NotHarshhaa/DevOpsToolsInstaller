@@ -23,6 +23,18 @@ public static class ToolActions
             mw.DownloadQueue.Add(tool);
         }
 
+        if (DownloadSchedulerService.IsOffPeakActive)
+        {
+            tool.Status = ToolStatus.Scheduled;
+            tool.Progress = 0;
+            ActivityLogService.Info(tool.Name, $"Transfer scheduled for off-peak window ({SettingsService.GetScheduleWindowDescription()}).");
+            if (SettingsService.EnableNotifications)
+            {
+                ToastService.Show($"{tool.Name} Scheduled", $"Download scheduled for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+            }
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             try

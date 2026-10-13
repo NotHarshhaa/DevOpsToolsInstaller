@@ -33,6 +33,16 @@
             </StackPanel>
             <TextBlock Text="Track real-time transfers, verify digital signatures, launch installers, and manage extracted CLI binaries."
                        Style="{StaticResource PageSubtitleStyle}" />
+            <InfoBar x:Name="ScheduleInfoBar"
+                     IsOpen="False"
+                     Severity="Informational"
+                     Title="Off-Peak Download Scheduler Active"
+                     Message="Transfers are queued for off-peak hours."
+                     Margin="0,8,0,0">
+                <InfoBar.ActionButton>
+                    <Button Content="Start All Now" Click="StartAllScheduled_Click" Style="{StaticResource AccentButtonStyle}" />
+                </InfoBar.ActionButton>
+            </InfoBar>
         </StackPanel>
 
         <!-- ══════════════════════════════════ -->
@@ -59,6 +69,8 @@
                 <Button x:Name="FilterAllBtn" Content="All" Click="FilterTab_Click" Tag="All"
                         Style="{StaticResource SelectedCategoryChipStyle}" />
                 <Button x:Name="FilterDownloadingBtn" Content="Downloading" Click="FilterTab_Click" Tag="Downloading"
+                        Style="{StaticResource CategoryChipStyle}" />
+                <Button x:Name="FilterScheduledBtn" Content="Scheduled" Click="FilterTab_Click" Tag="Scheduled"
                         Style="{StaticResource CategoryChipStyle}" />
                 <Button x:Name="FilterReadyBtn" Content="Ready to Install" Click="FilterTab_Click" Tag="Ready"
                         Style="{StaticResource CategoryChipStyle}" />

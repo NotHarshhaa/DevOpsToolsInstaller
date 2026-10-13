@@ -12,7 +12,8 @@ public enum ToolStatus
     NotDownloaded,
     Downloading,
     Downloaded,
-    Failed
+    Failed,
+    Scheduled
 }
 
 /// <summary>
@@ -557,6 +558,9 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     public bool IsDownloading => Status == ToolStatus.Downloading;
 
     [JsonIgnore]
+    public bool IsScheduled => Status == ToolStatus.Scheduled;
+
+    [JsonIgnore]
     public string ActionStatusText => IsDownloadedOrInstalled ? "Installed" : "Install";
 
     [JsonIgnore]
@@ -691,6 +695,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             ToolStatus.Downloading => "Downloading...",
             ToolStatus.Downloaded => "Ready to install",
             ToolStatus.Failed => "Download failed",
+            ToolStatus.Scheduled => "Scheduled (off-peak)",
             _ => "Unknown"
         };
     }
