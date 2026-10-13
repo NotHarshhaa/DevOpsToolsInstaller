@@ -109,6 +109,7 @@ public static class ArtifactService
             ActivityLogService.Info(tool.Name, $"Signature check passed: {signature.StatusBadge}");
         }
 
+        ActivityLogService.Info(tool.Name, $"Launching installer process: {tool.FileName}");
         LauncherService.Launch(tool, downloadsFolder);
         return new ArtifactActionResult(true, $"Launched {tool.Name} installer.");
     }
@@ -117,6 +118,8 @@ public static class ArtifactService
     {
         var fileName = Path.GetFileName(sourcePath);
         var ext = Path.GetExtension(sourcePath).ToLowerInvariant();
+
+        ActivityLogService.Info(tool.Name, $"Extracting {fileName} archive...");
 
         string target;
         if (ext == ".zip")
@@ -173,6 +176,7 @@ public static class ArtifactService
             : "Executable(s) copied to Tools\\bin (add it to your PATH to use anywhere).";
 
         var extraInfo = copiedNames.Count > 0 ? $" {pathHint}" : "";
+        ActivityLogService.Success(tool.Name, $"Installation complete: {tool.Name} deployed to Tools\\{tool.Id}.{extraInfo}");
         return new ArtifactActionResult(true, $"{tool.Name} extracted to Tools\\{tool.Id}.{extraInfo}");
     }
 

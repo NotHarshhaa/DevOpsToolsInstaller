@@ -109,6 +109,18 @@ public static class SettingsService
     /// <summary>Interval in minutes between automatic download retries.</summary>
     public static int AutoRetryIntervalMinutes { get; set; } = 10;
 
+    /// <summary>Collapsible bottom log drawer height in pixels (default 260).</summary>
+    public static double LogDrawerHeight { get; set; } = 260.0;
+
+    /// <summary>Whether the bottom log drawer is currently open.</summary>
+    public static bool LogDrawerIsOpen { get; set; } = false;
+
+    /// <summary>Whether live log drawer auto-scroll is enabled.</summary>
+    public static bool LogDrawerAutoScroll { get; set; } = true;
+
+    /// <summary>Active level filter in the live log drawer ("All", "Info", "Warning", "Error").</summary>
+    public static string LogDrawerLevelFilter { get; set; } = "All";
+
     public static bool IsWithinScheduleWindow()
     {
         if (!DownloadScheduleEnabled) return true;
@@ -254,6 +266,27 @@ public static class SettingsService
                 {
                     AutoRetryIntervalMinutes = rIntProp.GetInt32();
                 }
+
+                if (doc.RootElement.TryGetProperty("LogDrawerHeight", out var ldHProp))
+                {
+                    LogDrawerHeight = Math.Clamp(ldHProp.GetDouble(), 120.0, 700.0);
+                }
+
+                if (doc.RootElement.TryGetProperty("LogDrawerIsOpen", out var ldOpenProp))
+                {
+                    LogDrawerIsOpen = ldOpenProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("LogDrawerAutoScroll", out var ldScProp))
+                {
+                    LogDrawerAutoScroll = ldScProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("LogDrawerLevelFilter", out var ldFiltProp))
+                {
+                    var filt = ldFiltProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(filt)) LogDrawerLevelFilter = filt;
+                }
             }
         }
         catch
@@ -294,7 +327,11 @@ public static class SettingsService
                 ScheduleStartHour = ScheduleStartHour,
                 ScheduleEndHour = ScheduleEndHour,
                 AutoRetryFailedDownloads = AutoRetryFailedDownloads,
-                AutoRetryIntervalMinutes = AutoRetryIntervalMinutes
+                AutoRetryIntervalMinutes = AutoRetryIntervalMinutes,
+                LogDrawerHeight = LogDrawerHeight,
+                LogDrawerIsOpen = LogDrawerIsOpen,
+                LogDrawerAutoScroll = LogDrawerAutoScroll,
+                LogDrawerLevelFilter = LogDrawerLevelFilter
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

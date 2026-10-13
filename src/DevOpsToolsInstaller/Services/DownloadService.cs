@@ -323,11 +323,18 @@ public sealed class DownloadService
             }
 
             // Verify hash if specified
-            if (!string.IsNullOrEmpty(tool.Sha256) && !await VerifyHashAsync(partialPath, tool.Sha256, ct))
+            if (!string.IsNullOrEmpty(tool.Sha256))
             {
-                // A corrupt partial cannot be resumed — discard it entirely.
-                CleanupPartial(partialPath);
-                throw new CryptographicException("SHA256 checksum verification failed.");
+                ActivityLogService.Info(tool.Name, "Verifying SHA-256 integrity checksum...");
+                if (!await VerifyHashAsync(partialPath, tool.Sha256, ct))
+                {
+                    ActivityLogService.Error(tool.Name, $"SHA-256 checksum verification failed (expected: {tool.Sha256})");
+                    // A corrupt partial cannot be resumed — discard it entirely.
+                    CleanupPartial(partialPath);
+                    throw new CryptographicException("SHA256 checksum verification failed.");
+                }
+                var shortHash = tool.Sha256.Length > 12 ? tool.Sha256[..12] + "…" : tool.Sha256;
+                ActivityLogService.Success(tool.Name, $"SHA-256 checksum verified ({shortHash})");
             }
 
             // Promote the verified partial file to its final name.

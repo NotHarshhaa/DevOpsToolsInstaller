@@ -47,7 +47,17 @@ public static class ActivityLogService
     /// <summary>
     /// Maximum number of entries retained (oldest are trimmed).
     /// </summary>
-    private const int MaxEntries = 200;
+    private const int MaxEntries = 5000;
+
+    /// <summary>
+    /// Event raised on the UI thread when a new log entry is published.
+    /// </summary>
+    public static event Action<LogEntry>? EntryAdded;
+
+    /// <summary>
+    /// Event raised on the UI thread when the log is cleared.
+    /// </summary>
+    public static event Action? Cleared;
 
     /// <summary>
     /// The observable collection bound by the Downloads page.
@@ -83,6 +93,8 @@ public static class ActivityLogService
             // Trim old entries
             while (Entries.Count > MaxEntries)
                 Entries.RemoveAt(Entries.Count - 1);
+
+            EntryAdded?.Invoke(entry);
         });
 
         WriteToAuditFile(entry);
@@ -123,6 +135,10 @@ public static class ActivityLogService
     /// <summary>Clears all log entries.</summary>
     public static void Clear()
     {
-        UiDispatcher.Run(() => Entries.Clear());
+        UiDispatcher.Run(() =>
+        {
+            Entries.Clear();
+            Cleared?.Invoke();
+        });
     }
 }

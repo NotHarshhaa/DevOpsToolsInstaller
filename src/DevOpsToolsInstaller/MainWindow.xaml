@@ -2,7 +2,8 @@
     x:Class="DevOpsToolsInstaller.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:customControls="using:DevOpsToolsInstaller.Controls">
 
     <!-- No Background set: the Mica backdrop shows through. -->
     <Grid x:Name="RootGrid">
@@ -21,14 +22,26 @@
                 <controls:ImageIconSource x:Name="AppTitleBarIconSource" ImageSource="ms-appx:///Assets/app.png" />
             </controls:TitleBar.IconSource>
             <controls:TitleBar.Content>
-                <AutoSuggestBox x:Name="NavSearchBox"
-                                Width="320"
-                                QueryIcon="Find"
-                                PlaceholderText="Search tools... (Ctrl+K)"
-                                QuerySubmitted="NavSearchBox_QuerySubmitted"
-                                TextChanged="NavSearchBox_TextChanged"
-                                VerticalAlignment="Center"
-                                AutomationProperties.Name="Global tool search" />
+                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <AutoSuggestBox x:Name="NavSearchBox"
+                                    Width="300"
+                                    QueryIcon="Find"
+                                    PlaceholderText="Search tools... (Ctrl+K)"
+                                    QuerySubmitted="NavSearchBox_QuerySubmitted"
+                                    TextChanged="NavSearchBox_TextChanged"
+                                    VerticalAlignment="Center"
+                                    AutomationProperties.Name="Global tool search" />
+                    <Button x:Name="LogDrawerToggleBtn"
+                            Click="LogDrawerToggleBtn_Click"
+                            ToolTipService.ToolTip="Toggle live log drawer (Ctrl+`)"
+                            AutomationProperties.Name="Toggle live activity log drawer"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE756;" FontSize="12" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            <TextBlock Text="Logs" FontSize="12" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
             </controls:TitleBar.Content>
         </controls:TitleBar>
 
@@ -97,7 +110,12 @@
                 BorderThickness="1,1,0,0"
                 CornerRadius="10,0,0,0"
                 Margin="0,0,0,0">
-                <Frame x:Name="ContentFrame" Background="Transparent">
+                <Grid x:Name="ContentHostGrid">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Frame x:Name="ContentFrame" Grid.Row="0" Background="Transparent">
                     <Frame.ContentTransitions>
                         <TransitionCollection>
                             <NavigationThemeTransition>
@@ -107,7 +125,9 @@
                             </NavigationThemeTransition>
                         </TransitionCollection>
                     </Frame.ContentTransitions>
-                </Frame>
+                    </Frame>
+                    <customControls:LogDrawerControl x:Name="BottomLogDrawer" Grid.Row="1" />
+                </Grid>
             </Border>
         </controls:NavigationView>
     </Grid>

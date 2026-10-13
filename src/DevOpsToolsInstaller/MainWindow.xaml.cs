@@ -240,6 +240,35 @@ public sealed partial class MainWindow : Window
         {
             RemoveTogglePaneButtonFocusVisual(NavView);
         };
+
+        // Shortcut Ctrl+` to toggle collapsible bottom live log drawer
+        var logDrawerAccel = new Microsoft.UI.Xaml.Input.KeyboardAccelerator
+        {
+            Modifiers = Windows.System.VirtualKeyModifiers.Control,
+            Key = (Windows.System.VirtualKey)192 // VK_OEM_3 (Backtick `)
+        };
+        logDrawerAccel.Invoked += (s, e) =>
+        {
+            BottomLogDrawer.Toggle(animate: true);
+            e.Handled = true;
+        };
+        RootGrid.KeyboardAccelerators.Add(logDrawerAccel);
+
+        RootGrid.KeyDown += (s, e) =>
+        {
+            var ctrl = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(Windows.System.VirtualKey.Control)
+                .HasFlag(Windows.UI.Core.CoreVirtualKeyStates.Down);
+            if (ctrl && ((int)e.Key == 192 || (int)e.OriginalKey == 192))
+            {
+                BottomLogDrawer.Toggle(animate: true);
+                e.Handled = true;
+            }
+        };
+    }
+
+    private void LogDrawerToggleBtn_Click(object sender, RoutedEventArgs e)
+    {
+        BottomLogDrawer.Toggle(animate: true);
     }
 
     public void ApplyTheme(AppTheme theme)
@@ -600,6 +629,7 @@ public sealed partial class MainWindow : Window
             new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
             new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
             new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
+            new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
             new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
             new("Go to About", "\uE946", () => NavigateTo("About")),
             new("Check for tool updates", "\uE895", () => NavigateTo("Installed")),
