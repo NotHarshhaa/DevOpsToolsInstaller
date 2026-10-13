@@ -40,6 +40,9 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | :--- | :--- |
 | 🪟 **Truly native Windows 11** | Mica Alt backdrop, Fluent `CommandBar` toolbars, your **own system accent color**, `InfoBadge` update counters, Segoe Fluent Icons — no custom theme hacks. |
 | 📦 **90 official tools, 12 curated stacks** | Direct-from-vendor artifacts with role-based presets (Kubernetes, DevSecOps, Cloud, IaC, Observability, Terminal). |
+| 🧱 **Custom Stack Builder** | 2-column composer: drag tool cards into "My Stack", reorder, inspect live download size estimates, save presets, and export/import `.json`. |
+| 🩺 **Workstation Doctor** | 5-point environment diagnostics (PATH duplicates/conflicts, multi-version CLIs, missing prerequisites, stale versions) with 1-click confirmed fixes and markdown report export. |
+| 📋 **Global Live Log Drawer (`Ctrl+\``)** | Collapsible, resizable, virtualized drawer available across every page with live download, SHA-256, and signature verification events. |
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
 | 🛡️ **Security-first pipeline** | HTTPS-only fetches → SHA-256 verification → Authenticode `WinVerifyTrust` with a configurable **Warn / Block** policy → Mark-of-the-Web tagging → on-disk audit log → **cryptographically signed catalog** (fail-closed). |
 | 🖥️ **Headless CLI mode** | `DevOpsToolsInstaller.exe --install kubectl,terraform` for scripts, machine provisioning, and CI — with proper exit codes. |
@@ -57,7 +60,9 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [Application Tour & Navigation](#application-tour--navigation)
 - [Headless CLI Mode](#headless-cli-mode)
 - [Tool Categories (90 Tools)](#tool-categories-90-tools)
-- [Curated Stacks & Workstation Presets](#curated-stacks--workstation-presets)
+- [Curated Stacks & Custom Stack Builder](#curated-stacks--custom-stack-builder)
+- [Workstation Doctor & Environment Diagnostics](#workstation-doctor--environment-diagnostics)
+- [Global Collapsible Log Drawer (Ctrl+`)](#global-collapsible-log-drawer-ctrl)
 - [What Happens After Download](#what-happens-after-download)
 - [Resumable Download Engine](#resumable-download-engine)
 - [Installed Tools, Health Checks & Shell Completions](#installed-tools-health-checks--shell-completions)
@@ -139,7 +144,28 @@ The application uses the Windows 11 **Mica Alt** translucent canvas, **your syst
   - **Category Filter Chips + Favorites (★)**: Instant filtering; star preferred tools.
   - **Profile Import & Export**: Export your tool selections to a `.json` profile file to share across teams or restore setups instantly.
   - **Active Stack Banner**: Interactive banner showing current stack filtering with a single-click "Clear Filter" action.
-- **🚀 Curated Stacks (`StacksPage`)**: 12 role-based workstation bundles with live installed-count badges, tool logo previews, **Install Stack** (batch download + navigate to live progress) and **Customize in Catalog** actions.
+- **🚀 Curated Stacks & Custom Stack Builder (`StacksPage`)**:
+  - **12 Curated Workstation Presets**: Role-based bundles with live installed-count badges, tool logo previews, 1-click batch install, and catalog customization.
+  - **Custom Stack Builder**: Interactive 2-column composer (Segmented mode toggle) allowing engineers to build bespoke stacks:
+    - Searchable tool catalog on the left with keyboard-friendly **"+ Add"** buttons.
+    - Right-hand **"My Stack"** drop zone with drag-and-drop reordering, Up/Down controls, and <kbd>Delete</kbd> key removal.
+    - Live metrics header displaying total tool count and estimated download size.
+    - Local preset saving (`custom_stacks.json`), portable JSON Export/Import with catalog validation, and 1-click batch installation.
+- **🩺 Workstation Doctor (`DoctorPage`)**:
+  - Full workstation health and environment diagnostics across 5 critical categories:
+    - PATH conflicts and duplicate entries.
+    - Missing runtime prerequisites (e.g., WSL2, Hyper-V, virtualization).
+    - Multiple conflicting versions of the same CLI on PATH.
+    - Installed tools that are outdated relative to the catalog.
+    - Tools installed in `%LOCALAPPDATA%\...\Tools\bin` that are missing from your PATH.
+  - Asynchronous non-blocking scanning with live status badges (`Passed`, `Warnings`, `Failed`).
+  - Interactive **Fix** actions that always prompt for confirmation before modifying environment settings, plus a **Copy Report** button for markdown diagnostics.
+- **📋 Collapsible Live Log Drawer (Universal, `Ctrl+\``)**:
+  - Slide-up bottom drawer accessible across every page via button toggle or global <kbd>Ctrl</kbd>+<kbd>`</kbd> shortcut.
+  - Resizable height (persisted in user preferences) with high-performance list virtualization for thousands of lines.
+  - Live streams download events, SHA-256 verifications, Authenticode checks, and install outcomes.
+  - Features real-time text search, severity filter (`All`, `Info`, `Warn`, `Error`), pause auto-scroll toggle, and clipboard copy.
+  - Respects your system accent color and the Windows *Reduce animations* setting.
 - **📥 Downloads (`DownloadsPage`)**: Concurrent download manager (up to 3 parallel transfers) with live speeds, percentages, Authenticode signature badges, status filter chips, an in-app **Activity & Diagnostic Log**, and post-download action triggers.
 - **🩺 Installed Tools (`InstalledPage`)**:
   - Complete inventory with a native **InfoBadge update counter** on the navigation item.
@@ -264,10 +290,78 @@ The **Curated Stacks** section offers 12 opinionated, battle-tested bundles desi
 
 ### Dual-Action Workflow
 - **Install Stack**: Queues and batch-downloads every tool in the stack (skipping anything already installed) and jumps you to live progress.
-- **Select Stack**: Applies a live filter to the Catalog, enabling you to review, customize, or selectively install tools in the stack.
+- **Select Stack / Customize in Catalog**: Applies a live filter to the Catalog, enabling you to review, customize, or selectively install tools in the stack.
+- **Open in Stack Builder**: Loads any curated stack directly into the interactive builder for instant personalization.
 
 > [!TIP]
-> Use **"Select Stack"** to preview tools in the catalog and customize your installation with selective checkboxes before queueing downloads.
+> Use **"Select Stack"** to preview tools in the catalog, or click **"Open in Stack Builder"** from any stack card's menu to tweak tools before installation.
+
+---
+
+### Custom Stack Builder
+
+Build, share, and deploy tailored workstation configurations using the integrated **Custom Stack Builder** directly on `StacksPage`:
+
+<p align="center">
+  <em>Toggle between "Presets" and "Stack Builder" in the Stacks header to compose custom toolsets.</em>
+</p>
+
+1. **Two-Column Responsive Layout**:
+   - **Catalog Browser (Left)**: Live search filter (`AutoSuggestBox`), category badges, vector logos, and accessible **"+ Add"** buttons.
+   - **My Stack Composer (Right)**: Drag-and-drop landing area with editable stack metadata, reorderable items, and action controls.
+2. **Intuitive Drag, Reorder & Removal**:
+   - Drag tool cards from the catalog into the stack area.
+   - Drag items within "My Stack" to reorder, or use the dedicated **Move Up** (``) and **Move Down** (``) controls.
+   - Remove tools with the red **Remove** (``) button or by selecting an item and pressing <kbd>Delete</kbd>.
+3. **Live Metrics Summary**:
+   - Displays real-time **Total Tools Count** and **Estimated Download Size**.
+   - Estimates automatically account for already-cached local installers and package types (`Installer`, `Archive`, `Binary`).
+4. **Save, Export & Import**:
+   - **Save**: Saves locally to `%LOCALAPPDATA%\DevOpsToolsInstaller\custom_stacks.json`. Custom stacks appear in your presets grid across app launches.
+   - **Export (.json)**: Generates a lightweight, version-controlled JSON stack definition to share with teammates.
+   - **Import (.json)**: Validates imported files against the tool catalog. Unknown or deprecated tool IDs are cleanly skipped, and an `InfoBar` notifies you of what was loaded and any unrecognized IDs.
+5. **One-Click Installation**:
+   - Click **Install This Stack** to automatically resolve uninstalled tools, enqueue them into the download pipeline, respect off-peak schedules, and navigate directly to the Downloads page with live progress.
+6. **Full Keyboard Accessibility**:
+   - Use the **"+ Add"** button on any catalog card for 100% keyboard-only stack assembly.
+
+---
+
+## Workstation Doctor & Environment Diagnostics
+
+Available directly from the sidebar navigation (`DoctorPage`), the **Workstation Doctor** scans your local environment to catch silent configuration drift, broken paths, and version collisions before they break scripts or builds:
+
+| Check Category | What It Inspects | Fix / Remediation |
+| :--- | :--- | :--- |
+| **PATH Conflicts & Duplicates** | User and system PATH environment variables for redundant entries, malformed syntax, or missing directories. | Safely deduplicates and prunes non-existent paths with a timestamped backup before modification. |
+| **Missing Prerequisites** | Foundational system features (e.g. WSL2, Hyper-V, virtualization platform, developer mode). | Guidance and one-click commands to activate required optional components. |
+| **Multi-Version CLI Conflicts** | Scans PATH for multiple competing binaries of the same CLI (e.g. `terraform.exe` in both `Tools\bin` and `Chocolatey\bin`). | Pinpoints duplicate executable locations so you can resolve path precedence. |
+| **Outdated Catalog Tools** | Compares active CLI versions against the cryptographically signed catalog. | Highlights outdated tools with a direct jump to upgrade them via the installer pipeline. |
+| **Tools Installed but Missing from PATH** | Checks whether binaries in `%LOCALAPPDATA%\...\Tools\bin` are absent from user PATH. | One-click confirmed addition to user environment variables without admin rights. |
+
+> [!IMPORTANT]  
+> **Safety First:** The Doctor runs scans asynchronously without blocking the UI. Every single **"Fix"** action requires explicit user confirmation via a dialog before any system change is committed.
+
+- **Re-run Checks**: Refresh diagnostics at any time with a single click.
+- **Copy Report**: Copies an exhaustive Markdown diagnostic summary to your clipboard for GitHub issues, team onboarding audits, or IT tickets.
+
+---
+
+## Global Collapsible Log Drawer (Ctrl+\`)
+
+A universal diagnostic and audit log drawer is accessible across **every page** in the application:
+
+- **Instant Toggle**: Click the bottom log drawer button or hit <kbd>Ctrl</kbd>+<kbd>`</kbd> (Backtick) anywhere in the application.
+- **Real-Time Streaming**: Observes background download chunks, SHA-256 hash checks, Authenticode `WinVerifyTrust` evaluations, and installer execution events as they happen.
+- **High-Performance Virtualization**: Virtualized `ListView` renders thousands of events smoothly without frame drops.
+- **Filtering & Search**:
+  - Filter by log severity: **All**, **Info**, **Warning**, and **Error** via Fluent Segmented control.
+  - Real-time text search to quickly locate specific tool IDs or error strings.
+- **Controls & Accessibility**:
+  - **Auto-Scroll Toggle**: Pause auto-scrolling when inspecting past events.
+  - **Clear & Copy**: One-click buffer clearing and Markdown/text export to clipboard.
+  - **Resizable & Persistent**: Drag the top border to resize; your preferred height is remembered across sessions.
+  - Respects your system accent theme and the Windows *Reduce animations* accessibility preference.
 
 ---
 
@@ -437,6 +531,9 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 - [x] Custom / private catalog sources (bring your own signed tool feeds)
 - [x] Download scheduling and bandwidth throttling
 - [x] Interactive PATH Environment Doctor & Fixer
+- [x] Workstation Doctor (multi-category environment diagnostics & confirmed fixes)
+- [x] Custom Stack Builder (drag-and-drop, estimated sizes, JSON import/export)
+- [x] Global live diagnostic log drawer (`Ctrl+\``)
 - [x] VS Code DevContainer & Dockerfile workstation generator
 - [ ] Cloud-synced workstation profiles across machines
 - [ ] Per-tool pre/post-install scripts (user-reviewed, never silent)

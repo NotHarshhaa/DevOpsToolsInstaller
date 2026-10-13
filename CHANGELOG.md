@@ -9,7 +9,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+- **Custom Stack Builder (`StacksPage`)**:
+  - Interactive 2-column composer with a smooth Segmented switcher between "Presets" and "Stack Builder" (`ViewModels/StackBuilderViewModel.cs`, `Services/CustomStacksService.cs`).
+  - Searchable catalog on the left with vector logos, badges, and keyboard-accessible **"+ Add"** buttons.
+  - "My Stack" drop target on the right with drag-and-drop tool additions, drag reordering, and dedicated **Move Up** / **Move Down** controls.
+  - Delete tools via dedicated remove buttons or by selecting an item and pressing <kbd>Delete</kbd>.
+  - Stack naming and description inputs with live reactive metrics: **Total Tools Count** and **Estimated Download Size** (based on disk cache and package kinds).
+  - Local persistence to `%LOCALAPPDATA%\DevOpsToolsInstaller\custom_stacks.json` automatically loaded into global presets.
+  - Portable **Export (.json)** and **Import (.json)** with catalog validation (unknown or deprecated tool IDs are safely skipped and reported via `InfoBar`).
+  - 1-click **"Install This Stack"** reusing batch downloads, concurrency limits, and off-peak scheduling.
+  - Added **"Open in Stack Builder"** flyout action to all 12 curated preset cards for instant stack customization.
+- **Workstation Doctor Page (`DoctorPage`)**:
+  - Dedicated health & diagnostics page in `NavigationView` (`Views/DoctorPage.xaml`, `ViewModels/DoctorViewModel.cs`, `Services/DoctorService.cs`).
+  - 5-category non-blocking scans: PATH conflicts & duplicates, missing prerequisites (WSL2, Hyper-V, virtualization), multi-version CLI conflicts, outdated tools vs. catalog, and installed tools missing from PATH.
+  - Live scan status header with `ProgressRing` and count badges (`Passed`, `Warnings`, `Failed`).
+  - Grouped findings with explanations and confirmed **Fix** actions that prompt for explicit user confirmation before applying system changes.
+  - **Re-run checks** and **Copy report** (Markdown format) buttons with full Narrator and keyboard accessibility.
+- **Global Collapsible Log Drawer (`LogDrawerControl`)**:
+  - Universal bottom log drawer available across every page in the application (`Controls/LogDrawerControl.xaml`, `ViewModels/LogDrawerViewModel.cs`).
+  - Slide-up toggle button and global <kbd>Ctrl</kbd>+<kbd>`</kbd> keyboard shortcut.
+  - Drag-resizable height remembered across sessions in user settings.
+  - Live streams download chunks, SHA-256 verifications, Authenticode `WinVerifyTrust` checks, and installation outcomes with timestamps and color-coded severity.
+  - Virtualized `ListView` for smooth performance with thousands of entries.
+  - Fluent `Segmented` severity filtering (`All`, `Info`, `Warning`, `Error`), live search filter, auto-scroll pause toggle, clear, and clipboard copy.
+  - Respects app theme, system accent colors, and Windows *Reduce animations* accessibility settings.
 - **PATH Environment Doctor & Fixer**:
   - Comprehensive inspection of User and Process PATH environment variables detecting duplicate entries, non-existent directories, malformed entries, and missing `Tools\bin` directory (`Services/PathDoctorService.cs`).
   - Automatic timestamped backups prior to any modifications stored in `%LOCALAPPDATA%\DevOpsToolsInstaller\Backups\PATH`.
