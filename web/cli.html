@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Headless CLI Automation — DevOps Tools Installer</title>
+  <meta name="description" content="Automate workstation provisioning and CI runners with the DevOps Tools Installer headless CLI. Install tools, stacks, inspect PATH, and export profiles.">
+  <link rel="canonical" href="https://notharshhaa.github.io/DevOpsToolsInstaller/cli.html">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Headless CLI Automation — DevOps Tools Installer">
+  <meta property="og:description" content="Script workstation provisioning with DevOpsToolsInstaller.exe: --install, --install-bundle, --status, and --path-doctor.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://notharshhaa.github.io/DevOpsToolsInstaller/cli.html">
+  <meta property="og:image" content="https://notharshhaa.github.io/DevOpsToolsInstaller/assets/banner.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="logo-link" aria-label="DevOps Tools Installer Home">
+        <svg viewBox="0 0 260 36" width="220" height="30" fill="currentColor" aria-hidden="true">
+          <g transform="translate(2, 2)">
+            <rect x="0" y="0" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 11 L15 16 L9 21" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="21" x2="23" y2="21" stroke="currentColor" stroke-width="2"/>
+            <path d="M-2 4 V-2 H4 M28 -2 H34 V4 M34 28 V34 H28 M4 34 H-2 V28" fill="none" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <text x="46" y="22" font-family="ui-monospace, monospace" font-size="15" font-weight="700" letter-spacing="-0.02em" fill="currentColor">DEVOPS TOOLS</text>
+          <text x="180" y="22" font-family="ui-monospace, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="currentColor">INSTALLER</text>
+          <line x1="46" y1="28" x2="252" y2="28" stroke="currentColor" stroke-width="0.75" stroke-dasharray="3 3"/>
+        </svg>
+      </a>
+
+      <button id="nav-toggle" class="mobile-nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        MENU
+      </button>
+
+      <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="features.html" class="nav-link">Features</a></li>
+          <li><a href="security.html" class="nav-link">Security</a></li>
+          <li><a href="cli.html" class="nav-link" aria-current="page">CLI</a></li>
+          <li><a href="download.html" class="nav-link">Download</a></li>
+          <li><a href="faq.html" class="nav-link">FAQ</a></li>
+        </ul>
+        <div class="header-actions">
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+    <div class="container breadcrumb-nav">
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item"><a href="index.html" class="breadcrumb-link">Home</a></li>
+          <li class="breadcrumb-item" aria-current="page">Headless CLI</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Page Header -->
+    <section class="section-tight" aria-labelledby="page-title">
+      <div class="container">
+        <span class="micro-label">[01] TERMINAL AUTOMATION</span>
+        <h1 id="page-title" class="mb-2">Headless CLI Commands &amp; Automation</h1>
+        <p class="text-mute" style="max-width: 760px;">
+          Everything the GUI performs is completely scriptable. The portable binary attaches directly to your terminal session, outputs streaming events, and exits with standard exit codes for unattended provisioning, CI runners, and enterprise scripts.
+        </p>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- Quick Start Code Blocks -->
+    <section class="section" aria-labelledby="cli-examples-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[02]</span>
+          <span class="micro-label">INTERACTIVE EXAMPLES</span>
+          <h2 id="cli-examples-title" class="mb-4">Common CLI Workflows</h2>
+
+          <!-- Example 1: Install Tools -->
+          <article class="corner-box mb-4">
+            <h3 class="mb-1">1. Batch Tool Installation</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Installs individual tools by id. Automatically skips tools already detected on your system.
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span>PowerShell (Install Tools)</span>
+                <button class="copy-btn" aria-label="Copy tool installation command">COPY</button>
+              </div>
+              <div class="code-content">PS&gt; .\DevOpsToolsInstaller.exe --install kubectl,terraform,helm
+[get ] kubectl (kubectl.exe)
+       kubectl: 74%
+[ok  ] kubectl: copied to Tools\bin. It's on your PATH and ready to use.
+[get ] terraform (terraform_1.9.5_windows_amd64.zip)
+       terraform: 100% (SHA-256 verified)
+[ok  ] terraform: extracted to Tools\terraform and registered in Tools\bin.
+Done. 2 installed, 1 already present, 0 failed.</div>
+            </div>
+          </article>
+
+          <!-- Example 2: Install Curated Stack -->
+          <article class="corner-box mb-4">
+            <h3 class="mb-1">2. Provision Curated Stacks</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Deploys an entire role-based toolchain with one command (e.g. <code>k8s-starter</code>, <code>devsecops</code>, <code>iac-complete</code>).
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span>PowerShell (Install Bundle)</span>
+                <button class="copy-btn" aria-label="Copy stack installation command">COPY</button>
+              </div>
+              <div class="code-content">PS&gt; .\DevOpsToolsInstaller.exe --install-bundle k8s-starter
+Done. 7 installed, 0 already present, 0 failed.</div>
+            </div>
+          </article>
+
+          <!-- Example 3: Machine Status & Reporting -->
+          <article class="corner-box mb-4">
+            <h3 class="mb-1">3. Inventory Status &amp; Markdown Audit Report</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Query installed tools and generate an exhaustive markdown diagnostic report for IT onboarding or GitHub issues.
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span>PowerShell (Status &amp; Report)</span>
+                <button class="copy-btn" aria-label="Copy status and report command">COPY</button>
+              </div>
+              <div class="code-content"># Query local tool inventory
+PS&gt; .\DevOpsToolsInstaller.exe --status
+
+# Write markdown audit report of entire workstation
+PS&gt; .\DevOpsToolsInstaller.exe --report workstation-audit.md</div>
+            </div>
+          </article>
+
+          <!-- Example 4: Environment Path Doctor -->
+          <article class="corner-box mb-4">
+            <h3 class="mb-1">4. Workstation PATH Doctor &amp; Fixer</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Inspect user environment variables for dead folders, syntax errors, and duplicate entries, with automatic safe backups before fixing.
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span>PowerShell (PATH Doctor)</span>
+                <button class="copy-btn" aria-label="Copy path doctor command">COPY</button>
+              </div>
+              <div class="code-content"># Check User PATH for conflicts
+PS&gt; .\DevOpsToolsInstaller.exe --path-doctor
+
+# Automatically clean, prune missing directories, and deduplicate User PATH
+PS&gt; .\DevOpsToolsInstaller.exe --fix-path</div>
+            </div>
+          </article>
+
+          <!-- Example 5: Profile Export / Standalone Script -->
+          <article class="corner-box mb-4">
+            <h3 class="mb-1">5. Workstation Profiles &amp; Standalone Bootstrap Script</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Export your setup to version-controlled JSON, or generate a standalone script that requires no app binary on the target machine.
+            </p>
+            <div class="code-block">
+              <div class="code-header">
+                <span>PowerShell (Export &amp; Script Gen)</span>
+                <button class="copy-btn" aria-label="Copy export profile command">COPY</button>
+              </div>
+              <div class="code-content"># Export workstation configuration to JSON
+PS&gt; .\DevOpsToolsInstaller.exe --export-profile team-workstation.json
+
+# Restore on a new computer
+PS&gt; .\DevOpsToolsInstaller.exe --import-profile team-workstation.json
+
+# Generate standalone PowerShell script (downloads vendor files with no app dependency)
+PS&gt; .\DevOpsToolsInstaller.exe --generate-script bootstrap-new-hire.ps1</div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Complete Command Reference Table -->
+    <section class="section" aria-labelledby="cli-reference-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[03]</span>
+          <span class="micro-label">FLAG SPECIFICATION</span>
+          <h2 id="cli-reference-title" class="mb-2">Complete CLI Command Reference</h2>
+          <p class="text-mute mb-4">All options supported by <code>DevOpsToolsInstaller.exe</code>.</p>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 32%;">Command Flag</th>
+                  <th scope="col">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>--list</code></td>
+                  <td>List every tool in the catalog (ID, name, category, kind).</td>
+                </tr>
+                <tr>
+                  <td><code>--status</code></td>
+                  <td>Show which catalog tools are installed, with detected active versions.</td>
+                </tr>
+                <tr>
+                  <td><code>--install &lt;id,id,...&gt;</code></td>
+                  <td>Download and install specific tools (skips already-installed).</td>
+                </tr>
+                <tr>
+                  <td><code>--install-bundle &lt;bundleId&gt;</code></td>
+                  <td>Install every tool in a curated stack (e.g. <code>k8s-starter</code>, <code>iac-complete</code>).</td>
+                </tr>
+                <tr>
+                  <td><code>--update [id,id,...]</code></td>
+                  <td>Update outdated tools; with IDs, force-refresh specific tools.</td>
+                </tr>
+                <tr>
+                  <td><code>--uninstall &lt;id,id,...&gt;</code></td>
+                  <td>Uninstall specific tools (removes artifacts, launches vendor uninstallers).</td>
+                </tr>
+                <tr>
+                  <td><code>--download-only &lt;id,id,...&gt;</code></td>
+                  <td>Download artifacts without installing (for offline caches / USB drives).</td>
+                </tr>
+                <tr>
+                  <td><code>--download-only-bundle &lt;bundleId&gt;</code></td>
+                  <td>Pre-download a curated stack for air-gapped / offline machines.</td>
+                </tr>
+                <tr>
+                  <td><code>--export-profile &lt;file&gt;</code></td>
+                  <td>Export installed toolset to a JSON profile.</td>
+                </tr>
+                <tr>
+                  <td><code>--import-profile &lt;file&gt;</code></td>
+                  <td>Install tools from a JSON profile (skips already-installed).</td>
+                </tr>
+                <tr>
+                  <td><code>--import-winget &lt;file&gt;</code></td>
+                  <td>Migrate packages from a <code>winget export</code> JSON file.</td>
+                </tr>
+                <tr>
+                  <td><code>--import-choco &lt;file&gt;</code></td>
+                  <td>Migrate packages from chocolatey <code>list</code> command output.</td>
+                </tr>
+                <tr>
+                  <td><code>--report &lt;file&gt;</code></td>
+                  <td>Write an exhaustive markdown workstation report (tools, versions, security).</td>
+                </tr>
+                <tr>
+                  <td><code>--generate-script &lt;file&gt;</code></td>
+                  <td>Generate a standalone PowerShell bootstrap script for the current toolset.</td>
+                </tr>
+                <tr>
+                  <td><code>--generate-devcontainer &lt;dir&gt;</code></td>
+                  <td>Generate VS Code <code>devcontainer.json</code> and Dockerfile matching workstation tools.</td>
+                </tr>
+                <tr>
+                  <td><code>--path-doctor</code></td>
+                  <td>Inspect User PATH for duplicate entries, non-existent directories, and syntax issues.</td>
+                </tr>
+                <tr>
+                  <td><code>--fix-path</code></td>
+                  <td>Automatically clean and deduplicate User PATH with a timestamped backup.</td>
+                </tr>
+                <tr>
+                  <td><code>--downloads-folder &lt;path&gt;</code></td>
+                  <td>Redirect download directory (e.g. to a USB flash drive) for this execution.</td>
+                </tr>
+                <tr>
+                  <td><code>--version</code></td>
+                  <td>Print application version and exit.</td>
+                </tr>
+                <tr>
+                  <td><code>--help</code></td>
+                  <td>Display help text and usage flags.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CI / Script Integration Section -->
+    <section class="band-inverted" aria-labelledby="ci-title">
+      <div class="container">
+        <span class="micro-label">[04] AUTOMATION IN CI &amp; SCRIPTS</span>
+        <h2 id="ci-title" class="mb-2">Deterministic Exit Codes for Automation</h2>
+        <p class="text-mute mb-4" style="max-width: 720px;">
+          The CLI is built for strict error propagation. Use exit codes in automated setup scripts, Packer image provisioning, or developer bootstrap routines:
+        </p>
+
+        <div class="grid-2">
+          <div class="corner-box">
+            <h3 class="mb-1 font-mono">EXIT CODES</h3>
+            <p class="text-mute" style="font-size: var(--font-small); margin-bottom: var(--space-2);">
+              • <code>0</code>: All requested operations succeeded cleanly.<br>
+              • <code>1</code>: One or more tool downloads or verifications failed.
+            </p>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Vendor setup wizards still launch interactively with standard UAC prompts — nothing bypasses your organization's security policy.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-1 font-mono">PROVISIONING SNIPPET</h3>
+            <div class="code-block mt-0 mb-0">
+              <div class="code-header">
+                <span>PowerShell Error Handling</span>
+                <button class="copy-btn" aria-label="Copy CI script snippet">COPY</button>
+              </div>
+              <div class="code-content">.\DevOpsToolsInstaller.exe --install-bundle k8s-starter
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Workstation provisioning failed!"
+    exit 1
+}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="section section-tight" aria-labelledby="cli-cta-title">
+      <div class="container">
+        <div class="corner-box text-center">
+          <span class="micro-label">[05] GET THE EXECUTABLE</span>
+          <h2 id="cli-cta-title" class="mb-2">Ready to automate your developer workstation?</h2>
+          <p class="text-mute mb-4">Download the standalone portable executable or get it via WinGet.</p>
+          <div class="flex justify-between items-center flex-wrap gap-2" style="justify-content: center;">
+            <a href="download.html" class="btn-primary">Download Executable</a>
+            <a href="faq.html" class="btn-secondary">Read Frequently Asked Questions</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-link mb-2">
+            <span class="font-mono" style="font-size: 1.1rem; font-weight: 700;">DEVOPS TOOLS INSTALLER</span>
+          </div>
+          <p class="text-mute" style="font-size: var(--font-small); max-width: 380px;">
+            A native Windows 11 desktop application to discover, verify, and provision cloud CLIs, containers, and infrastructure tools. Open source under Apache-2.0.
+          </p>
+          <div class="badge-row mt-2">
+            <span class="badge-chip">v3.0.1</span>
+            <span class="badge-chip">WinUI 3</span>
+            <span class="badge-chip">.NET 8</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="features.html" class="footer-link">Features</a></li>
+            <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
+            <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
+            <li><a href="download.html" class="footer-link">Download</a></li>
+            <li><a href="faq.html" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="footer-link" target="_blank" rel="noopener noreferrer">Latest Release (v3.0.1) ↗</a></li>
+            <li><a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="footer-link" target="_blank" rel="noopener noreferrer">Microsoft Store ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CHANGELOG.md" class="footer-link" target="_blank" rel="noopener noreferrer">Changelog ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CONTRIBUTING.md" class="footer-link" target="_blank" rel="noopener noreferrer">Contributing Guide ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Legal &amp; Policy</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/LICENSE" class="footer-link" target="_blank" rel="noopener noreferrer">Apache-2.0 License ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/PRIVACY.md" class="footer-link" target="_blank" rel="noopener noreferrer">Privacy Notice ↗</a></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Zero Telemetry Mode</span></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Signed Catalog (ECDSA)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevOps Tools Installer. Licensed under Apache 2.0.</div>
+        <div>All third-party trademarks and logos belong to their respective copyright holders.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Essential Minimal JavaScript (<60 lines total) -->
+  <script>
+    const rootEl = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark' ||
+          (!rootEl.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        rootEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    }
+
+    const navBtn = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('site-nav');
+    if (navBtn && navMenu) {
+      navBtn.addEventListener('click', () => {
+        const isOpen = navMenu.classList.toggle('is-open');
+        navBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const codeEl = btn.closest('.code-block').querySelector('.code-content');
+        if (codeEl) {
+          navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+            const old = btn.textContent;
+            btn.textContent = 'COPIED';
+            setTimeout(() => { btn.textContent = old; }, 1800);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

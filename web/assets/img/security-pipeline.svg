@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 460" width="100%" height="auto" role="img" aria-label="DevOps Tools Installer 6-Stage Cryptographic Security Pipeline Diagram">
+  <defs>
+    <style>
+      .mono-bold { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-weight: 700; fill: #0a0a0a; }
+      .mono-mute { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; fill: #6b6b6b; font-size: 10px; }
+      .mono-white { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-weight: 700; fill: #fafafa; }
+      .mono-dim { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; fill: #888888; font-size: 11px; }
+    </style>
+  </defs>
+
+  <!-- Canvas Border -->
+  <rect x="1" y="1" width="878" height="458" fill="#fafafa" stroke="#0a0a0a" stroke-width="1.5"/>
+
+  <!-- Title Bar -->
+  <rect x="1" y="1" width="878" height="40" fill="#0a0a0a"/>
+  <text x="16" y="25" class="mono-white" font-size="13">ZERO-TRUST VERIFICATION PIPELINE — TECHNICAL SCHEMATIC</text>
+  <text x="670" y="25" class="mono-dim">[FAIL-CLOSED ARCHITECTURE]</text>
+
+  <!-- Flowchart Stages Container (Width: 820px, offset left: 30px) -->
+  <g transform="translate(30, 60)">
+    
+    <!-- STAGE 1 (top-left) -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[01] SIGNED CATALOG CHECK</text>
+      <text x="12" y="46" class="mono-mute">ECDSA P-256 signature checked</text>
+      <text x="12" y="60" class="mono-mute">against pinned public key.</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">VERDICT: Valid or Fail-Closed</text>
+    </g>
+
+    <!-- Arrow 1 -> 2 -->
+    <line x1="250" y1="50" x2="284" y2="50" stroke="#0a0a0a" stroke-width="1.5"/>
+    <polygon points="284,47 292,50 284,53" fill="#0a0a0a"/>
+
+    <!-- STAGE 2 (top-center) -->
+    <g transform="translate(285, 0)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[02] HTTPS-ONLY TRANSFER</text>
+      <text x="12" y="46" class="mono-mute">Direct to vendor release CDN.</text>
+      <text x="12" y="60" class="mono-mute">Plain HTTP refused and logged.</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">TRANSFER: Written to .partial</text>
+    </g>
+
+    <!-- Arrow 2 -> 3 -->
+    <line x1="535" y1="50" x2="569" y2="50" stroke="#0a0a0a" stroke-width="1.5"/>
+    <polygon points="569,47 577,50 569,53" fill="#0a0a0a"/>
+
+    <!-- STAGE 3 (top-right) -->
+    <g transform="translate(570, 0)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[03] SHA-256 INTEGRITY</text>
+      <text x="12" y="46" class="mono-mute">Cryptographic digest match.</text>
+      <text x="12" y="60" class="mono-mute">Mismatch deletes corrupted file.</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">PROMOTION: Promoted on pass</text>
+    </g>
+
+    <!-- Arrow 3 -> 4 (downwards) -->
+    <line x1="695" y1="100" x2="695" y2="134" stroke="#0a0a0a" stroke-width="1.5"/>
+    <polygon points="692,134 695,142 698,134" fill="#0a0a0a"/>
+
+    <!-- STAGE 4 (bottom-right) -->
+    <g transform="translate(570, 142)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[04] AUTHENTICODE SIGNATURE</text>
+      <text x="12" y="46" class="mono-mute">WinVerifyTrust evaluates vendor</text>
+      <text x="12" y="60" class="mono-mute">digital certificate (.exe/.msi).</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">POLICY: Warn / Block Mode</text>
+    </g>
+
+    <!-- Arrow 4 -> 5 (leftwards) -->
+    <line x1="570" y1="192" x2="543" y2="192" stroke="#0a0a0a" stroke-width="1.5"/>
+    <polygon points="543,189 535,192 543,195" fill="#0a0a0a"/>
+
+    <!-- STAGE 5 (bottom-center) -->
+    <g transform="translate(285, 142)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[05] MARK-OF-THE-WEB (MOTW)</text>
+      <text x="12" y="46" class="mono-mute">Zone.Identifier stream (ZoneId=3)</text>
+      <text x="12" y="60" class="mono-mute">preserves Windows SmartScreen.</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">SMARTSCREEN: Fully active</text>
+    </g>
+
+    <!-- Arrow 5 -> 6 (leftwards) -->
+    <line x1="285" y1="192" x2="258" y2="192" stroke="#0a0a0a" stroke-width="1.5"/>
+    <polygon points="258,189 250,192 258,195" fill="#0a0a0a"/>
+
+    <!-- STAGE 6 (bottom-left) -->
+    <g transform="translate(0, 142)">
+      <rect x="0" y="0" width="250" height="100" fill="#fafafa" stroke="#0a0a0a" stroke-width="1"/>
+      <text x="12" y="24" class="mono-bold" font-size="11">[06] AUDIT LOG APPEND</text>
+      <text x="12" y="46" class="mono-mute">Daily local activity trail</text>
+      <text x="12" y="60" class="mono-mute">recorded with exact timestamp.</text>
+      <text x="12" y="86" class="mono-bold" font-size="10">LOG: %LOCALAPPDATA%\logs</text>
+    </g>
+
+  </g>
+
+  <!-- Bottom Result Banner: Context-Aware Actions -->
+  <g transform="translate(30, 324)">
+    <rect x="0" y="0" width="820" height="74" fill="#0a0a0a"/>
+    <text x="16" y="28" class="mono-white" font-size="12">CONTEXT-AWARE EXECUTION (ZERO SILENT INSTALLS)</text>
+    <text x="16" y="50" class="mono-dim" font-size="11">Installer (.msi/.exe): Standard Vendor Wizard + UAC  |  Archive (.zip): Sandboxed extract  |  Binary: User Tools\bin</text>
+    <text x="16" y="64" class="mono-dim" font-size="10">Scripts (.ps1/.sh): Opened for manual review — never executed automatically.</text>
+  </g>
+</svg>

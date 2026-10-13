@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440" role="img" aria-label="Global Live Log Drawer Keyboard Shortcut Ctrl+` Mockup">
+  <rect x="1" y="1" width="798" height="438" fill="#fafafa" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Top App Bar Mock -->
+  <rect x="1" y="1" width="798" height="36" fill="#0a0a0a"/>
+  <text x="16" y="23" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#fafafa">APP PAGE VIEW — UNIVERSAL DRAWER SLIDE-UP DOCK</text>
+  <text x="620" y="23" font-family="ui-monospace, monospace" font-size="11" fill="#888888">TOGGLE: Ctrl+` (BACKTICK)</text>
+
+  <!-- Dummy main page area -->
+  <rect x="24" y="52" width="752" height="110" fill="none" stroke="#d9d9d9" stroke-width="1" stroke-dasharray="4 4"/>
+  <text x="40" y="80" font-family="ui-monospace, monospace" font-size="12" fill="#6b6b6b">ACTIVE WORKSPACE PAGE (Preserves scroll, filters, search states while drawer toggles)</text>
+  <text x="40" y="104" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">Drawer slides up from bottom dock across every view: Home, Catalog, Stacks, Doctor, Downloads.</text>
+
+  <!-- Drag-to-Resize Bar -->
+  <rect x="1" y="180" width="798" height="10" fill="#0a0a0a"/>
+  <line x1="380" y1="185" x2="420" y2="185" stroke="#fafafa" stroke-width="2"/>
+
+  <!-- Live Log Drawer Container -->
+  <rect x="1" y="190" width="798" height="248" fill="#0a0a0a"/>
+
+  <!-- Drawer Header / Controls -->
+  <g transform="translate(16, 202)">
+    <text x="0" y="18" font-family="ui-monospace, monospace" font-size="13" font-weight="700" fill="#fafafa">UNIVERSAL LIVE LOG DRAWER</text>
+    
+    <!-- Filter Segments -->
+    <rect x="230" y="2" width="220" height="24" fill="none" stroke="#fafafa" stroke-width="1"/>
+    <rect x="230" y="2" width="50" height="24" fill="#fafafa"/>
+    <text x="242" y="18" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0a0a0a">ALL</text>
+    <text x="292" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">INFO</text>
+    <text x="340" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">WARN</text>
+    <text x="390" y="18" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">ERROR</text>
+
+    <!-- Search box -->
+    <rect x="466" y="2" width="160" height="24" fill="none" stroke="#fafafa" stroke-width="1" stroke-dasharray="2 2"/>
+    <text x="478" y="18" font-family="ui-monospace, monospace" font-size="10" fill="#888888">Filter string...</text>
+
+    <!-- Drawer buttons -->
+    <rect x="640" y="2" width="64" height="24" fill="none" stroke="#fafafa" stroke-width="1"/>
+    <text x="650" y="18" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">COPY</text>
+    <rect x="712" y="2" width="56" height="24" fill="none" stroke="#fafafa" stroke-width="1"/>
+    <text x="722" y="18" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">CLEAR</text>
+  </g>
+
+  <!-- Virtualized log stream lines -->
+  <g transform="translate(16, 248)">
+    <text x="0" y="16" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:30:01.214] [INFO] [CATALOG] Verifying catalog signature against pinned ECDSA P-256 public key...</text>
+    <text x="0" y="36" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:30:01.238] [INFO] [CATALOG] Signature VALID. Remote catalog accepted (90 tools, 12 bundles).</text>
+    <text x="0" y="56" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:30:02.102] [INFO] [DOWNLOAD] Queueing artifact: terraform_1.9.5_windows_amd64.zip (18.2 MB)</text>
+    <text x="0" y="76" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:30:02.104] [INFO] [DOWNLOAD] HTTPS connection established to releases.hashicorp.com</text>
+    <text x="0" y="96" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:30:03.491] [INFO] [SECURITY] Calculating SHA-256 checksum on downloaded payload...</text>
+    <text x="0" y="116" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:30:03.510] [INFO] [SECURITY] SHA-256: 3a92... matched catalog digest exactly. Promoting from .partial</text>
+    <text x="0" y="136" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:30:03.542] [INFO] [SECURITY] WinVerifyTrust Authenticode signature check: VALID (HashiCorp, Inc.)</text>
+    <text x="0" y="156" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:30:03.560] [INFO] [ZONE] Tagged Mark-of-the-Web Zone.Identifier (ZoneId=3) for Windows SmartScreen.</text>
+    <text x="0" y="176" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:30:03.585] [INFO] [AUDIT] Written record to %LOCALAPPDATA%\DevOpsToolsInstaller\logs\activity-20261013.log</text>
+  </g>
+</svg>

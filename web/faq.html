@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frequently Asked Questions — DevOps Tools Installer</title>
+  <meta name="description" content="Answers to common questions about DevOps Tools Installer safety, zero silent installs, zero telemetry, supported Windows versions, stacks, and uninstallation.">
+  <link rel="canonical" href="https://notharshhaa.github.io/DevOpsToolsInstaller/faq.html">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="FAQ — DevOps Tools Installer">
+  <meta property="og:description" content="Honest answers regarding safety, telemetry, UAC prompts, supported versions, stacks, and architecture.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://notharshhaa.github.io/DevOpsToolsInstaller/faq.html">
+  <meta property="og:image" content="https://notharshhaa.github.io/DevOpsToolsInstaller/assets/banner.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="logo-link" aria-label="DevOps Tools Installer Home">
+        <svg viewBox="0 0 260 36" width="220" height="30" fill="currentColor" aria-hidden="true">
+          <g transform="translate(2, 2)">
+            <rect x="0" y="0" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 11 L15 16 L9 21" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="21" x2="23" y2="21" stroke="currentColor" stroke-width="2"/>
+            <path d="M-2 4 V-2 H4 M28 -2 H34 V4 M34 28 V34 H28 M4 34 H-2 V28" fill="none" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <text x="46" y="22" font-family="ui-monospace, monospace" font-size="15" font-weight="700" letter-spacing="-0.02em" fill="currentColor">DEVOPS TOOLS</text>
+          <text x="180" y="22" font-family="ui-monospace, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="currentColor">INSTALLER</text>
+          <line x1="46" y1="28" x2="252" y2="28" stroke="currentColor" stroke-width="0.75" stroke-dasharray="3 3"/>
+        </svg>
+      </a>
+
+      <button id="nav-toggle" class="mobile-nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        MENU
+      </button>
+
+      <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="features.html" class="nav-link">Features</a></li>
+          <li><a href="security.html" class="nav-link">Security</a></li>
+          <li><a href="cli.html" class="nav-link">CLI</a></li>
+          <li><a href="download.html" class="nav-link">Download</a></li>
+          <li><a href="faq.html" class="nav-link" aria-current="page">FAQ</a></li>
+        </ul>
+        <div class="header-actions">
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+    <div class="container breadcrumb-nav">
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item"><a href="index.html" class="breadcrumb-link">Home</a></li>
+          <li class="breadcrumb-item" aria-current="page">FAQ</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Page Header -->
+    <section class="section-tight" aria-labelledby="page-title">
+      <div class="container">
+        <span class="micro-label">[01] COMMON INQUIRIES</span>
+        <h1 id="page-title" class="mb-2">Frequently Asked Questions</h1>
+        <p class="text-mute" style="max-width: 760px;">
+          Direct, verifiable answers about the architecture, security guarantees, system storage, uninstallation, and contributions.
+        </p>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- FAQ Accordion Section using semantic details/summary -->
+    <section class="section" aria-labelledby="faq-section-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[02]</span>
+          <span class="micro-label">QUESTIONS &amp; ANSWERS</span>
+          <h2 id="faq-section-title" class="mb-4">Operational &amp; Architecture Details</h2>
+
+          <div class="faq-list">
+            <!-- Question 1 -->
+            <details class="faq-item" open>
+              <summary class="faq-summary">Is DevOps Tools Installer safe to run on enterprise workstations?</summary>
+              <div class="faq-content">
+                <p>
+                  Yes. DevOps Tools Installer enforces a strict zero-trust pipeline. It fetches official vendor release artifacts over HTTPS only, verifies SHA-256 cryptographic digests, performs Win32 Authenticode (<code>WinVerifyTrust</code>) digital signature checks with a configurable policy (Warn or Block unsigned), tags downloads with Mark-of-the-Web (ZoneId=3) so Microsoft Defender and Windows SmartScreen inspect files normally, and writes an on-disk audit trail to <code>%LOCALAPPDATA%\DevOpsToolsInstaller\logs</code>.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 2 -->
+            <details class="faq-item">
+              <summary class="faq-summary">Does the application bundle third-party installers or host mirror servers?</summary>
+              <div class="faq-content">
+                <p>
+                  No. We do not distribute third-party executables inside our app binary, nor do we run proxy mirrors. Every download URL in the catalog points directly to official upstream vendor release infrastructure (GitHub Releases, Amazon S3, Azure CDN, HashiCorp Releases). There are zero intermediate proxies or repackaged binaries.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 3 -->
+            <details class="faq-item">
+              <summary class="faq-summary">Does DevOps Tools Installer install anything silently or bypass UAC?</summary>
+              <div class="faq-content">
+                <p>
+                  No. The application never executes third-party installers with silent background flags. When an installer (<code>.msi</code> or <code>.exe</code>) runs, it presents its native vendor setup wizard and prompts for standard Windows UAC elevation. You maintain full oversight and interactive consent over what runs on your workstation.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 4 -->
+            <details class="faq-item">
+              <summary class="faq-summary">Does the app collect telemetry, user analytics, or phone home?</summary>
+              <div class="faq-content">
+                <p>
+                  Zero telemetry. The application contains no Google Analytics, no telemetry beacons, no user identifiers, and no background reporting services. All operational events (downloads, signature verifications, policy actions) are logged exclusively to local disk files that never leave your machine.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 5 -->
+            <details class="faq-item">
+              <summary class="faq-summary">Which Windows versions and processor architectures are supported?</summary>
+              <div class="faq-content">
+                <p>
+                  DevOps Tools Installer supports:
+                </p>
+                <ul style="padding-left: 20px; margin-top: var(--space-1); margin-bottom: var(--space-2);">
+                  <li><strong>Windows 11:</strong> Build 22000 and higher (full Mica Alt backdrop and Fluent controls).</li>
+                  <li><strong>Windows 10:</strong> Build 19041 and higher (20H1+).</li>
+                  <li><strong>Architectures:</strong> Native x64 (64-bit Intel/AMD) and native ARM64 (Qualcomm Snapdragon).</li>
+                </ul>
+                <p>
+                  Built with WinUI 3 via Windows App SDK 2.5.1 and .NET 8.0 self-contained single-file assemblies.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 6 -->
+            <details class="faq-item">
+              <summary class="faq-summary">How do Curated Stacks and the Custom Stack Builder work?</summary>
+              <div class="faq-content">
+                <p>
+                  The app provides 12 curated role-based presets (e.g. Kubernetes Starter, DevSecOps Toolkit, Cloud Engineer Essentials, IaC Complete, Observability). You can install an entire stack in 1 click, preview its tools in the catalog, or open it in the <strong>Custom Stack Builder</strong>.
+                </p>
+                <p style="margin-top: var(--space-1);">
+                  The Stack Builder features a 2-column composer where you can search 90 catalog tools on the left with keyboard-friendly "+ Add" buttons, reorder and inspect live download estimates on the right, save local presets to <code>custom_stacks.json</code>, and export/import portable JSON stack files for your team.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 7 -->
+            <details class="faq-item">
+              <summary class="faq-summary">Where are downloaded tools and binaries stored on my computer?</summary>
+              <div class="faq-content">
+                <p>
+                  All files are isolated in user space:
+                </p>
+                <ul style="padding-left: 20px; margin-top: var(--space-1); margin-bottom: var(--space-2);">
+                  <li><strong>Downloaded Artifacts:</strong> <code>%LOCALAPPDATA%\DevOpsToolsInstaller\Downloads</code></li>
+                  <li><strong>Extracted Tool Archives:</strong> <code>%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\&lt;tool-id&gt;</code></li>
+                  <li><strong>Portable CLI Binaries:</strong> <code>%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin</code></li>
+                  <li><strong>Activity Logs:</strong> <code>%LOCALAPPDATA%\DevOpsToolsInstaller\logs</code></li>
+                </ul>
+                <p>
+                  Machine-level directories (<code>Program Files</code>, <code>System32</code>) and Machine PATH (<code>HKLM</code>) are never touched without standard vendor installer elevation.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 8 -->
+            <details class="faq-item">
+              <summary class="faq-summary">How do I add downloaded standalone CLI tools to my PATH?</summary>
+              <div class="faq-content">
+                <p>
+                  Navigate to <strong>Settings</strong> in the application and click <strong>"Add to PATH"</strong>. This registers <code>%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin</code> in your User Environment (<code>HKCU\Environment\PATH</code>) with zero administrator rights required. You can also run <code>DevOpsToolsInstaller.exe --fix-path</code> from PowerShell.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 9 -->
+            <details class="faq-item">
+              <summary class="faq-summary">How do I uninstall tools or remove the application completely?</summary>
+              <div class="faq-content">
+                <p>
+                  <strong>Uninstalling Tools:</strong> From the "Installed" page (or via <code>--uninstall &lt;id&gt;</code>), the app invokes the vendor's official uninstaller detected via Windows Registry, or cleanly removes extracted directories in <code>Tools\&lt;tool-id&gt;</code> and <code>Tools\bin</code>.
+                </p>
+                <p style="margin-top: var(--space-1);">
+                  <strong>Uninstalling DevOps Tools Installer:</strong> The Windows Setup Wizard uninstaller provides an optional prompt: <em>"Remove my downloads, tools, and settings"</em> for a completely clean removal. If installed via WinGet, run <code>winget uninstall DevOpsToolsInstaller</code>.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 10 -->
+            <details class="faq-item">
+              <summary class="faq-summary">What happens if a download is interrupted by network failure?</summary>
+              <div class="faq-content">
+                <p>
+                  All downloads write to a companion <code>&lt;filename&gt;.partial</code> file. When the download is retried (in the same session or after restarting the app), the transfer engine sends an HTTP <code>Range</code> request and resumes from the exact byte offset. The file is promoted to its final name only after SHA-256 verification passes. Corrupted partial files are automatically discarded.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 11 -->
+            <details class="faq-item">
+              <summary class="faq-summary">What happens if someone tampers with the tool catalog?</summary>
+              <div class="faq-content">
+                <p>
+                  The catalog is cryptographically signed with an ECDSA P-256 key at release time. Shipped app versions verify the signature against an embedded pinned public key and fail closed: unsigned, expired, or modified catalogs are refused outright, and the app falls back to the embedded catalog compiled into the binary.
+                </p>
+              </div>
+            </details>
+
+            <!-- Question 12 -->
+            <details class="faq-item">
+              <summary class="faq-summary">How can I contribute a new tool or stack to the catalog?</summary>
+              <div class="faq-content">
+                <p>
+                  Contributions are welcomed! Fork the repository on GitHub, add your tool specification to <code>catalog/catalog.json</code>, place the official vector SVG logo in <code>src/DevOpsToolsInstaller/Assets/logos/&lt;id&gt;.svg</code>, update <code>catalog/bundles.json</code> if relevant, and open a pull request according to our <code>CONTRIBUTING.md</code> guidelines.
+                </p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="section section-tight" aria-labelledby="faq-cta-title">
+      <div class="container">
+        <div class="corner-box text-center">
+          <span class="micro-label">[03] STILL HAVE QUESTIONS?</span>
+          <h2 id="faq-cta-title" class="mb-2">Inspect the source code on GitHub</h2>
+          <p class="text-mute mb-4">DevOps Tools Installer is 100% open source under the Apache-2.0 license.</p>
+          <div class="flex justify-between items-center flex-wrap gap-2" style="justify-content: center;">
+            <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="btn-primary" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a>
+            <a href="download.html" class="btn-secondary">Download Application</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-link mb-2">
+            <span class="font-mono" style="font-size: 1.1rem; font-weight: 700;">DEVOPS TOOLS INSTALLER</span>
+          </div>
+          <p class="text-mute" style="font-size: var(--font-small); max-width: 380px;">
+            A native Windows 11 desktop application to discover, verify, and provision cloud CLIs, containers, and infrastructure tools. Open source under Apache-2.0.
+          </p>
+          <div class="badge-row mt-2">
+            <span class="badge-chip">v3.0.1</span>
+            <span class="badge-chip">WinUI 3</span>
+            <span class="badge-chip">.NET 8</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="features.html" class="footer-link">Features</a></li>
+            <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
+            <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
+            <li><a href="download.html" class="footer-link">Download</a></li>
+            <li><a href="faq.html" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="footer-link" target="_blank" rel="noopener noreferrer">Latest Release (v3.0.1) ↗</a></li>
+            <li><a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="footer-link" target="_blank" rel="noopener noreferrer">Microsoft Store ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CHANGELOG.md" class="footer-link" target="_blank" rel="noopener noreferrer">Changelog ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CONTRIBUTING.md" class="footer-link" target="_blank" rel="noopener noreferrer">Contributing Guide ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Legal &amp; Policy</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/LICENSE" class="footer-link" target="_blank" rel="noopener noreferrer">Apache-2.0 License ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/PRIVACY.md" class="footer-link" target="_blank" rel="noopener noreferrer">Privacy Notice ↗</a></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Zero Telemetry Mode</span></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Signed Catalog (ECDSA)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevOps Tools Installer. Licensed under Apache 2.0.</div>
+        <div>All third-party trademarks and logos belong to their respective copyright holders.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Essential Minimal JavaScript (<60 lines total) -->
+  <script>
+    const rootEl = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark' ||
+          (!rootEl.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        rootEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    }
+
+    const navBtn = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('site-nav');
+    if (navBtn && navMenu) {
+      navBtn.addEventListener('click', () => {
+        const isOpen = navMenu.classList.toggle('is-open');
+        navBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+  </script>
+</body>
+</html>

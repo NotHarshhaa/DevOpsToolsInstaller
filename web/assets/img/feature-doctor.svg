@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440" role="img" aria-label="Workstation Doctor Environment Diagnostics Mockup">
+  <rect x="1" y="1" width="798" height="438" fill="#fafafa" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Header bar -->
+  <rect x="1" y="1" width="798" height="40" fill="#0a0a0a"/>
+  <text x="16" y="25" font-family="ui-monospace, monospace" font-size="13" font-weight="700" fill="#fafafa">WORKSTATION DOCTOR — 5-POINT ENVIRONMENT DIAGNOSTICS</text>
+  <text x="630" y="25" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[SCAN COMPLETE: 0 ERRORS]</text>
+
+  <!-- 5 Check Cards -->
+  <g transform="translate(24, 60)">
+    <!-- Check 1 -->
+    <rect x="0" y="0" width="752" height="58" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <rect x="12" y="14" width="70" height="28" fill="#0a0a0a"/>
+    <text x="22" y="32" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">[PASSED]</text>
+    <text x="96" y="26" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">1. PATH Conflicts &amp; Duplicate Entries</text>
+    <text x="96" y="44" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Inspected 18 User PATH segments. No dead directories or malformed syntax detected.</text>
+    <text x="670" y="34" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[OPTIMAL]</text>
+
+    <!-- Check 2 -->
+    <rect x="0" y="68" width="752" height="58" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <rect x="12" y="82" width="70" height="28" fill="#0a0a0a"/>
+    <text x="22" y="100" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">[PASSED]</text>
+    <text x="96" y="94" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">2. Missing Runtime Prerequisites</text>
+    <text x="96" y="112" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Hyper-V Virtualization Platform active. WSL2 kernel installed and updated.</text>
+    <text x="670" y="102" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[OPTIMAL]</text>
+
+    <!-- Check 3 -->
+    <rect x="0" y="136" width="752" height="58" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <rect x="12" y="150" width="70" height="28" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="22" y="168" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0a0a0a">[WARN: 1]</text>
+    <text x="96" y="162" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">3. Multi-Version CLI Collision Detected</text>
+    <text x="96" y="180" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">terraform.exe exists in both Tools\bin (v1.9.5) and Chocolatey\bin (v1.7.0). Precedence: Tools\bin.</text>
+    <rect x="660" y="152" width="76" height="26" fill="none" stroke="#0a0a0a"/>
+    <text x="674" y="169" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#0a0a0a">RESOLVE</text>
+
+    <!-- Check 4 -->
+    <rect x="0" y="204" width="752" height="58" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <rect x="12" y="218" width="70" height="28" fill="#0a0a0a"/>
+    <text x="22" y="236" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">[PASSED]</text>
+    <text x="96" y="230" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">4. Outdated Catalog Tools</text>
+    <text x="96" y="248" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">All 34 locally installed tools match or exceed catalog version references.</text>
+    <text x="670" y="238" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[CURRENT]</text>
+
+    <!-- Check 5 -->
+    <rect x="0" y="272" width="752" height="58" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <rect x="12" y="286" width="70" height="28" fill="#0a0a0a"/>
+    <text x="22" y="304" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">[PASSED]</text>
+    <text x="96" y="298" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">5. Isolated Tools\bin Registration on User PATH</text>
+    <text x="96" y="316" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\bin is correctly registered in HKCU\Environment\PATH.</text>
+    <text x="670" y="306" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[ACTIVE]</text>
+  </g>
+
+  <!-- Bottom Action Bar -->
+  <g transform="translate(24, 396)">
+    <rect x="0" y="0" width="140" height="30" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="14" y="19" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0a0a0a">⟳ RE-RUN CHECKS</text>
+
+    <rect x="156" y="0" width="170" height="30" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="170" y="19" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0a0a0a">📋 COPY MD REPORT</text>
+
+    <rect x="580" y="0" width="172" height="30" fill="#0a0a0a"/>
+    <text x="594" y="19" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">✓ 1-CLICK CONFIRM FIX</text>
+  </g>
+</svg>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Pipeline — DevOps Tools Installer</title>
+  <meta name="description" content="DevOps Tools Installer zero-trust security pipeline: ECDSA signed catalog, HTTPS-only downloads, SHA-256 validation, Authenticode WinVerifyTrust, MOTW, and local audit logs.">
+  <link rel="canonical" href="https://notharshhaa.github.io/DevOpsToolsInstaller/security.html">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="Security Pipeline — DevOps Tools Installer">
+  <meta property="og:description" content="Layered cryptographic security model: ECDSA signed catalog, SHA-256 checksums, Authenticode WinVerifyTrust, and local audit logs.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://notharshhaa.github.io/DevOpsToolsInstaller/security.html">
+  <meta property="og:image" content="https://notharshhaa.github.io/DevOpsToolsInstaller/assets/banner.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="logo-link" aria-label="DevOps Tools Installer Home">
+        <svg viewBox="0 0 260 36" width="220" height="30" fill="currentColor" aria-hidden="true">
+          <g transform="translate(2, 2)">
+            <rect x="0" y="0" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 11 L15 16 L9 21" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="21" x2="23" y2="21" stroke="currentColor" stroke-width="2"/>
+            <path d="M-2 4 V-2 H4 M28 -2 H34 V4 M34 28 V34 H28 M4 34 H-2 V28" fill="none" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <text x="46" y="22" font-family="ui-monospace, monospace" font-size="15" font-weight="700" letter-spacing="-0.02em" fill="currentColor">DEVOPS TOOLS</text>
+          <text x="180" y="22" font-family="ui-monospace, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="currentColor">INSTALLER</text>
+          <line x1="46" y1="28" x2="252" y2="28" stroke="currentColor" stroke-width="0.75" stroke-dasharray="3 3"/>
+        </svg>
+      </a>
+
+      <button id="nav-toggle" class="mobile-nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        MENU
+      </button>
+
+      <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="features.html" class="nav-link">Features</a></li>
+          <li><a href="security.html" class="nav-link" aria-current="page">Security</a></li>
+          <li><a href="cli.html" class="nav-link">CLI</a></li>
+          <li><a href="download.html" class="nav-link">Download</a></li>
+          <li><a href="faq.html" class="nav-link">FAQ</a></li>
+        </ul>
+        <div class="header-actions">
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+    <div class="container breadcrumb-nav">
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item"><a href="index.html" class="breadcrumb-link">Home</a></li>
+          <li class="breadcrumb-item" aria-current="page">Security Pipeline</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Page Header -->
+    <section class="section-tight" aria-labelledby="page-title">
+      <div class="container">
+        <span class="micro-label">[01] SECURITY POSTURE</span>
+        <h1 id="page-title" class="mb-2">The Zero-Trust Verification Pipeline</h1>
+        <p class="text-mute" style="max-width: 760px;">
+          DevOps Tools Installer is engineered for enterprise environments where workstation integrity is critical. Every byte downloaded follows an uncompromising 6-stage cryptographic pipeline before reaching execution.
+        </p>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- Pipeline Architecture Diagram -->
+    <section class="section" aria-labelledby="pipeline-diagram-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[02]</span>
+          <span class="micro-label">PIPELINE SCHEMATIC</span>
+          <h2 id="pipeline-diagram-title" class="mb-3">Cryptographic Pipeline Stages</h2>
+          <p class="text-mute mb-4">
+            How remote catalog feeds, vendor downloads, and execution policies interact in a fail-closed architecture.
+          </p>
+
+          <div class="offset-frame mb-6">
+            <img src="assets/img/security-pipeline.svg" alt="6-stage cryptographic security pipeline diagram: Signed catalog check, HTTPS transfer, SHA-256 verification, Authenticode WinVerifyTrust, MOTW tagging, and audit log write" class="w-full" width="880" height="460">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step-by-Step Deep Dive -->
+    <section class="section" aria-labelledby="stages-deep-dive-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[03]</span>
+          <span class="micro-label">LAYERED CONTROLS</span>
+          <h2 id="stages-deep-dive-title" class="mb-4">Step-by-Step Security Pipeline</h2>
+
+          <div class="grid-2">
+            <!-- Stage 1 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 01 // FAIL-CLOSED</span>
+              <h3 class="mb-2">Cryptographically Signed Catalog</h3>
+              <p class="text-mute mb-2">
+                The entire tool catalog (<code>catalog.json</code>) and stack definitions are signed with an <strong>ECDSA P-256 private key</strong> at release time.
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                At runtime, remote catalog feeds are verified against a public key pinned inside the application binary. Tampered, unparseable, or expired feeds are rejected immediately, and the app automatically falls back to the embedded catalog compiled into the binary.
+              </p>
+            </article>
+
+            <!-- Stage 2 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 02 // TRANSPORT</span>
+              <h3 class="mb-2">Strict HTTPS-Only Enforcement</h3>
+              <p class="text-mute mb-2">
+                Plain-text HTTP artifact URLs are blocked outright and recorded in the audit log.
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                Downloads connect exclusively to verified, official vendor endpoints (GitHub Releases, Amazon S3, Azure CDN, HashiCorp Releases). No intermediate proxy mirrors or re-hosting caches are ever used.
+              </p>
+            </article>
+
+            <!-- Stage 3 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 03 // INTEGRITY</span>
+              <h3 class="mb-2">SHA-256 Cryptographic Checksums</h3>
+              <p class="text-mute mb-2">
+                Every download is written to a temporary <code>&lt;filename&gt;.partial</code> file and hashed as bytes arrive.
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                Only when the computed SHA-256 hash matches the signed catalog digest is the file promoted to its final name. Any digest mismatch deletes the payload immediately to prevent compromised or corrupted file execution.
+              </p>
+            </article>
+
+            <!-- Stage 4 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 04 // SIGNATURE</span>
+              <h3 class="mb-2">Win32 Authenticode Verification</h3>
+              <p class="text-mute mb-2">
+                Native Win32 <code>WinVerifyTrust</code> evaluates digital signatures on downloaded <code>.exe</code> and <code>.msi</code> installers before they can run.
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                Configure your organization's policy in <strong>Settings &rarr; Security</strong>:
+                <br>• <strong>Warn before launch (Default):</strong> Confirm prompt before running unsigned installers.
+                <br>• <strong>Block unsigned installers:</strong> Refuse to run unsigned installers entirely in UI, batch mode, and CLI.
+              </p>
+            </article>
+
+            <!-- Stage 5 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 05 // DEFENDER INTEGRATION</span>
+              <h3 class="mb-2">Mark-of-the-Web (MOTW) Tagging</h3>
+              <p class="text-mute mb-2">
+                Every completed download is stamped with the Windows <code>Zone.Identifier</code> NTFS alternate data stream (ZoneId=3).
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                This guarantees Windows SmartScreen and Microsoft Defender evaluate the downloaded file exactly like a browser download. The app never blinds or bypasses native operating system protections.
+              </p>
+            </article>
+
+            <!-- Stage 6 -->
+            <article class="corner-box">
+              <span class="micro-label">STAGE 06 // AUDIT TRAIL</span>
+              <h3 class="mb-2">On-Disk Daily Security Audit Log</h3>
+              <p class="text-mute mb-2">
+                Every download attempt, signature verdict, policy block, install, and uninstall event is recorded in a local timestamped log.
+              </p>
+              <p class="text-mute" style="font-size: var(--font-small);">
+                Stored in <code>%LOCALAPPDATA%\DevOpsToolsInstaller\logs\activity-YYYYMMDD.log</code>. The audit log never leaves your computer, providing a local compliance trail for security audits and post-incident investigation.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plain Statement: What the App Does NOT Do -->
+    <section class="band-inverted" aria-labelledby="negative-guarantees-title">
+      <div class="container">
+        <span class="micro-label">[04] NEGATIVE GUARANTEES</span>
+        <h2 id="negative-guarantees-title" class="mb-2">What DevOps Tools Installer Does NOT Do</h2>
+        <p class="text-mute mb-6" style="max-width: 720px;">
+          Security is defined as much by what an application refuses to do as what it does. Here are our strict negative constraints:
+        </p>
+
+        <div class="grid-3">
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO SILENT INSTALLS</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Third-party installers are never executed with silent switches without your knowledge. Vendor setup wizards always display their native UI and standard Windows UAC elevation dialogs.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO BUNDLED BINARIES</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              We do not ship third-party CLIs inside our application package, nor do we run proxy download servers. All artifacts download straight from upstream vendor release infrastructure.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO MACHINE TAMPERING</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Portable tools live in sandboxed user directories (<code>%LOCALAPPDATA%</code>). Machine-wide directories (<code>Program Files</code>, <code>System32</code>) and Machine PATH (<code>HKLM</code>) are never touched without standard elevation.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO TELEMETRY OR TRACKING</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              Zero Google Analytics, zero telemetry beacons, zero crash report phone-homes. No user data, installed tool list, or IP address is ever collected or tracked by this project.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO AUTO-EXECUTING SCRIPTS</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              When a vendor tool distributes setup scripts (<code>.ps1</code> or <code>.sh</code>), the application opens the folder for manual review. Scripts are <strong>never executed automatically</strong>.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <h3 class="mb-2 font-mono">NO BACKGROUND DAEMONS</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">
+              No Windows services, no kernel drivers, no background telemetry processes installed. When you close the app (or exit tray mode), zero processes remain running on your system.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audit Log Sample -->
+    <section class="section" aria-labelledby="audit-sample-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[05]</span>
+          <span class="micro-label">INSPECTION SAMPLE</span>
+          <h2 id="audit-sample-title" class="mb-2">Inspectable Audit Log Format</h2>
+          <p class="text-mute mb-4">
+            Example of entries written to <code>%LOCALAPPDATA%\DevOpsToolsInstaller\logs\activity-20261013.log</code>:
+          </p>
+
+          <div class="code-block">
+            <div class="code-header">
+              <span>activity-20261013.log (Local Daily Audit Trail)</span>
+              <button class="copy-btn" aria-label="Copy audit log snippet">COPY</button>
+            </div>
+            <div class="code-content">[2026-10-13 14:02:11.450] [INFO] [CATALOG] ECDSA signature valid. Pinned key: 04a2...
+[2026-10-13 14:02:15.112] [INFO] [FETCH] GET https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_windows_amd64.zip
+[2026-10-13 14:02:18.980] [INFO] [HASH] SHA-256 calculated: 3a92b... Matches catalog entry.
+[2026-10-13 14:02:19.010] [INFO] [AUTHENTICODE] WinVerifyTrust result: CERT_E_VALID. Subject: HashiCorp, Inc.
+[2026-10-13 14:02:19.040] [INFO] [MOTW] Zone.Identifier written: ZoneId=3 (URL: releases.hashicorp.com)
+[2026-10-13 14:02:19.220] [INFO] [ACTION] Archive extracted to Tools\terraform. Executable copied to Tools\bin\terraform.exe</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Bottom CTA -->
+    <section class="section section-tight" aria-labelledby="sec-cta-title">
+      <div class="container">
+        <div class="corner-box text-center">
+          <span class="micro-label">[06] AUDIT COMPLETE</span>
+          <h2 id="sec-cta-title" class="mb-2">Integrate into your enterprise provisioning</h2>
+          <p class="text-mute mb-4">Use the headless CLI for CI builders, rebuild scripts, or Windows MDM/Intune packaging.</p>
+          <div class="flex justify-between items-center flex-wrap gap-2" style="justify-content: center;">
+            <a href="cli.html" class="btn-primary">View Headless CLI Commands</a>
+            <a href="download.html" class="btn-secondary">Download Application</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-link mb-2">
+            <span class="font-mono" style="font-size: 1.1rem; font-weight: 700;">DEVOPS TOOLS INSTALLER</span>
+          </div>
+          <p class="text-mute" style="font-size: var(--font-small); max-width: 380px;">
+            A native Windows 11 desktop application to discover, verify, and provision cloud CLIs, containers, and infrastructure tools. Open source under Apache-2.0.
+          </p>
+          <div class="badge-row mt-2">
+            <span class="badge-chip">v3.0.1</span>
+            <span class="badge-chip">WinUI 3</span>
+            <span class="badge-chip">.NET 8</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="features.html" class="footer-link">Features</a></li>
+            <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
+            <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
+            <li><a href="download.html" class="footer-link">Download</a></li>
+            <li><a href="faq.html" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="footer-link" target="_blank" rel="noopener noreferrer">Latest Release (v3.0.1) ↗</a></li>
+            <li><a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="footer-link" target="_blank" rel="noopener noreferrer">Microsoft Store ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CHANGELOG.md" class="footer-link" target="_blank" rel="noopener noreferrer">Changelog ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CONTRIBUTING.md" class="footer-link" target="_blank" rel="noopener noreferrer">Contributing Guide ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Legal &amp; Policy</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/LICENSE" class="footer-link" target="_blank" rel="noopener noreferrer">Apache-2.0 License ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/PRIVACY.md" class="footer-link" target="_blank" rel="noopener noreferrer">Privacy Notice ↗</a></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Zero Telemetry Mode</span></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Signed Catalog (ECDSA)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevOps Tools Installer. Licensed under Apache 2.0.</div>
+        <div>All third-party trademarks and logos belong to their respective copyright holders.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Essential Minimal JavaScript (<60 lines total) -->
+  <script>
+    const rootEl = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark' ||
+          (!rootEl.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        rootEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    }
+
+    const navBtn = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('site-nav');
+    if (navBtn && navMenu) {
+      navBtn.addEventListener('click', () => {
+        const isOpen = navMenu.classList.toggle('is-open');
+        navBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const codeEl = btn.closest('.code-block').querySelector('.code-content');
+        if (codeEl) {
+          navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+            const old = btn.textContent;
+            btn.textContent = 'COPIED';
+            setTimeout(() => { btn.textContent = old; }, 1800);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevOps Tools Installer — Native Windows 11 Workstation Provisioning</title>
+  <meta name="description" content="Provision a complete DevOps workstation on Windows in minutes. 90 official tools, 12 curated stacks, resumable downloads, and a cryptographic security pipeline.">
+  <link rel="canonical" href="https://notharshhaa.github.io/DevOpsToolsInstaller/">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="DevOps Tools Installer — Native Windows 11 App">
+  <meta property="og:description" content="Provision 90 official DevOps tools and cloud CLIs on Windows in minutes. Zero silent installs, zero bundled binaries, zero telemetry.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://notharshhaa.github.io/DevOpsToolsInstaller/">
+  <meta property="og:image" content="https://notharshhaa.github.io/DevOpsToolsInstaller/assets/banner.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Structured Data: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DevOps Tools Installer",
+    "operatingSystem": "Windows 10, Windows 11",
+    "applicationCategory": "DeveloperApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "description": "High-performance native Windows 11 application to provision cloud CLIs, containers, Kubernetes, IaC, and security tools directly from vendor endpoints.",
+    "license": "https://opensource.org/licenses/Apache-2.0",
+    "downloadUrl": "https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest"
+  }
+  </script>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="logo-link" aria-label="DevOps Tools Installer Home">
+        <svg viewBox="0 0 260 36" width="220" height="30" fill="currentColor" aria-hidden="true">
+          <g transform="translate(2, 2)">
+            <rect x="0" y="0" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 11 L15 16 L9 21" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="21" x2="23" y2="21" stroke="currentColor" stroke-width="2"/>
+            <path d="M-2 4 V-2 H4 M28 -2 H34 V4 M34 28 V34 H28 M4 34 H-2 V28" fill="none" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <text x="46" y="22" font-family="ui-monospace, monospace" font-size="15" font-weight="700" letter-spacing="-0.02em" fill="currentColor">DEVOPS TOOLS</text>
+          <text x="180" y="22" font-family="ui-monospace, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="currentColor">INSTALLER</text>
+          <line x1="46" y1="28" x2="252" y2="28" stroke="currentColor" stroke-width="0.75" stroke-dasharray="3 3"/>
+        </svg>
+      </a>
+
+      <button id="nav-toggle" class="mobile-nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        MENU
+      </button>
+
+      <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link" aria-current="page">Home</a></li>
+          <li><a href="features.html" class="nav-link">Features</a></li>
+          <li><a href="security.html" class="nav-link">Security</a></li>
+          <li><a href="cli.html" class="nav-link">CLI</a></li>
+          <li><a href="download.html" class="nav-link">Download</a></li>
+          <li><a href="faq.html" class="nav-link">FAQ</a></li>
+        </ul>
+        <div class="header-actions">
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+    <!-- Hero Section -->
+    <section class="section hero-grid-pattern" aria-labelledby="hero-title">
+      <div class="container hero-content">
+        <div>
+          <span class="micro-label">[00] NATIVE WINDOWS 11 WORKSTATION MANAGER</span>
+          <h1 id="hero-title" class="display-title mb-2">Provision a complete DevOps workstation in minutes.</h1>
+          <p class="text-mute mb-3">
+            90 official tools and 12 curated stacks downloaded directly from upstream vendor endpoints.
+            Built with WinUI 3 and Mica Alt. Zero silent installs, zero bundled binaries, zero telemetry.
+          </p>
+
+          <div class="hero-actions">
+            <a href="download.html" class="btn-primary">Download for Windows</a>
+            <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="btn-secondary" target="_blank" rel="noopener noreferrer">View on GitHub ↗</a>
+          </div>
+
+          <div class="badge-row mt-3">
+            <span class="badge-chip badge-chip-fill">WINUI 3</span>
+            <span class="badge-chip">.NET 8.0</span>
+            <span class="badge-chip">WINDOWS 10/11</span>
+            <span class="badge-chip">90 TOOLS</span>
+            <span class="badge-chip">12 STACKS</span>
+            <span class="badge-chip">SIGNED CATALOG</span>
+            <span class="badge-chip badge-chip-mute">APACHE-2.0</span>
+          </div>
+        </div>
+
+        <!-- Offset Frame Placeholder -->
+        <div class="offset-frame">
+          <img src="assets/img/app-mockup.svg" alt="DevOps Tools Installer WinUI 3 desktop application dashboard with active downloads, metrics, and log drawer" class="w-full" width="960" height="560">
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- How It Works Section -->
+    <section class="section" aria-labelledby="how-it-works-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[01]</span>
+          <span class="micro-label">WORKFLOW ARCHITECTURE</span>
+          <h2 id="how-it-works-title" class="mb-4">How it works: from vendor release to local terminal.</h2>
+
+          <ol class="step-list">
+            <li class="step-card corner-box">
+              <span class="step-num">01 // SELECT</span>
+              <h3>Pick Tools or Stacks</h3>
+              <p class="text-mute">
+                Browse an extensible catalog of 90 developer tools across 12 domains, or pick from 12 role-based Curated Stacks (Kubernetes, DevSecOps, Cloud Engineer, IaC).
+              </p>
+            </li>
+            <li class="step-card corner-box">
+              <span class="step-num">02 // VERIFY</span>
+              <h3>Verify &amp; Download</h3>
+              <p class="text-mute">
+                Fetched over HTTPS only with automatic HTTP Range byte resumption. Every file is validated against signed SHA-256 hashes and Win32 Authenticode digital signatures.
+              </p>
+            </li>
+            <li class="step-card corner-box">
+              <span class="step-num">03 // DEPLOY</span>
+              <h3>Context-Aware Install</h3>
+              <p class="text-mute">
+                Vendor wizards launch interactively with standard UAC prompts. Standalone binaries land cleanly in sandboxed user directories. Zero silent background changes.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- Core Features Grid -->
+    <section class="section" aria-labelledby="features-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[02]</span>
+          <span class="micro-label">ENGINEERING HIGHLIGHTS</span>
+          <h2 id="features-title" class="mb-4">Designed for platform engineers, SREs, and IT governance.</h2>
+
+          <div class="grid-3">
+            <article class="corner-box">
+              <span class="micro-label">CATALOG</span>
+              <h3 class="mb-1">Direct Upstream Sources</h3>
+              <p class="text-mute">
+                Artifacts are fetched straight from official vendor release infrastructure (GitHub Releases, AWS, Azure, HashiCorp). No mirrors, no repackaging.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">TRANSPARENCY</span>
+              <h3 class="mb-1">Zero Silent Installs</h3>
+              <p class="text-mute">
+                Every installer executes interactively with standard Windows UAC elevation. Mark-of-the-Web (ZoneId=3) is preserved so SmartScreen stays active.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">RESILIENCE</span>
+              <h3 class="mb-1">Resumable Transfer Engine</h3>
+              <p class="text-mute">
+                Large installers continue from exact byte offsets via HTTP Range from <code>.partial</code> files. Dropped connections never force a restart from zero.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">COMPOSER</span>
+              <h3 class="mb-1">Custom Stack Builder</h3>
+              <p class="text-mute">
+                Interactive 2-column composer: drag tools into bespoke stacks, inspect live download size estimates, and export/import portable JSON presets.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">DIAGNOSTICS</span>
+              <h3 class="mb-1">Workstation Doctor</h3>
+              <p class="text-mute">
+                5-point environment scan covering PATH duplicates, CLI collisions, missing prerequisites, and stale versions with 1-click confirmed remediations.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">OBSERVABILITY</span>
+              <h3 class="mb-1">Live Log Drawer (Ctrl+`)</h3>
+              <p class="text-mute">
+                Universal collapsible drawer accessible across every page. Virtualized streaming of download events, SHA-256 verifications, and Authenticode checks.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">AUTOMATION</span>
+              <h3 class="mb-1">Headless CLI Automation</h3>
+              <p class="text-mute">
+                Full terminal automation: <code>--install</code>, <code>--install-bundle</code>, <code>--report</code>, and PATH health tools with proper exit codes for scripts and CI.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">MANAGEMENT</span>
+              <h3 class="mb-1">Installed Inventory &amp; Updates</h3>
+              <p class="text-mute">
+                Latency benchmarking on CLI binaries, 1-click shell completion script generation for PowerShell/Bash, and native InfoBadge update counters.
+              </p>
+            </article>
+
+            <article class="corner-box">
+              <span class="micro-label">DESKTOP</span>
+              <h3 class="mb-1">System Tray &amp; Scheduler</h3>
+              <p class="text-mute">
+                Close-to-tray mode, periodic 30-minute background tool-update checks, and native Windows toast notifications configured via Settings toggles.
+              </p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Principles Band (Inverted Black and White Section) -->
+    <section class="band-inverted" aria-labelledby="principles-title">
+      <div class="container">
+        <span class="micro-label">[03] RADICAL TRANSPARENCY</span>
+        <h2 id="principles-title" class="mb-4">Built on strict zero-trust workstation principles.</h2>
+
+        <div class="grid-3">
+          <div class="corner-box">
+            <span class="micro-label">PRINCIPLE 01</span>
+            <h3 class="mb-1">Official Sources Only</h3>
+            <p class="text-mute">
+              Every download points exclusively to verified vendor endpoints. No community-repackaged binaries, no unvetted mirrors, and no bundled bloatware.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <span class="micro-label">PRINCIPLE 02</span>
+            <h3 class="mb-1">Transparent &amp; Auditable</h3>
+            <p class="text-mute">
+              Every download, SHA-256 digest check, Authenticode signature check, and installation action is logged to an inspectable local audit file on disk.
+            </p>
+          </div>
+
+          <div class="corner-box">
+            <span class="micro-label">PRINCIPLE 03</span>
+            <h3 class="mb-1">Zero Telemetry</h3>
+            <p class="text-mute">
+              No tracking scripts, no phone-home telemetry, and no background daemon services. Your machine configuration and tool inventory remain 100% private.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Table Section -->
+    <section class="section" aria-labelledby="comparison-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[04]</span>
+          <span class="micro-label">TECHNICAL COMPARISON</span>
+          <h2 id="comparison-title" class="mb-2">How it compares to traditional Windows workflows.</h2>
+          <p class="text-mute mb-4">A purpose-built workstation control plane compared to package managers and manual setups.</p>
+
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th scope="col">Capability</th>
+                  <th scope="col">DevOpsToolsInstaller</th>
+                  <th scope="col">WinGet</th>
+                  <th scope="col">Chocolatey</th>
+                  <th scope="col">Manual Browsing</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Native WinUI 3 Dashboard</th>
+                  <td>Yes (Mica Alt + Accent Theme)</td>
+                  <td>No (CLI / Basic Store UI)</td>
+                  <td>No (CLI / Third-party GUI)</td>
+                  <td>No (Browser Tabs)</td>
+                </tr>
+                <tr>
+                  <th scope="row">Curated Role Stacks (12 Presets)</th>
+                  <td>Yes + Drag-and-drop Composer</td>
+                  <td>No</td>
+                  <td>No</td>
+                  <td>No</td>
+                </tr>
+                <tr>
+                  <th scope="row">Workstation Doctor (PATH &amp; Collisions)</th>
+                  <td>Yes (5-Point Diagnostics)</td>
+                  <td>No</td>
+                  <td>No</td>
+                  <td>Manual Registry / CMD</td>
+                </tr>
+                <tr>
+                  <th scope="row">Direct Official Vendor Endpoints</th>
+                  <td>Yes (Zero Repackaging)</td>
+                  <td>Varies by Manifest</td>
+                  <td>Often Community Shimmed</td>
+                  <td>Manual Finding</td>
+                </tr>
+                <tr>
+                  <th scope="row">Resumable Partial Downloads</th>
+                  <td>Yes (HTTP Range .partial)</td>
+                  <td>No (Restarts on drop)</td>
+                  <td>No</td>
+                  <td>Browser Dependent</td>
+                </tr>
+                <tr>
+                  <th scope="row">Authenticode WinVerifyTrust Policy</th>
+                  <td>Yes (Configurable Warn / Block)</td>
+                  <td>Hash check only</td>
+                  <td>Optional Pro feature</td>
+                  <td>SmartScreen prompt</td>
+                </tr>
+                <tr>
+                  <th scope="row">Zero Silent Installs (Explicit UAC)</th>
+                  <td>Guaranteed</td>
+                  <td>Silent flags supported</td>
+                  <td>Silent by default</td>
+                  <td>Manual Wizard</td>
+                </tr>
+                <tr>
+                  <th scope="row">Headless CLI &amp; Report Generation</th>
+                  <td>Yes (--install, --report, CI codes)</td>
+                  <td>CLI only</td>
+                  <td>CLI only</td>
+                  <td>No</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Call to Action -->
+    <section class="section section-tight" aria-labelledby="cta-title">
+      <div class="container">
+        <div class="corner-box text-center">
+          <span class="micro-label">[05] GET STARTED</span>
+          <h2 id="cta-title" class="mb-2">Ready to provision your workstation?</h2>
+          <p class="text-mute mb-4">
+            Available on the Microsoft Store, through WinGet, as a standalone setup wizard, or as a portable CLI executable.
+          </p>
+          <div class="flex justify-between items-center flex-wrap gap-2" style="justify-content: center;">
+            <a href="download.html" class="btn-primary">Download v3.0.1 for Windows</a>
+            <a href="cli.html" class="btn-secondary">Explore Headless CLI Commands</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-link mb-2">
+            <span class="font-mono" style="font-size: 1.1rem; font-weight: 700;">DEVOPS TOOLS INSTALLER</span>
+          </div>
+          <p class="text-mute" style="font-size: var(--font-small); max-width: 380px;">
+            A native Windows 11 desktop application to discover, verify, and provision cloud CLIs, containers, and infrastructure tools. Open source under Apache-2.0.
+          </p>
+          <div class="badge-row mt-2">
+            <span class="badge-chip">v3.0.1</span>
+            <span class="badge-chip">WinUI 3</span>
+            <span class="badge-chip">.NET 8</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="features.html" class="footer-link">Features</a></li>
+            <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
+            <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
+            <li><a href="download.html" class="footer-link">Download</a></li>
+            <li><a href="faq.html" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="footer-link" target="_blank" rel="noopener noreferrer">Latest Release (v3.0.1) ↗</a></li>
+            <li><a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="footer-link" target="_blank" rel="noopener noreferrer">Microsoft Store ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CHANGELOG.md" class="footer-link" target="_blank" rel="noopener noreferrer">Changelog ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CONTRIBUTING.md" class="footer-link" target="_blank" rel="noopener noreferrer">Contributing Guide ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Legal &amp; Policy</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/LICENSE" class="footer-link" target="_blank" rel="noopener noreferrer">Apache-2.0 License ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/PRIVACY.md" class="footer-link" target="_blank" rel="noopener noreferrer">Privacy Notice ↗</a></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Zero Telemetry Mode</span></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Signed Catalog (ECDSA)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevOps Tools Installer. Licensed under Apache 2.0.</div>
+        <div>All third-party trademarks and logos belong to their respective copyright holders.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Essential Minimal JavaScript (<60 lines total) -->
+  <script>
+    // Theme toggle with preference persistence
+    const rootEl = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark' ||
+          (!rootEl.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        rootEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    }
+
+    // Mobile nav toggle
+    const navBtn = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('site-nav');
+    if (navBtn && navMenu) {
+      navBtn.addEventListener('click', () => {
+        const isOpen = navMenu.classList.toggle('is-open');
+        navBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    // Copy to clipboard buttons
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const codeEl = btn.closest('.code-block').querySelector('.code-content');
+        if (codeEl) {
+          navigator.clipboard.writeText(codeEl.textContent.trim()).then(() => {
+            const old = btn.textContent;
+            btn.textContent = 'COPIED';
+            setTimeout(() => { btn.textContent = old; }, 1800);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

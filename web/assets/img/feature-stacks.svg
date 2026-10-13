@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 440" width="800" height="440" role="img" aria-label="Custom Stack Builder Two-Column Composer Mockup">
+  <rect x="1" y="1" width="798" height="438" fill="#fafafa" stroke="#0a0a0a" stroke-width="1.5"/>
+  <!-- Header bar -->
+  <rect x="1" y="1" width="798" height="40" fill="#0a0a0a"/>
+  <text x="16" y="25" font-family="ui-monospace, monospace" font-size="13" font-weight="700" fill="#fafafa">CUSTOM STACK BUILDER — 2-COLUMN COMPOSER</text>
+  <text x="560" y="25" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[PRESETS]  |  [BUILDER MODE: ACTIVE]</text>
+
+  <!-- Left Column: Tool Catalog Browser -->
+  <rect x="16" y="56" width="370" height="368" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+  <rect x="16" y="56" width="370" height="32" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+  <text x="28" y="77" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">CATALOG REPOSITORY (90 TOOLS)</text>
+  <text x="310" y="77" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">SEARCH...</text>
+
+  <!-- Left items -->
+  <g transform="translate(24, 100)">
+    <!-- Item 1 -->
+    <rect x="0" y="0" width="354" height="46" fill="none" stroke="#d9d9d9" stroke-width="1"/>
+    <text x="12" y="20" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">awscli (AWS CLI v2)</text>
+    <text x="12" y="36" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Cloud Provider CLIs · 34.5 MB</text>
+    <rect x="290" y="12" width="52" height="22" fill="#0a0a0a"/>
+    <text x="300" y="27" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">+ ADD</text>
+
+    <!-- Item 2 -->
+    <rect x="0" y="54" width="354" height="46" fill="none" stroke="#d9d9d9" stroke-width="1"/>
+    <text x="12" y="74" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">opentofu (OpenTofu)</text>
+    <text x="12" y="90" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Infrastructure as Code · 18.2 MB</text>
+    <rect x="290" y="66" width="52" height="22" fill="#0a0a0a"/>
+    <text x="300" y="81" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">+ ADD</text>
+
+    <!-- Item 3 -->
+    <rect x="0" y="108" width="354" height="46" fill="none" stroke="#d9d9d9" stroke-width="1"/>
+    <text x="12" y="128" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">ripgrep (rg)</text>
+    <text x="12" y="144" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Core Utilities · 4.8 MB</text>
+    <rect x="290" y="120" width="52" height="22" fill="#0a0a0a"/>
+    <text x="300" y="135" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">+ ADD</text>
+
+    <!-- Item 4 -->
+    <rect x="0" y="162" width="354" height="46" fill="none" stroke="#d9d9d9" stroke-width="1"/>
+    <text x="12" y="182" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">sops (Mozilla SOPS)</text>
+    <text x="12" y="198" font-family="ui-monospace, monospace" font-size="10" fill="#6b6b6b">Security &amp; Secrets · 12.1 MB</text>
+    <rect x="290" y="174" width="52" height="22" fill="#0a0a0a"/>
+    <text x="300" y="189" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">+ ADD</text>
+  </g>
+
+  <!-- Right Column: My Stack Drop Zone -->
+  <rect x="414" y="56" width="370" height="368" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+  <rect x="414" y="56" width="370" height="32" fill="#0a0a0a"/>
+  <text x="426" y="77" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#fafafa">MY STACK: "Platform Engineer 2026"</text>
+
+  <!-- Metrics header in Right Column -->
+  <g transform="translate(426, 96)">
+    <rect x="0" y="0" width="346" height="30" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="10" y="20" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#0a0a0a">4 TOOLS SELECTED  |  EST. DOWNLOAD: 112 MB</text>
+  </g>
+
+  <!-- Right items (Selected & Reorderable) -->
+  <g transform="translate(426, 134)">
+    <rect x="0" y="0" width="346" height="42" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <text x="10" y="24" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">1. kubectl (v1.31.0)</text>
+    <text x="250" y="24" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[▲] [▼] [✕]</text>
+
+    <rect x="0" y="48" width="346" height="42" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <text x="10" y="72" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">2. terraform (v1.9.5)</text>
+    <text x="250" y="72" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[▲] [▼] [✕]</text>
+
+    <rect x="0" y="96" width="346" height="42" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <text x="10" y="120" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">3. helm (v3.15.4)</text>
+    <text x="250" y="120" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[▲] [▼] [✕]</text>
+
+    <rect x="0" y="144" width="346" height="42" fill="none" stroke="#0a0a0a" stroke-width="1"/>
+    <text x="10" y="168" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#0a0a0a">4. k9s (v0.32.5)</text>
+    <text x="250" y="168" font-family="ui-monospace, monospace" font-size="11" fill="#6b6b6b">[▲] [▼] [✕]</text>
+  </g>
+
+  <!-- Action buttons at bottom of Right Column -->
+  <g transform="translate(426, 334)">
+    <rect x="0" y="0" width="105" height="32" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="14" y="20" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#0a0a0a">SAVE PRESET</text>
+
+    <rect x="115" y="0" width="105" height="32" fill="none" stroke="#0a0a0a" stroke-dasharray="2 2"/>
+    <text x="126" y="20" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#0a0a0a">EXPORT JSON</text>
+
+    <rect x="230" y="0" width="116" height="32" fill="#0a0a0a"/>
+    <text x="242" y="20" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">INSTALL STACK</text>
+  </g>
+</svg>

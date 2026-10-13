@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" role="img" aria-label="DevOps Tools Installer Windows 11 App Interface Mockup">
+  <defs>
+    <style>
+      .bg { fill: var(--paper, #fafafa); }
+      .surface { fill: var(--paper, #ffffff); }
+      .subtle-bg { fill: rgba(120, 120, 120, 0.06); }
+      .line { stroke: var(--ink, #0a0a0a); stroke-width: 1; }
+      .line-mute { stroke: var(--line, #d9d9d9); stroke-width: 1; }
+      .text-bold { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; font-weight: 700; fill: var(--ink, #0a0a0a); }
+      .text-mono { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; fill: var(--ink, #0a0a0a); }
+      .text-mute { font-family: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace; fill: var(--mute, #6b6b6b); font-size: 11px; }
+      .text-body { font-family: system-ui, -apple-system, sans-serif; fill: var(--ink, #0a0a0a); }
+      .bar-fill { fill: var(--ink, #0a0a0a); }
+    </style>
+  </defs>
+
+  <!-- Outer Window Container -->
+  <rect x="1" y="1" width="958" height="558" fill="#fafafa" stroke="currentColor" stroke-width="1.5" class="bg line"/>
+
+  <!-- Titlebar -->
+  <rect x="1" y="1" width="958" height="36" class="subtle-bg"/>
+  <line x1="1" y1="37" x2="959" y2="37" class="line"/>
+  <text x="16" y="23" class="text-bold" font-size="12">DevOps Tools Installer — v3.0.1 (WinUI 3 · Mica Alt)</text>
+  
+  <!-- Window Controls -->
+  <g transform="translate(890, 10)">
+    <line x1="0" y1="9" x2="10" y2="9" class="line"/>
+    <rect x="24" y="4" width="10" height="10" fill="none" class="line"/>
+    <line x1="48" y1="4" x2="58" y2="14" class="line"/>
+    <line x1="58" y1="4" x2="48" y2="14" class="line"/>
+  </g>
+
+  <!-- Sidebar -->
+  <rect x="1" y="38" width="190" height="472" class="subtle-bg"/>
+  <line x1="191" y1="38" x2="191" y2="510" class="line"/>
+
+  <!-- Search in Nav -->
+  <rect x="12" y="52" width="166" height="28" fill="none" class="line" stroke-dasharray="2 2"/>
+  <text x="24" y="70" class="text-mute">Search catalog (90)...</text>
+
+  <!-- Nav Items -->
+  <g transform="translate(16, 96)">
+    <!-- Active Item: Home -->
+    <rect x="-4" y="0" width="174" height="28" fill="currentColor" class="bar-fill"/>
+    <text x="10" y="18" font-family="ui-monospace, monospace" font-size="12" font-weight="700" fill="#fafafa">⌂  Dashboard</text>
+
+    <!-- Other Nav Items -->
+    <text x="10" y="46" class="text-mono" font-size="12">⊞  Catalog (90)</text>
+    <text x="10" y="74" class="text-mono" font-size="12">◈  Curated Stacks (12)</text>
+    <text x="10" y="102" class="text-mono" font-size="12">✚  Custom Stack Builder</text>
+    <text x="10" y="130" class="text-mono" font-size="12">⚕  Workstation Doctor</text>
+    <text x="10" y="158" class="text-mono" font-size="12">↓  Downloads [1 active]</text>
+    <text x="10" y="186" class="text-mono" font-size="12">✓  Installed Tools (34)</text>
+    <text x="10" y="214" class="text-mono" font-size="12">⚙  Settings &amp; Security</text>
+  </g>
+
+  <!-- Main Content Area -->
+  <!-- Header row in dashboard -->
+  <text x="215" y="68" class="text-bold" font-size="18">Workstation Status</text>
+  <text x="215" y="86" class="text-mute">WINDOWS 11 PRO (BUILD 26100) · AMD64 · ZERO-TELEMETRY MODE</text>
+
+  <!-- Metrics Cards Row -->
+  <g transform="translate(215, 102)">
+    <!-- Card 1 -->
+    <rect x="0" y="0" width="168" height="68" fill="none" class="line"/>
+    <text x="12" y="22" class="text-mute">INSTALLED TOOLS</text>
+    <text x="12" y="50" class="text-bold" font-size="22">34 / 90</text>
+    <text x="100" y="50" class="text-mute">[38%]</text>
+
+    <!-- Card 2 -->
+    <rect x="180" y="0" width="168" height="68" fill="none" class="line"/>
+    <text x="192" y="22" class="text-mute">UPDATES PENDING</text>
+    <text x="192" y="50" class="text-bold" font-size="22">2 tools</text>
+    <text x="280" y="50" class="text-mute">[v3.0.1]</text>
+
+    <!-- Card 3 -->
+    <rect x="360" y="0" width="168" height="68" fill="none" class="line"/>
+    <text x="372" y="22" class="text-mute">CATALOG STATUS</text>
+    <text x="372" y="50" class="text-bold" font-size="16">VERIFIED (ECDSA)</text>
+
+    <!-- Card 4 -->
+    <rect x="540" y="0" width="180" height="68" fill="none" class="line"/>
+    <text x="552" y="22" class="text-mute">WORKSTATION DOCTOR</text>
+    <text x="552" y="50" class="text-bold" font-size="16">ALL 5 CHECKS OK</text>
+  </g>
+
+  <!-- Active Transfer Strip -->
+  <g transform="translate(215, 186)">
+    <rect x="0" y="0" width="720" height="72" fill="none" class="line"/>
+    <path d="M0 0 L12 0 M0 0 L0 12" class="line" stroke-width="2"/>
+    <text x="16" y="24" class="text-bold" font-size="13">TRANSFER IN PROGRESS: kubectl (v1.31.0) [ARCHIVE]</text>
+    <text x="540" y="24" class="text-mono" font-size="12">14.8 MB/s · 74%</text>
+
+    <!-- Progress Track -->
+    <rect x="16" y="34" width="688" height="10" fill="none" class="line"/>
+    <rect x="16" y="34" width="509" height="10" fill="currentColor" class="bar-fill"/>
+
+    <text x="16" y="60" class="text-mute">38.2 MB / 51.6 MB · HTTP Range Resumable · SHA-256 Validating · Authenticode Signed</text>
+  </g>
+
+  <!-- Curated Stacks Row -->
+  <text x="215" y="282" class="text-bold" font-size="14">Curated Stacks (Quick Provision)</text>
+
+  <g transform="translate(215, 296)">
+    <!-- Stack 1 -->
+    <rect x="0" y="0" width="232" height="100" fill="none" class="line"/>
+    <text x="14" y="24" class="text-bold" font-size="13">Kubernetes Starter</text>
+    <text x="14" y="44" class="text-mute">kubectl, helm, k9s, minikube,</text>
+    <text x="14" y="58" class="text-mute">stern, kustomize, kubectx</text>
+    <rect x="14" y="70" width="80" height="20" fill="none" class="line" stroke-dasharray="2 2"/>
+    <text x="22" y="84" class="text-mono" font-size="10">7 TOOLS</text>
+    <rect x="130" y="70" width="90" height="20" fill="currentColor" class="bar-fill"/>
+    <text x="142" y="84" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">INSTALL</text>
+
+    <!-- Stack 2 -->
+    <rect x="244" y="0" width="232" height="100" fill="none" class="line"/>
+    <text x="258" y="24" class="text-bold" font-size="13">Cloud Engineer</text>
+    <text x="258" y="44" class="text-mute">awscli, azure-cli, gcloud-cli,</text>
+    <text x="258" y="58" class="text-mute">terraform, terragrunt, vault</text>
+    <rect x="258" y="70" width="80" height="20" fill="none" class="line" stroke-dasharray="2 2"/>
+    <text x="266" y="84" class="text-mono" font-size="10">8 TOOLS</text>
+    <rect x="374" y="70" width="90" height="20" fill="currentColor" class="bar-fill"/>
+    <text x="386" y="84" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">INSTALL</text>
+
+    <!-- Stack 3 -->
+    <rect x="488" y="0" width="232" height="100" fill="none" class="line"/>
+    <text x="502" y="24" class="text-bold" font-size="13">DevSecOps Toolkit</text>
+    <text x="502" y="44" class="text-mute">trivy, gitleaks, sops, cosign,</text>
+    <text x="502" y="58" class="text-mute">syft, grype, opa, kyverno</text>
+    <rect x="502" y="70" width="80" height="20" fill="none" class="line" stroke-dasharray="2 2"/>
+    <text x="510" y="84" class="text-mono" font-size="10">8 TOOLS</text>
+    <rect x="618" y="70" width="90" height="20" fill="currentColor" class="bar-fill"/>
+    <text x="630" y="84" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#fafafa">INSTALL</text>
+  </g>
+
+  <!-- Bottom Drawer: Universal Live Log Drawer (Ctrl+`) -->
+  <rect x="1" y="412" width="958" height="146" fill="#0a0a0a"/>
+  <line x1="1" y1="412" x2="959" y2="412" stroke="#fafafa" stroke-width="1.5"/>
+  <rect x="16" y="420" width="170" height="20" fill="none" stroke="#fafafa" stroke-width="1"/>
+  <text x="22" y="434" font-family="ui-monospace, monospace" font-size="11" font-weight="700" fill="#fafafa">LIVE LOG DRAWER (Ctrl+`)</text>
+  <text x="200" y="434" font-family="ui-monospace, monospace" font-size="10" fill="#888888">FILTER: [ALL] INFO WARN ERROR  |  AUTO-SCROLL: ON</text>
+
+  <!-- Log text lines -->
+  <text x="22" y="460" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:29:10] [INFO] [CATALOG] ECDSA P-256 signature verified against pinned public key.</text>
+  <text x="22" y="478" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:29:12] [INFO] [DOWNLOAD] Resuming transfer kubectl-v1.31.0 from byte 40058880 via HTTP Range.</text>
+  <text x="22" y="496" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:29:14] [INFO] [SECURITY] WinVerifyTrust Authenticode check: SIGNED &amp; TRUSTED (CNCF).</text>
+  <text x="22" y="514" font-family="ui-monospace, monospace" font-size="11" fill="#888888">[23:29:15] [INFO] [AUDIT] Appended event to %LOCALAPPDATA%\DevOpsToolsInstaller\logs\activity-20261013.log</text>
+  <text x="22" y="534" font-family="ui-monospace, monospace" font-size="11" fill="#fafafa">[23:29:15] [OK] Ready for context-aware extraction to sandboxed Tools\bin folder.</text>
+
+  <!-- Watermark Label Placeholder -->
+  <rect x="680" y="524" width="260" height="24" fill="#fafafa"/>
+  <text x="690" y="540" font-family="ui-monospace, monospace" font-size="10" font-weight="700" fill="#0a0a0a">[SCREENSHOT PLACEHOLDER: APP UI]</text>
+</svg>
