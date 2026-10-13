@@ -170,6 +170,7 @@ public sealed partial class MainWindow : Window
                 nameof(StacksPage) => "Stacks",
                 nameof(DownloadsPage) => "Downloads",
                 nameof(InstalledPage) => "Installed",
+                nameof(DoctorPage) => "Doctor",
                 nameof(SettingsPage) => "Settings",
                 nameof(AboutPage) => "About",
                 _ => SettingsService.LastPage
@@ -337,6 +338,7 @@ public sealed partial class MainWindow : Window
             "Stacks"    => typeof(StacksPage),
             "Downloads" => typeof(DownloadsPage),
             "Installed" => typeof(InstalledPage),
+            "Doctor"    => typeof(DoctorPage),
             "Settings"  => typeof(SettingsPage),
             "About"     => typeof(AboutPage),
             _           => typeof(HomePage)
@@ -597,6 +599,7 @@ public sealed partial class MainWindow : Window
             new("Go to Stacks", "\uE71D", () => NavigateTo("Stacks")),
             new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
             new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
+            new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
             new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
             new("Go to About", "\uE946", () => NavigateTo("About")),
             new("Check for tool updates", "\uE895", () => NavigateTo("Installed")),

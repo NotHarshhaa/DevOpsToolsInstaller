@@ -65,6 +65,11 @@
                         <FontIcon Glyph="&#xE73E;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Doctor" Tag="Doctor">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE9D9;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Downloads" Tag="Downloads">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE896;" />
