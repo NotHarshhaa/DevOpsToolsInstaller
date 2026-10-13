@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.Storage.Pickers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
+using DevOpsToolsInstaller.ViewModels;
 
 namespace DevOpsToolsInstaller.Views;
 
@@ -74,15 +77,27 @@ public sealed class BundleCardViewModel
 
 public sealed partial class StacksPage : Page
 {
+    public StackBuilderViewModel BuilderViewModel { get; } = new();
+
     private List<BundleCardViewModel> _allCardModels = new();
     private string _selectedCategory = "All";
     private ItemsWrapGrid? _stacksWrapGrid;
+    private ToolDefinition? _draggedTool;
+    private bool _isBuilderMode;
 
     public StacksPage()
     {
         InitializeComponent();
         CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
         Loaded += StacksPage_Loaded;
+
+        BuilderViewModel.StackTools.CollectionChanged += (s, e) =>
+        {
+            if (_isBuilderMode && HeaderCountBadge != null)
+            {
+                HeaderCountBadge.Text = BuilderViewModel.ToolsCountBadgeText;
+            }
+        };
     }
 
     private async void StacksPage_Loaded(object sender, RoutedEventArgs e)
@@ -91,6 +106,8 @@ public sealed partial class StacksPage : Page
         if (mw is null) return;
 
         await mw.EnsureCatalogLoadedAsync();
+
+        BuilderViewModel.Initialize(mw.Tools);
 
         RefreshCardModels();
         ApplyFilter();
@@ -144,8 +161,61 @@ public sealed partial class StacksPage : Page
         }
 
         _allCardModels = list;
-        HeaderCountBadge.Text = $"{_allCardModels.Count} Presets";
+        if (!_isBuilderMode && HeaderCountBadge != null)
+        {
+            HeaderCountBadge.Text = $"{_allCardModels.Count} Presets";
+        }
     }
+
+    // ── Mode Switcher ────────────────────────────────────────────────────────
+
+    private void ViewModeSegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
+            segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
+        {
+            return;
+        }
+
+        var mode = selected.Tag as string ?? "Presets";
+        _isBuilderMode = string.Equals(mode, "Builder", StringComparison.OrdinalIgnoreCase);
+
+        if (_isBuilderMode)
+        {
+            PresetsContainerGrid.Visibility = Visibility.Collapsed;
+            BuilderContainerGrid.Visibility = Visibility.Visible;
+
+            PageHeaderTitle.Text = "Custom Stack Builder";
+            PageHeaderSubtitle.Text = "Assemble custom toolsets by dragging catalog tools or using '+ Add'. Save, export, or install in 1-click.";
+            HeaderCountBadge.Text = BuilderViewModel.ToolsCountBadgeText;
+        }
+        else
+        {
+            PresetsContainerGrid.Visibility = Visibility.Visible;
+            BuilderContainerGrid.Visibility = Visibility.Collapsed;
+
+            PageHeaderTitle.Text = "Stacks & Bundles";
+            PageHeaderSubtitle.Text = "Pre-configured toolsets for common DevOps workflows. Install entire stacks in 1-click, or build your own custom stack.";
+            HeaderCountBadge.Text = $"{_allCardModels.Count} Presets";
+        }
+    }
+
+    private void SelectBuilderMode()
+    {
+        if (ViewModeSegmented != null)
+        {
+            foreach (var item in ViewModeSegmented.Items.OfType<CommunityToolkit.WinUI.Controls.SegmentedItem>())
+            {
+                if (string.Equals(item.Tag as string, "Builder", StringComparison.OrdinalIgnoreCase))
+                {
+                    ViewModeSegmented.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+    }
+
+    // ── Presets Filtering ───────────────────────────────────────────────────
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -154,8 +224,6 @@ public sealed partial class StacksPage : Page
 
     private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        // Use the sender: this event can fire during XAML parse (initial
-        // IsSelected) before the generated field is connected.
         if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
             segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
         {
@@ -256,9 +324,32 @@ public sealed partial class StacksPage : Page
 
     private void CustomizeInCatalog_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is string bundleId)
+        if (sender is FrameworkElement btn && btn.Tag is string bundleId)
         {
             App.MainWindowInstance?.NavigateToCatalogWithBundle(bundleId);
+        }
+    }
+
+    private void OpenInStackBuilder_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        ToolBundle? targetBundle = null;
+        if (sender is FrameworkElement { DataContext: BundleCardViewModel vm })
+        {
+            targetBundle = vm.Bundle;
+        }
+        else if (sender is FrameworkElement { Tag: string bundleId })
+        {
+            targetBundle = mw.Bundles.FirstOrDefault(b => string.Equals(b.Id, bundleId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (targetBundle != null)
+        {
+            BuilderViewModel.LoadBundle(targetBundle);
+            SelectBuilderMode();
+            ShowInfoBar(InfoBarSeverity.Informational, "Stack Loaded", $"Loaded preset '{targetBundle.Name}' into the stack builder.");
         }
     }
 
@@ -418,5 +509,330 @@ public sealed partial class StacksPage : Page
     private void MenuViewDownloads_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindowInstance?.NavigateTo("Downloads");
+    }
+
+    // ── Custom Stack Builder Handlers ────────────────────────────────────────
+
+    private void AvailableToolsListView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+    {
+        if (e.Items.Count > 0 && e.Items[0] is ToolDefinition tool)
+        {
+            _draggedTool = tool;
+            e.Data.SetText(tool.Id);
+            e.Data.RequestedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+        }
+    }
+
+    private void MyStackArea_DragOver(object sender, DragEventArgs e)
+    {
+        e.AcceptedOperation = Windows.ApplicationModel.DataTransfer.DataPackageOperation.Copy;
+        e.DragUIOverride.Caption = "Add to My Stack";
+        e.DragUIOverride.IsCaptionVisible = true;
+        e.DragUIOverride.IsContentVisible = true;
+    }
+
+    private async void MyStackArea_Drop(object sender, DragEventArgs e)
+    {
+        ToolDefinition? tool = _draggedTool;
+        if (tool == null && e.DataView.Contains(Windows.ApplicationModel.DataTransfer.StandardDataFormats.Text))
+        {
+            try
+            {
+                var text = await e.DataView.GetTextAsync();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var mw = App.MainWindowInstance;
+                    tool = mw?.Tools.FirstOrDefault(t => string.Equals(t.Id, text, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            catch { }
+        }
+
+        if (tool != null)
+        {
+            AddToolToBuilder(tool);
+        }
+        _draggedTool = null;
+    }
+
+    private void AddToolButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: ToolDefinition tool })
+        {
+            AddToolToBuilder(tool);
+        }
+    }
+
+    private void AddToolToBuilder(ToolDefinition tool)
+    {
+        bool added = BuilderViewModel.AddTool(tool);
+        if (added)
+        {
+            ShowInfoBar(InfoBarSeverity.Success, "Tool Added", $"Added {tool.Name} to {BuilderViewModel.StackName}.");
+        }
+        else
+        {
+            ShowInfoBar(InfoBarSeverity.Informational, "Already in Stack", $"{tool.Name} is already included in this stack.");
+        }
+    }
+
+    private void RemoveToolButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: ToolDefinition tool })
+        {
+            BuilderViewModel.RemoveTool(tool);
+        }
+    }
+
+    private void MoveUp_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: ToolDefinition tool })
+        {
+            BuilderViewModel.MoveUp(tool);
+        }
+    }
+
+    private void MoveDown_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: ToolDefinition tool })
+        {
+            BuilderViewModel.MoveDown(tool);
+        }
+    }
+
+    private void MyStackListView_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key == Windows.System.VirtualKey.Delete)
+        {
+            if (MyStackListView.SelectedItem is ToolDefinition tool)
+            {
+                BuilderViewModel.RemoveTool(tool);
+                e.Handled = true;
+            }
+        }
+    }
+
+    private void ClearCustomStack_Click(object sender, RoutedEventArgs e)
+    {
+        BuilderViewModel.Clear();
+        ShowInfoBar(InfoBarSeverity.Informational, "Stack Cleared", "Custom stack has been reset.");
+    }
+
+    private void SaveCustomStack_Click(object sender, RoutedEventArgs e)
+    {
+        if (BuilderViewModel.StackTools.Count == 0)
+        {
+            ShowInfoBar(InfoBarSeverity.Warning, "Cannot Save Empty Stack", "Add at least one tool to the stack before saving.");
+            return;
+        }
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var bundle = BuilderViewModel.ToBundle();
+        CustomStacksService.SaveCustomStack(bundle);
+
+        // Update MainWindow.Bundles collection
+        var existing = mw.Bundles.FirstOrDefault(b => string.Equals(b.Id, bundle.Id, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            var idx = mw.Bundles.IndexOf(existing);
+            mw.Bundles[idx] = bundle;
+        }
+        else
+        {
+            mw.Bundles.Add(bundle);
+        }
+
+        RefreshCardModels();
+        ApplyFilter();
+
+        ShowInfoBar(InfoBarSeverity.Success, "Stack Saved",
+            $"'{bundle.Name}' saved with {bundle.Tools.Count} tool(s). It is now available under presets and quick stacks.");
+    }
+
+    private async void ExportCustomStack_Click(object sender, RoutedEventArgs e)
+    {
+        if (BuilderViewModel.StackTools.Count == 0)
+        {
+            ShowInfoBar(InfoBarSeverity.Warning, "Cannot Export Empty Stack", "Add at least one tool to the stack before exporting.");
+            return;
+        }
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            var savePicker = new FileSavePicker();
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
+
+            var safeName = string.IsNullOrWhiteSpace(BuilderViewModel.StackName)
+                ? "custom-stack"
+                : BuilderViewModel.StackName.Trim().ToLowerInvariant().Replace(' ', '-');
+
+            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            savePicker.SuggestedFileName = safeName;
+            savePicker.FileTypeChoices.Add("JSON Stack Definition", new List<string> { ".json" });
+
+            var file = await savePicker.PickSaveFileAsync();
+            if (file is null) return;
+
+            var bundle = BuilderViewModel.ToBundle();
+            var json = CustomStacksService.ExportToJson(bundle);
+            await Windows.Storage.FileIO.WriteTextAsync(file, json);
+
+            ShowInfoBar(InfoBarSeverity.Success, "Stack Exported", $"Exported '{bundle.Name}' ({bundle.Tools.Count} tools) to {file.Name}.");
+        }
+        catch (Exception ex)
+        {
+            ShowInfoBar(InfoBarSeverity.Error, "Export Failed", ex.Message);
+        }
+    }
+
+    private async void ImportCustomStack_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            var openPicker = new FileOpenPicker();
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hwnd);
+
+            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            openPicker.FileTypeFilter.Add(".json");
+
+            var file = await openPicker.PickSingleFileAsync();
+            if (file is null) return;
+
+            var json = await Windows.Storage.FileIO.ReadTextAsync(file);
+            var (stack, unknownToolIds, error) = CustomStacksService.ImportFromJson(json, mw.Tools);
+
+            if (error != null)
+            {
+                ShowInfoBar(InfoBarSeverity.Error, "Import Failed", error);
+                return;
+            }
+
+            if (stack == null)
+            {
+                ShowInfoBar(InfoBarSeverity.Error, "Import Failed", "No valid stack found in the selected file.");
+                return;
+            }
+
+            BuilderViewModel.LoadBundle(stack);
+
+            if (unknownToolIds.Count > 0)
+            {
+                ShowInfoBar(InfoBarSeverity.Warning, $"Stack '{stack.Name}' Imported with Warnings",
+                    $"Loaded {stack.Tools.Count} tool(s). {unknownToolIds.Count} unknown tool ID(s) were ignored: {string.Join(", ", unknownToolIds)}");
+            }
+            else
+            {
+                ShowInfoBar(InfoBarSeverity.Success, "Import Successful",
+                    $"Successfully imported '{stack.Name}' with {stack.Tools.Count} tool(s).");
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowInfoBar(InfoBarSeverity.Error, "Import Failed", ex.Message);
+        }
+    }
+
+    private async void InstallCustomStack_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        if (BuilderViewModel.StackTools.Count == 0)
+        {
+            ShowInfoBar(InfoBarSeverity.Warning, "Stack is Empty", "Add tools to the stack before installing.");
+            return;
+        }
+
+        var toolsById = mw.Tools.ToDictionary(t => t.Id, t => t, StringComparer.OrdinalIgnoreCase);
+
+        var toDownload = new List<ToolDefinition>();
+        foreach (var stackTool in BuilderViewModel.StackTools)
+        {
+            if (toolsById.TryGetValue(stackTool.Id, out var tool))
+            {
+                if (tool.IsInstalled || tool.Status == ToolStatus.Downloaded || tool.Status == ToolStatus.Downloading)
+                {
+                    continue;
+                }
+
+                tool.IsSelected = true;
+                toDownload.Add(tool);
+            }
+        }
+
+        if (toDownload.Count == 0)
+        {
+            ShowInfoBar(InfoBarSeverity.Informational, "All Tools Installed",
+                $"All {BuilderViewModel.StackTools.Count} tools in '{BuilderViewModel.StackName}' are already downloaded or installed.");
+            return;
+        }
+
+        // Add to queue
+        foreach (var tool in toDownload)
+        {
+            if (!mw.DownloadQueue.Contains(tool))
+            {
+                mw.DownloadQueue.Add(tool);
+            }
+        }
+
+        if (DownloadSchedulerService.IsOffPeakActive)
+        {
+            foreach (var tool in toDownload)
+            {
+                tool.Status = ToolStatus.Scheduled;
+                tool.Progress = 0;
+            }
+            ActivityLogService.Info(BuilderViewModel.StackName,
+                $"Custom stack transfer scheduled for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+            if (SettingsService.EnableNotifications)
+            {
+                ToastService.Show($"{BuilderViewModel.StackName} Scheduled",
+                    $"Custom stack queued for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+            }
+            mw.NavigateTo("Downloads");
+            return;
+        }
+
+        // Start background download
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var dlFolder = DownloadService.DefaultDownloadsFolder;
+                await mw.DownloadSvc.DownloadBatchAsync(toDownload, dlFolder, maxConcurrency: 3);
+
+                var installedCount = toDownload.Count(t => t.Status == ToolStatus.Downloaded);
+                ToastService.Show(
+                    $"{BuilderViewModel.StackName}: {installedCount}/{toDownload.Count} downloaded",
+                    "Downloaded tools are ready to deploy from the Downloads page.");
+            }
+            catch
+            {
+                // Managed by DownloadsPage
+            }
+        });
+
+        // Navigate directly to Downloads page
+        mw.NavigateTo("Downloads");
+    }
+
+    private void ShowInfoBar(InfoBarSeverity severity, string title, string message)
+    {
+        if (BuilderInfoBar == null) return;
+        BuilderInfoBar.Severity = severity;
+        BuilderInfoBar.Title = title;
+        BuilderInfoBar.Message = message;
+        BuilderInfoBar.IsOpen = true;
     }
 }

@@ -88,6 +88,15 @@ public sealed partial class MainWindow : Window
                 Bundles.Add(bundle);
             }
 
+            var customStacks = CustomStacksService.LoadCustomStacks();
+            foreach (var custom in customStacks)
+            {
+                if (!Bundles.Any(b => string.Equals(b.Id, custom.Id, StringComparison.OrdinalIgnoreCase)))
+                {
+                    Bundles.Add(custom);
+                }
+            }
+
             _catalogLoaded = true;
         }
         finally
