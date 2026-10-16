@@ -5,7 +5,7 @@ namespace DevOpsToolsInstaller;
 
 public partial class App : Application
 {
-    public static MainWindow? MainWindowInstance { get; private set; }
+    public static MainWindow? MainWindowInstance { get; set; }
 
     public App()
     {
@@ -17,7 +17,8 @@ public partial class App : Application
         {
             try
             {
-                ActivityLogService.Error("App", $"Unhandled exception: {e.Message}");
+                var details = e.Exception?.ToString() ?? e.Message;
+                ActivityLogService.Error("App", $"Unhandled exception: {details}");
             }
             catch
             {

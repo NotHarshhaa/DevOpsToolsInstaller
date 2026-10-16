@@ -141,6 +141,7 @@ public sealed partial class MainWindow : Window
 
     public MainWindow()
     {
+        App.MainWindowInstance = this;
         InitializeComponent();
         Title = "DevOps Tools Installer";
         ExtendsContentIntoTitleBar = true;
@@ -186,6 +187,12 @@ public sealed partial class MainWindow : Window
                 nameof(AboutPage) => "About",
                 _ => SettingsService.LastPage
             };
+        };
+
+        ContentFrame.NavigationFailed += (s, e) =>
+        {
+            var details = e.Exception?.ToString() ?? "Unknown error";
+            ActivityLogService.Error("Navigation", $"Navigation to {e.SourcePageType?.Name} failed: {details}");
         };
 
         // Close-to-tray: hide the window instead of exiting (unless the user

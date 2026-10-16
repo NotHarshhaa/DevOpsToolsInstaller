@@ -23,12 +23,25 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     public ProfilesPage()
     {
         InitializeComponent();
+
+        // Wired here rather than in XAML: with IsSelected="True" on the first
+        // SegmentedItem, a XAML-wired handler fires during InitializeComponent,
+        // before the section containers exist.
+        SectionSegmented.SelectionChanged += SectionSegmented_SelectionChanged;
+
         Loaded += ProfilesPage_Loaded;
     }
 
+    private XamlRoot? PageXamlRoot =>
+        XamlRoot ?? App.MainWindowInstance?.Content?.XamlRoot;
+
     private async void ProfilesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await App.MainWindowInstance!.EnsureCatalogLoadedAsync();
+        var mw = App.MainWindowInstance;
+        if (mw is not null)
+        {
+            await mw.EnsureCatalogLoadedAsync();
+        }
         RefreshProfiles();
         RefreshSnapshots();
         RefreshHistory();
@@ -47,11 +60,30 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
     private void SectionSegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
-            segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
+        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented)
             return;
 
-        var tag = selected.Tag as string ?? "Profiles";
+        // Skip events raised before the page finished loading.
+        if (ProfilesContainer is null || SnapshotsContainer is null ||
+            HistoryContainer is null || SyncContainer is null)
+            return;
+
+        string tag = "Profiles";
+        if (segmented.SelectedItem is CommunityToolkit.WinUI.Controls.SegmentedItem selected && selected.Tag is string t)
+        {
+            tag = t;
+        }
+        else
+        {
+            tag = segmented.SelectedIndex switch
+            {
+                1 => "Snapshots",
+                2 => "History",
+                3 => "Sync",
+                _ => "Profiles"
+            };
+        }
+
         ProfilesContainer.Visibility = tag == "Profiles" ? Visibility.Visible : Visibility.Collapsed;
         SnapshotsContainer.Visibility = tag == "Snapshots" ? Visibility.Visible : Visibility.Collapsed;
         HistoryContainer.Visibility = tag == "History" ? Visibility.Visible : Visibility.Collapsed;
@@ -81,7 +113,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
         if (!ok) return;
 
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
         var profile = ProfileStoreService.CaptureFromInstalled(name, description, mw.Tools.ToList());
         RefreshProfiles();
         ShowNotice($"Profile '{profile.Name}' captured with {profile.ToolCount} tool(s).", InfoBarSeverity.Success);
@@ -89,7 +122,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
     private async void NewProfileFromSelection_Click(object sender, RoutedEventArgs e)
     {
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
         var selected = mw.Tools.Where(t => t.IsSelected).Select(t => t.Id).ToList();
         if (selected.Count == 0)
         {
@@ -139,7 +173,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     private void ApplyProfile_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: WorkstationProfile profile }) return;
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
 
         var count = ProfileStoreService.Apply(profile, mw.Tools);
         mw.NavigateTo("Catalog");
@@ -149,7 +184,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     private async void InstallProfile_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: WorkstationProfile profile }) return;
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
         var tools = ProfileStoreService.ResolveTools(profile, mw.Tools.ToList());
         await InstallToolsAsync(tools, profile.Name);
     }
@@ -175,6 +211,9 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     {
         if (sender is not FrameworkElement { DataContext: WorkstationProfile profile }) return;
 
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
+
         var dialog = new ContentDialog
         {
             Title = $"Delete profile '{profile.Name}'?",
@@ -182,7 +221,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Delete",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
@@ -221,7 +260,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
         if (!ok) return;
 
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
         var snapshot = SnapshotService.Capture(name, mw.Tools.ToList());
         RefreshSnapshots();
         ShowNotice($"Snapshot '{snapshot.Name}' captured ({snapshot.ToolCount} tool(s)).", InfoBarSeverity.Success);
@@ -230,7 +270,11 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     private async void DiffSnapshot_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: WorkstationSnapshot snapshot }) return;
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
 
         var diff = await Task.Run(() => SnapshotService.Diff(snapshot, mw.Tools.ToList()));
 
@@ -250,7 +294,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             Title = $"Diff: {snapshot.Name} vs this workstation",
             Content = new ScrollViewer { Content = panel },
             CloseButtonText = "Close",
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
         await dialog.ShowAsync();
     }
@@ -258,7 +302,11 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     private async void RestoreSnapshot_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: WorkstationSnapshot snapshot }) return;
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
 
         var missing = SnapshotService.GetMissingTools(snapshot, mw.Tools.ToList());
         if (missing.Count == 0)
@@ -276,7 +324,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Restore",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
@@ -288,6 +336,9 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
     {
         if (sender is not FrameworkElement { DataContext: WorkstationSnapshot snapshot }) return;
 
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
+
         var dialog = new ContentDialog
         {
             Title = $"Delete snapshot '{snapshot.Name}'?",
@@ -295,7 +346,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Delete",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
@@ -320,6 +371,9 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
     private async void ClearHistory_Click(object sender, RoutedEventArgs e)
     {
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
+
         var dialog = new ContentDialog
         {
             Title = "Clear install history?",
@@ -327,7 +381,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Clear",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
@@ -338,7 +392,12 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
 
     private async void Rollback_Click(object sender, RoutedEventArgs e)
     {
-        var mw = App.MainWindowInstance!;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return;
+
         var dlFolder = DownloadService.DefaultDownloadsFolder;
 
         // Tools that have more than one recorded version are rollback candidates.
@@ -387,7 +446,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Roll back",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
@@ -588,6 +647,9 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         panel.Children.Add(nameBox);
         panel.Children.Add(descBox);
 
+        var xamlRoot = PageXamlRoot;
+        if (xamlRoot is null) return (defaultName, string.Empty, false);
+
         var dialog = new ContentDialog
         {
             Title = title,
@@ -595,7 +657,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             PrimaryButtonText = "Save",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = xamlRoot
         };
 
         var result = await dialog.ShowAsync();

@@ -30,7 +30,6 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <tk:Segmented x:Name="SectionSegmented"
-                              SelectionChanged="SectionSegmented_SelectionChanged"
                               AutomationProperties.Name="Profiles and history sections">
                     <tk:SegmentedItem Content="Profiles" Tag="Profiles" IsSelected="True" />
                     <tk:SegmentedItem Content="Snapshots" Tag="Snapshots" />
