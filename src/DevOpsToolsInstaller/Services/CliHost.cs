@@ -33,7 +33,9 @@ public static class CliHost
         "--import-winget", "--import-choco",
         "--generate-script", "--generate-devcontainer", "--report",
         "--path-doctor", "--check-path", "--fix-path",
-        "--downloads-folder", "--list", "--status", "--version", "--help", "-h"
+        "--history", "--snapshot", "--restore-snapshot",
+        "--profiles", "--capture-profile", "--apply-profile", "--sync-profiles",
+        "--downloads-folder", "--run-hooks", "--list", "--status", "--version", "--help", "-h"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -109,6 +111,15 @@ public static class CliHost
             {
                 WriteLine($"[warn] could not use downloads folder '{dlOverride}': {ex.Message}");
             }
+        }
+
+        // Global option: allow user-authored pre/post-install hooks to run in
+        // headless mode. Off by default so a script never triggers shell
+        // commands the user did not explicitly enable.
+        if (args.Contains("--run-hooks", StringComparer.OrdinalIgnoreCase))
+        {
+            SettingsService.HooksEnabled = true;
+            WriteLine("Hooks enabled for this run (--run-hooks).");
         }
 
         var catalog = new CatalogService();
@@ -224,6 +235,39 @@ public static class CliHost
             else if (arg.Equals("--generate-devcontainer", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
                 return GenerateDevContainer(args[++i], tools);
+            }
+            else if (arg.Equals("--history", StringComparison.OrdinalIgnoreCase))
+            {
+                string? toolFilter = null;
+                if (i + 1 < args.Count && !args[i + 1].StartsWith("--"))
+                {
+                    toolFilter = args[++i];
+                }
+                return PrintHistory(toolFilter);
+            }
+            else if (arg.Equals("--snapshot", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return CaptureSnapshot(args[++i], tools);
+            }
+            else if (arg.Equals("--restore-snapshot", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await RestoreSnapshotAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--profiles", StringComparison.OrdinalIgnoreCase))
+            {
+                return PrintProfiles();
+            }
+            else if (arg.Equals("--capture-profile", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return CaptureProfile(args[++i], tools);
+            }
+            else if (arg.Equals("--apply-profile", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await ApplyProfileAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--sync-profiles", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunSyncProfiles();
             }
             else if (arg.Equals("--path-doctor", StringComparison.OrdinalIgnoreCase) ||
                      arg.Equals("--check-path", StringComparison.OrdinalIgnoreCase))
@@ -827,6 +871,121 @@ public static class CliHost
         }
     }
 
+    private static int PrintHistory(string? toolFilter)
+    {
+        var events = string.IsNullOrWhiteSpace(toolFilter)
+            ? InstallHistoryService.Load(100)
+            : InstallHistoryService.LoadForTool(toolFilter, 100);
+
+        if (events.Count == 0)
+        {
+            WriteLine("No workstation history recorded yet.");
+            return 0;
+        }
+
+        var scope = string.IsNullOrWhiteSpace(toolFilter) ? "" : $" for '{toolFilter}'";
+        WriteLine($"Workstation history — {events.Count} event(s){scope} (newest first):");
+        WriteLine();
+        foreach (var e in events)
+        {
+            var version = string.IsNullOrWhiteSpace(e.Version) ? "" : "v" + e.Version.TrimStart('v', 'V');
+            WriteLine($"  {e.Timestamp:yyyy-MM-dd HH:mm}  {e.Action.PadRight(10)} {e.ToolName.PadRight(26)} {version}");
+        }
+        return 0;
+    }
+
+    private static int CaptureSnapshot(string name, IReadOnlyList<ToolDefinition> tools)
+    {
+        var snapshot = SnapshotService.Capture(name, tools);
+        WriteLine($"Snapshot '{snapshot.Name}' captured: {snapshot.ToolCount} tool(s) on {snapshot.MachineName}.");
+        WriteLine($"Saved to {SnapshotService.StorageFolder}");
+        return 0;
+    }
+
+    private static async Task<int> RestoreSnapshotAsync(string name, IReadOnlyList<ToolDefinition> tools)
+    {
+        var snapshot = SnapshotService.Get(name);
+        if (snapshot is null)
+        {
+            WriteLine($"error: snapshot '{name}' not found.");
+            return 1;
+        }
+
+        var missing = SnapshotService.GetMissingTools(snapshot, tools);
+        if (missing.Count == 0)
+        {
+            WriteLine($"Snapshot '{snapshot.Name}' already matches this workstation — nothing to restore.");
+            return 0;
+        }
+
+        WriteLine($"Restoring snapshot '{snapshot.Name}': installing {missing.Count} missing tool(s)...");
+        var (installed, skipped, failed) = await InstallMissingAsync(missing);
+        WriteLine(string.Empty);
+        WriteLine($"Done. {installed} installed, {skipped} already present, {failed} failed.");
+        return failed == 0 ? 0 : 1;
+    }
+
+    private static int PrintProfiles()
+    {
+        var profiles = ProfileStoreService.LoadAll();
+        if (profiles.Count == 0)
+        {
+            WriteLine("No saved workstation profiles. Create one from the app or with --capture-profile <name>.");
+            return 0;
+        }
+
+        WriteLine($"Saved workstation profiles ({profiles.Count}):");
+        WriteLine();
+        foreach (var p in profiles)
+        {
+            WriteLine($"  {p.Id.PadRight(20)} {p.Name.PadRight(32)} {p.ToolCount} tool(s)  [{p.SourceLabel}]");
+        }
+        return 0;
+    }
+
+    private static int CaptureProfile(string name, IReadOnlyList<ToolDefinition> tools)
+    {
+        var profile = ProfileStoreService.CaptureFromInstalled(name, "Captured from headless CLI", tools);
+        WriteLine($"Profile '{profile.Name}' saved with {profile.ToolCount} tool(s) to {ProfileStoreService.FilePath}.");
+        return 0;
+    }
+
+    private static async Task<int> ApplyProfileAsync(string name, IReadOnlyList<ToolDefinition> tools)
+    {
+        var profile = ProfileStoreService.Get(name);
+        if (profile is null)
+        {
+            WriteLine($"error: profile '{name}' not found (run --profiles to list saved profiles).");
+            return 1;
+        }
+
+        var resolved = ProfileStoreService.ResolveTools(profile, tools);
+        if (resolved.Count == 0)
+        {
+            WriteLine($"error: profile '{profile.Name}' does not reference any tools in this catalog.");
+            return 1;
+        }
+
+        WriteLine($"Applying profile '{profile.Name}': {resolved.Count} tool(s)...");
+        var (installed, skipped, failed) = await InstallMissingAsync(resolved);
+        WriteLine(string.Empty);
+        WriteLine($"Done. {installed} installed, {skipped} already present, {failed} failed.");
+        return failed == 0 ? 0 : 1;
+    }
+
+    private static int RunSyncProfiles()
+    {
+        var result = ProfileSyncService.Sync();
+        if (result.Success)
+        {
+            WriteLine($"[OK] {result.Message}");
+            return 0;
+        }
+
+        WriteLine($"[ERR] {result.Message}");
+        return 1;
+    }
+
     private static int RunPathDoctor()
     {
         WriteLine("Running PATH Environment Doctor...\n");
@@ -957,6 +1116,14 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --generate-devcontainer <zip/dir> Generate VS Code DevContainer & Dockerfile");
         WriteLine("  DevOpsToolsInstaller.exe --path-doctor                Diagnose User PATH duplicates and broken paths");
         WriteLine("  DevOpsToolsInstaller.exe --fix-path                   Clean, deduplicate, and backup User PATH");
+        WriteLine("  DevOpsToolsInstaller.exe --history [toolId]           Show workstation install/update/uninstall history");
+        WriteLine("  DevOpsToolsInstaller.exe --snapshot <name>            Capture a workstation snapshot (restore point)");
+        WriteLine("  DevOpsToolsInstaller.exe --restore-snapshot <name>    Reinstall missing tools from a snapshot");
+        WriteLine("  DevOpsToolsInstaller.exe --profiles                   List saved named workstation profiles");
+        WriteLine("  DevOpsToolsInstaller.exe --capture-profile <name>     Save a profile from the installed toolset");
+        WriteLine("  DevOpsToolsInstaller.exe --apply-profile <name|id>    Install every tool in a named profile");
+        WriteLine("  DevOpsToolsInstaller.exe --sync-profiles              Merge profiles/snapshots with the sync folder");
+        WriteLine("  DevOpsToolsInstaller.exe --run-hooks                  Allow user-authored pre/post-install hooks");
         WriteLine("  DevOpsToolsInstaller.exe --downloads-folder <path>    Redirect downloads (e.g. a USB drive)");
         WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");
         WriteLine("  DevOpsToolsInstaller.exe --help                       Show this help");

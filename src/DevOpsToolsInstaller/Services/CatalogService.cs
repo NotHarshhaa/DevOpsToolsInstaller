@@ -31,11 +31,18 @@ public sealed class CatalogService
     }
 
     /// <summary>
-    /// Loads the tool catalog. Uses the remote GitHub copy only when its
+    /// Loads the tool catalog, then folds in any user-defined custom tools from
+    /// the in-app catalog editor. Uses the remote GitHub copy only when its
     /// signature verifies against the pinned public key; otherwise falls back
     /// to the embedded Assets/catalog.json (fail closed against tampering).
     /// </summary>
     public async Task<List<ToolDefinition>> LoadCatalogAsync(CancellationToken ct = default)
+    {
+        var tools = await LoadBaseCatalogAsync(ct);
+        return CustomCatalogService.Merge(tools);
+    }
+
+    private async Task<List<ToolDefinition>> LoadBaseCatalogAsync(CancellationToken ct)
     {
         // 0. Check for custom catalog source (Settings -> Updates)
         if (!string.IsNullOrWhiteSpace(SettingsService.CustomCatalogSource))

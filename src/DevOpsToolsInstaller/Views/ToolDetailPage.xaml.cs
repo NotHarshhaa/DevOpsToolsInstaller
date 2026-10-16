@@ -118,6 +118,106 @@ public sealed partial class ToolDetailPage : Page
                 IsClickEnabled = false
             });
         }
+
+        BindHooks();
+    }
+
+    // ── Pre/post-install hooks (user-authored; opt-in) ──────────────────
+
+    private void BindHooks()
+    {
+        var hook = HookService.Get(Tool.Id);
+        HookEnabledToggle.IsOn = hook?.Enabled ?? true;
+        PreHookBox.Text = hook?.PreInstallCommand ?? string.Empty;
+        PostHookBox.Text = hook?.PostInstallCommand ?? string.Empty;
+        HookTimeoutBox.Value = hook?.TimeoutSeconds ?? 120;
+
+        if (!SettingsService.HooksEnabled)
+        {
+            HookStatusBar.Severity = InfoBarSeverity.Warning;
+            HookStatusBar.Title = "Hooks are disabled in Settings";
+            HookStatusBar.Message = "Commands are saved but will not run during installs until you enable hooks in Settings.";
+            HookStatusBar.IsOpen = true;
+        }
+        else if (hook is { Enabled: true } && (hook.HasPre || hook.HasPost))
+        {
+            HookStatusBar.Severity = InfoBarSeverity.Success;
+            HookStatusBar.Title = "Hooks configured";
+            HookStatusBar.Message = "These commands run around this tool's install.";
+            HookStatusBar.IsOpen = true;
+        }
+        else
+        {
+            HookStatusBar.IsOpen = false;
+        }
+    }
+
+    private ToolHook BuildHookFromInputs()
+    {
+        var timeout = double.IsNaN(HookTimeoutBox.Value) ? 120 : HookTimeoutBox.Value;
+        return new ToolHook
+        {
+            ToolId = Tool.Id,
+            PreInstallCommand = PreHookBox.Text?.Trim() ?? string.Empty,
+            PostInstallCommand = PostHookBox.Text?.Trim() ?? string.Empty,
+            Enabled = HookEnabledToggle.IsOn,
+            TimeoutSeconds = (int)Math.Clamp(timeout, 5, 3600)
+        };
+    }
+
+    private void SaveHooks_Click(object sender, RoutedEventArgs e)
+    {
+        var hook = BuildHookFromInputs();
+        if (!hook.HasPre && !hook.HasPost)
+        {
+            HookService.Delete(Tool.Id);
+            ShowHookStatus("No commands entered — the hook definition was removed.", InfoBarSeverity.Informational);
+            return;
+        }
+
+        HookService.Save(hook);
+        ActivityLogService.Info(Tool.Name, "Pre/post-install hook commands saved.");
+        ShowHookStatus("Hook commands saved for this tool.", InfoBarSeverity.Success);
+    }
+
+    private void DeleteHooks_Click(object sender, RoutedEventArgs e)
+    {
+        HookService.Delete(Tool.Id);
+        PreHookBox.Text = string.Empty;
+        PostHookBox.Text = string.Empty;
+        HookEnabledToggle.IsOn = true;
+        HookTimeoutBox.Value = 120;
+        ActivityLogService.Info(Tool.Name, "Pre/post-install hook definition removed.");
+        ShowHookStatus("Hook definition removed for this tool.", InfoBarSeverity.Informational);
+    }
+
+    private async void TestPreHook_Click(object sender, RoutedEventArgs e) => await RunHookTestAsync(isPre: true);
+
+    private async void TestPostHook_Click(object sender, RoutedEventArgs e) => await RunHookTestAsync(isPre: false);
+
+    private async Task RunHookTestAsync(bool isPre)
+    {
+        var hook = BuildHookFromInputs();
+        var command = isPre ? hook.PreInstallCommand : hook.PostInstallCommand;
+        if (string.IsNullOrWhiteSpace(command))
+        {
+            ShowHookStatus($"Enter a {(isPre ? "pre" : "post")}-install command to test first.",
+                InfoBarSeverity.Warning);
+            return;
+        }
+
+        var label = isPre ? "pre-install" : "post-install";
+        ShowHookStatus($"Running {label} command…", InfoBarSeverity.Informational);
+        var result = await Task.Run(() => HookService.RunAdHoc(Tool, command, hook.TimeoutSeconds, isPre));
+        ShowHookStatus(result.Message, result.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+    }
+
+    private void ShowHookStatus(string message, InfoBarSeverity severity)
+    {
+        HookStatusBar.Title = null;
+        HookStatusBar.Message = message;
+        HookStatusBar.Severity = severity;
+        HookStatusBar.IsOpen = true;
     }
 
     private void Back_Click(object sender, RoutedEventArgs e) => Frame?.GoBack();

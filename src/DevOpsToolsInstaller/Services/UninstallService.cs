@@ -97,6 +97,12 @@ public static class UninstallService
                 RemoveDownloadedArtifact(tool, downloadsFolder);
             }
 
+            if (result.Success)
+            {
+                InstallHistoryService.RecordUninstall(
+                    tool.Id, tool.Name, tool.DetectedVersion ?? tool.SelectedVersion, result.Message);
+            }
+
             return result;
         }
         catch (Exception ex)

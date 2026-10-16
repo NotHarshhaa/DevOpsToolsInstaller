@@ -180,6 +180,8 @@ public sealed partial class MainWindow : Window
                 nameof(DownloadsPage) => "Downloads",
                 nameof(InstalledPage) => "Installed",
                 nameof(DoctorPage) => "Doctor",
+                nameof(ProfilesPage) => "Profiles",
+                nameof(CatalogEditorPage) => "CatalogEditor",
                 nameof(SettingsPage) => "Settings",
                 nameof(AboutPage) => "About",
                 _ => SettingsService.LastPage
@@ -385,6 +387,8 @@ public sealed partial class MainWindow : Window
             "Downloads" => typeof(DownloadsPage),
             "Installed" => typeof(InstalledPage),
             "Doctor"    => typeof(DoctorPage),
+            "Profiles"  => typeof(ProfilesPage),
+            "CatalogEditor" => typeof(CatalogEditorPage),
             "Settings"  => typeof(SettingsPage),
             "About"     => typeof(AboutPage),
             _           => typeof(HomePage)
@@ -658,6 +662,8 @@ public sealed partial class MainWindow : Window
             new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
             new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
             new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
+            new("Go to Profiles & History", "\uE77B", () => NavigateTo("Profiles")),
+            new("Edit Custom Tools", "\uE70F", () => NavigateTo("CatalogEditor")),
             new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
             new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
             new("Go to About", "\uE946", () => NavigateTo("About")),

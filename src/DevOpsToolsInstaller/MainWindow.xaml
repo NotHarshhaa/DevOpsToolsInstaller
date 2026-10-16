@@ -83,6 +83,11 @@
                         <FontIcon Glyph="&#xE9D9;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Profiles &amp; History" Tag="Profiles">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Downloads" Tag="Downloads">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE896;" />
@@ -91,6 +96,11 @@
             </controls:NavigationView.MenuItems>
 
             <controls:NavigationView.FooterMenuItems>
+                <controls:NavigationViewItem Content="Custom Tools" Tag="CatalogEditor">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE70F;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Settings" Tag="Settings">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />

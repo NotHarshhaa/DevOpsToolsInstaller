@@ -62,9 +62,17 @@ public static class ArtifactService
                 false, $"{tool.FileName} not found — download it first.");
         }
 
+        // Opt-in, user-authored pre-install hook. Only runs when hooks are
+        // explicitly enabled in Settings; every command is written to the
+        // audit log before it executes.
+        if (SettingsService.HooksEnabled && HookService.HasHooks(tool.Id))
+        {
+            HookService.RunPreInstall(tool);
+        }
+
         try
         {
-            return tool.Kind switch
+            var result = tool.Kind switch
             {
                 ArtifactKind.Installer => RunInstaller(tool, downloadsFolder),
                 ArtifactKind.Archive   => ExtractArchive(tool, sourcePath),
@@ -72,6 +80,19 @@ public static class ArtifactService
                 ArtifactKind.Script    => RevealScript(sourcePath),
                 _                      => RunInstaller(tool, downloadsFolder)
             };
+
+            if (result.Success)
+            {
+                InstallHistoryService.RecordInstall(
+                    tool.Id, tool.Name, tool.SelectedVersion, result.Message);
+
+                if (SettingsService.HooksEnabled && HookService.HasHooks(tool.Id))
+                {
+                    HookService.RunPostInstall(tool);
+                }
+            }
+
+            return result;
         }
         catch (Exception ex)
         {

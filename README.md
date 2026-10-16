@@ -41,6 +41,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | 🪟 **Truly native Windows 11** | Mica Alt backdrop, Fluent `CommandBar` toolbars, your **own system accent color**, `InfoBadge` update counters, Segoe Fluent Icons — no custom theme hacks. |
 | 📦 **90 official tools, 12 curated stacks** | Direct-from-vendor artifacts with role-based presets (Kubernetes, DevSecOps, Cloud, IaC, Observability, Terminal). |
 | 🧱 **Custom Stack Builder** | 2-column composer: drag tool cards into "My Stack", reorder, inspect live download size estimates, save presets, and export/import `.json`. |
+| 🗂️ **Profiles, snapshots & rollback** | Capture named workstation profiles, diff and restore snapshots, review install history, and roll a tool back to a previous version — plus opt-in per-tool pre/post-install hooks. |
 | 🩺 **Workstation Doctor** | 5-point environment diagnostics (PATH duplicates/conflicts, multi-version CLIs, missing prerequisites, stale versions) with 1-click confirmed fixes and markdown report export. |
 | 📋 **Global Live Log Drawer (`Ctrl+\``)** | Collapsible, resizable, virtualized drawer available across every page with live download, SHA-256, and signature verification events. |
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
@@ -177,9 +178,16 @@ The application uses the Windows 11 **Mica Alt** translucent canvas, **your syst
   - Theme customization (Light, Dark, or System Default) using **your Windows accent color**.
   - **Security section**: installer signature policy (Warn / Block unsigned), always-on protections summary, and one-click access to the audit log folder.
   - **Toast Notifications & Close-to-Tray toggles**.
+  - **Hooks & Automation**: opt-in toggle for user-authored pre/post-install shell commands. Nothing runs unless it is enabled here, every command is written to the activity & audit log before it executes, and commands support placeholders such as `{tool}`, `{toolId}`, `{version}`, `{file}`, `{toolsBin}`, and `{toolsRoot}`.
   - One-click **"Add to PATH"** with real-time PATH inspection.
   - Disk cache monitor and cleanup; desktop and Start Menu shortcut creation.
   - Manual **"Check for Updates"** triggering the GitHub update service.
+- **🗂️ Profiles & History (`ProfilesPage`)** — a Segmented workspace with four sections:
+  - **Profiles**: capture the currently installed toolset (or the current catalog selection) as a named profile; **Apply** it to the catalog filter, **Install** every tool it contains in one click, and **Import/Export** profiles as portable JSON.
+  - **Snapshots**: point-in-time restore points recording installed tools, their versions, and User PATH — with a **Diff** view (missing / version-changed / added) and one-click **Restore** of missing tools.
+  - **History**: a persistent log of every install, update, uninstall, and rollback, plus a guided **Roll back a tool…** flow that re-downloads and reinstalls a previously recorded version.
+  - **Sync**: opt-in merge of profiles, snapshots, hooks, and custom tools across machines through a OneDrive / Dropbox / network folder — no account, no server, zero telemetry.
+- **🛠️ Custom Tools (`CatalogEditorPage`)**: author and validate your own catalog entries (id, kind, download URL, SHA-256, logo, launch args), import/export a custom `catalog.json` feed, and merge them into the live catalog so they behave exactly like shipped tools.
 - **📌 System Tray**: Close the window to keep the app running in the tray (toggle in Settings). Left-click restores the window; right-click offers **Open**, **Open Tool Catalog**, **Check for tool updates**, and **Exit**.
 - **🔔 Toast Notifications**: Background installs, batch downloads, and update checks surface Windows toasts (toggle in Settings; delivery is best-effort and never interrupts the workflow).
 - **ℹ️ About (`AboutPage`)**: Architecture specifications, workstation diagnostics, complete **Security Risks & Precautions**, and legal trademark disclaimers.
@@ -233,6 +241,14 @@ Done. 2 uninstalled, 0 not present, 0 failed.
 | `--generate-devcontainer <zip/dir>` | Generate a VS Code `.devcontainer/devcontainer.json` and `Dockerfile` matching workstation tools. |
 | `--path-doctor` | Inspect User PATH for duplicate entries, non-existent directories, and missing tools folder. |
 | `--fix-path` | Automatically clean and deduplicate User PATH with timestamped backup. |
+| `--history [toolId]` | Print the install/update/uninstall/rollback history (optionally filtered to one tool). |
+| `--snapshot <name>` | Capture a workstation snapshot (installed tools, versions, User PATH) as a restore point. |
+| `--restore-snapshot <name>` | Install the tools missing relative to a saved snapshot. |
+| `--profiles` | List saved workstation profiles. |
+| `--capture-profile <name>` | Save the currently installed toolset as a named profile. |
+| `--apply-profile <name\|id>` | Select every tool in a profile. |
+| `--sync-profiles` | Merge profiles, snapshots, hooks, and custom tools with the configured sync folder. |
+| `--run-hooks` | Allow pre/post-install hooks to run during this CLI session (off by default). |
 | `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
 | `--version` | Print the application version. |
 | `--help` | Show usage. |
@@ -535,9 +551,9 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 - [x] Custom Stack Builder (drag-and-drop, estimated sizes, JSON import/export)
 - [x] Global live diagnostic log drawer (`Ctrl+\``)
 - [x] VS Code DevContainer & Dockerfile workstation generator
-- [ ] Cloud-synced workstation profiles across machines
-- [ ] Per-tool pre/post-install scripts (user-reviewed, never silent)
-- [ ] In-app catalog editor with signature workflow
+- [x] Cloud-synced workstation profiles across machines
+- [x] Per-tool pre/post-install scripts (user-reviewed, never silent)
+- [x] In-app catalog editor with signature workflow
 
 > The Unreleased section of the [CHANGELOG](CHANGELOG.md) tracks what has already landed.
 

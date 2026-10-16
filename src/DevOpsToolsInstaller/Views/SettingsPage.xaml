@@ -148,6 +148,59 @@
                 </tk:SettingsExpander.Items>
             </tk:SettingsExpander>
 
+            <!-- ══════════ GROUP: HOOKS & AUTOMATION ══════════ -->
+            <TextBlock Text="Hooks &amp; Automation" Style="{StaticResource BodyStrongTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
+            <tk:SettingsExpander x:Name="HooksExpander"
+                                 Description="Run your own pre/post-install shell commands around a tool's install. Hooks are authored by you and never generated or downloaded by the app.">
+                <tk:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE756;" />
+                </tk:SettingsExpander.HeaderIcon>
+                <tk:SettingsExpander.Content>
+                    <ToggleSwitch x:Name="HooksToggle"
+                                  Toggled="HooksToggle_Toggled"
+                                  OnContent="" OffContent=""
+                                  AutomationProperties.Name="Enable pre and post install hooks" />
+                </tk:SettingsExpander.Content>
+
+                <tk:SettingsExpander.Items>
+                    <tk:SettingsCard Header="How hooks work">
+                        <tk:SettingsCard.Description>
+                            <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       Text="When enabled, the app runs a tool's pre-install hook before its artifact action and its post-install hook after a successful install. Every command is written to the activity &amp; audit log before it runs — nothing executes silently. Configure hooks per tool from the tool's detail page.&#x0a;&#x0a;Supported placeholders: {tool} {toolId} {version} {file} {downloadsFolder} {toolsBin} {toolsRoot}" />
+                        </tk:SettingsCard.Description>
+                        <tk:SettingsCard.Content>
+                            <FontIcon Glyph="&#xE72E;" FontSize="16"
+                                      Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                        </tk:SettingsCard.Content>
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard Header="Hooks definition file">
+                        <tk:SettingsCard.Description>
+                            <TextBlock x:Name="HooksPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                       IsTextSelectionEnabled="True" />
+                        </tk:SettingsCard.Description>
+                        <Button Click="OpenHooksFolder_Click"
+                                AutomationProperties.Name="Open hooks definition folder">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                <TextBlock Text="Open Folder" />
+                            </StackPanel>
+                        </Button>
+                    </tk:SettingsCard>
+                </tk:SettingsExpander.Items>
+            </tk:SettingsExpander>
+
+            <!-- Warning shown while hooks are enabled (commands run on install) -->
+            <controls:InfoBar x:Name="HooksWarningInfoBar"
+                              IsOpen="True" IsClosable="False"
+                              Severity="Warning" Visibility="Collapsed"
+                              Title="Pre/post-install hooks are enabled"
+                              Message="Your configured shell commands will run during tool installs on this machine. Review them from each tool's detail page; every command is logged before it runs."
+                              AutomationProperties.Name="Hooks enabled warning" />
+
             <!-- ══════════ GROUP: NETWORK ══════════ -->
             <TextBlock Text="Network" Style="{StaticResource BodyStrongTextBlockStyle}"
                        Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />

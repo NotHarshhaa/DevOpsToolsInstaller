@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Workstation Profiles (`ProfilesPage` → Profiles, `Services/ProfileStoreService.cs`)**:
+  - Capture the currently installed toolset, or the current catalog selection, as a named, reusable profile (with optional description).
+  - **Apply** a profile to the catalog selection, or **Install** every tool it references in one click (respects off-peak scheduling).
+  - Portable **Import/Export** of profiles as JSON; stored in `%LOCALAPPDATA%\DevOpsToolsInstaller\profiles.json`.
+- **Workstation Snapshots (`ProfilesPage` → Snapshots, `Services/SnapshotService.cs`)**:
+  - Capture point-in-time restore points of installed tools, their versions, and User PATH.
+  - **Diff** a snapshot against the current workstation (missing / version-changed / added) and **Restore** missing tools with confirmation.
+- **Install History & Rollback (`ProfilesPage` → History, `Services/InstallHistoryService.cs`)**:
+  - Persistent JSONL log (`history.jsonl`) of every install, update, uninstall, and rollback, with a severity-badged timeline and one-click clear.
+  - Guided **Roll back a tool…** flow that re-downloads and reinstalls a previously recorded version and records the rollback.
+- **Cloud-Synced Profiles (`ProfilesPage` → Sync, `Services/ProfileSyncService.cs`)**:
+  - Opt-in **Sync / Push / Pull** of profiles, snapshots, hooks, and custom tools through a user-chosen folder (OneDrive, Dropbox, network share) — merge-by-most-recent, no account or server.
+- **Per-Tool Pre/Post-Install Hooks (`Services/HookService.cs`)**:
+  - Opt-in, user-authored pre-install and post-install shell commands, run around a tool's artifact action.
+  - Global master switch in **Settings → Hooks & Automation** plus a per-tool enable toggle and command editors on the tool detail page, with **Test pre / Test post** actions.
+  - Commands support `{tool}`, `{toolId}`, `{version}`, `{file}`, `{downloadsFolder}`, `{toolsBin}`, and `{toolsRoot}` placeholders; every command is written to the activity & audit log before it runs — never silent, and off by default.
+  - Stored in `%LOCALAPPDATA%\DevOpsToolsInstaller\hooks.json`.
+- **In-App Custom Tool Catalog Editor (`CatalogEditorPage`, `Services/CustomCatalogService.cs`)**:
+  - Author, validate, edit, and delete custom catalog entries (id, kind, download URL, file name, SHA-256, logo, homepage, launch args).
+  - Import/Export a custom `catalog.json` feed; custom entries are validated and merged into the live catalog so they behave exactly like shipped tools. Stored in `custom_tools.json`.
+- **Headless CLI additions (`Services/CliHost.cs`)**: `--history [toolId]`, `--snapshot <name>`, `--restore-snapshot <name>`, `--profiles`, `--capture-profile <name>`, `--apply-profile <name|id>`, `--sync-profiles`, and `--run-hooks`.
+- **Navigation**: new **Profiles & History** (`ProfilesPage`) navigation item, **Custom Tools** (`CatalogEditorPage`) footer item, and command-palette entries for both.
+
+### Changed
+- `ArtifactService.Perform` now runs pre/post-install hooks (when enabled) and records successful installs to the install history.
+- `UninstallService.Uninstall` now records successful uninstalls to the install history.
+- `CatalogService` now merges user-defined custom tools into the catalog on load (`LoadCatalogAsync`).
+
 ## [3.0.2] - 2026-10-13
 
 ### Added

@@ -45,6 +45,24 @@ public sealed class LauncherService
     }
 
     /// <summary>
+    /// Opens an arbitrary folder in Windows Explorer, creating it if needed.
+    /// </summary>
+    public static void OpenFolder(string folder)
+    {
+        if (string.IsNullOrWhiteSpace(folder)) return;
+
+        if (!Directory.Exists(folder))
+            Directory.CreateDirectory(folder);
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = "explorer.exe",
+            Arguments = $"\"{folder}\"",
+            UseShellExecute = true
+        });
+    }
+
+    /// <summary>
     /// Opens Windows Explorer with the specific file selected/highlighted.
     /// </summary>
     public static void OpenFileInFolder(string filePath)

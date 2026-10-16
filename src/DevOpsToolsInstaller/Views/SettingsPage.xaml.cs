@@ -34,6 +34,11 @@ public sealed partial class SettingsPage : Page
         CloseToTrayToggle.IsOn = SettingsService.CloseToTray;
         OnboardingToggle.IsOn = SettingsService.ShowOnboardingTips || !SettingsService.OnboardingCompleted;
 
+        // Hooks & automation section
+        HooksPathText.Text = HookService.StorageFolder;
+        HooksToggle.IsOn = SettingsService.HooksEnabled;
+        UpdateHooksWarning();
+
         // Set theme selector active value
         var currentTheme = SettingsService.Theme;
         foreach (ComboBoxItem item in ThemeComboBox.Items)
@@ -866,5 +871,28 @@ public sealed partial class SettingsPage : Page
             SettingsService.OnboardingCompleted = true;
         }
         SettingsService.SaveSettings();
+    }
+
+    private void HooksToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.HooksEnabled = HooksToggle.IsOn;
+        SettingsService.SaveSettings();
+        UpdateHooksWarning();
+        ShowNotice(HooksToggle.IsOn
+            ? "Hooks enabled — your pre/post-install commands will run during installs."
+            : "Hooks disabled — no pre/post-install commands will run.",
+            HooksToggle.IsOn ? InfoBarSeverity.Warning : InfoBarSeverity.Success);
+    }
+
+    private void UpdateHooksWarning()
+    {
+        HooksWarningInfoBar.Visibility = SettingsService.HooksEnabled
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private void OpenHooksFolder_Click(object sender, RoutedEventArgs e)
+    {
+        LauncherService.OpenFolder(HookService.StorageFolder);
     }
 }

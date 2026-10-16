@@ -193,6 +193,78 @@
                     </tk:SettingsExpander.Items>
                 </tk:SettingsExpander>
 
+                <tk:SettingsExpander x:Name="HooksExpander"
+                                           Header="Pre/post-install hooks"
+                                           Description="Run your own shell commands before and after installing this tool. Requires hooks to be enabled in Settings; every command is written to the activity and audit log before it runs.">
+                    <tk:SettingsExpander.HeaderIcon>
+                        <FontIcon Glyph="&#xE756;" />
+                    </tk:SettingsExpander.HeaderIcon>
+                    <tk:SettingsExpander.Items>
+                        <tk:SettingsCard Header="Enable hooks for this tool"
+                                         Description="Master switch for this tool's hooks, on top of the global setting in Settings.">
+                            <ToggleSwitch x:Name="HookEnabledToggle" OnContent="" OffContent=""
+                                          AutomationProperties.Name="Enable hooks for this tool" />
+                        </tk:SettingsCard>
+                        <tk:SettingsCard Header="Pre-install command" IsClickEnabled="False"
+                                         Description="Runs before the artifact action. Supports {tool} {toolId} {version} {file} {downloadsFolder} {toolsBin} {toolsRoot}.">
+                            <TextBox x:Name="PreHookBox" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Width="360" Height="70" FontFamily="Consolas" FontSize="12"
+                                     PlaceholderText="e.g. echo preparing {tool} {version}"
+                                     AutomationProperties.Name="Pre-install hook command" />
+                        </tk:SettingsCard>
+                        <tk:SettingsCard Header="Post-install command" IsClickEnabled="False"
+                                         Description="Runs after a successful install.">
+                            <TextBox x:Name="PostHookBox" AcceptsReturn="True" TextWrapping="Wrap"
+                                     Width="360" Height="70" FontFamily="Consolas" FontSize="12"
+                                     PlaceholderText="e.g. &quot;{toolsBin}\{toolId}&quot; --version"
+                                     AutomationProperties.Name="Post-install hook command" />
+                        </tk:SettingsCard>
+                        <tk:SettingsCard Header="Timeout (seconds)"
+                                         Description="Maximum time each command may run before it is terminated.">
+                            <NumberBox x:Name="HookTimeoutBox" Width="130" Minimum="5" Maximum="3600"
+                                       SpinButtonPlacementMode="Compact"
+                                       AutomationProperties.Name="Hook timeout in seconds" />
+                        </tk:SettingsCard>
+                        <tk:SettingsCard Header="Save &amp; test">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button Click="TestPreHook_Click"
+                                        ToolTipService.ToolTip="Run the pre-install command now"
+                                        AutomationProperties.Name="Test pre-install hook">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE768;" FontSize="12" />
+                                        <TextBlock Text="Test pre" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="TestPostHook_Click"
+                                        ToolTipService.ToolTip="Run the post-install command now"
+                                        AutomationProperties.Name="Test post-install hook">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE768;" FontSize="12" />
+                                        <TextBlock Text="Test post" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Style="{StaticResource AccentButtonStyle}" Click="SaveHooks_Click"
+                                        AutomationProperties.Name="Save hooks">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE74E;" FontSize="12" />
+                                        <TextBlock Text="Save" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Click="DeleteHooks_Click" AutomationProperties.Name="Remove hooks">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                        <TextBlock Text="Remove" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </tk:SettingsCard>
+                    </tk:SettingsExpander.Items>
+                </tk:SettingsExpander>
+
+                <controls:InfoBar x:Name="HookStatusBar" IsOpen="False" IsClosable="True"
+                                  Severity="Informational"
+                                  AutomationProperties.Name="Hook status message" />
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

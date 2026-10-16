@@ -94,6 +94,21 @@ public static class SettingsService
     /// <summary>Optional custom or private catalog feed URL or local json file path.</summary>
     public static string CustomCatalogSource { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Master switch for user-authored pre/post-install hooks. Off by default so
+    /// no shell command ever runs unless the user explicitly opts in.
+    /// </summary>
+    public static bool HooksEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Optional sync folder (OneDrive/Dropbox/network share) used to merge
+    /// profiles, custom tools, hooks and snapshots across machines.
+    /// </summary>
+    public static string SyncFolder { get; set; } = string.Empty;
+
+    /// <summary>Timestamp of the last successful profile sync.</summary>
+    public static DateTime? LastSyncTime { get; set; }
+
     /// <summary>Schedule artifact downloads during off-peak hours only.</summary>
     public static bool DownloadScheduleEnabled { get; set; } = false;
 
@@ -242,6 +257,22 @@ public static class SettingsService
                     CustomCatalogSource = catSrcProp.GetString() ?? string.Empty;
                 }
 
+                if (doc.RootElement.TryGetProperty("HooksEnabled", out var hooksProp))
+                {
+                    HooksEnabled = hooksProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("SyncFolder", out var syncFolderProp))
+                {
+                    SyncFolder = syncFolderProp.GetString() ?? string.Empty;
+                }
+
+                if (doc.RootElement.TryGetProperty("LastSyncTime", out var lastSyncProp) &&
+                    DateTime.TryParse(lastSyncProp.GetString(), out var lastSync))
+                {
+                    LastSyncTime = lastSync;
+                }
+
                 if (doc.RootElement.TryGetProperty("DownloadScheduleEnabled", out var schedProp))
                 {
                     DownloadScheduleEnabled = schedProp.GetBoolean();
@@ -323,6 +354,9 @@ public static class SettingsService
                 OnboardingCompleted = OnboardingCompleted,
                 BandwidthLimitMBps = BandwidthLimitMBps,
                 CustomCatalogSource = CustomCatalogSource,
+                HooksEnabled = HooksEnabled,
+                SyncFolder = SyncFolder,
+                LastSyncTime = LastSyncTime?.ToString("o"),
                 DownloadScheduleEnabled = DownloadScheduleEnabled,
                 ScheduleStartHour = ScheduleStartHour,
                 ScheduleEndHour = ScheduleEndHour,
