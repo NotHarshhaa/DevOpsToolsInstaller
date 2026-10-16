@@ -282,6 +282,11 @@ public sealed partial class MainWindow : Window
                 _ = ShowCommandPaletteAsync();
                 e.Handled = true;
             }
+            else if (ctrl && (int)e.Key == 188) // Ctrl + ,  → Settings
+            {
+                NavigateTo("Settings");
+                e.Handled = true;
+            }
         };
     }
 
@@ -585,6 +590,54 @@ public sealed partial class MainWindow : Window
         _ = ShowCommandPaletteAsync();
     }
 
+    private void FocusSearch_Invoked(
+        Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
+        Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        NavSearchBox.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+    }
+
+    private void OpenSettings_Invoked(
+        Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
+        Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        NavigateTo("Settings");
+    }
+
+    private void RefreshPage_Invoked(
+        Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
+        Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        if (ContentFrame.Content is IRefreshablePage page)
+        {
+            page.RefreshView();
+        }
+    }
+
+    private void NavigateAccel_Invoked(
+        Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
+        Microsoft.UI.Xaml.Input.KeyboardAcceleratorInvokedEventArgs args)
+    {
+        var tag = sender.Key switch
+        {
+            Windows.System.VirtualKey.Number1 => "Home",
+            Windows.System.VirtualKey.Number2 => "Catalog",
+            Windows.System.VirtualKey.Number3 => "Stacks",
+            Windows.System.VirtualKey.Number4 => "Installed",
+            Windows.System.VirtualKey.Number5 => "Doctor",
+            Windows.System.VirtualKey.Number6 => "Profiles",
+            Windows.System.VirtualKey.Number7 => "Downloads",
+            _ => null
+        };
+
+        if (tag is null) return;
+        args.Handled = true;
+        NavigateTo(tag);
+    }
+
     private async System.Threading.Tasks.Task ShowCommandPaletteAsync()
     {
         if (ContentFrame.XamlRoot is null) return;
@@ -664,6 +717,13 @@ public sealed partial class MainWindow : Window
             new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
             new("Go to Profiles & History", "\uE77B", () => NavigateTo("Profiles")),
             new("Edit Custom Tools", "\uE70F", () => NavigateTo("CatalogEditor")),
+            new("Refresh current page (F5)", "\uE72C", () =>
+            {
+                if (ContentFrame.Content is IRefreshablePage p) p.RefreshView();
+            }),
+            new("Open downloads folder", "\uE838", () =>
+                LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder)),
+            new("Capture workstation snapshot", "\uE7C3", () => NavigateTo("Profiles")),
             new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
             new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
             new("Go to About", "\uE946", () => NavigateTo("About")),

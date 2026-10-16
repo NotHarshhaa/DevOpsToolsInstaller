@@ -9,6 +9,15 @@
     <Grid x:Name="RootGrid" KeyboardAcceleratorPlacementMode="Hidden">
         <Grid.KeyboardAccelerators>
             <KeyboardAccelerator Modifiers="Control" Key="K" Invoked="CommandPalette_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="F" Invoked="FocusSearch_Invoked" />
+            <KeyboardAccelerator Key="F5" Invoked="RefreshPage_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number1" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number2" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number3" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number4" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number5" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number6" Invoked="NavigateAccel_Invoked" />
+            <KeyboardAccelerator Modifiers="Control" Key="Number7" Invoked="NavigateAccel_Invoked" />
         </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -49,7 +58,7 @@
         <controls:NavigationView
             x:Name="NavView"
             Grid.Row="1"
-            PaneDisplayMode="Left"
+            PaneDisplayMode="Auto"
             IsBackButtonVisible="Collapsed"
             IsSettingsVisible="False"
             IsPaneToggleButtonVisible="True"
@@ -58,37 +67,44 @@
             OpenPaneLength="250">
 
             <controls:NavigationView.MenuItems>
-                <controls:NavigationViewItem Content="Home" Tag="Home">
+                <controls:NavigationViewItem Content="Home" Tag="Home"
+                                              ToolTipService.ToolTip="Dashboard and quick actions">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE80F;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Tool Catalog" Tag="Catalog">
+                <controls:NavigationViewItem Content="Tool Catalog" Tag="Catalog"
+                                              ToolTipService.ToolTip="Browse all 90+ tools">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE8F1;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Stacks" Tag="Stacks">
+                <controls:NavigationViewItem Content="Stacks" Tag="Stacks"
+                                              ToolTipService.ToolTip="Curated and custom tool stacks">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE71D;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem x:Name="InstalledNavItem" Content="Installed" Tag="Installed">
+                <controls:NavigationViewItem x:Name="InstalledNavItem" Content="Installed" Tag="Installed"
+                                              ToolTipService.ToolTip="Installed tools, health and updates">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE73E;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Doctor" Tag="Doctor">
+                <controls:NavigationViewItem Content="Doctor" Tag="Doctor"
+                                              ToolTipService.ToolTip="Workstation diagnostics">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE9D9;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Profiles &amp; History" Tag="Profiles">
+                <controls:NavigationViewItem Content="Profiles &amp; History" Tag="Profiles"
+                                              ToolTipService.ToolTip="Profiles, snapshots, install history and sync">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE77B;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Downloads" Tag="Downloads">
+                <controls:NavigationViewItem Content="Downloads" Tag="Downloads"
+                                              ToolTipService.ToolTip="Active and queued downloads">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE896;" />
                     </controls:NavigationViewItem.Icon>
@@ -96,17 +112,20 @@
             </controls:NavigationView.MenuItems>
 
             <controls:NavigationView.FooterMenuItems>
-                <controls:NavigationViewItem Content="Custom Tools" Tag="CatalogEditor">
+                <controls:NavigationViewItem Content="Custom Tools" Tag="CatalogEditor"
+                                              ToolTipService.ToolTip="Author and manage your own catalog tools">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE70F;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="Settings" Tag="Settings">
+                <controls:NavigationViewItem Content="Settings" Tag="Settings"
+                                              ToolTipService.ToolTip="Preferences and configuration (Ctrl+,)">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE713;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
-                <controls:NavigationViewItem Content="About" Tag="About">
+                <controls:NavigationViewItem Content="About" Tag="About"
+                                              ToolTipService.ToolTip="About and architecture">
                     <controls:NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE946;" />
                     </controls:NavigationViewItem.Icon>

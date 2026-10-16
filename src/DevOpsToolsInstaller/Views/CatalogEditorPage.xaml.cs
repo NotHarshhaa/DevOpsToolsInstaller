@@ -14,7 +14,7 @@ namespace DevOpsToolsInstaller.Views;
 /// editor with signature workflow"). Custom tools are validated, stored locally,
 /// and merged into the live catalog so they behave exactly like shipped tools.
 /// </summary>
-public sealed partial class CatalogEditorPage : Page
+public sealed partial class CatalogEditorPage : Page, IRefreshablePage
 {
     private string? _editingId;
 
@@ -26,9 +26,15 @@ public sealed partial class CatalogEditorPage : Page
 
     private void CatalogEditorPage_Loaded(object sender, RoutedEventArgs e) => RefreshList();
 
+    void IRefreshablePage.RefreshView() => RefreshList();
+
     private void RefreshList()
     {
-        CustomToolsList.ItemsSource = CustomCatalogService.LoadCustomTools();
+        var tools = CustomCatalogService.LoadCustomTools();
+        CustomToolsList.ItemsSource = tools;
+        bool empty = tools.Count == 0;
+        CustomToolsList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+        CustomToolsEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Form ─────────────────────────────────────────────────────────────

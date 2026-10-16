@@ -10,7 +10,7 @@ using DevOpsToolsInstaller.ViewModels;
 
 namespace DevOpsToolsInstaller.Views;
 
-public sealed partial class DoctorPage : Page
+public sealed partial class DoctorPage : Page, IRefreshablePage
 {
     public DoctorViewModel ViewModel { get; } = new();
 
@@ -62,6 +62,8 @@ public sealed partial class DoctorPage : Page
         DoctorNoticeInfoBar.IsOpen = false;
         await TriggerScanAsync();
     }
+
+    void IRefreshablePage.RefreshView() => _ = TriggerScanAsync();
 
     private void CopyReport_Click(object sender, RoutedEventArgs e)
     {

@@ -15,7 +15,7 @@ using DevOpsToolsInstaller.ViewModels;
 
 namespace DevOpsToolsInstaller.Views;
 
-public sealed partial class HomePage : Page
+public sealed partial class HomePage : Page, IRefreshablePage
 {
     public HomeViewModel ViewModel { get; }
 
@@ -118,11 +118,10 @@ public sealed partial class HomePage : Page
 
     private async void RetryScan_Click(object sender, RoutedEventArgs e)
     {
-        var mw = App.MainWindowInstance;
-        if (mw is null) return;
-
-        await ViewModel.LoadDashboardAsync(mw);
+        HomePage_Loaded(this, new Microsoft.UI.Xaml.RoutedEventArgs());
     }
+
+    void IRefreshablePage.RefreshView() => HomePage_Loaded(this, new Microsoft.UI.Xaml.RoutedEventArgs());
 
     private void BrowseCatalog_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Catalog");

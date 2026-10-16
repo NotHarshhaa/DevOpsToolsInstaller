@@ -25,7 +25,7 @@ public sealed class ToolCategoryGroup : List<ToolDefinition>
     public string Key { get; }
 }
 
-public sealed partial class CatalogPage : Page
+public sealed partial class CatalogPage : Page, IRefreshablePage
 {
     private readonly ObservableCollection<ToolDefinition> _filteredTools = new();
     private bool _busy;
@@ -930,6 +930,8 @@ public sealed partial class CatalogPage : Page
         ApplyFilter();
         StatusText.Text = "Catalog refreshed.";
     }
+
+    void IRefreshablePage.RefreshView() => RefreshCatalog_Click(this, new RoutedEventArgs());
 
     private string GetLastSyncText()
     {

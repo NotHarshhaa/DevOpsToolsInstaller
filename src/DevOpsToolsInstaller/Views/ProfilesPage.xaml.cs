@@ -18,7 +18,7 @@ namespace DevOpsToolsInstaller.Views;
 ///   • <b>History</b> — install/update/uninstall log with per-tool rollback.
 ///   • <b>Sync</b> — merge profiles/snapshots across machines via a folder.
 /// </summary>
-public sealed partial class ProfilesPage : Page
+public sealed partial class ProfilesPage : Page, IRefreshablePage
 {
     public ProfilesPage()
     {
@@ -36,6 +36,14 @@ public sealed partial class ProfilesPage : Page
     }
 
     // ── Section switching ────────────────────────────────────────────────
+
+    void IRefreshablePage.RefreshView()
+    {
+        RefreshProfiles();
+        RefreshSnapshots();
+        RefreshHistory();
+        RefreshSync();
+    }
 
     private void SectionSegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -56,6 +64,9 @@ public sealed partial class ProfilesPage : Page
     {
         var profiles = ProfileStoreService.LoadAll();
         ProfilesList.ItemsSource = profiles;
+        bool empty = profiles.Count == 0;
+        ProfilesList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+        ProfilesEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void RefreshProfiles_Click(object sender, RoutedEventArgs e) => RefreshProfiles();
@@ -185,7 +196,11 @@ public sealed partial class ProfilesPage : Page
 
     private void RefreshSnapshots()
     {
-        SnapshotsList.ItemsSource = SnapshotService.LoadAll();
+        var snapshots = SnapshotService.LoadAll();
+        SnapshotsList.ItemsSource = snapshots;
+        bool empty = snapshots.Count == 0;
+        SnapshotsList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+        SnapshotsEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void RefreshSnapshots_Click(object sender, RoutedEventArgs e) => RefreshSnapshots();
@@ -294,7 +309,11 @@ public sealed partial class ProfilesPage : Page
 
     private void RefreshHistory()
     {
-        HistoryList.ItemsSource = InstallHistoryService.Load(300);
+        var events = InstallHistoryService.Load(300);
+        HistoryList.ItemsSource = events;
+        bool empty = events.Count == 0;
+        HistoryList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+        HistoryEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void RefreshHistory_Click(object sender, RoutedEventArgs e) => RefreshHistory();

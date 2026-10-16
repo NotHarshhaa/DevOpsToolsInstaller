@@ -75,7 +75,7 @@ public sealed class BundleCardViewModel
     }
 }
 
-public sealed partial class StacksPage : Page
+public sealed partial class StacksPage : Page, IRefreshablePage
 {
     public StackBuilderViewModel BuilderViewModel { get; } = new();
 
@@ -109,6 +109,13 @@ public sealed partial class StacksPage : Page
 
         BuilderViewModel.Initialize(mw.Tools);
 
+        RefreshCardModels();
+        ApplyFilter();
+        UpdateScrollButtons();
+    }
+
+    void IRefreshablePage.RefreshView()
+    {
         RefreshCardModels();
         ApplyFilter();
         UpdateScrollButtons();

@@ -17,7 +17,7 @@ using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
 
-public sealed partial class DownloadsPage : Page
+public sealed partial class DownloadsPage : Page, IRefreshablePage
 {
     private string _searchFilter = string.Empty;
     private string _statusFilter = "All";
@@ -134,6 +134,12 @@ public sealed partial class DownloadsPage : Page
         RefreshSignatures(mw.DownloadQueue.ToList(), dlFolder);
 
         InitializeThroughputChart();
+    }
+
+    void IRefreshablePage.RefreshView()
+    {
+        ApplyFilter();
+        UpdateMetrics();
     }
 
     private void DownloadQueue_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

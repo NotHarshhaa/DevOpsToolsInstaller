@@ -14,7 +14,7 @@ using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
 
-public sealed partial class InstalledPage : Page
+public sealed partial class InstalledPage : Page, IRefreshablePage
 {
     private List<ToolDefinition> _allInstalledTools = new();
     private DateTime _lastChecked = DateTime.Now;
@@ -645,6 +645,8 @@ public sealed partial class InstalledPage : Page
     {
         _ = ScanInstalledToolsAsync();
     }
+
+    void IRefreshablePage.RefreshView() => _ = ScanInstalledToolsAsync();
 
     private void OpenToolsFolder_Click(object sender, RoutedEventArgs e)
     {

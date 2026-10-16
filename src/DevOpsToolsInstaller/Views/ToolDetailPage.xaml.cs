@@ -91,6 +91,10 @@ public sealed partial class ToolDetailPage : Page
         DownloadUrlCard.Visibility = hasUrl ? Visibility.Visible : Visibility.Collapsed;
         DownloadUrlText.Text = Tool.DownloadUrl;
 
+        BindStatusCard();
+        BindRelatedTools();
+        _ = LoadReleaseNotesAsync();
+
         // Known previous versions as cards inside the expander
         var previous = Tool.PreviousVersions?
             .Where(v => !string.IsNullOrWhiteSpace(v))
@@ -149,6 +153,89 @@ public sealed partial class ToolDetailPage : Page
         else
         {
             HookStatusBar.IsOpen = false;
+        }
+    }
+
+    private void BindStatusCard()
+    {
+        string label;
+        string detail;
+        var brush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+
+        if (Tool.IsInstalled)
+        {
+            label = "Installed";
+            detail = string.IsNullOrWhiteSpace(Tool.DetectedVersion)
+                ? "Present on this machine"
+                : $"Detected version {Tool.DetectedVersion}";
+            brush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+        }
+        else if (Tool.Status == ToolStatus.Downloaded)
+        {
+            label = "Downloaded";
+            detail = "Ready to install";
+            brush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
+        }
+        else
+        {
+            label = "Not installed";
+            detail = "Available in the catalog";
+        }
+
+        StatusBadgeText.Text = label;
+        StatusBadgeText.Foreground = brush;
+        StatusDetailText.Text = detail;
+    }
+
+    private void BindRelatedTools()
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null)
+        {
+            RelatedCard.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var related = mw.Tools
+            .Where(t => !string.Equals(t.Id, Tool.Id, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(t.Category, Tool.Category, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(t => t.Name)
+            .Take(10)
+            .ToList();
+
+        RelatedList.ItemsSource = related;
+        RelatedCard.Visibility = related.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private async Task LoadReleaseNotesAsync()
+    {
+        if (!ToolReleaseNotesService.IsGitHubHosted(Tool.DownloadUrl))
+        {
+            ReleaseNotesExpander.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        ReleaseNotesExpander.Visibility = Visibility.Visible;
+        ReleaseNotesExpander.IsExpanded = false;
+        ReleaseNotesRing.IsActive = true;
+        ReleaseNotesRing.Visibility = Visibility.Visible;
+        ReleaseNotesText.Text = "Loading release notes…";
+
+        var notes = await ToolReleaseNotesService.GetReleaseNotesAsync(Tool.DownloadUrl);
+
+        ReleaseNotesRing.IsActive = false;
+        ReleaseNotesRing.Visibility = Visibility.Collapsed;
+
+        ReleaseNotesText.Text = notes is null || string.IsNullOrWhiteSpace(notes.Body)
+            ? $"Release {notes?.TagName ?? "notes"} — no notes were published."
+            : notes.Body;
+    }
+
+    private void RelatedTool_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ToolDefinition t })
+        {
+            Frame?.Navigate(typeof(ToolDetailPage), t);
         }
     }
 

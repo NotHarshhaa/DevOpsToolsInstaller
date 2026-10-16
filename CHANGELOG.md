@@ -38,6 +38,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `UninstallService.Uninstall` now records successful uninstalls to the install history.
 - `CatalogService` now merges user-defined custom tools into the catalog on load (`LoadCatalogAsync`).
 
+### UI & UX Improvements
+- **Empty & loading states**: new reusable `EmptyStateControl` (`Controls/EmptyStateControl.xaml`) with icon, title, message and an optional call-to-action; applied to the Profiles, Snapshots, History and Custom Tools lists so no list renders blank when empty.
+- **Keyboard shortcuts**: `Ctrl+F` focuses the global search, `Ctrl+,` opens Settings, `F5` refreshes the current page (via a new `IRefreshablePage` interface implemented across Home, Catalog, Stacks, Installed, Doctor, Downloads, Profiles and Custom Tools), and `Ctrl+1`–`Ctrl+7` jump between sections.
+- **Command palette**: added *Refresh current page*, *Open downloads folder* and *Capture workstation snapshot* actions.
+- **Responsive layouts**: `NavigationView` now uses an adaptive pane (`PaneDisplayMode="Auto"`); `CatalogEditorPage` and `ToolDetailPage` use `VisualStateManager` breakpoints so two-column layouts stack and the install action row wraps on narrow windows.
+- **Tool detail upgrades**: new *Installation status* card (installed / downloaded / not installed with detected version), a *What's new in this version* release-notes expander (fetched from the vendor's GitHub releases when available), and a *Related tools* card linking to other tools in the same category.
+- **Visual polish**: subtle springy hover lift (`helpers:Motion.HoverLift`) on list-item cards across the Profiles and Custom Tools pages.
+- **Accessibility & discoverability**: automation names on the empty-state control and its action button, plus tooltips on every navigation item describing the destination.
+
 ## [3.0.2] - 2026-10-13
 
 ### Added

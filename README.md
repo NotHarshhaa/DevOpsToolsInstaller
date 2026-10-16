@@ -64,6 +64,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [Curated Stacks & Custom Stack Builder](#curated-stacks--custom-stack-builder)
 - [Workstation Doctor & Environment Diagnostics](#workstation-doctor--environment-diagnostics)
 - [Global Collapsible Log Drawer (Ctrl+`)](#global-collapsible-log-drawer-ctrl)
+- [Keyboard Shortcuts, Empty States & Responsive Layout](#keyboard-shortcuts-empty-states--responsive-layout)
 - [What Happens After Download](#what-happens-after-download)
 - [Resumable Download Engine](#resumable-download-engine)
 - [Installed Tools, Health Checks & Shell Completions](#installed-tools-health-checks--shell-completions)
@@ -378,6 +379,24 @@ A universal diagnostic and audit log drawer is accessible across **every page** 
   - **Clear & Copy**: One-click buffer clearing and Markdown/text export to clipboard.
   - **Resizable & Persistent**: Drag the top border to resize; your preferred height is remembered across sessions.
   - Respects your system accent theme and the Windows *Reduce animations* accessibility preference.
+
+---
+
+## Keyboard Shortcuts, Empty States & Responsive Layout
+
+Beyond the core workflows, the app is engineered for speed, clarity and adaptability:
+
+- **Keyboard-first navigation**:
+  - <kbd>Ctrl</kbd>+<kbd>K</kbd> opens the command palette (pages, tools, and actions).
+  - <kbd>Ctrl</kbd>+<kbd>F</kbd> jumps focus to the global search box.
+  - <kbd>Ctrl</kbd>+<kbd>,</kbd> opens Settings.
+  - <kbd>F5</kbd> refreshes the current page (implemented across Home, Catalog, Stacks, Installed, Doctor, Downloads, Profiles and Custom Tools).
+  - <kbd>Ctrl</kbd>+<kbd>1</kbd>–<kbd>7</kbd> switch directly between sections.
+- **Empty states everywhere**: Profiles, Snapshots, History and Custom Tools each show a friendly placeholder with a call-to-action when empty — no blank lists.
+- **Responsive by default**: the navigation pane collapses automatically on narrow windows, and two-column pages (Custom Tool editor, tool detail) stack vertically so the layout never breaks.
+- **Tool detail, supercharged**: an *Installation status* card shows whether a tool is installed / downloaded / not installed with the detected version, a *What's new* expander surfaces vendor release notes (from GitHub releases when available), and a *Related tools* card links to other tools in the same category.
+- **Consistent motion**: subtle springy hover lift on list cards, driven by the existing `helpers:Motion` system and the *Reduce animations* accessibility setting.
+- **Accessibility**: screen-reader-friendly automation names on the empty-state control and its action button, plus tooltips on every navigation item.
 
 ---
 
