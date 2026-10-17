@@ -538,8 +538,7 @@
 
                                                 <!-- Install Stack SplitButton -->
                                                 <SplitButton Grid.Column="0"
-                                                             Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                                             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                                             Style="{StaticResource AccentSplitButtonStyle}"
                                                              Click="InstallStack_Click" Tag="{Binding Id}"
                                                              HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                                                              Visibility="{Binding CanDownload, Converter={StaticResource BoolToVisibilityConverter}}"

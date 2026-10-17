@@ -202,9 +202,7 @@
                                               Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}" />
 
                                 <!-- Install SplitButton: primary = Install; chevron = version / download only / homepage -->
-                                <SplitButton
-                                             Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                <SplitButton Style="{StaticResource AccentSplitButtonStyle}"
                                              Click="InstallSingleTool_Click"
                                              ToolTipService.ToolTip="Download and install this tool"
                                              AutomationProperties.Name="Install tool"
