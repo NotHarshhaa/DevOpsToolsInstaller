@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using CommunityToolkit.WinUI.Controls;
 using DevOpsToolsInstaller.Controls;
 using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Services;
@@ -20,6 +21,11 @@ public sealed partial class SettingsPage : Page
     }
 
     private AppReleaseInfo? _discoveredRelease;
+
+    // Settings search state: remembers which expanders were open before the
+    // first search so clearing the box restores the user's layout.
+    private bool _filterActive;
+    private readonly Dictionary<SettingsExpander, bool> _expandState = new();
 
     private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
     {
@@ -123,6 +129,9 @@ public sealed partial class SettingsPage : Page
 
         // Custom catalog source
         CustomCatalogSourceBox.Text = SettingsService.CustomCatalogSource;
+
+        RefreshSummaries();
+        ApplySettingsFilter(string.Empty);
     }
 
     private void PopulateScheduleHourComboBoxes()
@@ -200,6 +209,7 @@ public sealed partial class SettingsPage : Page
                 ? "Proxy enabled — it will be used for downloads and update checks after the app restarts."
                 : "Proxy disabled — the Windows system proxy will be used.",
             InfoBarSeverity.Success);
+        RefreshSummaries();
     }
 
     private void ProxyField_LostFocus(object sender, RoutedEventArgs e)
@@ -208,6 +218,7 @@ public sealed partial class SettingsPage : Page
         SettingsService.ProxyUsername = ProxyUsernameBox.Text.Trim();
         SettingsService.ProxyPassword = ProxyPasswordBox.Password;
         SettingsService.SaveSettings();
+        RefreshSummaries();
     }
 
     private void SignaturePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -225,6 +236,7 @@ public sealed partial class SettingsPage : Page
                     : "Signature policy updated: you will be warned before launching unsigned installers.",
                 InfoBarSeverity.Success);
             UpdateSignaturePolicyWarning();
+            RefreshSummaries();
         }
     }
 
@@ -324,6 +336,7 @@ public sealed partial class SettingsPage : Page
                 ? $"Off-peak download scheduler enabled ({SettingsService.GetScheduleWindowDescription()})."
                 : "Off-peak download scheduler disabled. Downloads will run immediately.",
             InfoBarSeverity.Success);
+        RefreshSummaries();
     }
 
     private void ScheduleTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -554,6 +567,7 @@ public sealed partial class SettingsPage : Page
                     mw.ApplyTheme(theme);
                 }
             }
+            RefreshSummaries();
         }
     }
 
@@ -571,6 +585,7 @@ public sealed partial class SettingsPage : Page
                 // Apply the material live (window backdrop + sidebar surface).
                 App.MainWindowInstance?.ApplyWindowMaterial(material);
             }
+            RefreshSummaries();
         }
     }
 
@@ -579,6 +594,7 @@ public sealed partial class SettingsPage : Page
         if (!System.IO.Directory.Exists(folder))
         {
             StorageText.Text = "No files downloaded yet.";
+            StorageSummaryText.Text = "No downloads yet";
             return;
         }
 
@@ -591,6 +607,7 @@ public sealed partial class SettingsPage : Page
 
         var sizeMB = totalBytes / (1024.0 * 1024.0);
         StorageText.Text = $"{files.Length} file(s), {sizeMB:F1} MB total";
+        StorageSummaryText.Text = $"{files.Length} file(s) · {sizeMB:F1} MB";
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -894,12 +911,14 @@ public sealed partial class SettingsPage : Page
     {
         SettingsService.EnableNotifications = NotificationsToggle.IsOn;
         SettingsService.SaveSettings();
+        RefreshSummaries();
     }
 
     private void CloseToTrayToggle_Toggled(object sender, RoutedEventArgs e)
     {
         SettingsService.CloseToTray = CloseToTrayToggle.IsOn;
         SettingsService.SaveSettings();
+        RefreshSummaries();
     }
 
     private void OnboardingToggle_Toggled(object sender, RoutedEventArgs e)
@@ -921,6 +940,7 @@ public sealed partial class SettingsPage : Page
             ? "Hooks enabled — your pre/post-install commands will run during installs."
             : "Hooks disabled — no pre/post-install commands will run.",
             HooksToggle.IsOn ? InfoBarSeverity.Warning : InfoBarSeverity.Success);
+        RefreshSummaries();
     }
 
     private void UpdateHooksWarning()
@@ -933,5 +953,366 @@ public sealed partial class SettingsPage : Page
     private void OpenHooksFolder_Click(object sender, RoutedEventArgs e)
     {
         LauncherService.OpenFolder(HookService.StorageFolder);
+    }
+
+    // ───────────────────────────── Helpers ─────────────────────────────
+
+    private static void SelectComboItemByTag(ComboBox box, string tag)
+    {
+        foreach (ComboBoxItem item in box.Items)
+        {
+            if (item.Tag as string == tag)
+            {
+                box.SelectedItem = item;
+                return;
+            }
+        }
+    }
+
+    private static string OnOff(bool value) => value ? "On" : "Off";
+
+    private static string PolicyShortLabel(SignaturePolicy policy)
+        => policy == SignaturePolicy.BlockUnsigned ? "Block" : "Warn";
+
+    private static string SelectedComboText(ComboBox box)
+        => (box.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "—";
+
+    // ─────────────────────── Current-value summaries ───────────────────────
+
+    /// <summary>Refreshes every "current value on the right" readout.</summary>
+    private void RefreshSummaries()
+    {
+        UpdateSectionSummaries();
+        UpdateSecurityPosture();
+    }
+
+    private void UpdateSectionSummaries()
+    {
+        AppearanceSummaryText.Text =
+            $"Theme: {SelectedComboText(ThemeComboBox)} · Material: {SelectedComboText(MaterialComboBox)}";
+        SecuritySummaryText.Text = $"Policy: {PolicyShortLabel(SettingsService.SignaturePolicy)}";
+        NotificationsSummaryText.Text =
+            $"Toasts: {OnOff(NotificationsToggle.IsOn)} · Tray: {OnOff(CloseToTrayToggle.IsOn)}";
+        HooksSummaryText.Text = $"Hooks: {OnOff(HooksToggle.IsOn)}";
+        NetworkSummaryText.Text = $"Proxy: {OnOff(ProxyToggle.IsOn)}";
+        SchedulingSummaryText.Text = $"Schedule: {OnOff(ScheduleToggle.IsOn)}";
+    }
+
+    private void UpdateSecurityPosture()
+    {
+        var policy = SettingsService.SignaturePolicy;
+        PosturePolicyText.Text = policy == SignaturePolicy.BlockUnsigned
+            ? "Block unsigned installers"
+            : "Warn before launch";
+
+        PostureHooksText.Text = SettingsService.HooksEnabled
+            ? "Enabled — commands run on install"
+            : "Disabled";
+
+        PostureProxyText.Text = SettingsService.ProxyEnabled
+            ? (string.IsNullOrWhiteSpace(SettingsService.ProxyUrl)
+                ? "Enabled (no address set)"
+                : $"Enabled · {SettingsService.ProxyUrl}")
+            : "Off — Windows system proxy";
+
+        PostureSummaryText.Text =
+            $"Policy: {PolicyShortLabel(policy)} · Hooks: {OnOff(SettingsService.HooksEnabled)} · Proxy: {OnOff(SettingsService.ProxyEnabled)}";
+    }
+
+    // ───────────────────────────── Actions ─────────────────────────────
+
+    /// <summary>One-click escalation from the unsigned-installer warning.</summary>
+    private void SwitchToBlock_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsService.SignaturePolicy = SignaturePolicy.BlockUnsigned;
+        SettingsService.SaveSettings();
+        SelectComboItemByTag(SignaturePolicyComboBox, SignaturePolicy.BlockUnsigned.ToString());
+        UpdateSignaturePolicyWarning();
+        RefreshSummaries();
+        ShowNotice(
+            "Signature policy set to Block — installers without a verified trusted signature will be refused.",
+            InfoBarSeverity.Success);
+    }
+
+    /// <summary>Restores the defaults for a single section (Tag on the invoking button).</summary>
+    private void ResetSection_Click(object sender, RoutedEventArgs e)
+    {
+        var tag = (sender as FrameworkElement)?.Tag as string ?? string.Empty;
+        string label;
+
+        switch (tag)
+        {
+            case "appearance":
+                SettingsService.Theme = AppTheme.Default;
+                SettingsService.WindowMaterial = WindowMaterial.Mica;
+                SelectComboItemByTag(ThemeComboBox, AppTheme.Default.ToString());
+                SelectComboItemByTag(MaterialComboBox, WindowMaterial.Mica.ToString());
+                App.MainWindowInstance?.ApplyTheme(AppTheme.Default);
+                App.MainWindowInstance?.ApplyWindowMaterial(WindowMaterial.Mica);
+                label = "Appearance";
+                break;
+
+            case "security":
+                SettingsService.SignaturePolicy = SignaturePolicy.Warn;
+                SelectComboItemByTag(SignaturePolicyComboBox, SignaturePolicy.Warn.ToString());
+                UpdateSignaturePolicyWarning();
+                label = "Security";
+                break;
+
+            case "notifications":
+                SettingsService.EnableNotifications = true;
+                SettingsService.CloseToTray = true;
+                SettingsService.ShowOnboardingTips = true;
+                SettingsService.OnboardingCompleted = false;
+                NotificationsToggle.IsOn = true;
+                CloseToTrayToggle.IsOn = true;
+                OnboardingToggle.IsOn = true;
+                label = "Notifications & tray";
+                break;
+
+            case "hooks":
+                SettingsService.HooksEnabled = false;
+                HooksToggle.IsOn = false;
+                UpdateHooksWarning();
+                label = "Hooks & automation";
+                break;
+
+            case "network":
+                SettingsService.ProxyEnabled = false;
+                SettingsService.ProxyUrl = string.Empty;
+                SettingsService.ProxyUsername = string.Empty;
+                SettingsService.ProxyPassword = string.Empty;
+                SettingsService.BandwidthLimitMBps = 0;
+                ProxyToggle.IsOn = false;
+                ProxyFieldsPanel.Visibility = Visibility.Collapsed;
+                ProxyUrlBox.Text = string.Empty;
+                ProxyUsernameBox.Text = string.Empty;
+                ProxyPasswordBox.Password = string.Empty;
+                SelectComboItemByTag(BandwidthLimitComboBox, "0");
+                label = "Network";
+                break;
+
+            case "scheduling":
+                SettingsService.DownloadScheduleEnabled = false;
+                SettingsService.ScheduleStartHour = 23;
+                SettingsService.ScheduleEndHour = 7;
+                SettingsService.AutoRetryFailedDownloads = true;
+                SettingsService.AutoRetryIntervalMinutes = 10;
+                ScheduleToggle.IsOn = false;
+                PopulateScheduleHourComboBoxes();
+                AutoRetryToggle.IsOn = true;
+                SelectComboItemByTag(AutoRetryIntervalComboBox, "10");
+                label = "Off-peak scheduling";
+                break;
+
+            case "storage":
+                SettingsService.DownloadsFolder = string.Empty;
+                DownloadPathText.Text = DownloadService.DefaultDownloadsFolder;
+                UpdateStorageInfo(DownloadService.DefaultDownloadsFolder);
+                label = "Storage & shortcuts";
+                break;
+
+            case "updates":
+                SettingsService.CheckForUpdatesOnStartup = true;
+                SettingsService.CustomCatalogSource = string.Empty;
+                AutoUpdateToggle.IsOn = true;
+                CustomCatalogSourceBox.Text = string.Empty;
+                label = "Updates";
+                break;
+
+            default:
+                return;
+        }
+
+        SettingsService.SaveSettings();
+        RefreshSummaries();
+        ShowNotice($"{label} settings reset to defaults.", InfoBarSeverity.Success);
+    }
+
+    // ─────────────────────────── Search / filter ───────────────────────────
+
+    private void SettingsSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+        => ApplySettingsFilter(sender.Text);
+
+    private void ClearSearch_Click(object sender, RoutedEventArgs e)
+    {
+        SettingsSearchBox.Text = string.Empty;
+        SettingsSearchBox.Focus(FocusState.Programmatic);
+    }
+
+    private void ApplySettingsFilter(string? term)
+    {
+        term = (term ?? string.Empty).Trim();
+        var filtering = term.Length > 0;
+
+        if (filtering && !_filterActive)
+        {
+            _expandState.Clear();
+            foreach (var expander in EnumerateExpanders(SettingsSections))
+            {
+                _expandState[expander] = expander.IsExpanded;
+            }
+            _filterActive = true;
+        }
+        else if (!filtering && _filterActive)
+        {
+            foreach (var pair in _expandState)
+            {
+                pair.Key.IsExpanded = pair.Value;
+            }
+            _expandState.Clear();
+            _filterActive = false;
+        }
+
+        var visibleSections = 0;
+        foreach (var child in SettingsSections.Children)
+        {
+            if (child is FrameworkElement element && FilterElement(element, term, forceShow: false))
+            {
+                visibleSections++;
+            }
+        }
+
+        NoSettingsResults.Visibility = filtering && visibleSections == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    private static IEnumerable<SettingsExpander> EnumerateExpanders(Panel root)
+    {
+        foreach (var child in root.Children)
+        {
+            if (child is SettingsExpander expander)
+            {
+                yield return expander;
+            }
+            else if (child is Panel panel)
+            {
+                foreach (var nested in EnumerateExpanders(panel))
+                {
+                    yield return nested;
+                }
+            }
+        }
+    }
+
+    private static bool FilterElement(FrameworkElement element, string term, bool forceShow)
+    {
+        if (term.Length == 0 || forceShow)
+        {
+            SetVisibleDeep(element, true);
+            return true;
+        }
+
+        switch (element)
+        {
+            case SettingsExpander expander:
+            {
+                var selfMatch = Matches(expander.Header, expander.Description, term);
+                var childMatch = false;
+                foreach (var item in expander.Items)
+                {
+                    if (item is FrameworkElement itemElement)
+                    {
+                        childMatch |= FilterElement(itemElement, term, selfMatch);
+                    }
+                }
+
+                var visible = selfMatch || childMatch;
+                expander.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+                if (visible)
+                {
+                    expander.IsExpanded = true;
+                }
+                return visible;
+            }
+
+            case SettingsCard card:
+            {
+                var match = Matches(card.Header, card.Description, term);
+                card.Visibility = match ? Visibility.Visible : Visibility.Collapsed;
+                return match;
+            }
+
+            case Panel panel:
+            {
+                var tagMatch = panel.Tag is string tag && ContainsIgnoreCase(tag, term);
+                var any = false;
+                foreach (var child in panel.Children)
+                {
+                    if (child is SettingsExpander or SettingsCard or Panel)
+                    {
+                        any |= FilterElement((FrameworkElement)child, term, tagMatch);
+                    }
+                }
+
+                var visible = tagMatch || any;
+                panel.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+                return visible;
+            }
+
+            default:
+                // Elements that are not settings cards (e.g. the warning InfoBars)
+                // keep their own managed visibility and never count as a match.
+                return true;
+        }
+    }
+
+    private static void SetVisibleDeep(FrameworkElement element, bool visible)
+    {
+        switch (element)
+        {
+            case SettingsExpander expander:
+                foreach (var item in expander.Items)
+                {
+                    if (item is FrameworkElement itemElement)
+                    {
+                        SetVisibleDeep(itemElement, visible);
+                    }
+                }
+                break;
+
+            case SettingsCard:
+                break;
+
+            case Panel panel:
+                foreach (var child in panel.Children)
+                {
+                    if (child is SettingsExpander or SettingsCard or Panel)
+                    {
+                        SetVisibleDeep((FrameworkElement)child, visible);
+                    }
+                }
+                break;
+
+            default:
+                // Non-filterable element: leave its visibility untouched.
+                return;
+        }
+
+        element.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private static bool Matches(object? header, object? description, string term)
+        => ContainsIgnoreCase(ExtractText(header), term) || ContainsIgnoreCase(ExtractText(description), term);
+
+    private static bool ContainsIgnoreCase(string? text, string term)
+        => !string.IsNullOrEmpty(text) && text.Contains(term, StringComparison.OrdinalIgnoreCase);
+
+    private static string ExtractText(object? content)
+    {
+        switch (content)
+        {
+            case null:
+                return string.Empty;
+            case string text:
+                return text;
+            case TextBlock textBlock:
+                return textBlock.Text;
+            case Panel panel:
+                return string.Join(" ", panel.Children.Select(child => ExtractText(child)));
+            default:
+                return content.ToString() ?? string.Empty;
+        }
     }
 }

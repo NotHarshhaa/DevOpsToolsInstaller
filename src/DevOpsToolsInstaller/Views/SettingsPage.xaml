@@ -7,6 +7,21 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:tk="using:CommunityToolkit.WinUI.Controls">
 
+    <Page.Resources>
+        <!-- Every card titles itself with a genuinely bold header. -->
+        <Style x:Key="CardHeaderTextStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <!-- Compact "current value" readout shown on the right of a card. -->
+        <Style x:Key="CardValueTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+    </Page.Resources>
+
     <appControls:PageContainer>
         <ScrollViewer>
             <StackPanel Spacing="20">
@@ -20,6 +35,18 @@
                 <appControls:PageHeader Title="Settings &amp; Configuration"
                                         Subtitle="Appearance, security, notifications, network, PATH integration, storage and updates." />
 
+                <!-- Search: filters the sections and cards below by title or description. -->
+                <AutoSuggestBox x:Name="SettingsSearchBox"
+                                MaxWidth="520"
+                                HorizontalAlignment="Left"
+                                PlaceholderText="Search settings…"
+                                TextChanged="SettingsSearchBox_TextChanged"
+                                AutomationProperties.Name="Search settings">
+                    <AutoSuggestBox.QueryIcon>
+                        <SymbolIcon Symbol="Find" />
+                    </AutoSuggestBox.QueryIcon>
+                </AutoSuggestBox>
+
                 <!-- Status InfoBar (shared notice for all groups) -->
                 <controls:InfoBar
                     x:Name="NoticeInfoBar"
@@ -28,610 +55,840 @@
                     Severity="Success"
                     AutomationProperties.Name="Settings status message" />
 
-                <!-- ══════════ GROUP: APPEARANCE ══════════ -->
-                <TextBlock Text="Appearance" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsCard x:Name="ThemeCard"
-                                 Description="Choose Light, Dark, or follow the Windows system preference.">
-                    <tk:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE790;" />
-                    </tk:SettingsCard.HeaderIcon>
-                    <ComboBox x:Name="ThemeComboBox" Width="170"
-                              SelectionChanged="ThemeComboBox_SelectionChanged"
-                              AutomationProperties.Name="Application theme">
-                        <ComboBoxItem Content="System default" Tag="Default" />
-                        <ComboBoxItem Content="Light" Tag="Light" />
-                        <ComboBoxItem Content="Dark" Tag="Dark" />
-                    </ComboBox>
-                </tk:SettingsCard>
+                <!-- Shown when a search matches nothing -->
+                <appControls:EmptyStateControl x:Name="NoSettingsResults"
+                                               Glyph="&#xE721;"
+                                               Title="No settings match"
+                                               Message="Try a different word, or clear the search to see every setting again."
+                                               ActionText="Clear search"
+                                               ActionClick="ClearSearch_Click"
+                                               Visibility="Collapsed" />
 
-                <tk:SettingsCard x:Name="MaterialCard"
-                                 Description="Backdrop material for the title bar and sidebar. Mica is the most neutral and picks up the least wallpaper tint; None uses a solid, fully opaque window.">
-                    <tk:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE81E;" />
-                    </tk:SettingsCard.HeaderIcon>
-                    <ComboBox x:Name="MaterialComboBox" Width="170"
-                              SelectionChanged="MaterialComboBox_SelectionChanged"
-                              AutomationProperties.Name="Window material">
-                        <ComboBoxItem Content="Mica (neutral)" Tag="Mica" />
-                        <ComboBoxItem Content="Mica Alt" Tag="MicaAlt" />
-                        <ComboBoxItem Content="Acrylic" Tag="Acrylic" />
-                        <ComboBoxItem Content="None (solid)" Tag="None" />
-                    </ComboBox>
-                </tk:SettingsCard>
+                <StackPanel x:Name="SettingsSections" Spacing="12">
 
-                <!-- ══════════ GROUP: SECURITY ══════════ -->
-                <TextBlock Text="Security" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="SecurityExpander"
-                                     Description="Signature verification policy and security audit trail for every installer this app launches.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE72E;" />
-                    </tk:SettingsExpander.HeaderIcon>
+                    <!-- ══════════ SECURITY POSTURE ══════════ -->
+                    <StackPanel x:Name="PostureSection" Spacing="8" Tag="Security posture">
+                        <tk:SettingsExpander x:Name="SecurityPostureExpander"
+                                             IsExpanded="True"
+                                             Description="A quick read of the security-relevant settings applied to every installer this app launches.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Security posture" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE72E;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <TextBlock x:Name="PostureSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                           Text="Policy: Warn · Hooks: Off · Proxy: Off" />
+                            </tk:SettingsExpander.Content>
 
-                    <tk:SettingsExpander.Items>
-                        <!-- Signature policy -->
-                        <tk:SettingsCard x:Name="SignaturePolicyCard"
-                                         Header="Vendor installer signature policy"
-                                         Description="Warn asks for confirmation before launching installers without a verified trusted signature. Block refuses to launch them entirely.">
-                            <ComboBox x:Name="SignaturePolicyComboBox" Width="190"
-                                      SelectionChanged="SignaturePolicyComboBox_SelectionChanged"
-                                      AutomationProperties.Name="Vendor installer signature policy">
-                                <ComboBoxItem Content="Warn before launch" Tag="Warn" />
-                                <ComboBoxItem Content="Block unsigned installers" Tag="BlockUnsigned" />
-                            </ComboBox>
-                        </tk:SettingsCard>
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Description="How vendor installers without a verified trusted signature are handled.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Signature policy" />
+                                    </tk:SettingsCard.Header>
+                                    <TextBlock x:Name="PosturePolicyText" Style="{StaticResource CardValueTextStyle}"
+                                               Text="Warn before launch" />
+                                </tk:SettingsCard>
 
-                        <!-- Always-on protections -->
-                        <tk:SettingsCard x:Name="ProtectionsCard"
-                                         Header="Always-on protections">
-                            <tk:SettingsCard.Description>
-                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           Text="• SHA-256 checksum verification of every download against the vendor catalog&#x0a;• HTTPS-only downloads — plain-text HTTP fetches are refused&#x0a;• Authenticode signature checks before any installer is launched&#x0a;• Mark-of-the-Web applied to downloads so SmartScreen &amp; Defender stay active&#x0a;• Official vendor URLs only — no mirrors or repackaged binaries" />
-                            </tk:SettingsCard.Description>
-                            <tk:SettingsCard.Content>
-                                <FontIcon Glyph="&#xE73E;" FontSize="16"
-                                          Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                            </tk:SettingsCard.Content>
-                        </tk:SettingsCard>
+                                <tk:SettingsCard Description="Whether your own pre/post-install shell commands run around installs.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Pre/post-install hooks" />
+                                    </tk:SettingsCard.Header>
+                                    <TextBlock x:Name="PostureHooksText" Style="{StaticResource CardValueTextStyle}"
+                                               Text="Disabled" />
+                                </tk:SettingsCard>
 
-                        <!-- Audit log -->
-                        <tk:SettingsCard x:Name="AuditLogCard"
-                                         Header="Security audit log">
-                            <tk:SettingsCard.Description>
-                                <TextBlock x:Name="AuditLogPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           IsTextSelectionEnabled="True" />
-                            </tk:SettingsCard.Description>
-                            <Button Click="OpenAuditLogFolder_Click"
-                                    ToolTipService.ToolTip="Open the audit log folder in File Explorer"
-                                    AutomationProperties.Name="Open security audit log folder">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                    <TextBlock Text="Open Folder" />
+                                <tk:SettingsCard Description="Proxy used for downloads, catalog loads and update checks.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Network proxy" />
+                                    </tk:SettingsCard.Header>
+                                    <TextBlock x:Name="PostureProxyText" Style="{StaticResource CardValueTextStyle}"
+                                               Text="Off — Windows system proxy" />
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard>
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Security audit log" />
+                                    </tk:SettingsCard.Header>
+                                    <tk:SettingsCard.Description>
+                                        <TextBlock x:Name="AuditLogPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                                   IsTextSelectionEnabled="True" />
+                                    </tk:SettingsCard.Description>
+                                    <Button Click="OpenAuditLogFolder_Click"
+                                            ToolTipService.ToolTip="Open the audit log folder in File Explorer"
+                                            AutomationProperties.Name="Open security audit log folder">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                            <TextBlock Text="Open Folder" />
+                                        </StackPanel>
+                                    </Button>
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+
+                        <!-- Compact warning while the policy allows unsigned installers -->
+                        <controls:InfoBar x:Name="SignatureWarningInfoBar"
+                                          IsOpen="True" IsClosable="False"
+                                          Severity="Warning" Visibility="Collapsed"
+                                          Title="Unsigned installers are allowed"
+                                          Message="Installers without a verified trusted signature only trigger a confirmation prompt."
+                                          AutomationProperties.Name="Unsigned installer policy warning">
+                            <controls:InfoBar.ActionButton>
+                                <Button Content="Switch to Block" Click="SwitchToBlock_Click"
+                                        AutomationProperties.Name="Switch signature policy to Block" />
+                            </controls:InfoBar.ActionButton>
+                        </controls:InfoBar>
+                    </StackPanel>
+
+                    <!-- ══════════ APPEARANCE ══════════ -->
+                    <tk:SettingsExpander x:Name="AppearanceExpander"
+                                         Description="Theme and window backdrop material for the title bar and sidebar.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Appearance" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE790;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <TextBlock x:Name="AppearanceSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                       Text="Theme: System default · Material: Mica" />
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard x:Name="ThemeCard"
+                                             Description="Choose Light, Dark, or follow the Windows system preference.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Application theme" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="ThemeComboBox" Width="170"
+                                          SelectionChanged="ThemeComboBox_SelectionChanged"
+                                          AutomationProperties.Name="Application theme">
+                                    <ComboBoxItem Content="System default" Tag="Default" />
+                                    <ComboBoxItem Content="Light" Tag="Light" />
+                                    <ComboBoxItem Content="Dark" Tag="Dark" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard x:Name="MaterialCard"
+                                             Description="Backdrop material for the title bar and sidebar. Mica is the most neutral and picks up the least wallpaper tint; None uses a solid, fully opaque window.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Window material" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="MaterialComboBox" Width="170"
+                                          SelectionChanged="MaterialComboBox_SelectionChanged"
+                                          AutomationProperties.Name="Window material">
+                                    <ComboBoxItem Content="Mica (neutral)" Tag="Mica" />
+                                    <ComboBoxItem Content="Mica Alt" Tag="MicaAlt" />
+                                    <ComboBoxItem Content="Acrylic" Tag="Acrylic" />
+                                    <ComboBoxItem Content="None (solid)" Tag="None" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="appearance"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset appearance settings to defaults" />
+                            </StackPanel>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
+
+                    <!-- ══════════ SECURITY ══════════ -->
+                    <tk:SettingsExpander x:Name="SecurityExpander"
+                                         Description="Signature verification policy and always-on protections for every installer this app launches.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Security" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE72E;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <TextBlock x:Name="SecuritySummaryText" Style="{StaticResource CardValueTextStyle}"
+                                       Text="Policy: Warn" />
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard x:Name="SignaturePolicyCard"
+                                             Description="Warn asks for confirmation before launching installers without a verified trusted signature. Block refuses to launch them entirely.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Vendor installer signature policy" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="SignaturePolicyComboBox" Width="190"
+                                          SelectionChanged="SignaturePolicyComboBox_SelectionChanged"
+                                          AutomationProperties.Name="Vendor installer signature policy">
+                                    <ComboBoxItem Content="Warn before launch" Tag="Warn" />
+                                    <ComboBoxItem Content="Block unsigned installers" Tag="BlockUnsigned" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard x:Name="ProtectionsCard">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Always-on protections" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               Text="• SHA-256 checksum verification of every download against the vendor catalog&#x0a;• HTTPS-only downloads — plain-text HTTP fetches are refused&#x0a;• Authenticode signature checks before any installer is launched&#x0a;• Mark-of-the-Web applied to downloads so SmartScreen &amp; Defender stay active&#x0a;• Official vendor URLs only — no mirrors or repackaged binaries" />
+                                </tk:SettingsCard.Description>
+                                <tk:SettingsCard.Content>
+                                    <FontIcon Glyph="&#xE73E;" FontSize="16"
+                                              Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                </tk:SettingsCard.Content>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="security"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset security settings to defaults" />
+                            </StackPanel>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
+
+                    <!-- ══════════ NOTIFICATIONS & TRAY ══════════ -->
+                    <tk:SettingsExpander x:Name="NotificationsExpander"
+                                         Description="Windows toasts and tray behaviour when the window is closed.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Notifications &amp; tray" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xEA8F;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <TextBlock x:Name="NotificationsSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                       Text="Toasts: On · Tray: On" />
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard Description="Show Windows notifications when background downloads, installs, and update checks finish.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Toast notifications" />
+                                </tk:SettingsCard.Header>
+                                <ToggleSwitch x:Name="NotificationsToggle"
+                                              Toggled="NotificationsToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="Toast notifications" />
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard Description="Closing the window keeps the app running in the tray with quick actions. Exit from the tray menu to stop it.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Close to system tray" />
+                                </tk:SettingsCard.Header>
+                                <ToggleSwitch x:Name="CloseToTrayToggle"
+                                              Toggled="CloseToTrayToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="Close to system tray" />
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard Description="Show the three-step introduction (search, installed tools, tray) the next time the app starts.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="First-run onboarding tips" />
+                                </tk:SettingsCard.Header>
+                                <ToggleSwitch x:Name="OnboardingToggle"
+                                              Toggled="OnboardingToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="First-run onboarding tips" />
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="notifications"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset notification and tray settings to defaults" />
+                            </StackPanel>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
+
+                    <!-- ══════════ HOOKS & AUTOMATION ══════════ -->
+                    <StackPanel x:Name="HooksSection" Spacing="8" Tag="Hooks &amp; automation">
+                        <tk:SettingsExpander x:Name="HooksExpander"
+                                             Description="Run your own pre/post-install shell commands around a tool's install. Hooks are authored by you and never generated or downloaded by the app.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Hooks &amp; automation" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE756;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                    <TextBlock x:Name="HooksSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                               Text="Hooks: Off" />
+                                    <ToggleSwitch x:Name="HooksToggle"
+                                                  Toggled="HooksToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Enable pre and post install hooks" />
                                 </StackPanel>
-                            </Button>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
+                            </tk:SettingsExpander.Content>
 
-                <!-- Warning shown while the policy allows unsigned installers
-                     (sibling of the expander: SettingsExpander.Items may only
-                     contain SettingsCard / SettingsExpander elements) -->
-                <controls:InfoBar x:Name="SignatureWarningInfoBar"
-                                  IsOpen="True" IsClosable="False"
-                                  Severity="Warning" Visibility="Collapsed"
-                                  Title="Unsigned installers are allowed"
-                                  Message="Installers without a verified trusted signature will only trigger a confirmation prompt. Switch the policy to Block to refuse them entirely."
-                                  AutomationProperties.Name="Unsigned installer policy warning" />
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard>
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="How hooks work" />
+                                    </tk:SettingsCard.Header>
+                                    <tk:SettingsCard.Description>
+                                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                                   Text="When enabled, the app runs a tool's pre-install hook before its artifact action and its post-install hook after a successful install. Every command is written to the activity &amp; audit log before it runs — nothing executes silently. Configure hooks per tool from the tool's detail page.&#x0a;&#x0a;Supported placeholders: {tool} {toolId} {version} {file} {downloadsFolder} {toolsBin} {toolsRoot}" />
+                                    </tk:SettingsCard.Description>
+                                    <tk:SettingsCard.Content>
+                                        <FontIcon Glyph="&#xE72E;" FontSize="16"
+                                                  Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                    </tk:SettingsCard.Content>
+                                </tk:SettingsCard>
 
-                <!-- ══════════ GROUP: NOTIFICATIONS & TRAY ══════════ -->
-                <TextBlock Text="Notifications &amp; Tray" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="NotificationsExpander"
-                                     Description="Windows toasts and tray behaviour when the window is closed.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xEA8F;" />
-                    </tk:SettingsExpander.HeaderIcon>
+                                <tk:SettingsCard>
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Hooks definition file" />
+                                    </tk:SettingsCard.Header>
+                                    <tk:SettingsCard.Description>
+                                        <TextBlock x:Name="HooksPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                                   IsTextSelectionEnabled="True" />
+                                    </tk:SettingsCard.Description>
+                                    <Button Click="OpenHooksFolder_Click"
+                                            AutomationProperties.Name="Open hooks definition folder">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                            <TextBlock Text="Open Folder" />
+                                        </StackPanel>
+                                    </Button>
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
 
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Toast notifications"
-                                         Description="Show Windows notifications when background downloads, installs, and update checks finish.">
-                            <ToggleSwitch x:Name="NotificationsToggle"
-                                          Toggled="NotificationsToggle_Toggled"
-                                          OnContent="" OffContent=""
-                                          AutomationProperties.Name="Toast notifications" />
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="Close to system tray"
-                                         Description="Closing the window keeps the app running in the tray with quick actions. Exit from the tray menu to stop it.">
-                            <ToggleSwitch x:Name="CloseToTrayToggle"
-                                          Toggled="CloseToTrayToggle_Toggled"
-                                          OnContent="" OffContent=""
-                                          AutomationProperties.Name="Close to system tray" />
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="First-run onboarding tips"
-                                         Description="Show the three-step introduction (search, installed tools, tray) the next time the app starts.">
-                            <ToggleSwitch x:Name="OnboardingToggle"
-                                          Toggled="OnboardingToggle_Toggled"
-                                          OnContent="" OffContent=""
-                                          AutomationProperties.Name="First-run onboarding tips" />
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
-
-                <!-- ══════════ GROUP: HOOKS & AUTOMATION ══════════ -->
-                <TextBlock Text="Hooks &amp; Automation" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="HooksExpander"
-                                     Description="Run your own pre/post-install shell commands around a tool's install. Hooks are authored by you and never generated or downloaded by the app.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE756;" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <ToggleSwitch x:Name="HooksToggle"
-                                      Toggled="HooksToggle_Toggled"
-                                      OnContent="" OffContent=""
-                                      AutomationProperties.Name="Enable pre and post install hooks" />
-                    </tk:SettingsExpander.Content>
-
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="How hooks work">
-                            <tk:SettingsCard.Description>
-                                <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           Text="When enabled, the app runs a tool's pre-install hook before its artifact action and its post-install hook after a successful install. Every command is written to the activity &amp; audit log before it runs — nothing executes silently. Configure hooks per tool from the tool's detail page.&#x0a;&#x0a;Supported placeholders: {tool} {toolId} {version} {file} {downloadsFolder} {toolsBin} {toolsRoot}" />
-                            </tk:SettingsCard.Description>
-                            <tk:SettingsCard.Content>
-                                <FontIcon Glyph="&#xE72E;" FontSize="16"
-                                          Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                            </tk:SettingsCard.Content>
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="Hooks definition file">
-                            <tk:SettingsCard.Description>
-                                <TextBlock x:Name="HooksPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           IsTextSelectionEnabled="True" />
-                            </tk:SettingsCard.Description>
-                            <Button Click="OpenHooksFolder_Click"
-                                    AutomationProperties.Name="Open hooks definition folder">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                    <TextBlock Text="Open Folder" />
+                            <tk:SettingsExpander.ItemsFooter>
+                                <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                    <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="hooks"
+                                                     Click="ResetSection_Click"
+                                                     AutomationProperties.Name="Reset hooks settings to defaults" />
                                 </StackPanel>
-                            </Button>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
+                            </tk:SettingsExpander.ItemsFooter>
+                        </tk:SettingsExpander>
 
-                <!-- Warning shown while hooks are enabled (commands run on install) -->
-                <controls:InfoBar x:Name="HooksWarningInfoBar"
-                                  IsOpen="True" IsClosable="False"
-                                  Severity="Warning" Visibility="Collapsed"
-                                  Title="Pre/post-install hooks are enabled"
-                                  Message="Your configured shell commands will run during tool installs on this machine. Review them from each tool's detail page; every command is logged before it runs."
-                                  AutomationProperties.Name="Hooks enabled warning" />
+                        <!-- Warning shown while hooks are enabled (commands run on install) -->
+                        <controls:InfoBar x:Name="HooksWarningInfoBar"
+                                          IsOpen="True" IsClosable="False"
+                                          Severity="Warning" Visibility="Collapsed"
+                                          Title="Pre/post-install hooks are enabled"
+                                          Message="Your configured shell commands will run during tool installs on this machine. Review them from each tool's detail page; every command is logged before it runs."
+                                          AutomationProperties.Name="Hooks enabled warning" />
+                    </StackPanel>
 
-                <!-- ══════════ GROUP: NETWORK ══════════ -->
-                <TextBlock Text="Network" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="NetworkExpander"
-                                     Description="Route downloads, catalog updates, and update checks through a corporate or personal proxy. When off, the Windows system proxy is used.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE968;" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <ToggleSwitch x:Name="ProxyToggle"
-                                      Toggled="ProxyToggle_Toggled"
-                                      OnContent="" OffContent=""
-                                      AutomationProperties.Name="Use a custom proxy server" />
-                    </tk:SettingsExpander.Content>
+                    <!-- ══════════ NETWORK ══════════ -->
+                    <tk:SettingsExpander x:Name="NetworkExpander"
+                                         Description="Route downloads, catalog updates, and update checks through a corporate or personal proxy. When off, the Windows system proxy is used.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Network" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE968;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock x:Name="NetworkSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                           Text="Proxy: Off" />
+                                <ToggleSwitch x:Name="ProxyToggle"
+                                              Toggled="ProxyToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="Use a custom proxy server" />
+                            </StackPanel>
+                        </tk:SettingsExpander.Content>
 
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Proxy server details"
-                                         Description="Changes apply the next time the app starts. Credentials are stored in %LOCALAPPDATA%\DevOpsToolsInstaller\settings.json on this machine only.">
-                            <StackPanel x:Name="ProxyFieldsPanel" Spacing="12" Width="300" Visibility="Collapsed">
-                                <TextBox x:Name="ProxyUrlBox" Header="Proxy address" PlaceholderText="http://proxy.corp.local:8080"
-                                         LostFocus="ProxyField_LostFocus"
-                                         AutomationProperties.Name="Proxy address" />
-                                <TextBox x:Name="ProxyUsernameBox" Header="Username (optional)" PlaceholderText="Leave empty for anonymous auth"
-                                         LostFocus="ProxyField_LostFocus"
-                                         AutomationProperties.Name="Proxy username" />
-                                <PasswordBox x:Name="ProxyPasswordBox" Header="Password (optional)" PlaceholderText="Stored in local settings"
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard Description="Changes apply the next time the app starts. Credentials are stored in %LOCALAPPDATA%\DevOpsToolsInstaller\settings.json on this machine only.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Proxy server details" />
+                                </tk:SettingsCard.Header>
+                                <StackPanel x:Name="ProxyFieldsPanel" Spacing="12" Width="300" Visibility="Collapsed">
+                                    <TextBox x:Name="ProxyUrlBox" Header="Proxy address" PlaceholderText="http://proxy.corp.local:8080"
                                              LostFocus="ProxyField_LostFocus"
-                                             AutomationProperties.Name="Proxy password" />
-                            </StackPanel>
-                        </tk:SettingsCard>
-                        <tk:SettingsCard Header="Download bandwidth limit"
-                                         Description="Cap download throughput to avoid saturating network connections during large artifact transfers.">
-                            <ComboBox x:Name="BandwidthLimitComboBox" Width="170"
-                                      SelectionChanged="BandwidthLimitComboBox_SelectionChanged"
-                                      AutomationProperties.Name="Download bandwidth limit">
-                                <ComboBoxItem Content="Unlimited" Tag="0" />
-                                <ComboBoxItem Content="2 MB/s" Tag="2" />
-                                <ComboBoxItem Content="5 MB/s" Tag="5" />
-                                <ComboBoxItem Content="10 MB/s" Tag="10" />
-                                <ComboBoxItem Content="25 MB/s" Tag="25" />
-                                <ComboBoxItem Content="50 MB/s" Tag="50" />
-                            </ComboBox>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
-
-                <tk:SettingsExpander x:Name="SchedulerExpander"
-                                     Description="Schedule artifact downloads to run during off-peak hours (e.g. overnight) and configure auto-retry rules.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xED5A;" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <ToggleSwitch x:Name="ScheduleToggle"
-                                      Toggled="ScheduleToggle_Toggled"
-                                      OnContent="" OffContent=""
-                                      AutomationProperties.Name="Off-peak scheduler toggle" />
-                    </tk:SettingsExpander.Content>
-
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Off-peak schedule window"
-                                         Description="Downloads run automatically within this local time window. Transfers outside this range queue safely.">
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <ComboBox x:Name="ScheduleStartComboBox" Width="135"
-                                          SelectionChanged="ScheduleTime_SelectionChanged"
-                                          AutomationProperties.Name="Schedule start time" />
-                                <TextBlock Text="to" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                <ComboBox x:Name="ScheduleEndComboBox" Width="135"
-                                          SelectionChanged="ScheduleTime_SelectionChanged"
-                                          AutomationProperties.Name="Schedule end time" />
-                            </StackPanel>
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="Automatic download retries"
-                                         Description="Automatically retry failed transfers after network disruptions or timeouts.">
-                            <ToggleSwitch x:Name="AutoRetryToggle"
-                                          Toggled="AutoRetryToggle_Toggled"
-                                          OnContent="" OffContent=""
-                                          AutomationProperties.Name="Auto retry toggle" />
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="Retry backoff interval"
-                                         Description="Time to wait before retrying a failed download.">
-                            <ComboBox x:Name="AutoRetryIntervalComboBox" Width="150"
-                                      SelectionChanged="AutoRetryInterval_SelectionChanged"
-                                      AutomationProperties.Name="Retry interval">
-                                <ComboBoxItem Content="5 minutes" Tag="5" />
-                                <ComboBoxItem Content="10 minutes" Tag="10" />
-                                <ComboBoxItem Content="15 minutes" Tag="15" />
-                                <ComboBoxItem Content="30 minutes" Tag="30" />
-                            </ComboBox>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
-
-                <!-- ══════════ GROUP: PATH & TERMINAL ══════════ -->
-                <TextBlock Text="PATH &amp; Terminal" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="PathExpander"
-                                     Description="Portable CLI tools extract here. Add the folder to your User PATH to execute tools directly in any terminal.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE756;" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                            <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </Border>
-                    </tk:SettingsExpander.Content>
-
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Add to User PATH">
-                            <tk:SettingsCard.Description>
-                                <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           IsTextSelectionEnabled="True" />
-                            </tk:SettingsCard.Description>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Click="CopyToolsPath_Click" ToolTipService.ToolTip="Copy bin path"
-                                        AutomationProperties.Name="Copy tools bin path">
-                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
-                                </Button>
-                                <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}"
-                                        AutomationProperties.Name="Add tools bin folder to User PATH">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE710;" FontSize="12" />
-                                        <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer"
-                                        AutomationProperties.Name="Open tools bin folder">
-                                    <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                </Button>
-                            </StackPanel>
-                        </tk:SettingsCard>
-
-                        <tk:SettingsCard Header="PATH Environment Doctor &amp; Fixer">
-                            <tk:SettingsCard.Description>
-                                <StackPanel Spacing="4">
-                                    <TextBlock x:Name="PathDoctorSummaryText"
-                                               Text="Inspects User PATH for duplicate entries, non-existent directories, and missing tools\bin."
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                               TextWrapping="Wrap" />
-                                    <TextBlock x:Name="PathDoctorDetailsText"
-                                               Text=""
-                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                               Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                               Visibility="Collapsed"
-                                               TextWrapping="Wrap" />
+                                             AutomationProperties.Name="Proxy address" />
+                                    <TextBox x:Name="ProxyUsernameBox" Header="Username (optional)" PlaceholderText="Leave empty for anonymous auth"
+                                             LostFocus="ProxyField_LostFocus"
+                                             AutomationProperties.Name="Proxy username" />
+                                    <PasswordBox x:Name="ProxyPasswordBox" Header="Password (optional)" PlaceholderText="Stored in local settings"
+                                                 LostFocus="ProxyField_LostFocus"
+                                                 AutomationProperties.Name="Proxy password" />
                                 </StackPanel>
-                            </tk:SettingsCard.Description>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Click="DiagnosePath_Click" ToolTipService.ToolTip="Inspect User PATH issues"
-                                        AutomationProperties.Name="Diagnose PATH">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE9D9;" FontSize="12" />
-                                        <TextBlock Text="Diagnose" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="FixPathButton" Click="FixPath_Click" Style="{StaticResource AccentButtonStyle}"
-                                        ToolTipService.ToolTip="Deduplicate, clean broken entries, and backup User PATH"
-                                        AutomationProperties.Name="Clean and fix PATH">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE909;" FontSize="12" />
-                                        <TextBlock Text="Clean &amp; Fix" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Click="RestorePathBackup_Click" ToolTipService.ToolTip="Restore previous User PATH from backup"
-                                        AutomationProperties.Name="Restore PATH backup">
-                                    <FontIcon Glyph="&#xE777;" FontSize="13" />
-                                </Button>
-                            </StackPanel>
-                        </tk:SettingsCard>
+                            </tk:SettingsCard>
 
-                        <tk:SettingsCard Header="Shell autocompletion ($PROFILE)">
-                            <tk:SettingsCard.Description>
+                            <tk:SettingsCard Description="Cap download throughput to avoid saturating network connections during large artifact transfers.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Download bandwidth limit" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="BandwidthLimitComboBox" Width="170"
+                                          SelectionChanged="BandwidthLimitComboBox_SelectionChanged"
+                                          AutomationProperties.Name="Download bandwidth limit">
+                                    <ComboBoxItem Content="Unlimited" Tag="0" />
+                                    <ComboBoxItem Content="2 MB/s" Tag="2" />
+                                    <ComboBoxItem Content="5 MB/s" Tag="5" />
+                                    <ComboBoxItem Content="10 MB/s" Tag="10" />
+                                    <ComboBoxItem Content="25 MB/s" Tag="25" />
+                                    <ComboBoxItem Content="50 MB/s" Tag="50" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="network"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset network settings to defaults" />
+                            </StackPanel>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
+
+                    <!-- ══════════ OFF-PEAK SCHEDULING ══════════ -->
+                    <tk:SettingsExpander x:Name="SchedulerExpander"
+                                         Description="Schedule artifact downloads to run during off-peak hours (e.g. overnight) and configure auto-retry rules.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Off-peak scheduling" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xED5A;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <TextBlock x:Name="SchedulingSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                           Text="Schedule: Off" />
+                                <ToggleSwitch x:Name="ScheduleToggle"
+                                              Toggled="ScheduleToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="Off-peak scheduler toggle" />
+                            </StackPanel>
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard Description="Downloads run automatically within this local time window. Transfers outside this range queue safely.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Off-peak schedule window" />
+                                </tk:SettingsCard.Header>
                                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                                        <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </Border>
+                                    <ComboBox x:Name="ScheduleStartComboBox" Width="135"
+                                              SelectionChanged="ScheduleTime_SelectionChanged"
+                                              AutomationProperties.Name="Schedule start time" />
+                                    <TextBlock Text="to" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <ComboBox x:Name="ScheduleEndComboBox" Width="135"
+                                              SelectionChanged="ScheduleTime_SelectionChanged"
+                                              AutomationProperties.Name="Schedule end time" />
                                 </StackPanel>
-                            </tk:SettingsCard.Description>
-                            <Button Click="GenerateCompletion_Click"
-                                    AutomationProperties.Name="Configure shell autocompletion">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE756;" FontSize="13" />
-                                    <TextBlock Text="Configure" />
-                                </StackPanel>
-                            </Button>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
+                            </tk:SettingsCard>
 
-                <!-- ══════════ GROUP: STORAGE & SHORTCUTS ══════════ -->
-                <TextBlock Text="Storage &amp; Shortcuts" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="StorageExpander"
-                                     Description="Download cache location, disk usage, and Start Menu / Desktop shortcuts.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE8B7;" />
-                    </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsCard Description="Automatically retry failed transfers after network disruptions or timeouts.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Automatic download retries" />
+                                </tk:SettingsCard.Header>
+                                <ToggleSwitch x:Name="AutoRetryToggle"
+                                              Toggled="AutoRetryToggle_Toggled"
+                                              OnContent="" OffContent=""
+                                              AutomationProperties.Name="Auto retry toggle" />
+                            </tk:SettingsCard>
 
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Installer downloads folder">
-                            <tk:SettingsCard.Description>
-                                <TextBlock x:Name="DownloadPathText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
-                                           IsTextSelectionEnabled="True" />
-                            </tk:SettingsCard.Description>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Click="CopyDownloadsPath_Click" ToolTipService.ToolTip="Copy directory path"
-                                        AutomationProperties.Name="Copy downloads folder path">
-                                    <FontIcon Glyph="&#xE8C8;" FontSize="13" />
-                                </Button>
-                                <Button Click="ChangeFolder_Click" AutomationProperties.Name="Change downloads folder">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE8DA;" FontSize="13" />
-                                        <TextBlock Text="Change" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open folder in File Explorer"
-                                        AutomationProperties.Name="Open downloads folder">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE838;" FontSize="13" />
-                                        <TextBlock Text="Open" />
-                                    </StackPanel>
-                                </Button>
+                            <tk:SettingsCard Description="Time to wait before retrying a failed download.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Retry backoff interval" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="AutoRetryIntervalComboBox" Width="150"
+                                          SelectionChanged="AutoRetryInterval_SelectionChanged"
+                                          AutomationProperties.Name="Retry interval">
+                                    <ComboBoxItem Content="5 minutes" Tag="5" />
+                                    <ComboBoxItem Content="10 minutes" Tag="10" />
+                                    <ComboBoxItem Content="15 minutes" Tag="15" />
+                                    <ComboBoxItem Content="30 minutes" Tag="30" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="scheduling"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset scheduling settings to defaults" />
                             </StackPanel>
-                        </tk:SettingsCard>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
 
-                        <tk:SettingsCard Header="Cached installer files">
-                            <tk:SettingsCard.Description>
-                                <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                            </tk:SettingsCard.Description>
-                            <Button x:Name="ClearButton" Click="ClearDownloads_Click"
-                                    AutomationProperties.Name="Clear download cache">
+                    <!-- ══════════ PATH & TERMINAL ══════════ -->
+                    <tk:SettingsExpander x:Name="PathExpander"
+                                         Description="Portable CLI tools extract here. Add the folder to your User PATH to execute tools directly in any terminal.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="PATH &amp; terminal" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE756;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <Border x:Name="PathStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                <TextBlock x:Name="PathStatusText" Text="Checking…" FontSize="11" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Border>
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Add to User PATH" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock x:Name="ToolsPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               IsTextSelectionEnabled="True" />
+                                </tk:SettingsCard.Description>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="13" />
-                                    <TextBlock Text="Clear cache" />
+                                    <Button Click="CopyToolsPath_Click" ToolTipService.ToolTip="Copy bin path"
+                                            AutomationProperties.Name="Copy tools bin path">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    </Button>
+                                    <Button x:Name="AddToPathButton" Click="AddToPath_Click" Style="{StaticResource AccentButtonStyle}"
+                                            AutomationProperties.Name="Add tools bin folder to User PATH">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                            <TextBlock Text="Add to User PATH" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="OpenToolsFolder_Click" ToolTipService.ToolTip="Open Tools bin in File Explorer"
+                                            AutomationProperties.Name="Open tools bin folder">
+                                        <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                    </Button>
                                 </StackPanel>
-                            </Button>
-                        </tk:SettingsCard>
+                            </tk:SettingsCard>
 
-                        <tk:SettingsCard Header="Application logo &amp; shortcuts"
-                                         Description="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu.">
-                            <tk:SettingsCard.HeaderIcon>
-                                <controls:ImageIcon x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="20" Height="20" />
-                            </tk:SettingsCard.HeaderIcon>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2" VerticalAlignment="Center">
-                                    <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                                <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click"
-                                        AutomationProperties.Name="Create desktop shortcut">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE7F4;" FontSize="13" />
-                                        <TextBlock Text="Desktop" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click"
-                                        AutomationProperties.Name="Create Start Menu shortcut">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE8F1;" FontSize="13" />
-                                        <TextBlock Text="Start Menu" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
-
-                <!-- ══════════ GROUP: UPDATES ══════════ -->
-                <TextBlock Text="Updates" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="UpdatesExpander"
-                                     Description="Keep DevOps Tools Installer and its tool catalog current with GitHub Releases.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xE895;" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
-                            <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click"
-                                    AutomationProperties.Name="Check for application updates">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE895;" FontSize="13" />
-                                    <TextBlock Text="Check for Updates" />
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </tk:SettingsExpander.Content>
-
-                    <tk:SettingsExpander.Items>
-                        <!-- Update status -->
-                        <tk:SettingsCard Header="Application updates">
-                            <tk:SettingsCard.Description>
-                                <StackPanel Spacing="6">
-                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <Border x:Name="UpdateStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
-                                            <TextBlock x:Name="UpdateStatusBadgeText" Text="Ready" FontSize="11" FontWeight="SemiBold"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </Border>
-                                        <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="PATH Environment Doctor &amp; Fixer" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock x:Name="PathDoctorSummaryText"
+                                                   Text="Inspects User PATH for duplicate entries, non-existent directories, and missing tools\bin."
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                   VerticalAlignment="Center" />
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock x:Name="PathDoctorDetailsText"
+                                                   Text=""
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                   Visibility="Collapsed"
+                                                   TextWrapping="Wrap" />
                                     </StackPanel>
+                                </tk:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Click="DiagnosePath_Click" ToolTipService.ToolTip="Inspect User PATH issues"
+                                            AutomationProperties.Name="Diagnose PATH">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE9D9;" FontSize="12" />
+                                            <TextBlock Text="Diagnose" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="FixPathButton" Click="FixPath_Click" Style="{StaticResource AccentButtonStyle}"
+                                            ToolTipService.ToolTip="Deduplicate, clean broken entries, and backup User PATH"
+                                            AutomationProperties.Name="Clean and fix PATH">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE909;" FontSize="12" />
+                                            <TextBlock Text="Clean &amp; Fix" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="RestorePathBackup_Click" ToolTipService.ToolTip="Restore previous User PATH from backup"
+                                            AutomationProperties.Name="Restore PATH backup">
+                                        <FontIcon Glyph="&#xE777;" FontSize="13" />
+                                    </Button>
                                 </StackPanel>
-                            </tk:SettingsCard.Description>
-                        </tk:SettingsCard>
+                            </tk:SettingsCard>
 
-                        <!-- Auto-check Toggle -->
-                        <tk:SettingsCard Header="Automatically check for updates on startup"
-                                         Description="Query GitHub Releases on application launch to ensure tools and security patches remain current.">
-                            <ToggleSwitch x:Name="AutoUpdateToggle" IsOn="True"
-                                          Toggled="AutoUpdateToggle_Toggled"
-                                          OnContent="" OffContent=""
-                                          AutomationProperties.Name="Automatically check for updates on startup" />
-                        </tk:SettingsCard>
-
-                        <!-- Custom Catalog Feed -->
-                        <tk:SettingsCard Header="Custom tool catalog feed"
-                                         Description="Load a private, team, or internal enterprise catalog (HTTPS URL or local JSON path). Leave empty for standard official catalog.">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <TextBox x:Name="CustomCatalogSourceBox" Width="260"
-                                         PlaceholderText="https://.../catalog.json"
-                                         LostFocus="CustomCatalogSource_LostFocus"
-                                         AutomationProperties.Name="Custom catalog feed" />
-                                <Button Click="ApplyCustomCatalog_Click"
-                                        AutomationProperties.Name="Apply custom catalog">
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Shell autocompletion ($PROFILE)" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <Border x:Name="CompletionStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                            <TextBlock x:Name="CompletionStatusText" Text="Check Status" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                </tk:SettingsCard.Description>
+                                <Button Click="GenerateCompletion_Click"
+                                        AutomationProperties.Name="Configure shell autocompletion">
                                     <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE72C;" FontSize="12" />
-                                        <TextBlock Text="Apply" />
+                                        <FontIcon Glyph="&#xE756;" FontSize="13" />
+                                        <TextBlock Text="Configure" />
                                     </StackPanel>
                                 </Button>
-                            </StackPanel>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+                    </tk:SettingsExpander>
 
-                <!-- Update Available Action Bar (Visible when update found)
-                     (sibling of the expander: SettingsExpander.Items may only
-                     contain SettingsCard / SettingsExpander elements) -->
-                <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
-                        Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
-                        BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
-                        BorderThickness="1" CornerRadius="8" Padding="14">
-                    <Grid ColumnSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
-                            <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
-                                       FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                            <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                            <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click"
-                                    AutomationProperties.Name="View and install update">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                    <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
+                    <!-- ══════════ STORAGE & SHORTCUTS ══════════ -->
+                    <tk:SettingsExpander x:Name="StorageExpander"
+                                         Description="Download cache location, disk usage, and Start Menu / Desktop shortcuts.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Storage &amp; shortcuts" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <TextBlock x:Name="StorageSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                       Text="No downloads yet" />
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Installer downloads folder" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock x:Name="DownloadPathText" Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               IsTextSelectionEnabled="True" />
+                                </tk:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Click="CopyDownloadsPath_Click" ToolTipService.ToolTip="Copy directory path"
+                                            AutomationProperties.Name="Copy downloads folder path">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                    </Button>
+                                    <Button Click="ChangeFolder_Click" AutomationProperties.Name="Change downloads folder">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8DA;" FontSize="13" />
+                                            <TextBlock Text="Change" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="OpenFolder_Click" ToolTipService.ToolTip="Open folder in File Explorer"
+                                            AutomationProperties.Name="Open downloads folder">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE838;" FontSize="13" />
+                                            <TextBlock Text="Open" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                            </tk:SettingsCard>
 
-                <!-- ══════════ GROUP: ABOUT & MAINTAINER SPOTLIGHT ══════════ -->
-                <TextBlock Text="About &amp; Maintainer" Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="2,6,0,0" />
-                <tk:SettingsExpander x:Name="AboutExpander"
-                                     Description="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration.">
-                    <tk:SettingsExpander.HeaderIcon>
-                        <controls:ImageIcon Source="ms-appx:///Assets/app.png" />
-                    </tk:SettingsExpander.HeaderIcon>
-                    <tk:SettingsExpander.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="32" Height="32" />
-                            <TextBlock x:Name="SettingsVersionText" Text="v3.0.2" VerticalAlignment="Center"
-                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
-                    </tk:SettingsExpander.Content>
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Cached installer files" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </tk:SettingsCard.Description>
+                                <Button x:Name="ClearButton" Click="ClearDownloads_Click"
+                                        AutomationProperties.Name="Clear download cache">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                        <TextBlock Text="Clear cache" />
+                                    </StackPanel>
+                                </Button>
+                            </tk:SettingsCard>
 
-                    <tk:SettingsExpander.Items>
-                        <tk:SettingsCard Header="Created &amp; maintained by HARSHHAA">
+                            <tk:SettingsCard Description="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Application logo &amp; shortcuts" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.HeaderIcon>
+                                    <controls:ImageIcon x:Name="SettingsLogoImage" Source="ms-appx:///Assets/app.png" Width="20" Height="20" />
+                                </tk:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Border x:Name="ShortcutStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2" VerticalAlignment="Center">
+                                        <TextBlock x:Name="ShortcutStatusText" Text="Ready" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                    <Button x:Name="DesktopShortcutButton" Click="DesktopShortcut_Click"
+                                            AutomationProperties.Name="Create desktop shortcut">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE7F4;" FontSize="13" />
+                                            <TextBlock Text="Desktop" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="StartMenuShortcutButton" Click="StartMenuShortcut_Click"
+                                            AutomationProperties.Name="Create Start Menu shortcut">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8F1;" FontSize="13" />
+                                            <TextBlock Text="Start Menu" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+
+                        <tk:SettingsExpander.ItemsFooter>
+                            <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="storage"
+                                                 Click="ResetSection_Click"
+                                                 AutomationProperties.Name="Reset storage settings to defaults" />
+                            </StackPanel>
+                        </tk:SettingsExpander.ItemsFooter>
+                    </tk:SettingsExpander>
+
+                    <!-- ══════════ UPDATES ══════════ -->
+                    <StackPanel x:Name="UpdatesSection" Spacing="8" Tag="Updates">
+                        <tk:SettingsExpander x:Name="UpdatesExpander"
+                                             Description="Keep DevOps Tools Installer and its tool catalog current with GitHub Releases.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Updates" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE895;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <ProgressRing x:Name="UpdateCheckRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
+                                    <Button x:Name="CheckForUpdatesButton" Click="CheckForUpdates_Click"
+                                            AutomationProperties.Name="Check for application updates">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE895;" FontSize="13" />
+                                            <TextBlock Text="Check for Updates" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </tk:SettingsExpander.Content>
+
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard>
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Application updates" />
+                                    </tk:SettingsCard.Header>
+                                    <tk:SettingsCard.Description>
+                                        <StackPanel Spacing="6">
+                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <Border x:Name="UpdateStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,2">
+                                                    <TextBlock x:Name="UpdateStatusBadgeText" Text="Ready" FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                </Border>
+                                                <TextBlock x:Name="UpdateLastCheckedText" Text="Last checked: Checking…"
+                                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </tk:SettingsCard.Description>
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Query GitHub Releases on application launch to ensure tools and security patches remain current.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Automatically check for updates on startup" />
+                                    </tk:SettingsCard.Header>
+                                    <ToggleSwitch x:Name="AutoUpdateToggle" IsOn="True"
+                                                  Toggled="AutoUpdateToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Automatically check for updates on startup" />
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Load a private, team, or internal enterprise catalog (HTTPS URL or local JSON path). Leave empty for standard official catalog.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Custom tool catalog feed" />
+                                    </tk:SettingsCard.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBox x:Name="CustomCatalogSourceBox" Width="260"
+                                                 PlaceholderText="https://.../catalog.json"
+                                                 LostFocus="CustomCatalogSource_LostFocus"
+                                                 AutomationProperties.Name="Custom catalog feed" />
+                                        <Button Click="ApplyCustomCatalog_Click"
+                                                AutomationProperties.Name="Apply custom catalog">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                                <TextBlock Text="Apply" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+
+                            <tk:SettingsExpander.ItemsFooter>
+                                <StackPanel Padding="58,0,16,10" HorizontalAlignment="Right">
+                                    <HyperlinkButton Content="Reset to defaults" FontSize="12" Tag="updates"
+                                                     Click="ResetSection_Click"
+                                                     AutomationProperties.Name="Reset update settings to defaults" />
+                                </StackPanel>
+                            </tk:SettingsExpander.ItemsFooter>
+                        </tk:SettingsExpander>
+
+                        <!-- Update Available Action Bar (Visible when update found) -->
+                        <Border x:Name="UpdateAvailableBanner" Visibility="Collapsed"
+                                Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                                BorderBrush="{ThemeResource SystemFillColorSuccessBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="14">
+                            <Grid ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Spacing="2" VerticalAlignment="Center">
+                                    <TextBlock x:Name="UpdateAvailableTitle" Text="New Version Available!"
+                                               FontWeight="SemiBold" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock x:Name="UpdateAvailableSubtitle" Text="A newer version is ready to install."
+                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click"
+                                            AutomationProperties.Name="View and install update">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                            <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- ══════════ ABOUT & MAINTAINER SPOTLIGHT ══════════ -->
+                    <tk:SettingsExpander x:Name="AboutExpander"
+                                         Description="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="About &amp; maintainer" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <controls:ImageIcon Source="ms-appx:///Assets/app.png" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <HyperlinkButton Click="AuthorGitHub_Click" Padding="0"
-                                                 AutomationProperties.Name="Open maintainer GitHub profile">
-                                    <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
-                                </HyperlinkButton>
-                                <HyperlinkButton Click="GitHub_Click" Padding="0"
-                                                 AutomationProperties.Name="Open GitHub repository">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE774;" FontSize="13" />
-                                        <TextBlock Text="GitHub Repo" Style="{StaticResource CaptionTextBlockStyle}" />
-                                    </StackPanel>
-                                </HyperlinkButton>
-                                <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}"
-                                        AutomationProperties.Name="Open About and Architecture page">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE946;" FontSize="13" />
-                                        <TextBlock Text="About &amp; Architecture" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                </Button>
+                                <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="32" Height="32" />
+                                <TextBlock x:Name="SettingsVersionText" Text="v3.0.2" VerticalAlignment="Center"
+                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </StackPanel>
-                        </tk:SettingsCard>
-                    </tk:SettingsExpander.Items>
-                </tk:SettingsExpander>
+                        </tk:SettingsExpander.Content>
 
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Created &amp; maintained by HARSHHAA" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               Text="Report issues, request new tools, or follow releases on GitHub." />
+                                </tk:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <HyperlinkButton Click="AuthorGitHub_Click" Padding="0"
+                                                     AutomationProperties.Name="Open maintainer GitHub profile">
+                                        <TextBlock Text="@NotHarshhaa" Style="{StaticResource CaptionTextBlockStyle}" />
+                                    </HyperlinkButton>
+                                    <HyperlinkButton Click="GitHub_Click" Padding="0"
+                                                     AutomationProperties.Name="Open GitHub repository">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE774;" FontSize="13" />
+                                            <TextBlock Text="GitHub Repo" Style="{StaticResource CaptionTextBlockStyle}" />
+                                        </StackPanel>
+                                    </HyperlinkButton>
+                                    <Button Click="ViewAboutPage_Click" Style="{StaticResource AccentButtonStyle}"
+                                            AutomationProperties.Name="Open About and Architecture page">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE946;" FontSize="13" />
+                                            <TextBlock Text="About &amp; Architecture" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+                    </tk:SettingsExpander>
+
+                </StackPanel>
             </StackPanel>
         </ScrollViewer>
     </appControls:PageContainer>
