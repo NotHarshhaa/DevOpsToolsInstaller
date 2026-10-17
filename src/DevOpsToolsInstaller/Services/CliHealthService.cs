@@ -154,6 +154,60 @@ public static class CliHealthService
     }
 
     /// <summary>
+    /// True when this tool's executable lives in a directory that is on the
+    /// effective PATH (User PATH + Machine PATH), so the command can be typed
+    /// into a terminal the user opens themselves. A tool extracted into the app's
+    /// Tools folder whose folder is <i>not</i> on PATH is installed but not
+    /// reachable from a shell — the Installed page flags that with a chip.
+    /// </summary>
+    public static bool IsToolOnPath(ToolDefinition tool)
+    {
+        var (exeName, _) = GetProbeCommand(tool);
+        if (string.IsNullOrWhiteSpace(exeName)) return true;
+
+        var exePath = ResolveExecutablePath(exeName, tool.Id);
+        if (string.IsNullOrWhiteSpace(exePath)) return false;
+
+        var directory = Path.GetDirectoryName(exePath);
+        return !string.IsNullOrWhiteSpace(directory) && IsDirectoryOnPath(directory);
+    }
+
+    /// <summary>
+    /// True when <paramref name="directory"/> appears in the User or Machine PATH.
+    /// Entries are compared as literal, expanded directory paths (trailing
+    /// separators and surrounding quotes are insignificant).
+    /// </summary>
+    public static bool IsDirectoryOnPath(string directory)
+    {
+        var target = directory.TrimEnd('\\', '/');
+        if (string.IsNullOrEmpty(target)) return false;
+
+        var userPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? string.Empty;
+        var machinePath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? string.Empty;
+
+        foreach (var raw in (userPath + Path.PathSeparator + machinePath)
+                     .Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string entry;
+            try
+            {
+                entry = Environment.ExpandEnvironmentVariables(raw.Trim().Trim('"')).TrimEnd('\\', '/');
+            }
+            catch
+            {
+                continue;
+            }
+
+            if (entry.Length > 0 && string.Equals(entry, target, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Attempts to locate the executable on the filesystem (Tools\bin, Tools\<id>, or system PATH).
     /// </summary>
     public static string? ResolveExecutablePath(string exeName, string? toolId = null)

@@ -36,6 +36,7 @@ public partial class App : Application
 
         SettingsService.LoadSettings();
         FavoritesService.Load();
+        UpdatePreferenceService.Load();
 
         // Headless CLI mode: run the requested command and exit without
         // creating a window (used by provisioning scripts and CI).

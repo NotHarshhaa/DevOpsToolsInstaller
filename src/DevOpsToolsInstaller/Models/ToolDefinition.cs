@@ -333,6 +333,10 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(VersionStateText));
                 OnPropertyChanged(nameof(DisplayDetectedVersion));
                 OnPropertyChanged(nameof(InstalledVersionLabel));
+                OnPropertyChanged(nameof(HasActionableUpdate));
+                OnPropertyChanged(nameof(HasDetectedVersion));
+                OnPropertyChanged(nameof(VersionColumnText));
+                OnPropertyChanged(nameof(CanToggleUpdateIgnore));
             }
         }
     }
@@ -384,6 +388,103 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             if (!IsDownloadedOrInstalled) return string.Empty;
             if (!string.IsNullOrWhiteSpace(DetectedVersion)) return $"Installed v{DetectedVersion}";
             return Status == ToolStatus.Downloaded ? "Downloaded" : "Installed";
+        }
+    }
+
+    // ── Update preferences (pinned / ignored) ────────────────────────────
+    // The user's decisions about updates, persisted by
+    // Services.UpdatePreferenceService and read lazily so nothing has to be
+    // hydrated onto the model at construction time.
+
+    /// <summary>True when the user froze this tool at the version it is on.</summary>
+    [JsonIgnore]
+    public bool IsVersionPinned => Services.UpdatePreferenceService.IsPinned(Id);
+
+    /// <summary>
+    /// True when the user dismissed the exact release the catalog still offers.
+    /// A pin always wins, so a pinned tool never reports an ignored release.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsUpdateIgnored =>
+        !IsVersionPinned &&
+        Services.UpdatePreferenceService.VersionsMatch(
+            Services.UpdatePreferenceService.GetIgnoredVersion(Id), Version);
+
+    /// <summary>
+    /// The update actually worth surfacing: a newer catalog release the user has
+    /// neither pinned away nor already dismissed. Everything on the Installed
+    /// page (badge, primary action, the Updates filter, Update all) keys off this
+    /// rather than the raw <see cref="HasUpdate"/>, which stays a pure
+    /// catalog-versus-machine comparison for the rest of the app.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasActionableUpdate => HasUpdate && !IsVersionPinned && !IsUpdateIgnored;
+
+    /// <summary>True when an installed version was detected, so a pin has something to hold.</summary>
+    [JsonIgnore]
+    public bool HasDetectedVersion => !string.IsNullOrWhiteSpace(DetectedVersion);
+
+    /// <summary>Label for the row menu's pin item.</summary>
+    [JsonIgnore]
+    public string PinMenuText => IsVersionPinned ? "Unpin version" : "Pin version";
+
+    /// <summary>Label for the row menu's ignore item.</summary>
+    [JsonIgnore]
+    public string IgnoreUpdateMenuText =>
+        IsUpdateIgnored ? "Un-ignore this update" : "Ignore this update";
+
+    /// <summary>
+    /// True while there is an update decision to offer or take back: a live
+    /// offer to dismiss, or a previous dismissal to clear.
+    /// </summary>
+    [JsonIgnore]
+    public bool CanToggleUpdateIgnore => !IsVersionPinned && (HasUpdate || IsUpdateIgnored);
+
+    /// <summary>
+    /// The version column's text, annotated when the user has pinned the tool or
+    /// dismissed the release on offer.
+    /// </summary>
+    [JsonIgnore]
+    public string VersionColumnText =>
+        IsVersionPinned ? $"{DisplayDetectedVersion} (pinned)"
+        : IsUpdateIgnored ? $"{DisplayDetectedVersion} (ignored)"
+        : DisplayDetectedVersion;
+
+    /// <summary>
+    /// Re-reads the pin/ignore store and re-raises every property that depends on
+    /// it. Call after pinning, un-pinning, ignoring, un-ignoring or rescanning.
+    /// </summary>
+    public void RefreshUpdatePreferences()
+    {
+        OnPropertyChanged(nameof(IsVersionPinned));
+        OnPropertyChanged(nameof(IsUpdateIgnored));
+        OnPropertyChanged(nameof(HasActionableUpdate));
+        OnPropertyChanged(nameof(HasDetectedVersion));
+        OnPropertyChanged(nameof(PinMenuText));
+        OnPropertyChanged(nameof(IgnoreUpdateMenuText));
+        OnPropertyChanged(nameof(CanToggleUpdateIgnore));
+        OnPropertyChanged(nameof(VersionColumnText));
+        OnPropertyChanged(nameof(VersionStateText));
+    }
+
+    /// <summary>
+    /// Runtime flag: the installed executable resolves to a directory that is on
+    /// the effective PATH, so the command can be typed into a fresh terminal.
+    /// Populated by the Installed page's scan; never persisted. Defaults to true
+    /// so a tool that has not been scanned yet is not falsely flagged.
+    /// </summary>
+    private bool _isOnPath = true;
+    [JsonIgnore]
+    public bool IsOnPath
+    {
+        get => _isOnPath;
+        set
+        {
+            if (_isOnPath != value)
+            {
+                _isOnPath = value;
+                OnPropertyChanged();
+            }
         }
     }
 
@@ -732,6 +833,10 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         OnPropertyChanged(nameof(DownloadUrl));
         OnPropertyChanged(nameof(FileName));
         OnPropertyChanged(nameof(NameWithVersion));
+
+        // The offered catalog version just changed, so any pin/ignore decision
+        // recorded against the previous one must be re-evaluated.
+        RefreshUpdatePreferences();
     }
 
     /// <summary>Name and version combined for display, e.g. "Terraform 1.9.5".</summary>
