@@ -134,48 +134,73 @@ DevOpsToolsInstaller.exe --uninstall kubectl,terraform
 ```
 '@
 
-# Build the commit changelog dynamically from git history (previous tag → current tag),
-# with a graceful fallback when tags are unavailable (shallow CI checkout, first release).
+# Resolve repository base URL for clickable markdown links
+$repoUrl = "https://github.com/NotHarshhaa/DevOpsToolsInstaller"
+if ($env:GITHUB_REPOSITORY) {
+    $server = if ($env:GITHUB_SERVER_URL) { $env:GITHUB_SERVER_URL.TrimEnd('/') } else { "https://github.com" }
+    $repoUrl = "$server/$($env:GITHUB_REPOSITORY)"
+} else {
+    $origin = (git config --get remote.origin.url 2>$null)
+    if ($origin) {
+        $origin = $origin.Trim() -replace '\.git$', ''
+        $origin = $origin -replace '^git@github\.com:', 'https://github.com/'
+        if ($origin -match '^https?://') {
+            $repoUrl = $origin
+        }
+    }
+}
+
+# Build the commit changelog dynamically from git history (previous tag -> current tag)
+# Automatically unshallow if running in shallow CI checkouts so all commit objects are reachable.
 $changelog = ""
 try {
     git fetch --tags --quiet 2>$null
-    $prevTag = (git tag --sort=-creatordate 2>$null | Where-Object { $_ -ne $Tag } | Select-Object -First 1)
-    if (-not $prevTag) { $prevTag = "v3.0.2" }
-    
-    $targetRef = if (git rev-parse --verify --quiet "$Tag" 2>$null) { $Tag } else { "HEAD" }
-    $log = (git log --pretty=format:'- `%h` - **%s**' "$prevTag..$targetRef" 2>$null | Out-String).Trim()
-    if (-not [string]::IsNullOrWhiteSpace($log)) {
-        $changelog = "Changes since ``$prevTag``:"
-        $changelog += [Environment]::NewLine + [Environment]::NewLine + $log
+    if ((git rev-parse --is-shallow-repository 2>$null) -eq "true") {
+        git fetch --unshallow --quiet 2>$null
     }
-} catch { }
 
-if ([string]::IsNullOrWhiteSpace($changelog)) {
-    $changelog = @"
-Changes since ``v3.0.2``:
+    # Determine target reference (the release tag or HEAD)
+    $targetRef = if (git rev-parse --verify --quiet "$Tag" 2>$null) { $Tag } else { "HEAD" }
 
-- ``e1cd895`` - **feat: Refine layout and padding across various pages for improved UI consistency**
-- ``996fac4`` - **feat: Introduce custom accent styles and enhance SplitButton functionality**
-- ``ff54b18`` - **feat: Enhance Downloads and Profiles pages with new features and loading states**
-- ``002e833`` - **feat: Enhance Workstation Doctor functionality and UI**
-- ``0a91275`` - **feat: Revamp Settings workspace with enhanced layout and functionality**
-- ``6a98b32`` - **feat: Enhance CatalogEditorPage with improved layout and validation features**
-- ``0bfb0a7`` - **feat: Enhance Stacks workspace with dynamic card sizing and detailed tool previews**
-- ``21e22ad`` - **feat: Implement update preferences and enhance installed tools management**
-- ``186d1c7`` - **feat: Revamp Catalog page with enhanced tool details and UI improvements**
-- ``adb90bb`` - **feat: Revamp Home dashboard with new metrics and responsive design**
-- ``06b457c`` - **feat: Enhance UI layout and window material settings**
-- ``5de9f67`` - **fix: Synchronize sidebar navigation and improve version handling**
-- ``f999dd4`` - **fix: Restore event handlers for segmented controls in LogDrawer and StacksPage**
-- ``954b657`` - **Merge pull request #2 from NotHarshhaa/bot/catalog-refresh**
-- ``4bc87cd`` - **chore: refresh tool catalog versions and checksums**
-- ``4552bc3`` - **fix: Improve error handling and navigation logging**
-- ``23b386a`` - **feat: Enhance UI/UX with new controls and keyboard shortcuts**
-- ``a0b2e47`` - **feat: Introduce workstation profiles, snapshots, and install history features**
-- ``01b76d5`` - **style: Update CSS for improved layout and responsiveness**
-- ``58aae3c`` - **feat: Add static marketing website for DevOps Tools Installer**
-- ``336e5cf`` - **fix: Update README and banner image**
-"@
+    # Find the immediate previous tag leading up to targetRef
+    $prevTag = (git describe --tags --abbrev=0 "$targetRef^" 2>$null)
+    if (-not $prevTag) {
+        $prevTag = (git tag --sort=-creatordate 2>$null | Where-Object { $_ -ne $Tag -and $_ -ne "v$Tag" } | Select-Object -First 1)
+    }
+
+    $revRange = if ($prevTag) { "$prevTag..$targetRef" } else { $targetRef }
+
+    # Query git log with tab delimiter for robust parsing: shortHash, fullHash, subject, author
+    $rawLog = (git log --pretty=format:"%h%x09%H%x09%s%x09%an" $revRange 2>$null | Out-String).Trim()
+    if (-not [string]::IsNullOrWhiteSpace($rawLog)) {
+        $lines = @()
+        foreach ($line in ($rawLog -split "`r?`n")) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            $parts = $line -split "`t"
+            if ($parts.Length -ge 4) {
+                $shortHash = $parts[0]
+                $fullHash  = $parts[1]
+                $subject   = $parts[2]
+                $author    = $parts[3]
+
+                # Link PR numbers like #123 if present
+                $linkedSubject = $subject -replace '#(\d+)', "[$&]($repoUrl/pull/`$1)"
+                $lines += "- [``$shortHash``]($repoUrl/commit/$fullHash) - **$linkedSubject** ($author)"
+            } elseif ($parts.Length -ge 1) {
+                $lines += "- $line"
+            }
+        }
+
+        if ($lines.Count -gt 0) {
+            $header = if ($prevTag) { "Changes since ``$prevTag`` ($($lines.Count) commits):" } else { "Commits in this release ($($lines.Count) commits):" }
+            $changelog = "$header`n`n" + ($lines -join "`n")
+            if ($prevTag) {
+                $changelog += "`n`n**Full Diff**: [$prevTag...$Tag]($repoUrl/compare/$prevTag...$Tag)"
+            }
+        }
+    }
+} catch {
+    Write-Warning "Could not dynamically query git log: $_"
 }
 
 $content = $template.Replace("__TAG__", $Tag).Replace("__CHANGELOG__", $changelog).Replace("__SETUP_HASH__", $setupHash).Replace("__MSI_HASH__", $msiHash).Replace("__X64_HASH__", $x64Hash).Replace("__ARM64_HASH__", $arm64Hash)
