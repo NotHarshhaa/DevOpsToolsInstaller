@@ -1,6 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -16,7 +19,19 @@ namespace DevOpsToolsInstaller.Views;
 /// </summary>
 public sealed partial class CatalogEditorPage : Page, IRefreshablePage
 {
+    /// <summary>Shared client for the optional "compute SHA-256 from URL" probe.</summary>
+    private static readonly HttpClient ProbeHttp = CreateProbeClient();
+
+    /// <summary>Matches the id shape enforced by <see cref="CustomCatalogService.Validate"/>.</summary>
+    private static readonly Regex IdPattern = new(@"^[a-z0-9][a-z0-9\-\._]{1,63}$", RegexOptions.Compiled);
+
+    /// <summary>Matches a full SHA-256 digest.</summary>
+    private static readonly Regex Sha256Pattern = new(@"^[a-fA-F0-9]{64}$", RegexOptions.Compiled);
+
     private string? _editingId;
+    private bool _fileNameTouched;
+    private bool _suppressFileNameEvents;
+    private bool _computingSha;
 
     public CatalogEditorPage()
     {
@@ -24,9 +39,21 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         Loaded += CatalogEditorPage_Loaded;
     }
 
-    private void CatalogEditorPage_Loaded(object sender, RoutedEventArgs e) => RefreshList();
+    private void CatalogEditorPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        RefreshList();
+        PopulateCategories();
+        UpdateFileNamePlaceholder();
+        UpdateSuggestedNameHint();
+        UpdatePreview();
+    }
 
-    void IRefreshablePage.RefreshView() => RefreshList();
+    void IRefreshablePage.RefreshView()
+    {
+        RefreshList();
+        PopulateCategories();
+        UpdatePreview();
+    }
 
     private void RefreshList()
     {
@@ -37,10 +64,44 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         CustomToolsEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    /// <summary>
+    /// Fills the category drop-down with every category already in use — both the
+    /// shipped catalog and the user's own entries — while keeping the field
+    /// editable so a brand-new category can still be typed.
+    /// </summary>
+    private void PopulateCategories()
+    {
+        var categories = new System.Collections.Generic.SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        var mw = App.MainWindowInstance;
+        if (mw is not null)
+        {
+            foreach (var t in mw.Tools)
+            {
+                if (!string.IsNullOrWhiteSpace(t.Category)) categories.Add(t.Category.Trim());
+            }
+        }
+
+        foreach (var t in CustomCatalogService.LoadCustomTools())
+        {
+            if (!string.IsNullOrWhiteSpace(t.Category)) categories.Add(t.Category.Trim());
+        }
+
+        var current = CategoryBox.Text;
+        CategoryBox.ItemsSource = categories.ToList();
+        if (!string.IsNullOrEmpty(current)) CategoryBox.Text = current;
+    }
+
     // ── Form ─────────────────────────────────────────────────────────────
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
+        if (!ValidateAll())
+        {
+            ShowNotice("Please fix the highlighted fields before saving.", InfoBarSeverity.Error);
+            return;
+        }
+
         var tool = BuildFromForm();
         var (ok, error) = CustomCatalogService.Validate(tool);
         if (!ok)
@@ -53,6 +114,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         _editingId = tool.Id;
         DeleteButton.IsEnabled = true;
         RefreshList();
+        PopulateCategories();
         _ = ReloadCatalogAsync();
         ShowNotice($"Saved custom tool '{tool.Name}'. It is now part of your catalog.", InfoBarSeverity.Success);
     }
@@ -60,7 +122,10 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
     private void Clear_Click(object sender, RoutedEventArgs e)
     {
         _editingId = null;
+        _fileNameTouched = false;
         DeleteButton.IsEnabled = false;
+
+        _suppressFileNameEvents = true;
         IdBox.Text = string.Empty;
         NameBox.Text = string.Empty;
         CategoryBox.Text = string.Empty;
@@ -73,29 +138,22 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         Sha256Box.Text = string.Empty;
         LogoUrlBox.Text = string.Empty;
         KindBox.SelectedIndex = 0;
+        _suppressFileNameEvents = false;
+
+        ClearAllErrors();
         UpdateFileNamePlaceholder();
+        UpdateSuggestedNameHint();
+        UpdatePreview();
         CustomToolsList.SelectedItem = null;
     }
 
     private void KindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        => UpdateFileNamePlaceholder();
-
-    /// <summary>
-    /// Keeps the "File name" placeholder in step with the selected artifact
-    /// kind, so the hint always shows a realistic example for that kind.
-    /// </summary>
-    private void UpdateFileNamePlaceholder()
     {
         if (FileNameBox is null) return;
 
-        var kind = (KindBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Installer";
-        FileNameBox.PlaceholderText = kind switch
-        {
-            "Archive" => "my-tool-1.0.0.zip",
-            "Binary"  => "my-tool.exe",
-            "Script"  => "my-tool.ps1",
-            _         => "my-tool-1.0.0.exe", // Installer (.exe / .msi)
-        };
+        UpdateFileNamePlaceholder();
+        AutoSuggestFileName();
+        UpdatePreview();
     }
 
     private async void Delete_Click(object sender, RoutedEventArgs e)
@@ -122,6 +180,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         CustomCatalogService.Delete(id);
         Clear_Click(sender, e);
         RefreshList();
+        PopulateCategories();
         await ReloadCatalogAsync();
         ShowNotice($"Deleted custom tool '{id}'.", InfoBarSeverity.Informational);
     }
@@ -131,8 +190,10 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         if (CustomToolsList.SelectedItem is not ToolDefinition tool) return;
 
         _editingId = tool.Id;
+        _fileNameTouched = true;
         DeleteButton.IsEnabled = true;
 
+        _suppressFileNameEvents = true;
         IdBox.Text = tool.Id;
         NameBox.Text = tool.Name;
         CategoryBox.Text = tool.Category;
@@ -144,6 +205,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         HomepageBox.Text = tool.Homepage;
         LogoUrlBox.Text = tool.LogoUrl;
         LaunchArgsBox.Text = tool.LaunchArgs;
+        _suppressFileNameEvents = false;
 
         foreach (ComboBoxItem item in KindBox.Items)
         {
@@ -155,11 +217,33 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         }
 
         UpdateFileNamePlaceholder();
+        UpdateSuggestedNameHint();
+        UpdatePreview();
+        ClearAllErrors();
     }
+
+    /// <summary>
+    /// Keeps the "File name" placeholder in step with the selected artifact
+    /// kind, so the hint always shows a realistic example for that kind.
+    /// </summary>
+    private void UpdateFileNamePlaceholder()
+    {
+        if (FileNameBox is null) return;
+
+        FileNameBox.PlaceholderText = SelectedKind() switch
+        {
+            "Archive" => "my-tool-1.0.0.zip",
+            "Binary"  => "my-tool.exe",
+            "Script"  => "my-tool.ps1",
+            _         => "my-tool-1.0.0.exe", // Installer (.exe / .msi)
+        };
+    }
+
+    private string SelectedKind()
+        => (KindBox?.SelectedItem as ComboBoxItem)?.Tag as string ?? "Installer";
 
     private ToolDefinition BuildFromForm()
     {
-        var kind = (KindBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Installer";
         return new ToolDefinition
         {
             Id = IdBox.Text.Trim(),
@@ -167,7 +251,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
             Category = CategoryBox.Text.Trim(),
             Description = DescriptionBox.Text.Trim(),
             Version = VersionBox.Text.Trim(),
-            KindRaw = kind,
+            KindRaw = SelectedKind(),
             DownloadUrl = DownloadUrlBox.Text.Trim(),
             FileName = FileNameBox.Text.Trim(),
             Sha256 = Sha256Box.Text.Trim(),
@@ -175,6 +259,399 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
             LogoUrl = LogoUrlBox.Text.Trim(),
             LaunchArgs = LaunchArgsBox.Text.Trim()
         };
+    }
+
+    // ── File-name auto-suggestion ────────────────────────────────────────
+
+    private void FileNameBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_suppressFileNameEvents) return;
+
+        // Once the user types their own name, stop overwriting it.
+        _fileNameTouched = !string.IsNullOrWhiteSpace(FileNameBox.Text);
+        ValidateFileName();
+        UpdateSuggestedNameHint();
+        UpdatePreview();
+    }
+
+    /// <summary>
+    /// Derives a sensible file name from the download URL's last path segment,
+    /// appending the artifact kind's default extension when the URL has none.
+    /// </summary>
+    private string SuggestFileName()
+    {
+        var url = DownloadUrlBox.Text.Trim();
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return string.Empty;
+
+        var name = Path.GetFileName(uri.AbsolutePath);
+        if (string.IsNullOrWhiteSpace(name)) name = "download";
+
+        if (string.IsNullOrEmpty(Path.GetExtension(name)))
+        {
+            name += SelectedKind() switch
+            {
+                "Archive" => ".zip",
+                "Binary"  => ".exe",
+                "Script"  => ".ps1",
+                _         => ".exe"
+            };
+        }
+
+        return name;
+    }
+
+    /// <summary>
+    /// Fills the file-name box from the URL while the user has not typed their
+    /// own value; otherwise it just refreshes the "use suggested" affordance.
+    /// </summary>
+    private void AutoSuggestFileName()
+    {
+        if (_fileNameTouched)
+        {
+            UpdateSuggestedNameHint();
+            return;
+        }
+
+        var suggested = SuggestFileName();
+        if (!string.IsNullOrEmpty(suggested))
+        {
+            _suppressFileNameEvents = true;
+            FileNameBox.Text = suggested;
+            _suppressFileNameEvents = false;
+            ValidateFileName();
+        }
+
+        UpdateSuggestedNameHint();
+    }
+
+    private void UpdateSuggestedNameHint()
+    {
+        if (UseSuggestedNameLink is null) return;
+
+        var suggested = SuggestFileName();
+        if (string.IsNullOrEmpty(suggested) ||
+            string.Equals(suggested, FileNameBox.Text.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            UseSuggestedNameLink.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        UseSuggestedNameLink.Content = $"Use suggested name: {suggested}";
+        UseSuggestedNameLink.Tag = suggested;
+        UseSuggestedNameLink.Visibility = Visibility.Visible;
+    }
+
+    private void UseSuggestedName_Click(object sender, RoutedEventArgs e)
+    {
+        if (UseSuggestedNameLink.Tag is not string suggested || string.IsNullOrEmpty(suggested)) return;
+
+        _suppressFileNameEvents = true;
+        FileNameBox.Text = suggested;
+        _suppressFileNameEvents = false;
+        _fileNameTouched = true;
+
+        ValidateFileName();
+        UpdateSuggestedNameHint();
+        UpdatePreview();
+    }
+
+    // ── Live preview ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Renders the current form as it would appear on a catalog card, so the
+    /// user can sanity-check the name, vendor, category and version before saving.
+    /// </summary>
+    private void UpdatePreview()
+    {
+        if (!IsLoaded || PreviewName is null) return;
+
+        var tool = BuildFromForm();
+
+        PreviewName.Text = string.IsNullOrWhiteSpace(tool.Name) ? "Tool name" : tool.Name;
+
+        var vendor = tool.VendorLabel;
+        PreviewVendor.Text = vendor == "Unknown source" ? "Custom source" : vendor;
+
+        PreviewDescription.Text = string.IsNullOrWhiteSpace(tool.Description)
+            ? "What does this tool do?"
+            : tool.Description;
+
+        PreviewCategory.Text = string.IsNullOrWhiteSpace(tool.Category) ? "Uncategorised" : tool.Category;
+        PreviewKind.Text = tool.KindLabel;
+        PreviewVersion.Text = tool.DisplayVersionWithV;
+
+        var logo = ToolLogoService.GetLogo(tool.LogoUrl);
+        if (logo is not null)
+        {
+            PreviewLogo.Source = logo;
+            PreviewLogo.Visibility = Visibility.Visible;
+            PreviewGlyph.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            PreviewLogo.Source = null;
+            PreviewLogo.Visibility = Visibility.Collapsed;
+            PreviewGlyph.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void PreviewLogo_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+    {
+        PreviewLogo.Visibility = Visibility.Collapsed;
+        PreviewGlyph.Visibility = Visibility.Visible;
+    }
+
+    private void IdBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ValidateId();
+        UpdatePreview();
+    }
+
+    private void NameBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ValidateName();
+        UpdatePreview();
+    }
+
+    private void VersionBox_TextChanged(object sender, TextChangedEventArgs e) => UpdatePreview();
+
+    private void DescriptionBox_TextChanged(object sender, TextChangedEventArgs e) => UpdatePreview();
+
+    private void HomepageBox_TextChanged(object sender, TextChangedEventArgs e) => UpdatePreview();
+
+    private void LogoUrlBox_TextChanged(object sender, TextChangedEventArgs e) => UpdatePreview();
+
+    private void DownloadUrlBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        ValidateUrl();
+        AutoSuggestFileName();
+        UpdatePreview();
+    }
+
+    private void Sha256Box_TextChanged(object sender, TextChangedEventArgs e) => ValidateSha();
+
+    private void CategoryBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        ValidateCategory();
+        UpdatePreview();
+    }
+
+    private void CategoryBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        ValidateCategory();
+        UpdatePreview();
+    }
+
+    // ── Inline validation ────────────────────────────────────────────────
+
+    private static void SetError(TextBlock? block, string? message)
+    {
+        if (block is null) return;
+
+        if (string.IsNullOrEmpty(message))
+        {
+            block.Text = string.Empty;
+            block.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            block.Text = message;
+            block.Visibility = Visibility.Visible;
+        }
+    }
+
+    private void ClearAllErrors()
+    {
+        SetError(IdError, null);
+        SetError(NameError, null);
+        SetError(CategoryError, null);
+        SetError(FileNameError, null);
+        SetError(UrlError, null);
+        SetError(ShaError, null);
+    }
+
+    private bool ValidateId()
+    {
+        var id = IdBox.Text.Trim();
+        if (string.IsNullOrEmpty(id))
+        {
+            SetError(IdError, "An id is required.");
+            return false;
+        }
+        if (!IdPattern.IsMatch(id))
+        {
+            SetError(IdError, "Use lower-case letters, digits, '-', '.' or '_' (2–64 characters).");
+            return false;
+        }
+        SetError(IdError, null);
+        return true;
+    }
+
+    private bool ValidateName()
+    {
+        if (string.IsNullOrWhiteSpace(NameBox.Text))
+        {
+            SetError(NameError, "A display name is required.");
+            return false;
+        }
+        SetError(NameError, null);
+        return true;
+    }
+
+    private bool ValidateCategory()
+    {
+        if (string.IsNullOrWhiteSpace(CategoryBox.Text))
+        {
+            SetError(CategoryError, "A category is required.");
+            return false;
+        }
+        SetError(CategoryError, null);
+        return true;
+    }
+
+    private bool ValidateFileName()
+    {
+        if (string.IsNullOrWhiteSpace(FileNameBox.Text))
+        {
+            SetError(FileNameError, "A file name is required.");
+            return false;
+        }
+        SetError(FileNameError, null);
+        return true;
+    }
+
+    private bool ValidateUrl()
+    {
+        var url = DownloadUrlBox.Text.Trim();
+        if (string.IsNullOrEmpty(url))
+        {
+            SetError(UrlError, "A download URL is required.");
+            return false;
+        }
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            SetError(UrlError, "That is not a valid absolute URL.");
+            return false;
+        }
+        if (uri.Scheme != Uri.UriSchemeHttps)
+        {
+            SetError(UrlError, "Only HTTPS download URLs are allowed (plain-text HTTP is refused).");
+            return false;
+        }
+        SetError(UrlError, null);
+        return true;
+    }
+
+    private bool ValidateSha()
+    {
+        var sha = Sha256Box.Text.Trim();
+        if (string.IsNullOrEmpty(sha))
+        {
+            SetError(ShaError, null); // optional
+            return true;
+        }
+        if (!Sha256Pattern.IsMatch(sha))
+        {
+            SetError(ShaError, "The SHA-256 must be exactly 64 hex characters.");
+            return false;
+        }
+        SetError(ShaError, null);
+        return true;
+    }
+
+    /// <summary>Validates every field (without short-circuiting) and reports the result.</summary>
+    private bool ValidateAll()
+    {
+        var ok = true;
+        ok &= ValidateId();
+        ok &= ValidateName();
+        ok &= ValidateCategory();
+        ok &= ValidateFileName();
+        ok &= ValidateUrl();
+        ok &= ValidateSha();
+        return ok;
+    }
+
+    // ── Compute SHA-256 from URL ─────────────────────────────────────────
+
+    /// <summary>
+    /// Optional convenience: downloads the artifact to a temporary file (HTTPS
+    /// only), hashes it, and fills in the SHA-256 box. This proves only that the
+    /// bytes are unchanged on later downloads — it does NOT prove the file is
+    /// authentic or safe. The Authenticode signature check is a separate,
+    /// mandatory step at install time and is never skipped by this action.
+    /// </summary>
+    private async void ComputeSha_Click(object sender, RoutedEventArgs e)
+    {
+        if (_computingSha) return;
+
+        if (!ValidateUrl())
+        {
+            ShowNotice("Enter a valid HTTPS download URL before computing the SHA-256.", InfoBarSeverity.Error);
+            return;
+        }
+
+        var url = DownloadUrlBox.Text.Trim();
+        _computingSha = true;
+        ComputeShaButton.IsEnabled = false;
+        ComputeShaProgress.IsActive = true;
+        ComputeShaProgress.Visibility = Visibility.Visible;
+        ComputeShaStatus.Text = "Downloading to a temporary file…";
+
+        var tempDir = Path.Combine(Path.GetTempPath(), "DevOpsToolsInstaller", "sha-probe");
+        var extension = Path.GetExtension(SuggestFileName());
+        if (string.IsNullOrEmpty(extension)) extension = ".bin";
+        var tempPath = Path.Combine(tempDir, Guid.NewGuid().ToString("N") + extension);
+
+        try
+        {
+            Directory.CreateDirectory(tempDir);
+
+            using (var response = await ProbeHttp.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+                await using var httpStream = await response.Content.ReadAsStreamAsync();
+                await using var fileStream = File.Create(tempPath);
+                await httpStream.CopyToAsync(fileStream);
+            }
+
+            ComputeShaStatus.Text = "Hashing…";
+            string hash;
+            await using (var hashStream = File.OpenRead(tempPath))
+            {
+                var hashBytes = await SHA256.HashDataAsync(hashStream);
+                hash = Convert.ToHexString(hashBytes).ToLowerInvariant();
+            }
+
+            Sha256Box.Text = hash;
+
+            // Informational only: report what *this* download's signature looks
+            // like, to reinforce that authenticity is still decided by Authenticode.
+            var signature = AuthenticodeService.VerifyFile(tempPath);
+            var size = new FileInfo(tempPath).Length;
+
+            ShowNotice(
+                $"Computed SHA-256 {hash} from a {CustomStacksService.FormatBytes(size)} download. " +
+                "This proves only that the file is unchanged on future downloads — it does NOT prove the file is " +
+                $"authentic or safe. The Authenticode signature check still runs at install time and is never skipped. " +
+                $"This download: {signature.Summary}",
+                InfoBarSeverity.Warning);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Could not compute the SHA-256: {ex.Message}", InfoBarSeverity.Error);
+        }
+        finally
+        {
+            try { if (File.Exists(tempPath)) File.Delete(tempPath); } catch { /* best-effort temp cleanup */ }
+
+            _computingSha = false;
+            ComputeShaButton.IsEnabled = true;
+            ComputeShaProgress.IsActive = false;
+            ComputeShaProgress.Visibility = Visibility.Collapsed;
+            ComputeShaStatus.Text = string.Empty;
+        }
     }
 
     // ── Import / Export ──────────────────────────────────────────────────
@@ -190,6 +667,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
 
         var (imported, errors) = CustomCatalogService.ImportFeed(await File.ReadAllTextAsync(file.Path));
         RefreshList();
+        PopulateCategories();
         await ReloadCatalogAsync();
 
         if (errors.Count > 0)
@@ -224,6 +702,17 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────
+
+    private static HttpClient CreateProbeClient()
+    {
+        var client = new HttpClient(HttpConfigService.CreateHandler())
+        {
+            Timeout = TimeSpan.FromMinutes(30)
+        };
+        client.DefaultRequestHeaders.UserAgent.ParseAdd(
+            $"DevOpsToolsInstaller/{AppUpdaterService.CurrentVersion} (Windows NT 10.0; Win64; x64)");
+        return client;
+    }
 
     private void Initialize(object picker)
     {
