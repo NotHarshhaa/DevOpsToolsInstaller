@@ -495,7 +495,7 @@
 
             <TextBlock Grid.Column="0"
                        x:Name="FooterStatusText"
-                       Text="90 Tools Available | Last Sync: Just now"
+                       Text="90 tools available"
                        FontSize="12"
                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                        VerticalAlignment="Center" />

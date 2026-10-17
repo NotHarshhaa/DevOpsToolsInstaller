@@ -599,7 +599,7 @@ public sealed partial class HomeViewModel : ObservableObject
             Id = "official",
             Glyph = "\uE897",
             Title = "Official Installers Only",
-            Benefit = "Nothing bundled, nothing repackaged, and zero silent background changes.",
+            Benefit = "Nothing bundled, nothing repackaged, and no silent installs — vendor setup wizards run interactively with standard UAC prompts.",
             ActionLabel = "Security Model",
             NavigationTarget = "About"
         });

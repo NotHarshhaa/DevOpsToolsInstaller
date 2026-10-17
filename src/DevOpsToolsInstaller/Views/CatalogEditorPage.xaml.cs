@@ -73,7 +73,29 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         Sha256Box.Text = string.Empty;
         LogoUrlBox.Text = string.Empty;
         KindBox.SelectedIndex = 0;
+        UpdateFileNamePlaceholder();
         CustomToolsList.SelectedItem = null;
+    }
+
+    private void KindBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => UpdateFileNamePlaceholder();
+
+    /// <summary>
+    /// Keeps the "File name" placeholder in step with the selected artifact
+    /// kind, so the hint always shows a realistic example for that kind.
+    /// </summary>
+    private void UpdateFileNamePlaceholder()
+    {
+        if (FileNameBox is null) return;
+
+        var kind = (KindBox.SelectedItem as ComboBoxItem)?.Tag as string ?? "Installer";
+        FileNameBox.PlaceholderText = kind switch
+        {
+            "Archive" => "my-tool-1.0.0.zip",
+            "Binary"  => "my-tool.exe",
+            "Script"  => "my-tool.ps1",
+            _         => "my-tool-1.0.0.exe", // Installer (.exe / .msi)
+        };
     }
 
     private async void Delete_Click(object sender, RoutedEventArgs e)
@@ -131,6 +153,8 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
                 break;
             }
         }
+
+        UpdateFileNamePlaceholder();
     }
 
     private ToolDefinition BuildFromForm()

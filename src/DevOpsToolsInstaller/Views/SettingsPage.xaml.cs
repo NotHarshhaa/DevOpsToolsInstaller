@@ -14,6 +14,7 @@ public sealed partial class SettingsPage : Page
         InitializeComponent();
         SettingsLogoImage.Source = AppLogoHelper.GetLogoImage();
         SettingsAuthorPicture.ProfilePicture = AppLogoHelper.GetAuthorImage();
+        SettingsVersionText.Text = $"v{AppUpdaterService.CurrentVersion}";
         Loaded += SettingsPage_Loaded;
     }
 

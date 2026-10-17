@@ -47,6 +47,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Visual polish**: subtle springy hover lift (`helpers:Motion.HoverLift`) on list-item cards across the Profiles and Custom Tools pages.
 - **Accessibility & discoverability**: automation names on the empty-state control and its action button, plus tooltips on every navigation item describing the destination.
 
+### Fixed
+- **Sidebar selection now follows the page**: `NavigationView.SelectedItem` is synced on `Frame.Navigated`, and an `ItemInvoked` safety net opens the target page even when the item was already selected. Fixes *Profiles & History* refusing to open and the wrong item being highlighted (e.g. *Installed* highlighting *Stacks*) when navigating from Home cards, the search box or deep links.
+- **Single version source of truth**: the title bar, the Home hero chip, the About badge and the Settings About row now all read `AppUpdaterService.CurrentVersion` (assembly version) instead of hard-coded, divergent values.
+- **Consistent installer copy**: Home, About and the feature cards now describe the same behavior — vendor setup wizards run interactively with standard UAC prompts and are never installed silently.
+- **Version state**: installed-vs-catalog comparison now uses a numeric comparer and distinguishes *Newer than catalog* from *Update available* / *Up to date* / *Installed*; the Installed and Catalog footers surface the active catalog source and how stale it is.
+- **Custom Tools editor**: the SHA-256 label and placeholder agree, and the file-name placeholder now matches the selected artifact kind (installer, archive, binary or script).
+- **Layout fixes**: the Installed row actions column is wide enough that the *Uninstall* button is no longer clipped, and the Home *Needs attention* (PATH status) metric card matches the height of the neighbouring metric cards.
+- **Backdrop**: the content host uses an opaque, theme-aware surface so the desktop wallpaper can no longer bleed through Mica Alt as a faint large shape behind page content.
+
 ## [3.0.2] - 2026-10-13
 
 ### Added

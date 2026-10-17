@@ -200,10 +200,10 @@
         <Border Grid.Row="2" Padding="16,8" Margin="0,4,0,0">
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="220" />
+                    <ColumnDefinition Width="*" MinWidth="200" />
                     <ColumnDefinition Width="150" />
                     <ColumnDefinition Width="130" />
-                    <ColumnDefinition Width="320" />
+                    <ColumnDefinition Width="392" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0" Text="Name"
@@ -253,10 +253,10 @@
                     <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8" helpers:Motion.HoverLift="True">
                         <Grid ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" MinWidth="220" />
+                                <ColumnDefinition Width="*" MinWidth="200" />
                                 <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="130" />
-                                <ColumnDefinition Width="320" />
+                                <ColumnDefinition Width="392" />
                             </Grid.ColumnDefinitions>
 
                             <!-- COL 0: Name & Logo & Category -->
@@ -309,12 +309,33 @@
                                     </StackPanel>
                                 </Border>
 
-                                <!-- When up to date -->
+                                <!-- When the installed build is newer than the catalog snapshot -->
                                 <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
-                                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                        ToolTipService.ToolTip="Your installed version is newer than the copy pinned in the tool catalog."
+                                        Visibility="{Binding IsNewerThanCatalog, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8FB;" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                        <TextBlock Text="Newer than catalog" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- When the installed version matches the catalog exactly -->
+                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                        Visibility="{Binding IsUpToDate, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
                                         <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
                                         <TextBlock Text="Up to date" FontSize="11"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- When the version could not be determined -->
+                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                        Visibility="{Binding HasComparableVersion, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE946;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                        <TextBlock Text="Installed" FontSize="11"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>

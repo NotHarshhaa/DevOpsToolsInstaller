@@ -63,7 +63,7 @@
                                 <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center" Padding="8,3">
                                     <StackPanel Orientation="Horizontal" Spacing="4">
                                         <FontIcon Glyph="&#xE770;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                        <TextBlock Text="v3.0.1 • WinUI 3" FontSize="11" FontWeight="Medium"
+                                        <TextBlock x:Name="HeroVersionChipText" Text="v3.0.2 • WinUI 3" FontSize="11" FontWeight="Medium"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </StackPanel>
                                 </Border>
@@ -71,7 +71,7 @@
 
                             <!-- Middle row: One-line Value Proposition -->
                             <TextBlock Grid.Row="1"
-                                       Text="Discover and download official DevOps tool installers in one place. No bundled installers, no silent system changes."
+                                       Text="Discover and download official DevOps tool installers in one place. Vendor setup wizards run interactively with standard UAC prompts — no silent switches."
                                        Style="{StaticResource PageSubtitleStyle}"
                                        FontSize="13"
                                        MaxWidth="720"
@@ -383,11 +383,11 @@
                                     <FontIcon Glyph="&#xE712;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                 </Grid>
                                 <TextBlock Grid.Row="1" Text="{Binding PathStatus}"
-                                           FontSize="20" FontWeight="SemiBold"
+                                           FontSize="20" FontWeight="SemiBold" MinHeight="38"
                                            Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                                            Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 <TextBlock Grid.Row="1" Text="{Binding PathStatus}"
-                                           FontSize="20" FontWeight="SemiBold"
+                                           FontSize="20" FontWeight="SemiBold" MinHeight="38"
                                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
                                            Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                 <TextBlock Grid.Row="2" Text="PATH status"
@@ -1118,7 +1118,7 @@
         <controls:TeachingTip x:Name="TourStep3Tip"
                               Target="{x:Bind StepperContainer}"
                               Title="3/3 • Verified &amp; Safe"
-                              Subtitle="Zero silent system changes"
+                              Subtitle="No silent installs — vendor wizards run interactively"
                               PreferredPlacement="Top"
                               ActionButtonContent="Got it!"
                               CloseButtonContent="Close"

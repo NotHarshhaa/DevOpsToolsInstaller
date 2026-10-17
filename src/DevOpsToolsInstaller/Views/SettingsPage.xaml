@@ -586,7 +586,7 @@
                 <tk:SettingsExpander.Content>
                     <StackPanel Orientation="Horizontal" Spacing="10">
                         <controls:PersonPicture x:Name="SettingsAuthorPicture" DisplayName="HARSHHAA" Initials="H" Width="32" Height="32" />
-                        <TextBlock Text="v3.0.1" VerticalAlignment="Center"
+                        <TextBlock x:Name="SettingsVersionText" Text="v3.0.2" VerticalAlignment="Center"
                                    Style="{StaticResource CaptionTextBlockStyle}"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                     </StackPanel>

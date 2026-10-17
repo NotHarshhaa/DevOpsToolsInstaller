@@ -316,6 +316,10 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 _detectedVersion = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(HasUpdate));
+                OnPropertyChanged(nameof(IsNewerThanCatalog));
+                OnPropertyChanged(nameof(IsUpToDate));
+                OnPropertyChanged(nameof(HasComparableVersion));
+                OnPropertyChanged(nameof(VersionStateText));
                 OnPropertyChanged(nameof(DisplayDetectedVersion));
             }
         }
@@ -326,24 +330,56 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         string.IsNullOrWhiteSpace(DetectedVersion) ? "Unknown version" : $"v{DetectedVersion}";
 
     [JsonIgnore]
-    public bool HasUpdate
+    public bool HasUpdate => TryCompareVersions(out var c) && c > 0;
+
+    /// <summary>
+    /// True when the version installed on this machine is newer than the one
+    /// pinned in the catalog. That is a normal outcome when upstream releases
+    /// outpace the catalog snapshot — it is not an error, and it must not be
+    /// reported as "Up to date" nor as an available update.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsNewerThanCatalog => TryCompareVersions(out var c) && c < 0;
+
+    /// <summary>True when the installed and catalog versions match exactly.</summary>
+    [JsonIgnore]
+    public bool IsUpToDate => TryCompareVersions(out var c) && c == 0;
+
+    /// <summary>
+    /// True when both versions are known and parseable, so a meaningful
+    /// comparison could be made.
+    /// </summary>
+    [JsonIgnore]
+    public bool HasComparableVersion => TryCompareVersions(out _);
+
+    /// <summary>Single, human-readable version state for status text.</summary>
+    [JsonIgnore]
+    public string VersionStateText =>
+        IsNewerThanCatalog ? "Newer than catalog"
+        : HasUpdate ? "Update available"
+        : IsUpToDate ? "Up to date"
+        : "Installed";
+
+    /// <summary>
+    /// Compares the installed version against the catalog version numerically
+    /// (so 2.51.0 is correctly newer than 2.9.9). Returns false when either
+    /// version is missing or unparseable.
+    /// </summary>
+    private bool TryCompareVersions(out int catalogComparedToInstalled)
     {
-        get
-        {
-            if (string.IsNullOrWhiteSpace(DetectedVersion) || string.IsNullOrWhiteSpace(Version))
-                return false;
+        catalogComparedToInstalled = 0;
 
-            var cleanDet = CleanVersion(DetectedVersion);
-            var cleanCat = CleanVersion(Version);
-
-            if (System.Version.TryParse(cleanDet, out var vDet) &&
-                System.Version.TryParse(cleanCat, out var vCat))
-            {
-                return vCat > vDet;
-            }
-
+        if (string.IsNullOrWhiteSpace(DetectedVersion) || string.IsNullOrWhiteSpace(Version))
             return false;
+
+        if (System.Version.TryParse(CleanVersion(DetectedVersion), out var vDet) &&
+            System.Version.TryParse(CleanVersion(Version), out var vCat))
+        {
+            catalogComparedToInstalled = vCat.CompareTo(vDet);
+            return true;
         }
+
+        return false;
     }
 
     private static string CleanVersion(string v)

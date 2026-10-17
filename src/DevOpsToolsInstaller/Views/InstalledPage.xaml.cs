@@ -231,7 +231,7 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         StatusText.Text = $"{list.Count} of {_allInstalledTools.Count} tool(s) shown";
         if (FooterStatusText != null)
         {
-            FooterStatusText.Text = $"{_allInstalledTools.Count} tools managed. Check for Updates: Last checked {GetLastCheckedText()}.";
+            FooterStatusText.Text = $"{_allInstalledTools.Count} tools managed • Catalog: {CatalogService.CatalogFreshness} • Last checked {GetLastCheckedText()}.";
         }
     }
 
@@ -261,7 +261,7 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
             tool.DetectedVersion = probe.DetectedVersion;
             tool.HealthStatus = "Healthy";
         }
-        StatusText.Text = $"{tool.Name}: {(tool.HasUpdate ? "Update available" : "Up to date")}";
+        StatusText.Text = $"{tool.Name}: {tool.VersionStateText} • Catalog: {CatalogService.CatalogFreshness}";
     }
 
     private void UpdateTool_Click(object sender, RoutedEventArgs e)

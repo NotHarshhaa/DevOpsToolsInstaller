@@ -346,7 +346,7 @@ Build, share, and deploy tailored workstation configurations using the integrate
 
 ## Workstation Doctor & Environment Diagnostics
 
-Available directly from the sidebar navigation (`DoctorPage`), the **Workstation Doctor** scans your local environment to catch silent configuration drift, broken paths, and version collisions before they break scripts or builds:
+Available directly from the sidebar navigation (`DoctorPage`), the **Workstation Doctor** scans your local environment to catch configuration drift, broken paths, and version collisions before they break scripts or builds:
 
 | Check Category | What It Inspects | Fix / Remediation |
 | :--- | :--- | :--- |

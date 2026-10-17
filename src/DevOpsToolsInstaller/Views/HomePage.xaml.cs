@@ -26,6 +26,10 @@ public sealed partial class HomePage : Page, IRefreshablePage
         NavigationCacheMode = NavigationCacheMode.Required;
         InitializeComponent();
 
+        // Version comes from the assembly so the hero chip, title bar and
+        // About page never drift apart.
+        HeroVersionChipText.Text = $"v{AppUpdaterService.CurrentVersion} • WinUI 3";
+
         Loaded += HomePage_Loaded;
         Unloaded += (s, e) => TeardownTrendCharts();
         ActualThemeChanged += (s, e) => RebuildTrendChartPaints();

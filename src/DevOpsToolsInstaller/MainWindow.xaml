@@ -26,7 +26,7 @@
 
         <!-- Built-in WinUI TitleBar control (Windows App SDK 2.x): handles the
              icon, title, drag regions and caption-button spacing automatically. -->
-        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer" Subtitle="v3.0.2">
+        <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer">
             <controls:TitleBar.IconSource>
                 <controls:ImageIconSource x:Name="AppTitleBarIconSource" ImageSource="ms-appx:///Assets/app.png" />
             </controls:TitleBar.IconSource>
@@ -64,6 +64,7 @@
             IsPaneToggleButtonVisible="True"
             IsTabStop="False"
             SelectionChanged="NavView_SelectionChanged"
+            ItemInvoked="NavView_ItemInvoked"
             OpenPaneLength="250">
 
             <controls:NavigationView.MenuItems>
@@ -132,9 +133,15 @@
                 </controls:NavigationViewItem>
             </controls:NavigationView.FooterMenuItems>
 
-            <!-- Content host: a rounded, layered surface over the Mica backdrop -->
+            <!-- Content host: an opaque, theme-aware surface.
+                 It deliberately does NOT use a translucent layer brush: over
+                 the Mica Alt backdrop a translucent layer let the desktop
+                 wallpaper bleed through as a faint large shape behind the page
+                 content. An opaque base keeps text contrast and the surface
+                 intentional, while Mica remains visible on the title bar and
+                 the acrylic pane. -->
             <Border
-                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1,1,0,0"
                 CornerRadius="10,0,0,0"

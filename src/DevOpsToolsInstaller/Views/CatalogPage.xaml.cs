@@ -34,7 +34,6 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
     private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
     private string _statusFilter = "all"; // all, not_installed, installed, updates, favorites
     private ToolBundle? _activeBundle;
-    private DateTime _lastCatalogSync = DateTime.Now;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? _searchDebounceTimer;
 
     public CatalogPage()
@@ -182,7 +181,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
             if (FooterStatusText != null)
             {
-                FooterStatusText.Text = $"{count} Tools Available | Last Sync: {GetLastSyncText()}";
+                FooterStatusText.Text = $"{count} tools available • Catalog: {CatalogService.CatalogFreshness}";
             }
             return;
         }
@@ -221,7 +220,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         StatusText.Text = $"{totalShown} of {mw.Tools.Count} tools shown";
         if (FooterStatusText != null)
         {
-            FooterStatusText.Text = $"{totalShown} Tools Available | Last Sync: {GetLastSyncText()}";
+            FooterStatusText.Text = $"{totalShown} tools available • Catalog: {CatalogService.CatalogFreshness}";
         }
     }
 
@@ -926,18 +925,9 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
     private void RefreshCatalog_Click(object sender, RoutedEventArgs e)
     {
-        _lastCatalogSync = DateTime.Now;
         ApplyFilter();
-        StatusText.Text = "Catalog refreshed.";
+        StatusText.Text = $"View refreshed • Catalog: {CatalogService.CatalogFreshness}";
     }
 
     void IRefreshablePage.RefreshView() => RefreshCatalog_Click(this, new RoutedEventArgs());
-
-    private string GetLastSyncText()
-    {
-        var elapsed = DateTime.Now - _lastCatalogSync;
-        if (elapsed.TotalMinutes < 1) return "Just now";
-        if (elapsed.TotalMinutes < 60) return $"{(int)elapsed.TotalMinutes} mins ago";
-        return $"{(int)elapsed.TotalHours} hours ago";
-    }
 }

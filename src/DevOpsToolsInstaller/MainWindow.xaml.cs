@@ -46,6 +46,12 @@ public sealed partial class MainWindow : Window
     private int _lastUpdateBadgeCount;
 
     /// <summary>
+    /// Set while the sidebar selection is being updated to mirror the frame's
+    /// current page, so the change does not trigger a second navigation.
+    /// </summary>
+    private bool _syncingNavSelection;
+
+    /// <summary>
     /// Loads the catalog and bundles into <see cref="Tools"/> and <see cref="Bundles"/> exactly once.
     /// </summary>
     public async Task EnsureCatalogLoadedAsync()
@@ -147,6 +153,9 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
 
+        // Single source of truth for the product version: the assembly version.
+        AppTitleBar.Subtitle = $"v{AppUpdaterService.CurrentVersion}";
+
         // Native Windows 11 Mica backdrop (the translucent, desktop-tinted
         // "blur"). Falls back gracefully to a solid background on OSes that
         // don't support it.
@@ -169,14 +178,18 @@ public sealed partial class MainWindow : Window
 
         InitializeTray();
 
-        // Track the last visited page so it can be restored on next launch.
+        // Keep the sidebar selection and the last-visited page in sync with
+        // whatever the frame actually shows — including navigations that did
+        // not originate from the NavigationView (Home cards, the search box,
+        // deep links, or the tool-detail sub-page).
         ContentFrame.Navigated += (s, e) =>
         {
             if (e is not Microsoft.UI.Xaml.Navigation.NavigationEventArgs nav) return;
-            SettingsService.LastPage = nav.Content?.GetType().Name switch
+            var tag = nav.Content?.GetType().Name switch
             {
                 nameof(HomePage) => "Home",
                 nameof(CatalogPage) => "Catalog",
+                nameof(ToolDetailPage) => "Catalog",
                 nameof(StacksPage) => "Stacks",
                 nameof(DownloadsPage) => "Downloads",
                 nameof(InstalledPage) => "Installed",
@@ -187,6 +200,9 @@ public sealed partial class MainWindow : Window
                 nameof(AboutPage) => "About",
                 _ => SettingsService.LastPage
             };
+
+            SettingsService.LastPage = tag;
+            SyncNavSelection(tag);
         };
 
         ContentFrame.NavigationFailed += (s, e) =>
@@ -383,30 +399,79 @@ public sealed partial class MainWindow : Window
     private void NavView_SelectionChanged(
         NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
+        // Programmatic selection sync (below) must not re-navigate.
+        if (_syncingNavSelection) return;
+
         if (args.SelectedItem is not NavigationViewItem item) return;
         if (item.Tag is not string tag) return;
 
         NavigateToTag(tag);
     }
 
-    private void NavigateToTag(string tag)
+    /// <summary>
+    /// Highlights the sidebar item that corresponds to the page currently in
+    /// the content frame. Keeps the selection truthful for navigations that
+    /// bypass the NavigationView (Home cards, search box, deep links).
+    /// </summary>
+    private void SyncNavSelection(string? tag)
     {
-        var pageType = tag switch
-        {
-            "Home"      => typeof(HomePage),
-            "Catalog"   => typeof(CatalogPage),
-            "Stacks"    => typeof(StacksPage),
-            "Downloads" => typeof(DownloadsPage),
-            "Installed" => typeof(InstalledPage),
-            "Doctor"    => typeof(DoctorPage),
-            "Profiles"  => typeof(ProfilesPage),
-            "CatalogEditor" => typeof(CatalogEditorPage),
-            "Settings"  => typeof(SettingsPage),
-            "About"     => typeof(AboutPage),
-            _           => typeof(HomePage)
-        };
+        if (string.IsNullOrEmpty(tag)) return;
 
-        ContentFrame.Navigate(pageType);
+        var allItems = NavView.MenuItems.OfType<NavigationViewItem>()
+            .Concat(NavView.FooterMenuItems.OfType<NavigationViewItem>());
+
+        foreach (var item in allItems)
+        {
+            if (item.Tag as string != tag) continue;
+            if (ReferenceEquals(NavView.SelectedItem, item)) return;
+
+            _syncingNavSelection = true;
+            try
+            {
+                NavView.SelectedItem = item;
+            }
+            finally
+            {
+                _syncingNavSelection = false;
+            }
+            return;
+        }
+    }
+
+    private void NavigateToTag(string tag) => ContentFrame.Navigate(PageTypeForTag(tag));
+
+    /// <summary>Maps a sidebar tag to the page type it opens.</summary>
+    private static Type PageTypeForTag(string tag) => tag switch
+    {
+        "Home"      => typeof(HomePage),
+        "Catalog"   => typeof(CatalogPage),
+        "Stacks"    => typeof(StacksPage),
+        "Downloads" => typeof(DownloadsPage),
+        "Installed" => typeof(InstalledPage),
+        "Doctor"    => typeof(DoctorPage),
+        "Profiles"  => typeof(ProfilesPage),
+        "CatalogEditor" => typeof(CatalogEditorPage),
+        "Settings"  => typeof(SettingsPage),
+        "About"     => typeof(AboutPage),
+        _           => typeof(HomePage)
+    };
+
+    /// <summary>
+    /// Safety net for the sidebar. <c>SelectionChanged</c> does not fire when
+    /// the user re-invokes the item that is already selected, so if the
+    /// selection and the displayed page ever disagreed the page would refuse
+    /// to open. Here we make sure the frame really shows the invoked item's
+    /// page. Items that differ from the current selection are left to
+    /// <c>SelectionChanged</c> so no navigation happens twice.
+    /// </summary>
+    private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItemContainer is not NavigationViewItem item) return;
+        if (item.Tag is not string tag) return;
+        if (!ReferenceEquals(NavView.SelectedItem, item)) return;
+        if (ContentFrame.Content?.GetType() == PageTypeForTag(tag)) return;
+
+        NavigateToTag(tag);
     }
 
     public async Task OpenCuratedStacksDialogAsync()

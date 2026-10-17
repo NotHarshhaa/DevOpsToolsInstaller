@@ -27,6 +27,7 @@ public sealed partial class AboutPage : Page
         OsVersionText.Text = GetFriendlyOsVersion();
         ArchitectureText.Text = $"{System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture} (64-bit Native)";
         RuntimeVersionText.Text = $"{System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription} • WinUI 3";
+        AboutVersionBadgeText.Text = $"v{Services.AppUpdaterService.CurrentVersion}";
         
         var isPathConfigured = Services.SettingsService.IsFolderOnUserPath(Services.ArtifactService.BinFolder);
         PathStatusBadgeText.Text = isPathConfigured ? "Configured in User PATH" : "Not yet added to PATH";

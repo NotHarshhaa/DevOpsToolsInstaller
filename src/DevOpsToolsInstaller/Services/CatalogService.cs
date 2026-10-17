@@ -20,6 +20,13 @@ public sealed class CatalogService
 
     private static readonly HttpClient Http;
 
+    /// <summary>
+    /// Human-readable description of where the active catalog was loaded from
+    /// and how stale it is, set during the last catalog load. Surfaced in the
+    /// UI so "Newer than catalog" states are explainable.
+    /// </summary>
+    public static string CatalogFreshness { get; private set; } = "Catalog source not loaded yet";
+
     static CatalogService()
     {
         Http = new HttpClient(HttpConfigService.CreateHandler())
@@ -68,6 +75,7 @@ public sealed class CatalogService
                 var customTools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
                 if (customTools is { Count: > 0 })
                 {
+                    CatalogFreshness = "custom catalog source";
                     ActivityLogService.Info("Catalog", $"Loaded {customTools.Count} tools from custom catalog source.");
                     return customTools;
                 }
@@ -86,7 +94,10 @@ public sealed class CatalogService
             {
                 var tools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
                 if (tools is { Count: > 0 })
+                {
+                    CatalogFreshness = "live from GitHub (signature verified)";
                     return tools;
+                }
             }
             else
             {
@@ -101,7 +112,32 @@ public sealed class CatalogService
         }
 
         // 2. Embedded fallback (baked into the app at build time)
+        var embeddedPath = Path.Combine(AppContext.BaseDirectory, "Assets", "catalog.json");
+        CatalogFreshness = DescribeEmbeddedCatalogAge(embeddedPath);
         return LoadEmbeddedCatalog();
+    }
+
+    /// <summary>
+    /// Describes the age of the embedded catalog snapshot using the file's
+    /// last-write time, e.g. "built-in snapshot (2026-10-15, 2 days old)".
+    /// </summary>
+    private static string DescribeEmbeddedCatalogAge(string catalogPath)
+    {
+        try
+        {
+            if (!File.Exists(catalogPath)) return "built-in snapshot";
+
+            var written = File.GetLastWriteTimeUtc(catalogPath);
+            var days = (int)(DateTime.UtcNow - written).TotalDays;
+            var when = written.ToString("yyyy-MM-dd");
+            return days <= 0
+                ? $"built-in snapshot ({when})"
+                : $"built-in snapshot ({when}, {days} day{(days == 1 ? string.Empty : "s")} old)";
+        }
+        catch
+        {
+            return "built-in snapshot";
+        }
     }
 
     /// <summary>

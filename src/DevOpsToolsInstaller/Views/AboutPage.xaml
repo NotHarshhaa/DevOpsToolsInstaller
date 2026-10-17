@@ -50,7 +50,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                             <TextBlock Text="DevOps Tools Installer" Style="{StaticResource SubtitleTextBlockStyle}" FontWeight="Bold" />
                             <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
-                                <TextBlock Text="v3.0.2" FontSize="11" FontWeight="SemiBold"
+                                <TextBlock x:Name="AboutVersionBadgeText" Text="v3.0.2" FontSize="11" FontWeight="SemiBold"
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
                             <Border Style="{StaticResource BadgeStyle}" Padding="7,2">
@@ -64,7 +64,7 @@
                         </StackPanel>
                         <TextBlock TextWrapping="Wrap"
                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                   Text="A native, high-performance workstation provisioning hub designed to eliminate friction when installing and configuring cloud and DevOps CLIs on Windows. Official vendor binaries, automatic PATH deployment, and silent execution." />
+                                   Text="A native, high-performance workstation provisioning hub designed to eliminate friction when installing and configuring cloud and DevOps CLIs on Windows. Official vendor binaries, automatic PATH deployment, and interactive vendor setup wizards — nothing is ever installed silently." />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="8">
@@ -233,7 +233,7 @@
                     <StackPanel Spacing="14">
                         <TextBlock Text="Solving the Windows DevOps Workstation Challenge" FontWeight="SemiBold" FontSize="15" />
                         <TextBlock TextWrapping="Wrap" Foreground="{ThemeResource TextFillColorSecondaryBrush}" LineHeight="20"
-                                   Text="While Linux and macOS benefit from native package workflows, setting up a Windows DevOps workstation historically required navigating dozens of disparate vendor download pages, MSI installers, zip extractions, and manual Windows Environment Variable edits. DevOps Tools Installer provides a centralized, transparent hub where all tools are cataloged with verified direct vendor download URLs, silent install configurations, and automated PATH deployment into Tools\bin." />
+                                   Text="While Linux and macOS benefit from native package workflows, setting up a Windows DevOps workstation historically required navigating dozens of disparate vendor download pages, MSI installers, zip extractions, and manual Windows Environment Variable edits. DevOps Tools Installer provides a centralized, transparent hub where all tools are cataloged with verified direct vendor download URLs, interactive vendor setup wizards, and automated PATH deployment into Tools\bin." />
 
                         <Grid ColumnSpacing="16" RowSpacing="12" Margin="0,4,0,0">
                             <Grid.ColumnDefinitions>

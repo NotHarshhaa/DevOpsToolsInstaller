@@ -105,7 +105,8 @@
                                          PlaceholderText="1.0.0" AutomationProperties.Name="Custom tool version" />
 
                                 <ComboBox x:Name="KindBox" Grid.Row="2" Grid.Column="0" Header="Artifact kind *"
-                                          HorizontalAlignment="Stretch" AutomationProperties.Name="Custom tool artifact kind">
+                                          HorizontalAlignment="Stretch" AutomationProperties.Name="Custom tool artifact kind"
+                                          SelectionChanged="KindBox_SelectionChanged">
                                     <ComboBoxItem Content="Installer (.exe/.msi)" Tag="Installer" IsSelected="True" />
                                     <ComboBoxItem Content="Archive (.zip/.tar.gz)" Tag="Archive" />
                                     <ComboBoxItem Content="Binary (.exe)" Tag="Binary" />
@@ -115,7 +116,7 @@
                                          PlaceholderText="Optional installer arguments" AutomationProperties.Name="Custom tool launch arguments" />
 
                                 <TextBox x:Name="FileNameBox" Grid.Row="3" Grid.Column="0" Header="File name *"
-                                         PlaceholderText="my-tool-1.0.0.zip" AutomationProperties.Name="Custom tool file name" />
+                                         PlaceholderText="my-tool-1.0.0.exe" AutomationProperties.Name="Custom tool file name" />
                                 <TextBox x:Name="HomepageBox" Grid.Row="3" Grid.Column="1" Header="Homepage"
                                          PlaceholderText="https://example.com" AutomationProperties.Name="Custom tool homepage" />
                             </Grid>
@@ -130,7 +131,7 @@
                                      AutomationProperties.Name="Custom tool download URL" />
 
                             <TextBox x:Name="Sha256Box" Header="SHA-256 (recommended)"
-                                     PlaceholderText="64 hex characters — required for integrity verification"
+                                     PlaceholderText="64 hex characters — recommended for integrity verification"
                                      AutomationProperties.Name="Custom tool SHA-256" />
 
                             <TextBox x:Name="LogoUrlBox" Header="Logo URL (optional)"
