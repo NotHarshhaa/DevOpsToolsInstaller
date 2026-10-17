@@ -24,6 +24,16 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Opaque, theme-aware fallback surface for when no system material is
+             active (material "None", transparency effects off, or a
+             high-contrast theme). Collapsed whenever Mica/Acrylic is drawn, so
+             the backdrop shows through instead. -->
+        <Grid x:Name="MaterialFallbackLayer"
+              Grid.RowSpan="2"
+              Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+              IsHitTestVisible="False"
+              Visibility="Collapsed" />
+
         <!-- Built-in WinUI TitleBar control (Windows App SDK 2.x): handles the
              icon, title, drag regions and caption-button spacing automatically. -->
         <controls:TitleBar x:Name="AppTitleBar" Grid.Row="0" Title="DevOps Tools Installer">

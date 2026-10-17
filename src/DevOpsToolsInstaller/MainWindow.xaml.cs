@@ -156,10 +156,11 @@ public sealed partial class MainWindow : Window
         // Single source of truth for the product version: the assembly version.
         AppTitleBar.Subtitle = $"v{AppUpdaterService.CurrentVersion}";
 
-        // Native Windows 11 Mica backdrop (the translucent, desktop-tinted
-        // "blur"). Falls back gracefully to a solid background on OSes that
-        // don't support it.
-        TrySetMicaBackdrop();
+        // Window material (Mica / Mica Alt / Acrylic / None). Defaults to the
+        // neutral Mica so the title bar and sidebar do not take a strong
+        // wallpaper tint; falls back to an opaque surface when transparency
+        // effects are off or a high-contrast theme is active.
+        ApplyWindowMaterial(SettingsService.WindowMaterial);
 
         // Set taskbar and window icon
         var iconPath = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico");
@@ -266,7 +267,7 @@ public sealed partial class MainWindow : Window
         NavView.Loaded += (s, e) =>
         {
             RemoveTogglePaneButtonFocusVisual(NavView);
-            ApplyPaneAcrylicSurface();
+            RefreshPaneSurface(SettingsService.WindowMaterial);
             ContentFrame.Focus(FocusState.Programmatic);
         };
 
@@ -340,28 +341,44 @@ public sealed partial class MainWindow : Window
     public string? PendingCatalogSearchQuery { get; set; }
 
     /// <summary>
-    /// Applies the Mica Alt system backdrop when the OS supports it.
-    /// Falls back to DesktopAcrylic on Windows 10/unsupported versions.
+    /// Applies a window material to the title bar, sidebar and window chrome and
+    /// persists the choice. Called on startup with the saved setting and again
+    /// from Settings when the user picks a different material.
     /// </summary>
-    private void TrySetMicaBackdrop()
+    public void ApplyWindowMaterial(WindowMaterial material)
     {
+        SettingsService.WindowMaterial = material;
+
+        AllowMaterialTransparency(material);
+
         try
         {
-            if (Microsoft.UI.Composition.SystemBackdrops.MicaController.IsSupported())
-            {
-                SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop
-                {
-                    Kind = Microsoft.UI.Composition.SystemBackdrops.MicaKind.BaseAlt
-                };
-            }
-            else if (Microsoft.UI.Composition.SystemBackdrops.DesktopAcrylicController.IsSupported())
-            {
-                SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
-            }
+            SystemBackdrop = Helpers.SystemBackdropHelper.CreateWindowBackdrop(material);
         }
         catch
         {
             // Backdrop is a nice-to-have; ignore if unavailable.
+            SystemBackdrop = null;
+        }
+
+        RefreshPaneSurface(material);
+        UpdateTitleBarButtonColors();
+    }
+
+    /// <summary>
+    /// Shows an opaque, theme-aware layer behind the whole window when no
+    /// system material is active (material "None", transparency effects turned
+    /// off, or a high-contrast theme). The layer uses a ThemeResource brush so
+    /// it re-resolves when the theme changes.
+    /// </summary>
+    private void AllowMaterialTransparency(WindowMaterial material)
+    {
+        var effective = Helpers.SystemBackdropHelper.EffectiveMaterial(material);
+        if (MaterialFallbackLayer is not null)
+        {
+            MaterialFallbackLayer.Visibility = effective == WindowMaterial.None
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
     }
 
@@ -956,19 +973,43 @@ public sealed partial class MainWindow : Window
     /// Windows transparency effects are disabled or high contrast is on —
     /// the pane then shows the window's (auto-fallback) Mica surface.
     /// </summary>
-    private void ApplyPaneAcrylicSurface()
+    /// <summary>
+    /// Gives the NavigationView pane its own in-app surface (Windows App SDK
+    /// 2.x <see cref="Microsoft.UI.Xaml.Controls.SystemBackdropElement"/>) using
+    /// the selected window material, so the sidebar and title bar read as one
+    /// continuous chrome surface. The element is removed entirely for
+    /// <see cref="WindowMaterial.None"/> — and for transparency-off /
+    /// high-contrast, where the helper resolves the material to None — leaving
+    /// the opaque pane background in place.
+    /// </summary>
+    private void RefreshPaneSurface(WindowMaterial material)
     {
-        if (!Helpers.SystemBackdropHelper.TransparencyEffectsEnabled) return;
-
         var paneGrid = FindDescendantGridByName(NavView, "PaneContentGrid");
         if (paneGrid is null) return;
-        if (paneGrid.Children.Count > 0 && paneGrid.Children[0] is Microsoft.UI.Xaml.Controls.SystemBackdropElement) return;
 
-        paneGrid.Children.Insert(0, new Microsoft.UI.Xaml.Controls.SystemBackdropElement
+        var existing = paneGrid.Children.Count > 0
+            ? paneGrid.Children[0] as Microsoft.UI.Xaml.Controls.SystemBackdropElement
+            : null;
+
+        var backdrop = Helpers.SystemBackdropHelper.CreateSidebarBackdrop(material);
+        if (backdrop is null)
         {
-            SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop(),
-            IsHitTestVisible = false
-        });
+            if (existing is not null) paneGrid.Children.Remove(existing);
+            return;
+        }
+
+        if (existing is null)
+        {
+            paneGrid.Children.Insert(0, new Microsoft.UI.Xaml.Controls.SystemBackdropElement
+            {
+                SystemBackdrop = backdrop,
+                IsHitTestVisible = false
+            });
+        }
+        else
+        {
+            existing.SystemBackdrop = backdrop;
+        }
     }
 
     private static Grid? FindDescendantGridByName(DependencyObject parent, string name)

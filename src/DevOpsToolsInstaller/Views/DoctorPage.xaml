@@ -3,6 +3,7 @@
     NavigationCacheMode="Enabled"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:appControls="using:DevOpsToolsInstaller.Controls"
     xmlns:converters="using:DevOpsToolsInstaller.Converters"
     xmlns:viewmodels="using:DevOpsToolsInstaller.ViewModels">
 
@@ -10,222 +11,250 @@
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
-    <ScrollViewer Padding="32,24,32,40">
-        <StackPanel Spacing="20" MaxWidth="960">
-            <StackPanel.ChildrenTransitions>
-                <TransitionCollection>
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
-                </TransitionCollection>
-            </StackPanel.ChildrenTransitions>
+    <appControls:PageContainer>
+        <ScrollViewer>
+            <StackPanel Spacing="20">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
 
-            <!-- ══════════════════════════════════ -->
-            <!--  HEADER                            -->
-            <!-- ══════════════════════════════════ -->
-            <StackPanel Spacing="4">
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock Text="Workstation Doctor" Style="{StaticResource PageTitleStyle}" />
-                    <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center" Padding="8,2">
-                        <TextBlock Text="Diagnostics" FontSize="11" FontWeight="SemiBold"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </Border>
-                </StackPanel>
-                <TextBlock Text="Diagnose workstation health: PATH conflicts and duplicates, missing prerequisites, CLI shadowing, and outdated versions."
-                           Style="{StaticResource PageSubtitleStyle}" />
-            </StackPanel>
+                <!-- ══════════════════════════════════ -->
+                <!--  HEADER                            -->
+                <!-- ══════════════════════════════════ -->
+                <appControls:PageHeader Title="Workstation Doctor"
+                                        BadgeText="Diagnostics"
+                                        Subtitle="Diagnose workstation health: PATH conflicts and duplicates, missing prerequisites, CLI shadowing, and outdated versions." />
 
-            <!-- ══════════════════════════════════ -->
-            <!--  SUMMARY & ACTIONS BAR             -->
-            <!-- ══════════════════════════════════ -->
-            <Border Style="{StaticResource CardStyle}" Padding="18,14">
-                <Grid ColumnSpacing="16" RowSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <!-- ══════════════════════════════════ -->
+                <!--  SUMMARY & ACTIONS BAR             -->
+                <!-- ══════════════════════════════════ -->
+                <Border Style="{StaticResource CardStyle}" Padding="18,14">
+                    <Grid ColumnSpacing="16" RowSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-                    <!-- Left: Metrics & Status -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                        <!-- Passed Badge -->
-                        <Border Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1" CornerRadius="6" Padding="10,4"
-                                AutomationProperties.Name="{x:Bind ViewModel.PassedAutomationName, Mode=OneWay}">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.PassedCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
-                                <TextBlock Text="Passed" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="DoctorSummaryStates">
+                                <!-- Narrow: action buttons drop onto their own row. -->
+                                <VisualState x:Name="NarrowDoctorSummary">
+                                    <VisualState.StateTriggers>
+                                        <AdaptiveTrigger MinWindowWidth="0" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Target="DoctorSummaryActions.(Grid.Row)" Value="1" />
+                                        <Setter Target="DoctorSummaryActions.(Grid.Column)" Value="0" />
+                                        <Setter Target="DoctorSummaryActions.(Grid.ColumnSpan)" Value="2" />
+                                        <Setter Target="DoctorSummaryActions.HorizontalAlignment" Value="Left" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <!-- Wide: actions sit inline on the right. -->
+                                <VisualState x:Name="WideDoctorSummary">
+                                    <VisualState.StateTriggers>
+                                        <AdaptiveTrigger MinWindowWidth="1080" />
+                                    </VisualState.StateTriggers>
+                                    <VisualState.Setters>
+                                        <Setter Target="DoctorSummaryActions.(Grid.Row)" Value="0" />
+                                        <Setter Target="DoctorSummaryActions.(Grid.Column)" Value="1" />
+                                        <Setter Target="DoctorSummaryActions.(Grid.ColumnSpan)" Value="1" />
+                                        <Setter Target="DoctorSummaryActions.HorizontalAlignment" Value="Right" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <!-- Left: Metrics & Status -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <!-- Passed Badge -->
+                            <Border Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="6" Padding="10,4"
+                                    AutomationProperties.Name="{x:Bind ViewModel.PassedAutomationName, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.PassedCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
+                                    <TextBlock Text="Passed" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Warnings Badge -->
+                            <Border Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="6" Padding="10,4"
+                                    AutomationProperties.Name="{x:Bind ViewModel.WarningAutomationName, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE7BA;" FontSize="12" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.WarningCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
+                                    <TextBlock Text="Warnings" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Failed Badge -->
+                            <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="6" Padding="10,4"
+                                    AutomationProperties.Name="{x:Bind ViewModel.FailedAutomationName, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.FailedCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
+                                    <TextBlock Text="Failed" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Scan Status / Progress -->
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="6,0,0,0">
+                                <ProgressRing IsActive="{x:Bind ViewModel.IsScanning, Mode=OneWay}"
+                                              Visibility="{x:Bind ViewModel.IsScanning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                              Width="16" Height="16" VerticalAlignment="Center" />
+                                <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
+                                           FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           VerticalAlignment="Center" />
                             </StackPanel>
-                        </Border>
-
-                        <!-- Warnings Badge -->
-                        <Border Background="{ThemeResource SystemFillColorCautionBackgroundBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1" CornerRadius="6" Padding="10,4"
-                                AutomationProperties.Name="{x:Bind ViewModel.WarningAutomationName, Mode=OneWay}">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE7BA;" FontSize="12" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.WarningCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
-                                <TextBlock Text="Warnings" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Failed Badge -->
-                        <Border Background="{ThemeResource SystemFillColorCriticalBackgroundBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                BorderThickness="1" CornerRadius="6" Padding="10,4"
-                                AutomationProperties.Name="{x:Bind ViewModel.FailedAutomationName, Mode=OneWay}">
-                            <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
-                                <TextBlock Text="{x:Bind ViewModel.FailedCount, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
-                                <TextBlock Text="Failed" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Scan Status / Progress -->
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="6,0,0,0">
-                            <ProgressRing IsActive="{x:Bind ViewModel.IsScanning, Mode=OneWay}"
-                                          Visibility="{x:Bind ViewModel.IsScanning, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                          Width="16" Height="16" VerticalAlignment="Center" />
-                            <TextBlock Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
-                                       FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                       VerticalAlignment="Center" />
                         </StackPanel>
-                    </StackPanel>
 
-                    <!-- Right: Action Buttons -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <Button x:Name="RerunButton" Click="RerunChecks_Click"
-                                ToolTipService.ToolTip="Re-run all workstation checks (F5)"
-                                AutomationProperties.Name="Re-run workstation diagnostics">
-                            <Button.KeyboardAccelerators>
-                                <KeyboardAccelerator Key="F5" />
-                            </Button.KeyboardAccelerators>
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE72C;" FontSize="12" />
-                                <TextBlock Text="Re-run checks" />
-                            </StackPanel>
-                        </Button>
+                        <!-- Right: Action Buttons -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" x:Name="DoctorSummaryActions"
+                                    Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <Button x:Name="RerunButton" Click="RerunChecks_Click"
+                                    ToolTipService.ToolTip="Re-run all workstation checks (F5)"
+                                    AutomationProperties.Name="Re-run workstation diagnostics">
+                                <Button.KeyboardAccelerators>
+                                    <KeyboardAccelerator Key="F5" />
+                                </Button.KeyboardAccelerators>
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                    <TextBlock Text="Re-run checks" />
+                                </StackPanel>
+                            </Button>
 
-                        <Button x:Name="CopyReportButton" Click="CopyReport_Click"
-                                ToolTipService.ToolTip="Copy complete markdown diagnostic report to clipboard"
-                                AutomationProperties.Name="Copy diagnostic report as markdown">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE8C8;" FontSize="12" />
-                                <TextBlock Text="Copy report" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-            </Border>
+                            <Button x:Name="CopyReportButton" Click="CopyReport_Click"
+                                    ToolTipService.ToolTip="Copy complete markdown diagnostic report to clipboard"
+                                    AutomationProperties.Name="Copy diagnostic report as markdown">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                    <TextBlock Text="Copy report" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
 
-            <!-- Feedback Notice InfoBar -->
-            <InfoBar x:Name="DoctorNoticeInfoBar"
-                     IsOpen="False"
-                     IsClosable="True"
-                     Margin="0,0,0,0" />
+                <!-- Feedback Notice InfoBar -->
+                <InfoBar x:Name="DoctorNoticeInfoBar"
+                         IsOpen="False"
+                         IsClosable="True"
+                         Margin="0,0,0,0" />
 
-            <!-- ══════════════════════════════════ -->
-            <!--  GROUPED RESULTS                   -->
-            <!-- ══════════════════════════════════ -->
-            <ItemsControl ItemsSource="{x:Bind ViewModel.GroupedChecks, Mode=OneWay}"
-                          AutomationProperties.Name="Workstation diagnostic groups">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="viewmodels:DoctorGroupViewModel">
-                        <StackPanel Spacing="10" Margin="0,0,0,24">
-                            <!-- Category Header -->
-                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="2,0,0,2">
-                                <FontIcon Glyph="{x:Bind CategoryIcon}" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                <TextBlock Text="{x:Bind Category}" Style="{StaticResource SectionHeaderStyle}" FontSize="15" />
-                                <Border Style="{StaticResource BadgeStyle}" Padding="6,1" VerticalAlignment="Center">
-                                    <TextBlock Text="{x:Bind Items.Count}" FontSize="10" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                </Border>
-                            </StackPanel>
+                <!-- ══════════════════════════════════ -->
+                <!--  GROUPED RESULTS                   -->
+                <!-- ══════════════════════════════════ -->
+                <ItemsControl ItemsSource="{x:Bind ViewModel.GroupedChecks, Mode=OneWay}"
+                              AutomationProperties.Name="Workstation diagnostic groups">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="viewmodels:DoctorGroupViewModel">
+                            <StackPanel Spacing="10" Margin="0,0,0,24">
+                                <!-- Category Header -->
+                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="2,0,0,2">
+                                    <FontIcon Glyph="{x:Bind CategoryIcon}" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{x:Bind Category}" Style="{StaticResource SectionHeaderStyle}" FontSize="15" />
+                                    <Border Style="{StaticResource BadgeStyle}" Padding="6,1" VerticalAlignment="Center">
+                                        <TextBlock Text="{x:Bind Items.Count}" FontSize="10" FontWeight="SemiBold"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                </StackPanel>
 
-                            <!-- Items in Category -->
-                            <ItemsControl ItemsSource="{x:Bind Items}" AutomationProperties.Name="{x:Bind Category}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="viewmodels:DoctorCheckItemViewModel">
-                                        <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8"
-                                                AutomationProperties.Name="{x:Bind AutomationDescription}">
-                                            <Grid ColumnSpacing="16">
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
+                                <!-- Items in Category -->
+                                <ItemsControl ItemsSource="{x:Bind Items}" AutomationProperties.Name="{x:Bind Category}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="viewmodels:DoctorCheckItemViewModel">
+                                            <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8"
+                                                    AutomationProperties.Name="{x:Bind AutomationDescription}">
+                                                <Grid ColumnSpacing="16">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <!-- Status Glyph Circle -->
-                                                <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
-                                                        Background="{x:Bind StatusBackgroundBrush, Mode=OneWay}"
-                                                        VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                    <FontIcon Glyph="{x:Bind StatusGlyph}" FontSize="13"
-                                                              Foreground="{x:Bind StatusForegroundBrush, Mode=OneWay}"
-                                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                </Border>
+                                                    <!-- Status Glyph Circle -->
+                                                    <Border Grid.Column="0" Width="32" Height="32" CornerRadius="16"
+                                                            Background="{x:Bind StatusBackgroundBrush, Mode=OneWay}"
+                                                            VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,2,0,0">
+                                                        <FontIcon Glyph="{x:Bind StatusGlyph}" FontSize="13"
+                                                                  Foreground="{x:Bind StatusForegroundBrush, Mode=OneWay}"
+                                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
 
-                                                <!-- Middle Text Content -->
-                                                <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                        <TextBlock Text="{x:Bind Title}" Style="{StaticResource CardTitleStyle}" />
-                                                        <Border Background="{x:Bind StatusBackgroundBrush, Mode=OneWay}"
-                                                                CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                            <TextBlock Text="{x:Bind StatusBadgeText}" FontSize="10" FontWeight="Bold"
-                                                                       Foreground="{x:Bind StatusForegroundBrush, Mode=OneWay}" />
+                                                    <!-- Middle Text Content -->
+                                                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                            <TextBlock Text="{x:Bind Title}" Style="{StaticResource CardTitleStyle}" />
+                                                            <Border Background="{x:Bind StatusBackgroundBrush, Mode=OneWay}"
+                                                                    CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
+                                                                <TextBlock Text="{x:Bind StatusBadgeText}" FontSize="10" FontWeight="Bold"
+                                                                           Foreground="{x:Bind StatusForegroundBrush, Mode=OneWay}" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <TextBlock Text="{x:Bind Explanation}"
+                                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                   TextWrapping="Wrap" />
+
+                                                        <!-- Details (when present) -->
+                                                        <Border Visibility="{x:Bind HasDetails, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                                BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,4,0,0">
+                                                            <TextBlock Text="{x:Bind Details}"
+                                                                       FontFamily="Consolas, Segoe UI" FontSize="11"
+                                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                       TextWrapping="Wrap" />
                                                         </Border>
                                                     </StackPanel>
 
-                                                    <TextBlock Text="{x:Bind Explanation}"
-                                                               Style="{StaticResource CaptionTextBlockStyle}"
-                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                               TextWrapping="Wrap" />
+                                                    <!-- Right Action Buttons -->
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                        <!-- Fix Button -->
+                                                        <Button Visibility="{x:Bind HasFixAction, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                Click="Fix_Click" Tag="{x:Bind}"
+                                                                Style="{StaticResource AccentButtonStyle}"
+                                                                ToolTipService.ToolTip="Apply automatic fix (with confirmation)"
+                                                                AutomationProperties.Name="{x:Bind FixAutomationName, Mode=OneWay}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <FontIcon Glyph="&#xE909;" FontSize="11" />
+                                                                <TextBlock Text="{x:Bind FixButtonText}" FontWeight="SemiBold" FontSize="12" />
+                                                            </StackPanel>
+                                                        </Button>
 
-                                                    <!-- Details (when present) -->
-                                                    <Border Visibility="{x:Bind HasDetails, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                            Background="{ThemeResource LayerFillColorDefaultBrush}"
-                                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                                            BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,4,0,0">
-                                                        <TextBlock Text="{x:Bind Details}"
-                                                                   FontFamily="Consolas, Segoe UI" FontSize="11"
-                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                                   TextWrapping="Wrap" />
-                                                    </Border>
-                                                </StackPanel>
-
-                                                <!-- Right Action Buttons -->
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                    <!-- Fix Button -->
-                                                    <Button Visibility="{x:Bind HasFixAction, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                            Click="Fix_Click" Tag="{x:Bind}"
-                                                            Style="{StaticResource AccentButtonStyle}"
-                                                            ToolTipService.ToolTip="Apply automatic fix (with confirmation)"
-                                                            AutomationProperties.Name="{x:Bind FixAutomationName, Mode=OneWay}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                                            <FontIcon Glyph="&#xE909;" FontSize="11" />
-                                                            <TextBlock Text="{x:Bind FixButtonText}" FontWeight="SemiBold" FontSize="12" />
-                                                        </StackPanel>
-                                                    </Button>
-
-                                                    <!-- Learn More Button -->
-                                                    <Button Visibility="{x:Bind HasLearnMore, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
-                                                            Click="LearnMore_Click" Tag="{x:Bind}"
-                                                            ToolTipService.ToolTip="View recommendations and instructions"
-                                                            AutomationProperties.Name="{x:Bind LearnMoreAutomationName, Mode=OneWay}">
-                                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                                            <FontIcon Glyph="&#xE897;" FontSize="11" />
-                                                            <TextBlock Text="{x:Bind LearnMoreTitle}" FontSize="12" />
-                                                        </StackPanel>
-                                                    </Button>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
-    </ScrollViewer>
+                                                        <!-- Learn More Button -->
+                                                        <Button Visibility="{x:Bind HasLearnMore, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                Click="LearnMore_Click" Tag="{x:Bind}"
+                                                                ToolTipService.ToolTip="View recommendations and instructions"
+                                                                AutomationProperties.Name="{x:Bind LearnMoreAutomationName, Mode=OneWay}">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <FontIcon Glyph="&#xE897;" FontSize="11" />
+                                                                <TextBlock Text="{x:Bind LearnMoreTitle}" FontSize="12" />
+                                                            </StackPanel>
+                                                        </Button>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+    </appControls:PageContainer>
 </Page>

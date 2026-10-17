@@ -137,8 +137,8 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         ApplyFilter();
 
         var count = _allInstalledTools.Count;
-        InstalledCountText.Text = $"{count} deployed";
-        PageHeadingText.Text = $"Installed Tools & Updates ({count} total)";
+        Header.BadgeText = $"{count} deployed";
+        Header.Title = $"Installed Tools & Updates ({count} total)";
 
         if (count > 0)
         {

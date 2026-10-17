@@ -3,254 +3,219 @@
     NavigationCacheMode="Enabled"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:appControls="using:DevOpsToolsInstaller.Controls"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:helpers="using:DevOpsToolsInstaller.Helpers"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
 
-    <Grid Padding="32,20,32,0" RowSpacing="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
+    <appControls:PageContainer FullWidth="True">
+        <Grid RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-        <!-- ══════════════════════════════════ -->
-        <!--  HEADER                            -->
-        <!-- ══════════════════════════════════ -->
-        <Grid Grid.Row="0" ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+            <!-- ══════════════════════════════════ -->
+            <!--  HEADER                            -->
+            <!-- ══════════════════════════════════ -->
+            <appControls:PageHeader Grid.Row="0" x:Name="Header"
+                                    Title="Installed Tools &amp; Updates"
+                                    Subtitle="Tools deployed on your workstation with version tracking and lifecycle management.">
+                <appControls:PageHeader.ActionsContent>
+                    <!-- Header Right: Search & Check Updates -->
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <AutoSuggestBox
+                            x:Name="SearchBox"
+                            PlaceholderText="Search installed tools…"
+                            QueryIcon="Find"
+                            Width="240"
+                            CornerRadius="4"
+                            TextChanged="SearchBox_TextChanged" />
 
-            <StackPanel Grid.Column="0" Spacing="2">
-                <StackPanel.ChildrenTransitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
-                    </TransitionCollection>
-                </StackPanel.ChildrenTransitions>
-                <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                    <TextBlock x:Name="PageHeadingText" Text="Installed Tools &amp; Updates" Style="{StaticResource PageTitleStyle}" />
-                    <Border x:Name="InstalledCountBadge" Style="{StaticResource BadgeStyle}" VerticalAlignment="Center">
-                        <TextBlock x:Name="InstalledCountText" Text="Scanning…"
-                                   FontSize="11"
-                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                    </Border>
+                        <Button Style="{StaticResource AccentButtonStyle}"
+                                Click="CheckForUpdates_Click"
+                                CornerRadius="4" Padding="14,7"
+                                ToolTipService.ToolTip="Check for newer versions of all installed tools">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE72C;" FontSize="13" />
+                                <TextBlock Text="Check for Updates" FontWeight="SemiBold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </appControls:PageHeader.ActionsContent>
+            </appControls:PageHeader>
+
+            <!-- ══════════════════════════════════ -->
+            <!--  COMMAND BAR + CLI HEALTH LATENCY  -->
+            <!-- ══════════════════════════════════ -->
+            <StackPanel Grid.Row="1" Spacing="10">
+
+            <!-- CLI health-check latency chart (populated by "Check All CLIs") -->
+            <Border x:Name="LatencyChartCard"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,10"
+                    Visibility="Collapsed">
+                <StackPanel Spacing="6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                            <TextBlock Text="CLI health-check latency" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="13" />
+                            <TextBlock Text="probe execution time per tool, ms"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Click="CloseLatencyChart_Click" Padding="6,2"
+                                ToolTipService.ToolTip="Hide latency chart"
+                                AutomationProperties.Name="Hide latency chart">
+                            <FontIcon Glyph="&#xE711;" FontSize="11" />
+                        </Button>
+                    </Grid>
+                    <lvc:CartesianChart x:Name="LatencyChart" Height="170"
+                                        Series="{x:Bind LatencySeries, Mode=OneTime}"
+                                        XAxes="{x:Bind LatencyXAxes, Mode=OneTime}"
+                                        YAxes="{x:Bind LatencyYAxes, Mode=OneTime}"
+                                        AutomationProperties.Name="CLI health-check latency bar chart" />
                 </StackPanel>
-                <TextBlock Text="Tools deployed on your workstation with version tracking and lifecycle management."
-                           Style="{StaticResource PageSubtitleStyle}" />
+            </Border>
+
+            <!-- Latency chart empty state -->
+            <Border x:Name="LatencyEmptyState"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="14,10"
+                    Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    <TextBlock Text="No latency data yet — run “Check All CLIs” to measure the health-check response time of every installed command-line tool."
+                               Style="{StaticResource CaptionTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               TextWrapping="Wrap" VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <CommandBar
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        DefaultLabelPosition="Right"
+                        IsOpen="False"
+                        OverflowButtonVisibility="Collapsed"
+                        Background="Transparent">
+                <CommandBar.Content>
+                    <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                               Margin="0,0,16,0" FontSize="12"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </CommandBar.Content>
+                <CommandBar.PrimaryCommands>
+                    <AppBarButton Label="Refresh" Click="Refresh_Click"
+                                  ToolTipService.ToolTip="Re-scan registry and filesystem for installed tools">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE72C;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton Label="Check All CLIs" Click="RunAllHealthChecks_Click"
+                                  ToolTipService.ToolTip="Verify execution of all command-line tools">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE9D9;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton Label="Shell Completion" Click="ShellCompletion_Click"
+                                  ToolTipService.ToolTip="Generate and configure shell completion snippets">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE756;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton Label="Export" ToolTipService.ToolTip="Export workstation profile, audit report, and scripts">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xEDE1;" />
+                        </AppBarButton.Icon>
+                        <AppBarButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Text="Export Audit Report (Markdown)" Click="ExportReport_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE9F9;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Export Selection Profile (JSON)…" Click="ExportProfile_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8B7;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem Text="Generate PowerShell Setup Script (.ps1)…" Click="ExportBootstrap_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE756;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Export DevContainer &amp; Dockerfile (.zip)…" Click="ExportDevContainer_Click">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE7B8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </AppBarButton.Flyout>
+                    </AppBarButton>
+
+                    <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"
+                                  ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE838;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+                </CommandBar.PrimaryCommands>
+            </CommandBar>
             </StackPanel>
 
-            <!-- Header Right: Search & Check Updates -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                <AutoSuggestBox
-                    x:Name="SearchBox"
-                    PlaceholderText="Search installed tools…"
-                    QueryIcon="Find"
-                    Width="240"
-                    CornerRadius="4"
-                    TextChanged="SearchBox_TextChanged" />
+            <!-- ══════════════════════════════════ -->
+            <!--  TABLE (scrolls horizontally when the window is too narrow) -->
+            <!-- ══════════════════════════════════ -->
+            <ScrollViewer x:Name="InstalledGridScroller" Grid.Row="2" Grid.RowSpan="2"
+                          VerticalScrollMode="Disabled" VerticalScrollBarVisibility="Disabled"
+                          HorizontalScrollBarVisibility="Auto" ZoomMode="Disabled">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="InstalledGridWidthStates">
+                        <!-- Narrow: enable horizontal scrolling so no column ever clips. -->
+                        <VisualState x:Name="NarrowGrid">
+                            <VisualState.StateTriggers>
+                                <AdaptiveTrigger MinWindowWidth="0" />
+                            </VisualState.StateTriggers>
+                            <VisualState.Setters>
+                                <Setter Target="InstalledGridScroller.HorizontalScrollMode" Value="Enabled" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <!-- Wide: stretch the table to the full content width. -->
+                        <VisualState x:Name="WideGrid">
+                            <VisualState.StateTriggers>
+                                <AdaptiveTrigger MinWindowWidth="1120" />
+                            </VisualState.StateTriggers>
+                            <VisualState.Setters>
+                                <Setter Target="InstalledGridScroller.HorizontalScrollMode" Value="Disabled" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
 
-                <Button Style="{StaticResource AccentButtonStyle}"
-                        Click="CheckForUpdates_Click"
-                        CornerRadius="4" Padding="14,7"
-                        ToolTipService.ToolTip="Check for newer versions of all installed tools">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE72C;" FontSize="13" />
-                        <TextBlock Text="Check for Updates" FontWeight="SemiBold" FontSize="12" />
-                    </StackPanel>
-                </Button>
-            </StackPanel>
-        </Grid>
+                <Grid MinWidth="940">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-        <!-- ══════════════════════════════════ -->
-        <!--  COMMAND BAR + CLI HEALTH LATENCY  -->
-        <!-- ══════════════════════════════════ -->
-        <StackPanel Grid.Row="1" Spacing="10">
-
-        <!-- CLI health-check latency chart (populated by "Check All CLIs") -->
-        <Border x:Name="LatencyChartCard"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Padding="14,10"
-                Visibility="Collapsed">
-            <StackPanel Spacing="6">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                        <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                        <TextBlock Text="CLI health-check latency" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="13" />
-                        <TextBlock Text="probe execution time per tool, ms"
-                                   Style="{StaticResource CaptionTextBlockStyle}"
-                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" VerticalAlignment="Center" />
-                    </StackPanel>
-                    <Button Grid.Column="1" Click="CloseLatencyChart_Click" Padding="6,2"
-                            ToolTipService.ToolTip="Hide latency chart"
-                            AutomationProperties.Name="Hide latency chart">
-                        <FontIcon Glyph="&#xE711;" FontSize="11" />
-                    </Button>
-                </Grid>
-                <lvc:CartesianChart x:Name="LatencyChart" Height="170"
-                                    Series="{x:Bind LatencySeries, Mode=OneTime}"
-                                    XAxes="{x:Bind LatencyXAxes, Mode=OneTime}"
-                                    YAxes="{x:Bind LatencyYAxes, Mode=OneTime}"
-                                    AutomationProperties.Name="CLI health-check latency bar chart" />
-            </StackPanel>
-        </Border>
-
-        <!-- Latency chart empty state -->
-        <Border x:Name="LatencyEmptyState"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1" CornerRadius="8" Padding="14,10"
-                Visibility="Collapsed">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                <TextBlock Text="No latency data yet — run “Check All CLIs” to measure the health-check response time of every installed command-line tool."
-                           Style="{StaticResource CaptionTextBlockStyle}"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           TextWrapping="Wrap" VerticalAlignment="Center" />
-            </StackPanel>
-        </Border>
-
-        <CommandBar
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    DefaultLabelPosition="Right"
-                    IsOpen="False"
-                    OverflowButtonVisibility="Collapsed"
-                    Background="Transparent">
-            <CommandBar.Content>
-                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                           Margin="0,0,16,0" FontSize="12"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </CommandBar.Content>
-            <CommandBar.PrimaryCommands>
-                <AppBarButton Label="Refresh" Click="Refresh_Click"
-                              ToolTipService.ToolTip="Re-scan registry and filesystem for installed tools">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE72C;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-
-                <AppBarButton Label="Check All CLIs" Click="RunAllHealthChecks_Click"
-                              ToolTipService.ToolTip="Verify execution of all command-line tools">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE9D9;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-
-                <AppBarButton Label="Shell Completion" Click="ShellCompletion_Click"
-                              ToolTipService.ToolTip="Generate and configure shell completion snippets">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE756;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-
-                <AppBarButton Label="Export" ToolTipService.ToolTip="Export workstation profile, audit report, and scripts">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xEDE1;" />
-                    </AppBarButton.Icon>
-                    <AppBarButton.Flyout>
-                        <MenuFlyout>
-                            <MenuFlyoutItem Text="Export Audit Report (Markdown)" Click="ExportReport_Click">
-                                <MenuFlyoutItem.Icon>
-                                    <FontIcon Glyph="&#xE9F9;" />
-                                </MenuFlyoutItem.Icon>
-                            </MenuFlyoutItem>
-                            <MenuFlyoutItem Text="Export Selection Profile (JSON)…" Click="ExportProfile_Click">
-                                <MenuFlyoutItem.Icon>
-                                    <FontIcon Glyph="&#xE8B7;" />
-                                </MenuFlyoutItem.Icon>
-                            </MenuFlyoutItem>
-                            <MenuFlyoutSeparator />
-                            <MenuFlyoutItem Text="Generate PowerShell Setup Script (.ps1)…" Click="ExportBootstrap_Click">
-                                <MenuFlyoutItem.Icon>
-                                    <FontIcon Glyph="&#xE756;" />
-                                </MenuFlyoutItem.Icon>
-                            </MenuFlyoutItem>
-                            <MenuFlyoutItem Text="Export DevContainer &amp; Dockerfile (.zip)…" Click="ExportDevContainer_Click">
-                                <MenuFlyoutItem.Icon>
-                                    <FontIcon Glyph="&#xE7B8;" />
-                                </MenuFlyoutItem.Icon>
-                            </MenuFlyoutItem>
-                        </MenuFlyout>
-                    </AppBarButton.Flyout>
-                </AppBarButton>
-
-                <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"
-                              ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE838;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-            </CommandBar.PrimaryCommands>
-        </CommandBar>
-        </StackPanel>
-
-        <!-- ══════════════════════════════════ -->
-        <!--  TABLE HEADER ROW                  -->
-        <!-- ══════════════════════════════════ -->
-        <Border Grid.Row="2" Padding="16,8" Margin="0,4,0,0">
-            <Grid ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" MinWidth="200" />
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="130" />
-                    <ColumnDefinition Width="392" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0" Text="Name"
-                           FontSize="12" FontWeight="SemiBold"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                <TextBlock Grid.Column="1" Text="Status"
-                           FontSize="12" FontWeight="SemiBold"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                <TextBlock Grid.Column="2" Text="Current Version"
-                           FontSize="12" FontWeight="SemiBold"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                <TextBlock Grid.Column="3" Text="Actions"
-                           FontSize="12" FontWeight="SemiBold"
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-            </Grid>
-        </Border>
-
-        <!-- ══════════════════════════════════ -->
-        <!--  INSTALLED TOOLS LIST VIEW         -->
-        <!-- ══════════════════════════════════ -->
-        <ListView
-            x:Name="InstalledList"
-            Grid.Row="3"
-            SelectionMode="None"
-            IsItemClickEnabled="False"
-            Padding="0,0,0,12">
-            <ListView.ItemContainerTransitions>
-                <TransitionCollection>
-                    <AddDeleteThemeTransition />
-                    <ContentThemeTransition />
-                    <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
-                </TransitionCollection>
-            </ListView.ItemContainerTransitions>
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Padding" Value="0" />
-                    <Setter Property="Margin" Value="0" />
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="Background" Value="Transparent" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8" helpers:Motion.HoverLift="True">
+                    <!-- ══════════════════════════════════ -->
+                    <!--  TABLE HEADER ROW                  -->
+                    <!-- ══════════════════════════════════ -->
+                    <Border Grid.Row="0" Padding="16,8" Margin="0,4,0,0">
                         <Grid ColumnSpacing="16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" MinWidth="200" />
@@ -259,231 +224,287 @@
                                 <ColumnDefinition Width="392" />
                             </Grid.ColumnDefinitions>
 
-                            <!-- COL 0: Name & Logo & Category -->
-                            <Grid Grid.Column="0" ColumnSpacing="12" VerticalAlignment="Center">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Name"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                                <!-- Brand Logo Tile -->
-                                <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
-                                        Background="{ThemeResource ControlFillColorDefaultBrush}"
-                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                                        BorderThickness="1"
-                                        VerticalAlignment="Center">
-                                    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <FontIcon Glyph="{Binding IconGlyph}" FontSize="18"
-                                                  Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                  Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                        <Image Width="26" Height="26" Stretch="Uniform"
-                                               Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Grid>
-                                </Border>
+                            <TextBlock Grid.Column="1" Text="Status"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                                <!-- Tool Name & Role/Category -->
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
-                                    <TextBlock Text="{Binding Name}"
-                                               Style="{StaticResource BodyStrongTextBlockStyle}"
-                                               FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                               TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding Category}"
-                                               FontSize="12"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                               TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </Grid>
+                            <TextBlock Grid.Column="2" Text="Current Version"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 
-                            <!-- COL 1: Status Badge -->
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                <!-- When update available -->
-                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
-                                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE896;" FontSize="11" Foreground="{ThemeResource SystemAccentColor}" />
-                                        <TextBlock Text="Update available" FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource SystemAccentColor}" />
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- When the installed build is newer than the catalog snapshot -->
-                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
-                                        ToolTipService.ToolTip="Your installed version is newer than the copy pinned in the tool catalog."
-                                        Visibility="{Binding IsNewerThanCatalog, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE8FB;" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                        <TextBlock Text="Newer than catalog" FontSize="11" FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- When the installed version matches the catalog exactly -->
-                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
-                                        Visibility="{Binding IsUpToDate, Converter={StaticResource BoolToVisibilityConverter}}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                        <TextBlock Text="Up to date" FontSize="11"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- When the version could not be determined -->
-                                <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
-                                        Visibility="{Binding HasComparableVersion, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
-                                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                                        <FontIcon Glyph="&#xE946;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                        <TextBlock Text="Installed" FontSize="11"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </StackPanel>
-                                </Border>
-                            </StackPanel>
-
-                            <!-- COL 2: Current Version -->
-                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding DisplayDetectedVersion}"
-                                           FontSize="13"
-                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                           VerticalAlignment="Center" />
-                            </StackPanel>
-
-                            <!-- COL 3: Actions -->
-                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                <!-- Update Now (when update available) -->
-                                <Button Style="{StaticResource AccentButtonStyle}"
-                                        Click="UpdateTool_Click"
-                                        CornerRadius="4" Padding="12,6"
-                                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}"
-                                        ToolTipService.ToolTip="Download and install the newer version">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                        <TextBlock Text="Update Now" FontWeight="SemiBold" FontSize="12" />
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Check Updates / Verify (when up to date) -->
-                                <Button Click="CheckSingleToolUpdate_Click"
-                                        CornerRadius="4" Padding="10,6"
-                                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"
-                                        ToolTipService.ToolTip="Verify version &amp; health check">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE72C;" FontSize="12" />
-                                        <TextBlock Text="Check Updates" FontSize="12" />
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Launch CLI -->
-                                <Button Click="LaunchCli_Click"
-                                        CornerRadius="4" Padding="10,6"
-                                        ToolTipService.ToolTip="Open interactive CLI terminal session">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE756;" FontSize="12" />
-                                        <TextBlock Text="Launch CLI" FontSize="12" />
-                                    </StackPanel>
-                                </Button>
-
-                                <!-- Uninstall button with overflow flyout -->
-                                <DropDownButton CornerRadius="4" Padding="10,6"
-                                                ToolTipService.ToolTip="Uninstall or more options">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                        <TextBlock Text="Uninstall" FontSize="12" />
-                                    </StackPanel>
-                                    <DropDownButton.Flyout>
-                                        <MenuFlyout>
-                                            <MenuFlyoutItem Text="Uninstall tool…" Click="Remove_Click">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xE74D;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Text="Run CLI Health Check…" Click="TestCli_Click">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xE9D9;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Text="Open Installation Folder" Click="OpenSingleToolFolder_Click">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xE838;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutSeparator />
-                                            <MenuFlyoutItem Text="Copy Executable Path" Click="CopyToolPath_Click">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xE8C8;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                            <MenuFlyoutItem Text="Open Documentation" Click="OpenDoc_Click">
-                                                <MenuFlyoutItem.Icon>
-                                                    <FontIcon Glyph="&#xE8A7;" />
-                                                </MenuFlyoutItem.Icon>
-                                            </MenuFlyoutItem>
-                                        </MenuFlyout>
-                                    </DropDownButton.Flyout>
-                                </DropDownButton>
-                            </StackPanel>
+                            <TextBlock Grid.Column="3" Text="Actions"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                         </Grid>
                     </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
 
-        <!-- ══════════════════════════════════ -->
-        <!--  EMPTY STATE                       -->
-        <!-- ══════════════════════════════════ -->
-        <StackPanel
-            x:Name="EmptyState"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Spacing="14"
-            MaxWidth="420"
-            Visibility="Collapsed">
-            <Border Width="64" Height="64" CornerRadius="12"
-                    Background="{ThemeResource ControlFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    HorizontalAlignment="Center">
-                <FontIcon Glyph="&#xE73E;" FontSize="28"
-                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                          HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
+                    <!-- ══════════════════════════════════ -->
+                    <!--  INSTALLED TOOLS LIST VIEW         -->
+                    <!-- ══════════════════════════════════ -->
+                    <ListView
+                        x:Name="InstalledList"
+                        Grid.Row="1"
+                        SelectionMode="None"
+                        IsItemClickEnabled="False"
+                        Padding="0,0,0,12">
+                        <ListView.ItemContainerTransitions>
+                            <TransitionCollection>
+                                <AddDeleteThemeTransition />
+                                <ContentThemeTransition />
+                                <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
+                            </TransitionCollection>
+                        </ListView.ItemContainerTransitions>
+                        <ListView.ItemContainerStyle>
+                            <Style TargetType="ListViewItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Margin" Value="0" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                        </ListView.ItemContainerStyle>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8" helpers:Motion.HoverLift="True">
+                                    <Grid ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" MinWidth="200" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="130" />
+                                            <ColumnDefinition Width="392" />
+                                        </Grid.ColumnDefinitions>
 
-            <StackPanel Spacing="4" HorizontalAlignment="Center">
-                <TextBlock Text="No deployed tools detected"
-                           Style="{StaticResource SubtitleTextBlockStyle}"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <TextBlock Text="Tools you download or install will appear here with automatic version tracking and lifecycle management."
-                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                           TextAlignment="Center"
-                           TextWrapping="Wrap"
-                           FontSize="13" />
-            </StackPanel>
+                                        <!-- COL 0: Name & Logo & Category -->
+                                        <Grid Grid.Column="0" ColumnSpacing="12" VerticalAlignment="Center">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
 
-            <Button Content="Browse Tool Catalog"
-                    Style="{StaticResource AccentButtonStyle}"
-                    HorizontalAlignment="Center"
-                    Click="GoToCatalog_Click"
-                    Padding="18,8" CornerRadius="4" />
-        </StackPanel>
+                                            <!-- Brand Logo Tile -->
+                                            <Border Grid.Column="0" Width="38" Height="38" CornerRadius="8"
+                                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                                    BorderThickness="1"
+                                                    VerticalAlignment="Center">
+                                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="{Binding IconGlyph}" FontSize="18"
+                                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                              Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                                    <Image Width="26" Height="26" Stretch="Uniform"
+                                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
 
-        <!-- ══════════════════════════════════ -->
-        <!--  FOOTER STATUS BAR                 -->
-        <!-- ══════════════════════════════════ -->
-        <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+                                            <!-- Tool Name & Role/Category -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                                                <TextBlock Text="{Binding Name}"
+                                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                                           FontSize="14" FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Category}"
+                                                           FontSize="12"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </StackPanel>
+                                        </Grid>
 
-            <TextBlock Grid.Column="0"
-                       x:Name="FooterStatusText"
-                       Text="Scanning installed tools…"
-                       FontSize="12"
-                       Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                       VerticalAlignment="Center" />
+                                        <!-- COL 1: Status Badge -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <!-- When update available -->
+                                            <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                                    Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE896;" FontSize="11" Foreground="{ThemeResource SystemAccentColor}" />
+                                                    <TextBlock Text="Update available" FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource SystemAccentColor}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- When the installed build is newer than the catalog snapshot -->
+                                            <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                                    ToolTipService.ToolTip="Your installed version is newer than the copy pinned in the tool catalog."
+                                                    Visibility="{Binding IsNewerThanCatalog, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE8FB;" FontSize="11" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                                    <TextBlock Text="Newer than catalog" FontSize="11" FontWeight="SemiBold"
+                                                               Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- When the installed version matches the catalog exactly -->
+                                            <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                                    Visibility="{Binding IsUpToDate, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE73E;" FontSize="11" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                                    <TextBlock Text="Up to date" FontSize="11"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!-- When the version could not be determined -->
+                                            <Border Style="{StaticResource BadgeStyle}" Padding="10,4" HorizontalAlignment="Left"
+                                                    Visibility="{Binding HasComparableVersion, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <FontIcon Glyph="&#xE946;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                    <TextBlock Text="Installed" FontSize="11"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- COL 2: Current Version -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DisplayDetectedVersion}"
+                                                       FontSize="13"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+
+                                        <!-- COL 3: Actions -->
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <!-- Update Now (when update available) -->
+                                            <Button Style="{StaticResource AccentButtonStyle}"
+                                                    Click="UpdateTool_Click"
+                                                    CornerRadius="4" Padding="12,6"
+                                                    Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                    ToolTipService.ToolTip="Download and install the newer version">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                                    <TextBlock Text="Update Now" FontWeight="SemiBold" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Check Updates / Verify (when up to date) -->
+                                            <Button Click="CheckSingleToolUpdate_Click"
+                                                    CornerRadius="4" Padding="10,6"
+                                                    Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}"
+                                                    ToolTipService.ToolTip="Verify version &amp; health check">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                                    <TextBlock Text="Check Updates" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Launch CLI -->
+                                            <Button Click="LaunchCli_Click"
+                                                    CornerRadius="4" Padding="10,6"
+                                                    ToolTipService.ToolTip="Open interactive CLI terminal session">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE756;" FontSize="12" />
+                                                    <TextBlock Text="Launch CLI" FontSize="12" />
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Uninstall button with overflow flyout -->
+                                            <DropDownButton CornerRadius="4" Padding="10,6"
+                                                            ToolTipService.ToolTip="Uninstall or more options">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                    <TextBlock Text="Uninstall" FontSize="12" />
+                                                </StackPanel>
+                                                <DropDownButton.Flyout>
+                                                    <MenuFlyout>
+                                                        <MenuFlyoutItem Text="Uninstall tool…" Click="Remove_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE74D;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Run CLI Health Check…" Click="TestCli_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE9D9;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Open Installation Folder" Click="OpenSingleToolFolder_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE838;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutSeparator />
+                                                        <MenuFlyoutItem Text="Copy Executable Path" Click="CopyToolPath_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE8C8;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                        <MenuFlyoutItem Text="Open Documentation" Click="OpenDoc_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE8A7;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
+                                                    </MenuFlyout>
+                                                </DropDownButton.Flyout>
+                                            </DropDownButton>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <!-- ══════════════════════════════════ -->
+                    <!--  EMPTY STATE                       -->
+                    <!-- ══════════════════════════════════ -->
+                    <StackPanel
+                        x:Name="EmptyState"
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="14"
+                        MaxWidth="420"
+                        Visibility="Collapsed">
+                        <Border Width="64" Height="64" CornerRadius="12"
+                                Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                HorizontalAlignment="Center">
+                            <FontIcon Glyph="&#xE73E;" FontSize="28"
+                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <StackPanel Spacing="4" HorizontalAlignment="Center">
+                            <TextBlock Text="No deployed tools detected"
+                                       Style="{StaticResource SubtitleTextBlockStyle}"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="Tools you download or install will appear here with automatic version tracking and lifecycle management."
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       FontSize="13" />
+                        </StackPanel>
+
+                        <Button Content="Browse Tool Catalog"
+                                Style="{StaticResource AccentButtonStyle}"
+                                HorizontalAlignment="Center"
+                                Click="GoToCatalog_Click"
+                                Padding="18,8" CornerRadius="4" />
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- ══════════════════════════════════ -->
+            <!--  FOOTER STATUS BAR                 -->
+            <!-- ══════════════════════════════════ -->
+            <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           x:Name="FooterStatusText"
+                           Text="Scanning installed tools…"
+                           FontSize="12"
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           VerticalAlignment="Center" />
+            </Grid>
         </Grid>
-    </Grid>
+    </appControls:PageContainer>
 </Page>

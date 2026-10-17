@@ -41,6 +41,8 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         InitializeComponent();
         CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
 
+        Header.BadgeText = "All tools";
+
         ToolsGridView.ItemsSource = _filteredTools;
 
         Loaded += CatalogPage_Loaded;
@@ -440,7 +442,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         ActiveStackInfoBar.Message = $"Showing only tools included in {bundle.Name}. All {selectedCount} tools are pre-selected. Click 'Download' to install them, or customize your selection.";
         ActiveStackInfoBar.IsOpen = true;
 
-        HeaderCountBadge.Text = $"{bundle.Name} ({bundle.Tools.Count} tools)";
+        Header.BadgeText = $"{bundle.Name} ({bundle.Tools.Count} tools)";
         StatusText.Text = $"Showing {selectedCount} tools from {bundle.Name}";
 
         ApplyFilter();
@@ -450,14 +452,14 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
     {
         _activeBundle = null;
         ActiveStackInfoBar.IsOpen = false;
-        HeaderCountBadge.Text = "All tools";
+        Header.BadgeText = "All tools";
         ApplyFilter();
     }
 
     private void ActiveStackInfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args)
     {
         _activeBundle = null;
-        HeaderCountBadge.Text = "All tools";
+        Header.BadgeText = "All tools";
         ApplyFilter();
     }
 

@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Controls;
+using DevOpsToolsInstaller.Helpers;
 using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
@@ -49,6 +50,26 @@ public sealed partial class SettingsPage : Page
                 ThemeComboBox.SelectedItem = item;
                 break;
             }
+        }
+
+        // Window material selector
+        foreach (ComboBoxItem item in MaterialComboBox.Items)
+        {
+            if (item.Tag as string == SettingsService.WindowMaterial.ToString())
+            {
+                MaterialComboBox.SelectedItem = item;
+                break;
+            }
+        }
+
+        // Transparency-off / high-contrast fallback: the window is drawn with an
+        // opaque surface, so explain why the material choice has no visible
+        // effect and disable the selector.
+        if (!SystemBackdropHelper.TransparencyEffectsEnabled)
+        {
+            MaterialCard.Description =
+                "Windows transparency effects are off (or a high-contrast theme is active), so the window always uses a solid, opaque surface. Turn on Transparency effects in Windows Settings \u2192 Accessibility \u2192 Visual effects to enable Mica or Acrylic.";
+            MaterialComboBox.IsEnabled = false;
         }
 
         // Security section
@@ -532,6 +553,23 @@ public sealed partial class SettingsPage : Page
                 {
                     mw.ApplyTheme(theme);
                 }
+            }
+        }
+    }
+
+    private void MaterialComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MaterialComboBox.SelectedItem is ComboBoxItem selectedItem &&
+            selectedItem.Tag is string tag &&
+            Enum.TryParse<WindowMaterial>(tag, out var material))
+        {
+            if (SettingsService.WindowMaterial != material)
+            {
+                SettingsService.WindowMaterial = material;
+                SettingsService.SaveSettings();
+
+                // Apply the material live (window backdrop + sidebar surface).
+                App.MainWindowInstance?.ApplyWindowMaterial(material);
             }
         }
     }

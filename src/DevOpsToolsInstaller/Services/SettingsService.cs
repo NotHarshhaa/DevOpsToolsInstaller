@@ -13,6 +13,23 @@ public enum AppTheme
 }
 
 /// <summary>
+/// Window material (system backdrop) applied to the title bar, sidebar and
+/// window chrome. The window content itself always sits on an opaque,
+/// theme-aware surface so the wallpaper never bleeds through behind pages.
+/// </summary>
+public enum WindowMaterial
+{
+    /// <summary>Neutral, subtle Mica tint (default). Least wallpaper influence.</summary>
+    Mica,
+    /// <summary>Deeper, more saturated Mica Alt tint.</summary>
+    MicaAlt,
+    /// <summary>Translucent acrylic blur.</summary>
+    Acrylic,
+    /// <summary>No system material — a fully opaque, solid theme background.</summary>
+    None
+}
+
+/// <summary>
 /// How strictly the app treats vendor installers with missing or untrusted
 /// digital signatures before they are launched.
 /// </summary>
@@ -31,6 +48,13 @@ public static class SettingsService
         "DevOpsToolsInstaller", "settings.json");
 
     public static AppTheme Theme { get; set; } = AppTheme.Default;
+
+    /// <summary>
+    /// Window material for the title bar and sidebar. Defaults to the neutral
+    /// <see cref="WindowMaterial.Mica"/> so the chrome does not pick up a strong
+    /// wallpaper tint that clashes with the opaque content surface.
+    /// </summary>
+    public static WindowMaterial WindowMaterial { get; set; } = WindowMaterial.Mica;
 
     private static string? _customDownloadsFolder;
     public static string DownloadsFolder
@@ -169,6 +193,12 @@ public static class SettingsService
                     Enum.TryParse<AppTheme>(themeProp.GetString(), out var theme))
                 {
                     Theme = theme;
+                }
+
+                if (doc.RootElement.TryGetProperty("WindowMaterial", out var materialProp) &&
+                    Enum.TryParse<WindowMaterial>(materialProp.GetString(), out var material))
+                {
+                    WindowMaterial = material;
                 }
 
                 if (doc.RootElement.TryGetProperty("DownloadsFolder", out var dlProp))
@@ -338,6 +368,7 @@ public static class SettingsService
             var data = new
             {
                 Theme = Theme.ToString(),
+                WindowMaterial = WindowMaterial.ToString(),
                 DownloadsFolder = DownloadsFolder,
                 CheckForUpdatesOnStartup = CheckForUpdatesOnStartup,
                 LastUpdateCheckTime = LastUpdateCheckTime?.ToString("o"),

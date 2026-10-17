@@ -7,225 +7,225 @@
     xmlns:appControls="using:DevOpsToolsInstaller.Controls"
     xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
 
-    <Grid Padding="32,24,32,16" RowSpacing="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <!-- HEADER -->
-        <StackPanel Grid.Row="0" Spacing="2">
-            <TextBlock Text="Custom Tools &amp; Catalog Editor" Style="{StaticResource PageTitleStyle}" />
-            <TextBlock Text="Add your own HTTPS-hosted tools to the catalog. Custom entries flow through the same SHA-256 and Authenticode pipeline as the shipped catalog."
-                       Style="{StaticResource PageSubtitleStyle}" />
-        </StackPanel>
-
-        <controls:InfoBar x:Name="NoticeInfoBar" Grid.Row="1" IsOpen="False" IsClosable="True"
-                          Severity="Success" AutomationProperties.Name="Catalog editor status message" />
-
-        <Grid Grid.Row="2" ColumnSpacing="16" x:Name="EditorLayoutGrid">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition x:Name="EditorColumn" Width="*" MinWidth="300" />
-                <ColumnDefinition x:Name="ListColumn" Width="340" />
-            </Grid.ColumnDefinitions>
+    <appControls:PageContainer>
+        <Grid RowSpacing="12">
             <Grid.RowDefinitions>
-                <RowDefinition x:Name="EditorRow" Height="*" />
-                <RowDefinition x:Name="ListRow" Height="0" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <VisualStateManager.VisualStateGroups>
-                <VisualStateGroup x:Name="LayoutStates">
-                    <!-- Narrow: stack the editor above the list, full width. -->
-                    <VisualState x:Name="Narrow">
-                        <VisualState.StateTriggers>
-                            <AdaptiveTrigger MinWindowWidth="0" />
-                        </VisualState.StateTriggers>
-                        <VisualState.Setters>
-                            <Setter Target="EditorColumn.Width" Value="*" />
-                            <Setter Target="ListColumn.Width" Value="0" />
-                            <Setter Target="EditorRow.Height" Value="*" />
-                            <Setter Target="ListRow.Height" Value="*" />
-                            <Setter Target="EditorScroll.(Grid.Row)" Value="0" />
-                            <Setter Target="EditorScroll.(Grid.Column)" Value="0" />
-                            <Setter Target="EditorScroll.(Grid.ColumnSpan)" Value="2" />
-                            <Setter Target="ListPanel.(Grid.Row)" Value="1" />
-                            <Setter Target="ListPanel.(Grid.Column)" Value="0" />
-                            <Setter Target="ListPanel.(Grid.ColumnSpan)" Value="2" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <!-- Wide: editor on the left, list pinned to the right. -->
-                    <VisualState x:Name="Wide">
-                        <VisualState.StateTriggers>
-                            <AdaptiveTrigger MinWindowWidth="900" />
-                        </VisualState.StateTriggers>
-                        <VisualState.Setters>
-                            <Setter Target="EditorColumn.Width" Value="*" />
-                            <Setter Target="ListColumn.Width" Value="340" />
-                            <Setter Target="EditorRow.Height" Value="*" />
-                            <Setter Target="ListRow.Height" Value="0" />
-                            <Setter Target="EditorScroll.(Grid.Row)" Value="0" />
-                            <Setter Target="EditorScroll.(Grid.Column)" Value="0" />
-                            <Setter Target="EditorScroll.(Grid.ColumnSpan)" Value="1" />
-                            <Setter Target="ListPanel.(Grid.Row)" Value="0" />
-                            <Setter Target="ListPanel.(Grid.Column)" Value="1" />
-                            <Setter Target="ListPanel.(Grid.ColumnSpan)" Value="1" />
-                        </VisualState.Setters>
-                    </VisualState>
-                </VisualStateGroup>
-            </VisualStateManager.VisualStateGroups>
+            <!-- HEADER -->
+            <appControls:PageHeader Grid.Row="0"
+                                    Title="Custom Tools &amp; Catalog Editor"
+                                    Subtitle="Add your own HTTPS-hosted tools to the catalog. Custom entries flow through the same SHA-256 and Authenticode pipeline as the shipped catalog." />
 
-            <!-- EDITOR -->
-            <ScrollViewer x:Name="EditorScroll" Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
-                    <Border Style="{StaticResource CardStyle}">
-                        <StackPanel Spacing="12">
-                            <TextBlock Text="Tool definition" Style="{StaticResource SectionHeaderStyle}" />
+            <controls:InfoBar x:Name="NoticeInfoBar" Grid.Row="1" IsOpen="False" IsClosable="True"
+                              Severity="Success" AutomationProperties.Name="Catalog editor status message" />
 
-                            <Grid ColumnSpacing="12" RowSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-
-                                <TextBox x:Name="IdBox" Grid.Row="0" Grid.Column="0" Header="Tool id *"
-                                         PlaceholderText="my-tool" AutomationProperties.Name="Custom tool id" />
-                                <TextBox x:Name="NameBox" Grid.Row="0" Grid.Column="1" Header="Display name *"
-                                         PlaceholderText="My Tool" AutomationProperties.Name="Custom tool name" />
-
-                                <TextBox x:Name="CategoryBox" Grid.Row="1" Grid.Column="0" Header="Category *"
-                                         PlaceholderText="Core Utilities" AutomationProperties.Name="Custom tool category" />
-                                <TextBox x:Name="VersionBox" Grid.Row="1" Grid.Column="1" Header="Version"
-                                         PlaceholderText="1.0.0" AutomationProperties.Name="Custom tool version" />
-
-                                <ComboBox x:Name="KindBox" Grid.Row="2" Grid.Column="0" Header="Artifact kind *"
-                                          HorizontalAlignment="Stretch" AutomationProperties.Name="Custom tool artifact kind"
-                                          SelectionChanged="KindBox_SelectionChanged">
-                                    <ComboBoxItem Content="Installer (.exe/.msi)" Tag="Installer" IsSelected="True" />
-                                    <ComboBoxItem Content="Archive (.zip/.tar.gz)" Tag="Archive" />
-                                    <ComboBoxItem Content="Binary (.exe)" Tag="Binary" />
-                                    <ComboBoxItem Content="Script (.ps1)" Tag="Script" />
-                                </ComboBox>
-                                <TextBox x:Name="LaunchArgsBox" Grid.Row="2" Grid.Column="1" Header="Launch args"
-                                         PlaceholderText="Optional installer arguments" AutomationProperties.Name="Custom tool launch arguments" />
-
-                                <TextBox x:Name="FileNameBox" Grid.Row="3" Grid.Column="0" Header="File name *"
-                                         PlaceholderText="my-tool-1.0.0.exe" AutomationProperties.Name="Custom tool file name" />
-                                <TextBox x:Name="HomepageBox" Grid.Row="3" Grid.Column="1" Header="Homepage"
-                                         PlaceholderText="https://example.com" AutomationProperties.Name="Custom tool homepage" />
-                            </Grid>
-
-                            <TextBox x:Name="DescriptionBox" Header="Description"
-                                     PlaceholderText="What does this tool do?"
-                                     AcceptsReturn="True" TextWrapping="Wrap" Height="72"
-                                     AutomationProperties.Name="Custom tool description" />
-
-                            <TextBox x:Name="DownloadUrlBox" Header="Download URL * (HTTPS only)"
-                                     PlaceholderText="https://github.com/owner/repo/releases/download/v1.0.0/tool.zip"
-                                     AutomationProperties.Name="Custom tool download URL" />
-
-                            <TextBox x:Name="Sha256Box" Header="SHA-256 (recommended)"
-                                     PlaceholderText="64 hex characters — recommended for integrity verification"
-                                     AutomationProperties.Name="Custom tool SHA-256" />
-
-                            <TextBox x:Name="LogoUrlBox" Header="Logo URL (optional)"
-                                     PlaceholderText="https://example.com/logo.svg"
-                                     AutomationProperties.Name="Custom tool logo URL" />
-
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <Button Click="Save_Click" Style="{StaticResource AccentButtonStyle}"
-                                        AutomationProperties.Name="Save custom tool">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE74E;" FontSize="13" />
-                                        <TextBlock Text="Save tool" FontWeight="SemiBold" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Click="Clear_Click" AutomationProperties.Name="Clear the editor form">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE894;" FontSize="13" />
-                                        <TextBlock Text="New / Clear" />
-                                    </StackPanel>
-                                </Button>
-                                <Button x:Name="DeleteButton" Click="Delete_Click" IsEnabled="False"
-                                        AutomationProperties.Name="Delete selected custom tool">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
-                                        <FontIcon Glyph="&#xE74D;" FontSize="13" />
-                                        <TextBlock Text="Delete" />
-                                    </StackPanel>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <TextBlock Text="Validation: the id must be lower-case (letters, digits, '-', '.', '_'); the download URL must be HTTPS; a 64-character SHA-256 is strongly recommended so downloads are integrity-checked."
-                               Style="{StaticResource CaptionTextBlockStyle}"
-                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
-                </StackPanel>
-            </ScrollViewer>
-
-            <!-- LIST -->
-            <Grid x:Name="ListPanel" Grid.Column="1" Grid.Row="0" RowSpacing="10">
+            <Grid Grid.Row="2" ColumnSpacing="16" x:Name="EditorLayoutGrid">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition x:Name="EditorColumn" Width="*" MinWidth="300" />
+                    <ColumnDefinition x:Name="ListColumn" Width="340" />
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition x:Name="EditorRow" Height="*" />
+                    <RowDefinition x:Name="ListRow" Height="0" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" Spacing="8">
-                    <TextBlock Text="Your custom tools" Style="{StaticResource SectionHeaderStyle}" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Click="ImportFeed_Click" AutomationProperties.Name="Import custom tools from JSON">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE8B5;" FontSize="12" />
-                                <TextBlock Text="Import" />
-                            </StackPanel>
-                        </Button>
-                        <Button Click="ExportFeed_Click" AutomationProperties.Name="Export custom tools as JSON">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <FontIcon Glyph="&#xE898;" FontSize="12" />
-                                <TextBlock Text="Export feed" />
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </StackPanel>
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroup x:Name="LayoutStates">
+                        <!-- Narrow: stack the editor above the list, full width. -->
+                        <VisualState x:Name="Narrow">
+                            <VisualState.StateTriggers>
+                                <AdaptiveTrigger MinWindowWidth="0" />
+                            </VisualState.StateTriggers>
+                            <VisualState.Setters>
+                                <Setter Target="EditorColumn.Width" Value="*" />
+                                <Setter Target="ListColumn.Width" Value="0" />
+                                <Setter Target="EditorRow.Height" Value="*" />
+                                <Setter Target="ListRow.Height" Value="*" />
+                                <Setter Target="EditorScroll.(Grid.Row)" Value="0" />
+                                <Setter Target="EditorScroll.(Grid.Column)" Value="0" />
+                                <Setter Target="EditorScroll.(Grid.ColumnSpan)" Value="2" />
+                                <Setter Target="ListPanel.(Grid.Row)" Value="1" />
+                                <Setter Target="ListPanel.(Grid.Column)" Value="0" />
+                                <Setter Target="ListPanel.(Grid.ColumnSpan)" Value="2" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <!-- Wide: editor on the left, list pinned to the right. -->
+                        <VisualState x:Name="Wide">
+                            <VisualState.StateTriggers>
+                                <AdaptiveTrigger MinWindowWidth="900" />
+                            </VisualState.StateTriggers>
+                            <VisualState.Setters>
+                                <Setter Target="EditorColumn.Width" Value="*" />
+                                <Setter Target="ListColumn.Width" Value="340" />
+                                <Setter Target="EditorRow.Height" Value="*" />
+                                <Setter Target="ListRow.Height" Value="0" />
+                                <Setter Target="EditorScroll.(Grid.Row)" Value="0" />
+                                <Setter Target="EditorScroll.(Grid.Column)" Value="0" />
+                                <Setter Target="EditorScroll.(Grid.ColumnSpan)" Value="1" />
+                                <Setter Target="ListPanel.(Grid.Row)" Value="0" />
+                                <Setter Target="ListPanel.(Grid.Column)" Value="1" />
+                                <Setter Target="ListPanel.(Grid.ColumnSpan)" Value="1" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateManager.VisualStateGroups>
 
-                <ListView x:Name="CustomToolsList" Grid.Row="1" SelectionMode="Single"
-                          SelectionChanged="CustomToolsList_SelectionChanged">
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <Border Style="{StaticResource ListViewCardStyle}" helpers:Motion.HoverLift="True">
-                                <Grid Padding="14,10" ColumnSpacing="12">
+                <!-- EDITOR -->
+                <ScrollViewer x:Name="EditorScroll" Grid.Column="0" Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+                        <Border Style="{StaticResource CardStyle}">
+                            <StackPanel Spacing="12">
+                                <TextBlock Text="Tool definition" Style="{StaticResource SectionHeaderStyle}" />
+
+                                <Grid ColumnSpacing="12" RowSpacing="12">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <FontIcon Grid.Column="0" Glyph="&#xE8F1;" FontSize="16" VerticalAlignment="Center"
-                                              Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitleStyle}" />
-                                        <TextBlock Text="{Binding Category}" Style="{StaticResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        <TextBlock Text="{Binding Id}" Style="{StaticResource CaptionTextBlockStyle}"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
 
-                <appControls:EmptyStateControl x:Name="CustomToolsEmpty" Grid.Row="1"
-                                               Glyph="&#xE70F;"
-                                               Title="No custom tools yet"
-                                               Message="Fill in the form to add your own HTTPS-hosted tool — it flows through the same SHA-256 and signature pipeline as the official catalog."
-                                               ActionText="Import from JSON…"
-                                               ActionClick="ImportFeed_Click" />
+                                    <TextBox x:Name="IdBox" Grid.Row="0" Grid.Column="0" Header="Tool id *"
+                                             PlaceholderText="my-tool" AutomationProperties.Name="Custom tool id" />
+                                    <TextBox x:Name="NameBox" Grid.Row="0" Grid.Column="1" Header="Display name *"
+                                             PlaceholderText="My Tool" AutomationProperties.Name="Custom tool name" />
+
+                                    <TextBox x:Name="CategoryBox" Grid.Row="1" Grid.Column="0" Header="Category *"
+                                             PlaceholderText="Core Utilities" AutomationProperties.Name="Custom tool category" />
+                                    <TextBox x:Name="VersionBox" Grid.Row="1" Grid.Column="1" Header="Version"
+                                             PlaceholderText="1.0.0" AutomationProperties.Name="Custom tool version" />
+
+                                    <ComboBox x:Name="KindBox" Grid.Row="2" Grid.Column="0" Header="Artifact kind *"
+                                              HorizontalAlignment="Stretch" AutomationProperties.Name="Custom tool artifact kind"
+                                              SelectionChanged="KindBox_SelectionChanged">
+                                        <ComboBoxItem Content="Installer (.exe/.msi)" Tag="Installer" IsSelected="True" />
+                                        <ComboBoxItem Content="Archive (.zip/.tar.gz)" Tag="Archive" />
+                                        <ComboBoxItem Content="Binary (.exe)" Tag="Binary" />
+                                        <ComboBoxItem Content="Script (.ps1)" Tag="Script" />
+                                    </ComboBox>
+                                    <TextBox x:Name="LaunchArgsBox" Grid.Row="2" Grid.Column="1" Header="Launch args"
+                                             PlaceholderText="Optional installer arguments" AutomationProperties.Name="Custom tool launch arguments" />
+
+                                    <TextBox x:Name="FileNameBox" Grid.Row="3" Grid.Column="0" Header="File name *"
+                                             PlaceholderText="my-tool-1.0.0.exe" AutomationProperties.Name="Custom tool file name" />
+                                    <TextBox x:Name="HomepageBox" Grid.Row="3" Grid.Column="1" Header="Homepage"
+                                             PlaceholderText="https://example.com" AutomationProperties.Name="Custom tool homepage" />
+                                </Grid>
+
+                                <TextBox x:Name="DescriptionBox" Header="Description"
+                                         PlaceholderText="What does this tool do?"
+                                         AcceptsReturn="True" TextWrapping="Wrap" Height="72"
+                                         AutomationProperties.Name="Custom tool description" />
+
+                                <TextBox x:Name="DownloadUrlBox" Header="Download URL * (HTTPS only)"
+                                         PlaceholderText="https://github.com/owner/repo/releases/download/v1.0.0/tool.zip"
+                                         AutomationProperties.Name="Custom tool download URL" />
+
+                                <TextBox x:Name="Sha256Box" Header="SHA-256 (recommended)"
+                                         PlaceholderText="64 hex characters — recommended for integrity verification"
+                                         AutomationProperties.Name="Custom tool SHA-256" />
+
+                                <TextBox x:Name="LogoUrlBox" Header="Logo URL (optional)"
+                                         PlaceholderText="https://example.com/logo.svg"
+                                         AutomationProperties.Name="Custom tool logo URL" />
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Click="Save_Click" Style="{StaticResource AccentButtonStyle}"
+                                            AutomationProperties.Name="Save custom tool">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE74E;" FontSize="13" />
+                                            <TextBlock Text="Save tool" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="Clear_Click" AutomationProperties.Name="Clear the editor form">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE894;" FontSize="13" />
+                                            <TextBlock Text="New / Clear" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button x:Name="DeleteButton" Click="Delete_Click" IsEnabled="False"
+                                            AutomationProperties.Name="Delete selected custom tool">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                            <TextBlock Text="Delete" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="Validation: the id must be lower-case (letters, digits, '-', '.', '_'); the download URL must be HTTPS; a 64-character SHA-256 is strongly recommended so downloads are integrity-checked."
+                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- LIST -->
+                <Grid x:Name="ListPanel" Grid.Column="1" Grid.Row="0" RowSpacing="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Spacing="8">
+                        <TextBlock Text="Your custom tools" Style="{StaticResource SectionHeaderStyle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Click="ImportFeed_Click" AutomationProperties.Name="Import custom tools from JSON">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8B5;" FontSize="12" />
+                                    <TextBlock Text="Import" />
+                                </StackPanel>
+                            </Button>
+                            <Button Click="ExportFeed_Click" AutomationProperties.Name="Export custom tools as JSON">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE898;" FontSize="12" />
+                                    <TextBlock Text="Export feed" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <ListView x:Name="CustomToolsList" Grid.Row="1" SelectionMode="Single"
+                              SelectionChanged="CustomToolsList_SelectionChanged">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource ListViewCardStyle}" helpers:Motion.HoverLift="True">
+                                    <Grid Padding="14,10" ColumnSpacing="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="&#xE8F1;" FontSize="16" VerticalAlignment="Center"
+                                                  Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <StackPanel Grid.Column="1" Spacing="2">
+                                            <TextBlock Text="{Binding Name}" Style="{StaticResource CardTitleStyle}" />
+                                            <TextBlock Text="{Binding Category}" Style="{StaticResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock Text="{Binding Id}" Style="{StaticResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <appControls:EmptyStateControl x:Name="CustomToolsEmpty" Grid.Row="1"
+                                                   Glyph="&#xE70F;"
+                                                   Title="No custom tools yet"
+                                                   Message="Fill in the form to add your own HTTPS-hosted tool — it flows through the same SHA-256 and signature pipeline as the official catalog."
+                                                   ActionText="Import from JSON…"
+                                                   ActionClick="ImportFeed_Click" />
+                </Grid>
             </Grid>
         </Grid>
-    </Grid>
+    </appControls:PageContainer>
 </Page>

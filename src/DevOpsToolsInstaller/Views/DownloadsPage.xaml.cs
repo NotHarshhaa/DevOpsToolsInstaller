@@ -229,7 +229,7 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
             ScheduleInfoBar.IsOpen = false;
         }
 
-        ActiveCountBadge.Text = downloading > 0
+        Header.BadgeText = downloading > 0
             ? $"{downloading} downloading"
             : scheduled > 0
                 ? $"{scheduled} scheduled"
