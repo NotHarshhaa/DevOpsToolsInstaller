@@ -68,7 +68,6 @@
                 <!-- Middle: Level Filter Segmented & Search Box -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                     <tk:Segmented x:Name="LevelSegmented"
-                                  SelectionChanged="LevelSegmented_SelectionChanged"
                                   Padding="0,1,0,1"
                                   VerticalAlignment="Center">
                         <tk:SegmentedItem Content="All" Tag="All" IsSelected="True" />

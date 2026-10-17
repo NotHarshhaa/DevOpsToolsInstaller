@@ -25,6 +25,7 @@ public sealed partial class LogDrawerControl : UserControl
     public LogDrawerControl()
     {
         InitializeComponent();
+        LevelSegmented.SelectionChanged += LevelSegmented_SelectionChanged;
         Loaded += LogDrawerControl_Loaded;
         Unloaded += LogDrawerControl_Unloaded;
 
@@ -233,7 +234,8 @@ public sealed partial class LogDrawerControl : UserControl
 
     private void LevelSegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LevelSegmented.SelectedItem is CommunityToolkit.WinUI.Controls.SegmentedItem item &&
+        if (sender is CommunityToolkit.WinUI.Controls.Segmented segmented &&
+            segmented.SelectedItem is CommunityToolkit.WinUI.Controls.SegmentedItem item &&
             item.Tag is string tag)
         {
             ViewModel.FilterLevel = tag;

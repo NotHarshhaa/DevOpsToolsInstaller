@@ -46,7 +46,6 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                 <!-- Mode Switcher: Presets vs Custom Stack Builder -->
                 <tk:Segmented x:Name="ViewModeSegmented"
-                              SelectionChanged="ViewModeSegmented_SelectionChanged"
                               AutomationProperties.Name="View mode switcher">
                     <tk:SegmentedItem Content="Presets" Tag="Presets" IsSelected="True" ToolTipService.ToolTip="Browse pre-configured workflow stacks" />
                     <tk:SegmentedItem Content="Stack Builder" Tag="Builder" ToolTipService.ToolTip="Create and customize tool stacks" />

@@ -89,6 +89,7 @@ public sealed partial class StacksPage : Page, IRefreshablePage
     {
         InitializeComponent();
         CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
+        ViewModeSegmented.SelectionChanged += ViewModeSegmented_SelectionChanged;
         Loaded += StacksPage_Loaded;
 
         BuilderViewModel.StackTools.CollectionChanged += (s, e) =>
@@ -184,6 +185,11 @@ public sealed partial class StacksPage : Page, IRefreshablePage
             return;
         }
 
+        if (PresetsContainerGrid is null || BuilderContainerGrid is null)
+        {
+            return;
+        }
+
         var mode = selected.Tag as string ?? "Presets";
         _isBuilderMode = string.Equals(mode, "Builder", StringComparison.OrdinalIgnoreCase);
 
@@ -192,18 +198,18 @@ public sealed partial class StacksPage : Page, IRefreshablePage
             PresetsContainerGrid.Visibility = Visibility.Collapsed;
             BuilderContainerGrid.Visibility = Visibility.Visible;
 
-            PageHeaderTitle.Text = "Custom Stack Builder";
-            PageHeaderSubtitle.Text = "Assemble custom toolsets by dragging catalog tools or using '+ Add'. Save, export, or install in 1-click.";
-            HeaderCountBadge.Text = BuilderViewModel.ToolsCountBadgeText;
+            if (PageHeaderTitle != null) PageHeaderTitle.Text = "Custom Stack Builder";
+            if (PageHeaderSubtitle != null) PageHeaderSubtitle.Text = "Assemble custom toolsets by dragging catalog tools or using '+ Add'. Save, export, or install in 1-click.";
+            if (HeaderCountBadge != null) HeaderCountBadge.Text = BuilderViewModel.ToolsCountBadgeText;
         }
         else
         {
             PresetsContainerGrid.Visibility = Visibility.Visible;
             BuilderContainerGrid.Visibility = Visibility.Collapsed;
 
-            PageHeaderTitle.Text = "Stacks & Bundles";
-            PageHeaderSubtitle.Text = "Pre-configured toolsets for common DevOps workflows. Install entire stacks in 1-click, or build your own custom stack.";
-            HeaderCountBadge.Text = $"{_allCardModels.Count} Presets";
+            if (PageHeaderTitle != null) PageHeaderTitle.Text = "Stacks & Bundles";
+            if (PageHeaderSubtitle != null) PageHeaderSubtitle.Text = "Pre-configured toolsets for common DevOps workflows. Install entire stacks in 1-click, or build your own custom stack.";
+            if (HeaderCountBadge != null) HeaderCountBadge.Text = $"{_allCardModels.Count} Presets";
         }
     }
 
