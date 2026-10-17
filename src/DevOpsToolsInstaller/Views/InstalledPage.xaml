@@ -229,6 +229,19 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
+                    <!-- Loading overlay while the workstation scan runs -->
+                    <Grid x:Name="InstalledLoading" Grid.Row="0" Grid.RowSpan="2"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Visibility="Collapsed" Margin="0,24">
+                        <StackPanel Spacing="14" HorizontalAlignment="Center">
+                            <ProgressRing x:Name="InstalledLoadingRing" Width="32" Height="32" IsActive="True" />
+                            <TextBlock Text="Scanning installed tools…"
+                                       Style="{StaticResource BodyTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+
                     <!-- ══════════════════════════════════ -->
                     <!--  TABLE HEADER ROW (sortable)       -->
                     <!-- ══════════════════════════════════ -->

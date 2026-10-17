@@ -153,6 +153,12 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
+        // Show the loading overlay while the catalog hydrates and the
+        // workstation scan runs, so the table doesn't appear empty.
+        InstalledLoading.Visibility = Visibility.Visible;
+        InstalledList.Visibility = Visibility.Collapsed;
+        EmptyState.Visibility = Visibility.Collapsed;
+
         StatusText.Text = "Scanning installed tools…";
         await mw.EnsureCatalogLoadedAsync();
 
@@ -213,6 +219,10 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         Header.Title = $"Installed Tools & Updates ({count} total)";
 
         ApplyFilter();
+
+        // Reveal the table (or empty state) now that the scan has populated it.
+        InstalledLoading.Visibility = Visibility.Collapsed;
+        InstalledList.Visibility = _allInstalledTools.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         if (count == 0)
         {

@@ -147,6 +147,25 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         }
     }
 
+    // ── Live per-transfer ETA ─────────────────────────────────────────
+    // Updated by the download pipeline alongside <see cref="DownloadSpeed"/>
+    // (same ~400 ms cadence). Empty whenever the transfer has ended.
+
+    private string _downloadEta = string.Empty;
+    [JsonIgnore]
+    public string DownloadEta
+    {
+        get => _downloadEta;
+        set
+        {
+            if (_downloadEta != value)
+            {
+                _downloadEta = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     // ── Live download-speed telemetry (DownloadsPage sparkline) ─────────
     // Numeric speed samples arrive on a download worker thread (~2.5/s,
     // below the 4/s chart throttle); buffer mutations are marshaled to the
@@ -244,8 +263,10 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                         _speedSamples?.ClearSamples();
                         _downloadSpeedMBps = 0;
                         _downloadSpeed = string.Empty;
+                        _downloadEta = string.Empty;
                         HasSpeedSamples = false;
                         OnPropertyChanged(nameof(DownloadSpeed));
+                        OnPropertyChanged(nameof(DownloadEta));
                     });
                 }
             }

@@ -297,6 +297,12 @@ public sealed class DownloadService
                         tool.DownloadSpeed = $"{speedMBps:F1} MB/s";
                         lastSpeedBytes = totalRead;
                         lastSpeedTimeMs = elapsedMs;
+
+                        // Per-transfer ETA, derived from the instantaneous speed
+                        // and the remaining byte count. Only meaningful once the
+                        // server has advertised a total length and the transfer
+                        // has settled into a measurable rate.
+                        tool.DownloadEta = FormatEta(totalBytes - totalRead, speedMBps);
                     }
 
                     if (totalBytes > 0)
@@ -371,6 +377,24 @@ public sealed class DownloadService
     /// </summary>
     private static bool IsTransient(Exception ex)
         => ex is HttpRequestException or IOException;
+
+    /// <summary>
+    /// Formats a remaining-bytes / speed pair into a compact human-readable ETA.
+    /// Returns an empty string when the total length is unknown or the transfer
+    /// has not yet reached a measurable rate, so the UI can hide the label.
+    /// </summary>
+    private static string FormatEta(long remainingBytes, double speedMBps)
+    {
+        if (remainingBytes <= 0 || speedMBps <= 0.01)
+            return string.Empty;
+
+        var seconds = remainingBytes / (speedMBps * 1024.0 * 1024.0);
+        if (seconds >= 3600)
+            return $"~{seconds / 3600:F1} h";
+        if (seconds >= 60)
+            return $"~{seconds / 60:F0} min";
+        return $"~{(int)Math.Max(1, seconds)} s";
+    }
 
     /// <summary>
     /// Downloads multiple tools concurrently with a semaphore throttle.

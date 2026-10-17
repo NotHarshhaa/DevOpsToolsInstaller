@@ -176,7 +176,18 @@ public sealed partial class StacksPage : Page, IRefreshablePage
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
-        await mw.EnsureCatalogLoadedAsync();
+        // Show the loading ring while the catalog hydrates.
+        StacksLoading.Visibility = Visibility.Visible;
+        StacksGridView.Visibility = Visibility.Collapsed;
+        try
+        {
+            await mw.EnsureCatalogLoadedAsync();
+        }
+        finally
+        {
+            StacksLoading.Visibility = Visibility.Collapsed;
+            StacksGridView.Visibility = Visibility.Visible;
+        }
 
         BuilderViewModel.Initialize(mw.Tools);
 

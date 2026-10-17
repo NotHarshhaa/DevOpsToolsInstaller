@@ -6,6 +6,7 @@
     xmlns:appControls="using:DevOpsToolsInstaller.Controls"
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:services="using:DevOpsToolsInstaller.Services"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
 
     <appControls:PageContainer>
@@ -59,10 +60,10 @@
                                 <AdaptiveTrigger MinWindowWidth="0" />
                             </VisualState.StateTriggers>
                             <VisualState.Setters>
-                                <Setter Target="StatusFilterChips.(Grid.Row)" Value="1" />
-                                <Setter Target="StatusFilterChips.(Grid.Column)" Value="0" />
-                                <Setter Target="StatusFilterChips.(Grid.ColumnSpan)" Value="5" />
-                                <Setter Target="StatusFilterChips.HorizontalAlignment" Value="Left" />
+                                <Setter Target="StatusSegmented.(Grid.Row)" Value="1" />
+                                <Setter Target="StatusSegmented.(Grid.Column)" Value="0" />
+                                <Setter Target="StatusSegmented.(Grid.ColumnSpan)" Value="5" />
+                                <Setter Target="StatusSegmented.HorizontalAlignment" Value="Left" />
                             </VisualState.Setters>
                         </VisualState>
                         <!-- Wide: everything fits on a single row. -->
@@ -71,10 +72,10 @@
                                 <AdaptiveTrigger MinWindowWidth="1240" />
                             </VisualState.StateTriggers>
                             <VisualState.Setters>
-                                <Setter Target="StatusFilterChips.(Grid.Row)" Value="0" />
-                                <Setter Target="StatusFilterChips.(Grid.Column)" Value="1" />
-                                <Setter Target="StatusFilterChips.(Grid.ColumnSpan)" Value="1" />
-                                <Setter Target="StatusFilterChips.HorizontalAlignment" Value="Stretch" />
+                                <Setter Target="StatusSegmented.(Grid.Row)" Value="0" />
+                                <Setter Target="StatusSegmented.(Grid.Column)" Value="1" />
+                                <Setter Target="StatusSegmented.(Grid.ColumnSpan)" Value="1" />
+                                <Setter Target="StatusSegmented.HorizontalAlignment" Value="Stretch" />
                             </VisualState.Setters>
                         </VisualState>
                     </VisualStateGroup>
@@ -87,20 +88,15 @@
                          TextChanged="SearchBox_TextChanged"
                          VerticalAlignment="Center" />
 
-                <!-- Status Filter Chips -->
-                <StackPanel Grid.Row="0" Grid.Column="1" x:Name="StatusFilterChips"
-                            Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <Button x:Name="FilterAllBtn" Content="All" Click="FilterTab_Click" Tag="All"
-                            Style="{StaticResource SelectedCategoryChipStyle}" />
-                    <Button x:Name="FilterDownloadingBtn" Content="Downloading" Click="FilterTab_Click" Tag="Downloading"
-                            Style="{StaticResource CategoryChipStyle}" />
-                    <Button x:Name="FilterScheduledBtn" Content="Scheduled" Click="FilterTab_Click" Tag="Scheduled"
-                            Style="{StaticResource CategoryChipStyle}" />
-                    <Button x:Name="FilterReadyBtn" Content="Ready to Install" Click="FilterTab_Click" Tag="Ready"
-                            Style="{StaticResource CategoryChipStyle}" />
-                    <Button x:Name="FilterInstalledBtn" Content="Installed" Click="FilterTab_Click" Tag="Installed"
-                            Style="{StaticResource CategoryChipStyle}" />
-                </StackPanel>
+                <!-- Status Filter (Segmented) -->
+                <tk:Segmented Grid.Row="0" Grid.Column="1" x:Name="StatusSegmented"
+                              AutomationProperties.Name="Download status filter">
+                    <tk:SegmentedItem Content="All" Tag="All" IsSelected="True" />
+                    <tk:SegmentedItem Content="Downloading" Tag="Downloading" />
+                    <tk:SegmentedItem Content="Scheduled" Tag="Scheduled" />
+                    <tk:SegmentedItem Content="Ready to Install" Tag="Ready" />
+                    <tk:SegmentedItem Content="Installed" Tag="Installed" />
+                </tk:Segmented>
 
                 <!-- Middle Status / Message -->
                 <TextBlock Grid.Column="2" x:Name="StatusText"
@@ -306,7 +302,7 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- Dynamic Throughput Speed / Status -->
+                                                <!-- Dynamic Throughput Speed / ETA / Status -->
                                                 <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8">
                                                     <TextBlock Text="{Binding FileName}"
                                                                Style="{StaticResource CaptionTextBlockStyle}"
@@ -319,6 +315,13 @@
                                                                Foreground="{ThemeResource CustomAccentPrimaryBrush}"
                                                                FontWeight="SemiBold" FontSize="11"
                                                                Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                    <TextBlock Text="•" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                               Visibility="{Binding DownloadEta, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                                    <TextBlock Text="{Binding DownloadEta, Mode=OneWay}"
+                                                               Style="{StaticResource CaptionTextBlockStyle}"
+                                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                               FontSize="11"
+                                                               Visibility="{Binding DownloadEta, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
                                                 </StackPanel>
 
                                                 <!-- Progress Percentage -->
@@ -490,6 +493,21 @@
                         </ListView>
                     </Grid>
                 </Border>
+            </Grid>
+
+            <!-- ══════════════════════════════════ -->
+            <!--  LOADING STATE                     -->
+            <!-- ══════════════════════════════════ -->
+            <Grid x:Name="LoadingState" Grid.Row="2"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  Visibility="Collapsed">
+                <StackPanel Spacing="14" HorizontalAlignment="Center">
+                    <ProgressRing x:Name="LoadingRing" Width="36" Height="36" IsActive="True" />
+                    <TextBlock Text="Loading downloads…"
+                               Style="{StaticResource BodyTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
             </Grid>
 
             <!-- ══════════════════════════════════ -->

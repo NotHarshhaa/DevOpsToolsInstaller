@@ -282,6 +282,19 @@
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
+                        <!-- Loading overlay while the catalog hydrates -->
+                        <Grid x:Name="StacksLoading" Grid.Row="0" Grid.RowSpan="4"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                              Visibility="Collapsed" Margin="0,24">
+                            <StackPanel Spacing="14" HorizontalAlignment="Center">
+                                <ProgressRing x:Name="StacksLoadingRing" Width="32" Height="32" IsActive="True" />
+                                <TextBlock Text="Loading stacks…"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+
                         <!-- ROW 0: Search & Status -->
                         <Grid Grid.Row="0" ColumnSpacing="12">
                             <Grid.ColumnDefinitions>

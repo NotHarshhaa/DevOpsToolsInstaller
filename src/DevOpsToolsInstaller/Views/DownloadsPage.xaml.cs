@@ -27,6 +27,12 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
     public DownloadsPage()
     {
         InitializeComponent();
+
+        // Wired here rather than in XAML: with IsSelected="True" on the first
+        // SegmentedItem, a XAML-wired handler fires during InitializeComponent,
+        // before the queue/filter state exists.
+        StatusSegmented.SelectionChanged += StatusSegmented_SelectionChanged;
+
         Loaded += DownloadsPage_Loaded;
         Unloaded += (s, e) =>
         {
@@ -111,6 +117,14 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
+        // Show the loading state while the catalog hydrates and the queue is
+        // first populated, so the empty state doesn't flash prematurely.
+        _isLoading = true;
+        LoadingState.Visibility = Visibility.Visible;
+        DownloadsList.Visibility = Visibility.Collapsed;
+        EmptyState.Visibility = Visibility.Collapsed;
+        NoFilterResultsPanel.Visibility = Visibility.Collapsed;
+
         await mw.EnsureCatalogLoadedAsync();
 
         // Also include any already-downloaded tools from the catalog
@@ -134,6 +148,10 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         RefreshSignatures(mw.DownloadQueue.ToList(), dlFolder);
 
         InitializeThroughputChart();
+
+        _isLoading = false;
+        LoadingState.Visibility = Visibility.Collapsed;
+        ApplyFilter();
     }
 
     void IRefreshablePage.RefreshView()
@@ -152,6 +170,8 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         base.OnNavigatedFrom(e);
         TeardownThroughputChart();
     }
+
+    private bool _isLoading;
 
     private void ApplyFilter()
     {
@@ -201,8 +221,18 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         }
 
         var total = mw.DownloadQueue.Count;
-        EmptyState.Visibility = total == 0 ? Visibility.Visible : Visibility.Collapsed;
-        DownloadsList.Visibility = total > 0 ? Visibility.Visible : Visibility.Collapsed;
+        if (_isLoading)
+        {
+            LoadingState.Visibility = Visibility.Visible;
+            EmptyState.Visibility = Visibility.Collapsed;
+            DownloadsList.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            LoadingState.Visibility = Visibility.Collapsed;
+            EmptyState.Visibility = total == 0 ? Visibility.Visible : Visibility.Collapsed;
+            DownloadsList.Visibility = total > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
         NoFilterResultsPanel.Visibility = (total > 0 && _filteredQueue.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
 
         UpdateMetrics();
@@ -267,16 +297,22 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         _searchDebounceTimer.Start();
     }
 
-    private void FilterTab_Click(object sender, RoutedEventArgs e)
+    private void StatusSegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (sender is not Button btn || btn.Tag is not string tag) return;
-        _statusFilter = tag;
+        // Resolve the active filter from the selected segment's Tag, falling
+        // back to the index for resilience.
+        var tag = StatusSegmented.SelectedItem is CommunityToolkit.WinUI.Controls.SegmentedItem item
+            ? item.Tag as string
+            : null;
 
-        FilterAllBtn.Style = (Style)Application.Current.Resources[tag == "All" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-        FilterDownloadingBtn.Style = (Style)Application.Current.Resources[tag == "Downloading" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-        FilterScheduledBtn.Style = (Style)Application.Current.Resources[tag == "Scheduled" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-        FilterReadyBtn.Style = (Style)Application.Current.Resources[tag == "Ready" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
-        FilterInstalledBtn.Style = (Style)Application.Current.Resources[tag == "Installed" ? "SelectedCategoryChipStyle" : "CategoryChipStyle"];
+        _statusFilter = tag ?? StatusSegmented.SelectedIndex switch
+        {
+            1 => "Downloading",
+            2 => "Scheduled",
+            3 => "Ready",
+            4 => "Installed",
+            _ => "All"
+        };
 
         ApplyFilter();
     }

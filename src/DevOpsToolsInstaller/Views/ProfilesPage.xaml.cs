@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
+using DevOpsToolsInstaller.ViewModels;
 
 namespace DevOpsToolsInstaller.Views;
 
@@ -40,7 +41,19 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         var mw = App.MainWindowInstance;
         if (mw is not null)
         {
-            await mw.EnsureCatalogLoadedAsync();
+            // Show the loading ring while the catalog hydrates; the profile
+            // list itself is read from disk synchronously afterwards.
+            ProfilesLoading.Visibility = Visibility.Visible;
+            ProfilesContainer.Visibility = Visibility.Collapsed;
+            try
+            {
+                await mw.EnsureCatalogLoadedAsync();
+            }
+            finally
+            {
+                ProfilesLoading.Visibility = Visibility.Collapsed;
+                ProfilesContainer.Visibility = Visibility.Visible;
+            }
         }
         RefreshProfiles();
         RefreshSnapshots();
@@ -99,6 +112,63 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         bool empty = profiles.Count == 0;
         ProfilesList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
         ProfilesEmpty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+        // Hide the toolbar while empty so the capture action is not duplicated
+        // between the toolbar and the empty state.
+        if (ProfilesToolbar is not null)
+            ProfilesToolbar.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+
+        BuildTemplateList();
+    }
+
+    /// <summary>
+    /// Builds the starter-template cards shown in the empty state. Each template
+    /// is resolved against the loaded catalog so the tool count reflects the tools
+    /// actually available.
+    /// </summary>
+    private void BuildTemplateList()
+    {
+        var mw = App.MainWindowInstance;
+        var templates = ProfileTemplates.All;
+
+        if (mw is not null && mw.Tools.Count > 0)
+        {
+            var known = new HashSet<string>(
+                mw.Tools.Select(t => t.Id), StringComparer.OrdinalIgnoreCase);
+            foreach (var template in templates)
+            {
+                var resolved = template.ToolIds.Where(id => known.Contains(id)).ToList();
+                template.ToolCountText = resolved.Count > 0
+                    ? $"{resolved.Count} tools"
+                    : string.Empty;
+            }
+        }
+
+        ProfilesTemplatesList.ItemsSource = templates;
+    }
+
+    private async void UseTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: ProfileTemplate template }) return;
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        // Resolve the template's tool ids against the loaded catalog, keeping
+        // only the tools that actually exist.
+        var known = mw.Tools.Select(t => t.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var ids = template.ToolIds.Where(id => known.Contains(id)).ToList();
+
+        if (ids.Count == 0)
+        {
+            ShowNotice($"Template '{template.Name}' has no matching tools in the catalog.",
+                InfoBarSeverity.Warning);
+            return;
+        }
+
+        var profile = ProfileStoreService.CreateFromSelection(template.Name, template.Description, ids);
+        RefreshProfiles();
+        ShowNotice($"Created profile '{profile.Name}' from template ({profile.ToolCount} tool(s)).",
+            InfoBarSeverity.Success);
     }
 
     private void RefreshProfiles_Click(object sender, RoutedEventArgs e) => RefreshProfiles();
@@ -697,5 +767,49 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         NoticeInfoBar.Message = message;
         NoticeInfoBar.Severity = severity;
         NoticeInfoBar.IsOpen = true;
+    }
+
+    // ── Starter templates ────────────────────────────────────────────────
+
+    /// <summary>
+    /// The curated starter templates offered in the Profiles empty state. Each
+    /// maps a common workstation role to a set of catalog tool ids; picking one
+    /// creates a profile from the matching catalog tools.
+    /// </summary>
+    private static class ProfileTemplates
+    {
+        public static readonly List<ProfileTemplate> All = new()
+        {
+            new ProfileTemplate
+            {
+                Name = "Kubernetes developer",
+                Description = "Cluster tooling for shipping and debugging workloads.",
+                Glyph = "\uE92E",
+                ToolIds = new List<string>
+                {
+                    "kubectl", "helm", "k9s", "kind", "kustomize", "stern", "kubectx", "minikube"
+                }
+            },
+            new ProfileTemplate
+            {
+                Name = "Cloud engineer",
+                Description = "The big-three cloud CLIs plus infrastructure basics.",
+                Glyph = "\uE753",
+                ToolIds = new List<string>
+                {
+                    "awscli", "azure-cli", "gcloud-cli", "terraform", "docker-desktop", "kubectl"
+                }
+            },
+            new ProfileTemplate
+            {
+                Name = "IaC / Platform",
+                Description = "Infrastructure-as-code authoring, linting and secrets.",
+                Glyph = "\uE8B7",
+                ToolIds = new List<string>
+                {
+                    "terraform", "terragrunt", "tflint", "packer", "vault", "ansible"
+                }
+            }
+        };
     }
 }
