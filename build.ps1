@@ -335,7 +335,7 @@ if ($Msi) {
         $distDir = Join-Path $root 'dist'
         if (-not (Test-Path $distDir)) { New-Item -ItemType Directory -Path $distDir | Out-Null }
 
-        $version = "3.0.1"
+        $version = "3.1.0"
         if (Test-Path $project) {
             $csprojXml = [xml](Get-Content $project)
             $verNode = $csprojXml.SelectSingleNode("//Version")

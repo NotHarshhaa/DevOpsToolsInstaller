@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-17
+
 ### Added
 - **Workstation Profiles (`ProfilesPage` → Profiles, `Services/ProfileStoreService.cs`)**:
   - Capture the currently installed toolset, or the current catalog selection, as a named, reusable profile (with optional description).
@@ -76,9 +78,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Profiles empty state & starter templates**: the Profiles toolbar now hides while the list is empty so the *Capture installed…* action is no longer shown twice; the empty state instead offers a single capture CTA plus three one-click **starter templates** (Kubernetes developer, Cloud engineer, IaC / Platform) that create a profile directly from the matching catalog tools, each card showing how many of its tools exist in the catalog.
 - **Downloads telemetry & filters**: each downloading item now shows a live **ETA** (e.g. *~42 s*) alongside its transfer speed, derived from the instantaneous rate and remaining bytes; the status filter chips are replaced by a native **`Segmented`** control (All / Downloading / Scheduled / Ready to Install / Installed); and a **ProgressRing loading state** replaces the premature empty-state flash while the catalog hydrates and the queue is first populated.
 - **Loading states everywhere data loads asynchronously**: Profiles, Installed and Stacks now show a **ProgressRing** overlay while their backing data hydrates (catalog load / workstation scan), so no page renders blank or flashes an empty state before its data is ready.
+- **Accent SplitButtons**: introduced a unified `AccentSplitButtonStyle` and `CustomAccentDividerBrush` with consistent theme-aware hover and press states across the Catalog, Stacks, and Tool Details pages.
+- **Far-right corner scrollbar alignment**: updated `PageContainer` and page layouts across all views so child scrollables span the full available width (`finalSize.Width`), pinning vertical scrollbars cleanly to the far-right corner with 32px breathing room for content.
 
 ### Fixed
 - **Sidebar selection now follows the page**: `NavigationView.SelectedItem` is synced on `Frame.Navigated`, and an `ItemInvoked` safety net opens the target page even when the item was already selected. Fixes *Profiles & History* refusing to open and the wrong item being highlighted (e.g. *Installed* highlighting *Stacks*) when navigating from Home cards, the search box or deep links.
+- **Crisp DirectWrite text rendering**: neutralized composition visual scale transforms on card hover and focus in `Helpers/Motion.cs` so text, glyphs, and badges remain 100% sharp and ClearType-aligned on both keyboard focus and mouse hover, eliminating bilinear interpolation blur.
 - **Single version source of truth**: the title bar, the Home hero chip, the About badge and the Settings About row now all read `AppUpdaterService.CurrentVersion` (assembly version) instead of hard-coded, divergent values.
 - **Consistent installer copy**: Home, About and the feature cards now describe the same behavior — vendor setup wizards run interactively with standard UAC prompts and are never installed silently.
 - **Version state**: installed-vs-catalog comparison now uses a numeric comparer and distinguishes *Newer than catalog* from *Update available* / *Up to date* / *Installed*; the Installed and Catalog footers surface the active catalog source and how stale it is.

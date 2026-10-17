@@ -20,7 +20,7 @@
   <!-- Titlebar -->
   <rect x="1" y="1" width="958" height="36" class="subtle-bg"/>
   <line x1="1" y1="37" x2="959" y2="37" class="line"/>
-  <text x="16" y="23" class="text-bold" font-size="12">DevOps Tools Installer — v3.0.1 (WinUI 3 · Mica Alt)</text>
+  <text x="16" y="23" class="text-bold" font-size="12">DevOps Tools Installer — v3.1.0 (WinUI 3 · Mica Alt)</text>
   
   <!-- Window Controls -->
   <g transform="translate(890, 10)">
@@ -71,7 +71,7 @@
     <rect x="180" y="0" width="168" height="68" fill="none" class="line"/>
     <text x="192" y="22" class="text-mute">UPDATES PENDING</text>
     <text x="192" y="50" class="text-bold" font-size="22">2 tools</text>
-    <text x="280" y="50" class="text-mute">[v3.0.1]</text>
+    <text x="280" y="50" class="text-mute">[v3.1.0]</text>
 
     <!-- Card 3 -->
     <rect x="360" y="0" width="168" height="68" fill="none" class="line"/>

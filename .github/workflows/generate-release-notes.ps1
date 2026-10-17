@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v3.0.2",
+    [string]$Tag = "v3.1.0",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -38,55 +38,43 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Release
 
 Welcome to the **__TAG__** release of **DevOps Tools Installer**!
-This release introduces an overhauled **HomePage with Core Features Showcase & Quick Start guide**, the interactive **Custom Stack Builder**, the comprehensive **Workstation Doctor**, a universal **Collapsible Live Log Drawer**, **PATH Environment Doctor & Fixer**, **VS Code DevContainer & Dockerfile Generator**, **Off-Peak Download Scheduler**, and key **UI & shortcut fixes**.
+This release introduces **Workstation Profiles, Snapshots & Install History**, **Cloud-Synced Profiles & Pre/Post-Install Hooks**, an **In-App Custom Tool Catalog Editor**, **Live Download ETA & Telemetry**, **Dynamic Window Material Settings (Mica, Mica Alt, Acrylic)**, **Workstation Doctor Health Score & Safe PATH Remediation**, **Installed Tools Update Preferences & Actions**, **Unified Accent SplitButtons**, and **Subpixel Crisp Text & Corner Scrollbar Layout Alignment**.
 
 ---
 
 ### ✨ What's New & Highlights in __TAG__
 
-#### 🎨 Redesigned HomePage & Core Features Showcase
-- **Immersive Hero Header**: Authentic in-app Acrylic backdrop, one-line value proposition, and instant "Browse catalog" & "Build a stack" actions.
-- **3-Step Quick Start Stepper**: Visual workstation onboarding path (*Pick tools* → *Verify & download* → *Install*).
-- **9-Card Responsive Showcase Grid**: Dynamic live catalog counts (~90+ tools, 8 role bundles, detected installed tools), with hover and focus elevation lift.
-- **30-Second First-Run Tour**: Guided TeachingTip onboarding chain for new users with Settings toggle.
-- **Headless CLI Documentation**: In-app modal dialog with instant copy for CI and automation scripts.
+#### 🗃️ Workstation Profiles, Snapshots & History (`ProfilesPage`)
+- **Named Workstation Profiles**: Capture currently installed toolsets or catalog selections into portable named profiles; 1-click **Apply** or **Install** all referenced tools.
+- **Point-in-Time Snapshots**: Snapshot installed tools, versions, and User PATH; diff against workstation changes and restore missing tools.
+- **Install History & Rollback**: Persistent JSONL activity trail (`history.jsonl`) recording installs, updates, uninstalls, and guided version rollbacks.
+- **Cloud-Synced Profiles**: Opt-in sync/push/pull of profiles, snapshots, custom tools, and hooks via OneDrive, Dropbox, or network shares.
+- **Starter Templates**: Profiles empty state includes curated templates (Kubernetes Developer, Cloud Engineer, IaC & Platform).
 
-#### 🧰 Custom Stack Builder (`StacksPage`)
-- **Interactive 2-Column Composer**: Fluent Segmented switcher between "Presets" and "Stack Builder".
-- **Visual Stack Assembly**: Drag-and-drop tool cards into "My Stack", reorder on the fly, with keyboard accessible controls.
-- **Live Metrics**: Real-time tool count and estimated download size calculations.
-- **Portability**: Save locally, Export/Import `.json` stack manifests with catalog validation.
-- **1-Click Installation**: Batch install complete custom toolchains through the unified download queue.
+#### 🛠️ In-App Custom Tool Catalog Editor (`CatalogEditorPage`)
+- **Author & Manage Custom Tools**: Add your own HTTPS-hosted tools to the catalog with full SHA-256 and Authenticode validation.
+- **Live Preview Card**: Renders real-time mockup of custom tool card matching the official catalog styling.
+- **Catalog Feed Import/Export**: Easily share team tool feeds via JSON manifests (`custom_tools.json`).
 
-#### 🩺 Workstation Doctor (`DoctorPage`)
-- **5-Point Health Scan**: Inspects PATH conflicts/duplicates, missing prerequisites (WSL2, Hyper-V, virtualization), multi-version CLI conflicts, outdated tools, and tools missing from PATH.
-- **Live Diagnostics Header**: Scan progress ring with Pass, Warning, and Fail count indicators.
-- **Confirmed Fix Actions**: Guided 1-click remediation dialogs requiring explicit user confirmation before modifying system settings.
-- **Report Export**: Copy Markdown workstation health report to clipboard or re-run checks anytime.
+#### ⚡ Telemetry & Asynchronous Loading States
+- **Live Download ETA**: Real-time ETA indicator calculated alongside transfer throughput.
+- **Segmented Filter Controls**: Modern Fluent segmented chips for instant download queue filtering.
+- **ProgressRing Hydration Overlays**: Smooth progress overlays across Profiles, Installed, and Stacks to eliminate empty-state flashing during async catalog hydration.
 
-#### 📜 Universal Collapsible Log Drawer
-- **Global Drawer Control**: Slide-up activity drawer accessible across all pages with toggle button and <kbd>Ctrl</kbd>+<kbd>`</kbd> shortcut.
-- **Live Event Stream**: Real-time chunk progress, SHA-256 validation, Authenticode signature verification, and installation logs.
-- **Diagnostics Controls**: Severity filtering (*All, Info, Warning, Error*), text search, pause auto-scroll, clear, and copy.
-- **Accessibility & Settings**: Virtualized `ListView` for massive logs; height remembered across sessions; honors Windows *Reduce animations*.
+#### 🩺 Workstation Doctor & Health Score (`DoctorPage`)
+- **Weighted 0-100 Health Score**: Real-time workstation health rating reflected on both Doctor and Home dashboards.
+- **Safe PATH Remediation**: Preview and safely deduplicate / remove dead PATH entries with automated User PATH backup and 1-click Undo.
+- **Report Redaction**: One-click redaction of local usernames and machine names when copying Markdown diagnostics reports for IT tickets.
 
-#### 🛣️ PATH Environment Doctor & Fixer
-- **Deep Inspection**: Audit User and System PATH for duplicates, dead directories, and missing binary locations.
-- **Safety First**: Automated timestamped backups to `%LOCALAPPDATA%` prior to any adjustments.
-- **1-Click Optimization**: Prune invalid paths, deduplicate, configure `Tools\bin`, and broadcast environment updates (`WM_SETTINGCHANGE`).
+#### ⚙️ Settings Workspace Modernization (`SettingsPage`)
+- **Fluent SettingsCard / Expander Architecture**: Redesigned on CommunityToolkit Settings controls with bold headers, descriptions, and collapsed value summaries.
+- **Section & Card Search**: Instant keyword search filtering across all settings categories.
+- **Security Posture Overview**: Real-time snapshot of signature verification policy, hooks status, proxy configuration, and audit log paths.
 
-#### 🐳 VS Code DevContainer & Dockerfile Generator
-- **Containerized Workstations**: Export any stack or installed toolchain to production-grade `.devcontainer/devcontainer.json` and multi-stage `Dockerfile`.
-- **Automated Mapping**: Maps catalog tools to official DevContainer features and Linux CLI binaries.
-- **Headless CLI Support**: Run `--generate-devcontainer <output>` in CI/CD pipelines.
-
-#### ⏰ Off-Peak Scheduler & Auto-Retry Engine
-- **Bandwidth Management**: Configure scheduled download windows under **Settings → Network** to protect daytime bandwidth.
-- **Automatic Recovery**: Exponential backoff retry engine for failed downloads during network disruptions.
-
-#### 🐛 UI Polish & Shortcut Fixes
-- **Floating Badge Fix**: Resolved the persistent "Ctrl+K" accelerator tooltip badge overlay by setting `KeyboardAcceleratorPlacementMode="Hidden"`.
-- **Keyboard & Narrator Access**: Full AutomationProperties and focus visual polish across all new pages and dialogs.
+#### 🎯 Crisp DirectWrite Text & Corner-Pinned Scrollbars
+- **Subpixel Text Clarity**: Eliminated GPU bilinear interpolation blur by removing composition visual scaling on hover/focus across all cards.
+- **Corner-Pinned Scrollbars**: Arranged scroll containers to the window boundary so vertical scrollbars sit flush against the far-right corner with 32px inner gutter.
+- **Unified Accent SplitButtons**: Consistent Fluent SplitButton styling with custom accent divider brushes across Catalog, Stacks, and Tool Details.
 
 ---
 
@@ -152,7 +140,7 @@ $changelog = ""
 try {
     git fetch --tags --quiet 2>$null
     $prevTag = (git tag --sort=-creatordate 2>$null | Where-Object { $_ -ne $Tag } | Select-Object -First 1)
-    if (-not $prevTag) { $prevTag = "v3.0.1" }
+    if (-not $prevTag) { $prevTag = "v3.0.2" }
     
     $targetRef = if (git rev-parse --verify --quiet "$Tag" 2>$null) { $Tag } else { "HEAD" }
     $log = (git log --pretty=format:'- `%h` - **%s**' "$prevTag..$targetRef" 2>$null | Out-String).Trim()
@@ -164,16 +152,29 @@ try {
 
 if ([string]::IsNullOrWhiteSpace($changelog)) {
     $changelog = @"
-Changes since ``v3.0.1``:
+Changes since ``v3.0.2``:
 
-- ``ed5c5d0`` - **feat: Enhance HomePage and ViewModel with new features and styles**
-- ``c5773ae`` - **feat: Expand Custom Stack Builder and Workstation Doctor features**
-- ``b62f6bd`` - **feat: Implement custom stack management and builder functionality**
-- ``2eb5dac`` - **feat: Implement live log drawer with enhanced logging features**
-- ``b210a49`` - **feat: Add Workstation Doctor for diagnostics and health checks**
-- ``98b29c3`` - **feat: Introduce PATH Environment Doctor, DevContainer & Download Scheduler**
-- ``4bf8921`` - **Merge pull request #1 from NotHarshhaa/bot/catalog-refresh**
-- ``43126c8`` - **chore: refresh tool catalog versions and checksums**
+- ``e1cd895`` - **feat: Refine layout and padding across various pages for improved UI consistency**
+- ``996fac4`` - **feat: Introduce custom accent styles and enhance SplitButton functionality**
+- ``ff54b18`` - **feat: Enhance Downloads and Profiles pages with new features and loading states**
+- ``002e833`` - **feat: Enhance Workstation Doctor functionality and UI**
+- ``0a91275`` - **feat: Revamp Settings workspace with enhanced layout and functionality**
+- ``6a98b32`` - **feat: Enhance CatalogEditorPage with improved layout and validation features**
+- ``0bfb0a7`` - **feat: Enhance Stacks workspace with dynamic card sizing and detailed tool previews**
+- ``21e22ad`` - **feat: Implement update preferences and enhance installed tools management**
+- ``186d1c7`` - **feat: Revamp Catalog page with enhanced tool details and UI improvements**
+- ``adb90bb`` - **feat: Revamp Home dashboard with new metrics and responsive design**
+- ``06b457c`` - **feat: Enhance UI layout and window material settings**
+- ``5de9f67`` - **fix: Synchronize sidebar navigation and improve version handling**
+- ``f999dd4`` - **fix: Restore event handlers for segmented controls in LogDrawer and StacksPage**
+- ``954b657`` - **Merge pull request #2 from NotHarshhaa/bot/catalog-refresh**
+- ``4bc87cd`` - **chore: refresh tool catalog versions and checksums**
+- ``4552bc3`` - **fix: Improve error handling and navigation logging**
+- ``23b386a`` - **feat: Enhance UI/UX with new controls and keyboard shortcuts**
+- ``a0b2e47`` - **feat: Introduce workstation profiles, snapshots, and install history features**
+- ``01b76d5`` - **style: Update CSS for improved layout and responsiveness**
+- ``58aae3c`` - **feat: Add static marketing website for DevOps Tools Installer**
+- ``336e5cf`` - **fix: Update README and banner image**
 "@
 }
 
