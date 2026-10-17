@@ -12,14 +12,14 @@
     </Page.Resources>
 
     <appControls:PageContainer>
-        <ScrollViewer>
-            <StackPanel Spacing="20">
-                <StackPanel.ChildrenTransitions>
-                    <TransitionCollection>
-                        <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="16" />
-                    </TransitionCollection>
-                </StackPanel.ChildrenTransitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
+            <!-- Sticky top: header, summary chips and notices stay put while results scroll. -->
+            <StackPanel Grid.Row="0" Spacing="16" Margin="0,0,0,16">
                 <!-- ══════════════════════════════════ -->
                 <!--  HEADER                            -->
                 <!-- ══════════════════════════════════ -->
@@ -37,6 +37,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
@@ -58,7 +59,7 @@
                                 <!-- Wide: actions sit inline on the right. -->
                                 <VisualState x:Name="WideDoctorSummary">
                                     <VisualState.StateTriggers>
-                                        <AdaptiveTrigger MinWindowWidth="1080" />
+                                        <AdaptiveTrigger MinWindowWidth="1360" />
                                     </VisualState.StateTriggers>
                                     <VisualState.Setters>
                                         <Setter Target="DoctorSummaryActions.(Grid.Row)" Value="0" />
@@ -72,6 +73,19 @@
 
                         <!-- Left: Metrics & Status -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                            <!-- Health Score Badge -->
+                            <Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1" CornerRadius="6" Padding="10,4"
+                                    AutomationProperties.Name="{x:Bind ViewModel.HealthScoreAutomationName, Mode=OneWay}">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <FontIcon Glyph="&#xE95E;" FontSize="12" Foreground="{x:Bind ViewModel.HealthScoreForegroundBrush, Mode=OneWay}" />
+                                    <TextBlock Text="Health" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <TextBlock Text="{x:Bind ViewModel.HealthScoreText, Mode=OneWay}" FontWeight="Bold" FontSize="12" />
+                                    <TextBlock Text="/100" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
                             <!-- Passed Badge -->
                             <Border Background="{ThemeResource SystemFillColorSuccessBackgroundBrush}"
                                     BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
@@ -134,6 +148,25 @@
                                 </StackPanel>
                             </Button>
 
+                            <Button x:Name="FixAllSafeButton" Click="FixAllSafe_Click"
+                                    ToolTipService.ToolTip="Review and fix duplicate or dead PATH entries (backs up PATH first)"
+                                    AutomationProperties.Name="Fix all safe PATH issues">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE90F;" FontSize="12" />
+                                    <TextBlock Text="Fix all safe issues" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button x:Name="UndoFixButton" Click="UndoFix_Click"
+                                    Visibility="Collapsed"
+                                    ToolTipService.ToolTip="Restore the User PATH from the backup taken before the last fix"
+                                    AutomationProperties.Name="Undo the last PATH fix">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE7A7;" FontSize="12" />
+                                    <TextBlock Text="Undo" />
+                                </StackPanel>
+                            </Button>
+
                             <Button x:Name="CopyReportButton" Click="CopyReport_Click"
                                     ToolTipService.ToolTip="Copy complete markdown diagnostic report to clipboard"
                                     AutomationProperties.Name="Copy diagnostic report as markdown">
@@ -143,6 +176,19 @@
                                 </StackPanel>
                             </Button>
                         </StackPanel>
+
+                        <!-- Options: report redaction & scheduled re-check -->
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Orientation="Horizontal" Spacing="20" VerticalAlignment="Center">
+                            <CheckBox x:Name="RedactReportCheckBox"
+                                      Content="Redact my username and machine name in the report"
+                                      Checked="RedactReport_Changed" Unchecked="RedactReport_Changed"
+                                      ToolTipService.ToolTip="Replaces your profile path with %USERPROFILE% and the machine name with %COMPUTERNAME% when copying the report" />
+                            <CheckBox x:Name="RecheckOnStartCheckBox"
+                                      Content="Re-check on app start"
+                                      Checked="RecheckOnStart_Changed" Unchecked="RecheckOnStart_Changed"
+                                      ToolTipService.ToolTip="Runs a quick workstation health check each time the app starts and notifies you of any issues" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -151,27 +197,47 @@
                          IsOpen="False"
                          IsClosable="True"
                          Margin="0,0,0,0" />
+            </StackPanel>
 
-                <!-- ══════════════════════════════════ -->
-                <!--  GROUPED RESULTS                   -->
-                <!-- ══════════════════════════════════ -->
+            <!-- ══════════════════════════════════ -->
+            <!--  GROUPED RESULTS (scrollable)      -->
+            <!-- ══════════════════════════════════ -->
+            <ScrollViewer Grid.Row="1" VerticalScrollMode="Auto" VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{x:Bind ViewModel.GroupedChecks, Mode=OneWay}"
-                              AutomationProperties.Name="Workstation diagnostic groups">
+                              AutomationProperties.Name="Workstation diagnostic groups"
+                              Margin="0,0,0,24">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="viewmodels:DoctorGroupViewModel">
-                            <StackPanel Spacing="10" Margin="0,0,0,24">
-                                <!-- Category Header -->
-                                <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="2,0,0,2">
-                                    <FontIcon Glyph="{x:Bind CategoryIcon}" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    <TextBlock Text="{x:Bind Category}" Style="{StaticResource SectionHeaderStyle}" FontSize="15" />
-                                    <Border Style="{StaticResource BadgeStyle}" Padding="6,1" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind Items.Count}" FontSize="10" FontWeight="SemiBold"
-                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </Border>
-                                </StackPanel>
+                            <Expander IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
+                                      HorizontalAlignment="Stretch"
+                                      HorizontalContentAlignment="Stretch"
+                                      Margin="0,0,0,8"
+                                      AutomationProperties.Name="{x:Bind AutomationDescription}">
+                                <Expander.Header>
+                                    <Grid ColumnSpacing="10" Padding="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Grid.Column="0" Glyph="{x:Bind CategoryIcon}" FontSize="14"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind Category}" Style="{StaticResource SectionHeaderStyle}" FontSize="15" />
+                                            <Border Style="{StaticResource BadgeStyle}" Padding="6,1" VerticalAlignment="Center">
+                                                <TextBlock Text="{x:Bind CountBadgeText}" FontSize="10" FontWeight="SemiBold"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            </Border>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                            <FontIcon Glyph="{x:Bind StatusGlyph}" FontSize="12" Foreground="{x:Bind StatusForegroundBrush}" />
+                                            <TextBlock Text="{x:Bind StatusText}" FontSize="12" Foreground="{x:Bind StatusForegroundBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Expander.Header>
 
                                 <!-- Items in Category -->
-                                <ItemsControl ItemsSource="{x:Bind Items}" AutomationProperties.Name="{x:Bind Category}">
+                                <ItemsControl ItemsSource="{x:Bind Items}" Padding="0,8,0,0">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="viewmodels:DoctorCheckItemViewModel">
                                             <Border Style="{StaticResource ListViewCardStyle}" Padding="16,12" Margin="0,0,0,8"
@@ -250,11 +316,11 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                            </StackPanel>
+                            </Expander>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-            </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
     </appControls:PageContainer>
 </Page>

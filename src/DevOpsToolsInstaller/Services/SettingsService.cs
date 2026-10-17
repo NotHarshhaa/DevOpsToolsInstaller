@@ -160,6 +160,12 @@ public static class SettingsService
     /// <summary>Active level filter in the live log drawer ("All", "Info", "Warning", "Error").</summary>
     public static string LogDrawerLevelFilter { get; set; } = "All";
 
+    /// <summary>Redact the username and machine name when copying the Doctor report.</summary>
+    public static bool DoctorRedactReport { get; set; } = true;
+
+    /// <summary>Run a background workstation health re-check when the app starts.</summary>
+    public static bool DoctorRecheckOnStartup { get; set; } = false;
+
     public static bool IsWithinScheduleWindow()
     {
         if (!DownloadScheduleEnabled) return true;
@@ -348,6 +354,16 @@ public static class SettingsService
                     var filt = ldFiltProp.GetString();
                     if (!string.IsNullOrWhiteSpace(filt)) LogDrawerLevelFilter = filt;
                 }
+
+                if (doc.RootElement.TryGetProperty("DoctorRedactReport", out var drRedactProp))
+                {
+                    DoctorRedactReport = drRedactProp.GetBoolean();
+                }
+
+                if (doc.RootElement.TryGetProperty("DoctorRecheckOnStartup", out var drRecheckProp))
+                {
+                    DoctorRecheckOnStartup = drRecheckProp.GetBoolean();
+                }
             }
         }
         catch
@@ -396,7 +412,9 @@ public static class SettingsService
                 LogDrawerHeight = LogDrawerHeight,
                 LogDrawerIsOpen = LogDrawerIsOpen,
                 LogDrawerAutoScroll = LogDrawerAutoScroll,
-                LogDrawerLevelFilter = LogDrawerLevelFilter
+                LogDrawerLevelFilter = LogDrawerLevelFilter,
+                DoctorRedactReport = DoctorRedactReport,
+                DoctorRecheckOnStartup = DoctorRecheckOnStartup
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

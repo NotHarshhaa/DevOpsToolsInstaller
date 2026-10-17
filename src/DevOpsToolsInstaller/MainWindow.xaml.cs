@@ -903,6 +903,35 @@ public sealed partial class MainWindow : Window
         timer.Start();
 
         _ = RunInitialBadgeCheckAsync();
+        _ = RunScheduledDoctorRecheckAsync();
+    }
+
+    /// <summary>
+    /// Optional on-start workstation health re-check (Settings on the Doctor
+    /// page). Runs quietly in the background and only raises a toast when the
+    /// quick scan finds something worth acting on.
+    /// </summary>
+    private async Task RunScheduledDoctorRecheckAsync()
+    {
+        if (!SettingsService.DoctorRecheckOnStartup) return;
+
+        try
+        {
+            // Let startup settle before competing for CPU/disk.
+            await Task.Delay(TimeSpan.FromSeconds(12));
+
+            var report = await DoctorService.RunQuickHealthAsync();
+            var issues = report.WarningCount + report.FailedCount;
+            if (issues == 0) return;
+
+            ToastService.Show(
+                "Workstation check found issues",
+                $"{issues} item{(issues == 1 ? "" : "s")} need attention. Health score {report.HealthScore}/100 — open Doctor for details.");
+        }
+        catch
+        {
+            // Best effort: a failed re-check must never disrupt startup.
+        }
     }
 
     private async Task RunInitialBadgeCheckAsync()

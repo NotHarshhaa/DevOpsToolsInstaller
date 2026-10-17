@@ -46,6 +46,15 @@ public sealed class DoctorReport
     public int WarningCount => Checks.Count(c => c.Status == DoctorStatus.Warning);
     public int FailedCount => Checks.Count(c => c.Status == DoctorStatus.Failed);
     public int TotalCount => Checks.Count;
+
+    /// <summary>
+    /// Weighted 0-100 workstation health score: passing checks count fully,
+    /// warnings count half, and failures not at all. An empty report scores 0.
+    /// </summary>
+    public int HealthScore => TotalCount == 0
+        ? 0
+        : (int)Math.Round(100.0 * (PassedCount + 0.5 * WarningCount) / TotalCount);
+
     public IReadOnlyList<DoctorCheckResult> Checks { get; init; } = Array.Empty<DoctorCheckResult>();
 
     public string ToMarkdown()
@@ -54,6 +63,7 @@ public sealed class DoctorReport
         sb.AppendLine("# DevOps Workstation Doctor Diagnostic Report");
         sb.AppendLine($"**Generated on:** {ScanTime:yyyy-MM-dd HH:mm:ss}");
         sb.AppendLine($"**Summary:** {PassedCount} passed, {WarningCount} warning(s), {FailedCount} failed ({TotalCount} checks total)");
+        sb.AppendLine($"**Health score:** {HealthScore}/100");
         sb.AppendLine();
 
         foreach (var group in Checks.GroupBy(c => c.Category))
@@ -99,6 +109,18 @@ public static class DoctorService
         "git.exe"
     };
 
+    private static DoctorReport? _lastReport;
+
+    /// <summary>
+    /// Most recent report produced by any scan (<see cref="RunDiagnosticsAsync"/>
+    /// or <see cref="RunQuickHealthAsync"/>). Lets the Home page and the startup
+    /// re-check share one health score without scanning twice.
+    /// </summary>
+    public static DoctorReport? LastReport => _lastReport;
+
+    /// <summary>Weighted 0-100 health score from the most recent scan (0 if none has run).</summary>
+    public static int CurrentHealthScore => _lastReport?.HealthScore ?? 0;
+
     public static async Task<DoctorReport> RunDiagnosticsAsync(
         IReadOnlyList<ToolDefinition>? catalogTools = null,
         CancellationToken ct = default)
@@ -123,11 +145,13 @@ public static class DoctorService
             CheckToolsInstalledNotOnPath(results);
         }, ct);
 
-        return new DoctorReport
+        var report = new DoctorReport
         {
             ScanTime = DateTime.Now,
             Checks = results
         };
+        _lastReport = report;
+        return report;
     }
 
     /// <summary>
@@ -146,11 +170,13 @@ public static class DoctorService
             CheckCliBinaryShadowing(results);
             CheckToolsInstalledNotOnPath(results);
 
-            return new DoctorReport
+            var report = new DoctorReport
             {
                 ScanTime = DateTime.Now,
                 Checks = results
             };
+            _lastReport = report;
+            return report;
         }, ct);
     }
 

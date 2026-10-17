@@ -46,6 +46,20 @@ public sealed record PathBackupInfo(
     int EntryCount,
     string ContentPreview);
 
+/// <summary>
+/// Description of the safe, non-destructive PATH cleanups offered by the
+/// "Fix all safe issues" action: duplicate entries and directories that no
+/// longer exist. Produced by <see cref="PathDoctorService.PlanSafeFixes"/> and
+/// applied by <see cref="PathDoctorService.ApplySafeFixes"/>.
+/// </summary>
+public sealed record PathSafeFixPlan(
+    IReadOnlyList<string> DuplicateEntries,
+    IReadOnlyList<string> MissingDirectories)
+{
+    public int TotalChanges => DuplicateEntries.Count + MissingDirectories.Count;
+    public bool HasChanges => TotalChanges > 0;
+}
+
 public static class PathDoctorService
 {
     private static readonly string BackupDirectory = Path.Combine(
@@ -251,6 +265,36 @@ public static class PathDoctorService
                 Message: $"Failed to optimize User PATH: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Prepares the safe PATH cleanups (duplicate and dead entries) so the UI can
+    /// show exactly what "Fix all safe issues" will change before it runs.
+    /// </summary>
+    public static PathSafeFixPlan PlanSafeFixes()
+    {
+        var report = Diagnose();
+
+        // An entry that is both duplicated and dead is listed once, under
+        // duplicates, so the plan never counts or shows the same path twice.
+        var duplicateKeys = report.DuplicateEntries
+            .Select(e => e.Trim().TrimEnd('\\', '/'))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var missing = report.MissingDirectories
+            .Where(m => !duplicateKeys.Contains(m.Trim().TrimEnd('\\', '/')))
+            .ToList();
+
+        return new PathSafeFixPlan(report.DuplicateEntries, missing);
+    }
+
+    /// <summary>
+    /// Removes duplicate and non-existent entries from the User PATH. The original
+    /// value is backed up first (its path is returned in
+    /// <see cref="PathFixResult.BackupFilePath"/>) so the change can be undone with
+    /// <see cref="RestoreBackup"/>.
+    /// </summary>
+    public static PathFixResult ApplySafeFixes()
+        => FixUserPath(removeDuplicates: true, removeMissing: true, ensureBinFolder: false);
 
     public static IReadOnlyList<PathBackupInfo> GetBackups()
     {

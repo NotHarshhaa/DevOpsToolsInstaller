@@ -42,38 +42,46 @@ public sealed class DoctorCheckItemViewModel : ObservableObject
     public bool IsWarning => Status == DoctorStatus.Warning;
     public bool IsFailed => Status == DoctorStatus.Failed;
 
-    public Microsoft.UI.Xaml.Media.Brush StatusForegroundBrush
+    public Microsoft.UI.Xaml.Media.Brush StatusForegroundBrush => ForegroundFor(Status);
+
+    public Microsoft.UI.Xaml.Media.Brush StatusBackgroundBrush => BackgroundFor(Status);
+
+    /// <summary>Sort weight: failures rank above warnings, which rank above passes.</summary>
+    public static int RankOf(DoctorStatus status) => status switch
     {
-        get
+        DoctorStatus.Failed => 2,
+        DoctorStatus.Warning => 1,
+        _ => 0
+    };
+
+    /// <summary>Theme-aware accent colour for a status badge or icon.</summary>
+    public static Microsoft.UI.Xaml.Media.Brush ForegroundFor(DoctorStatus status)
+    {
+        var key = status switch
         {
-            var key = Status switch
-            {
-                DoctorStatus.Passed => "SystemFillColorSuccessBrush",
-                DoctorStatus.Warning => "SystemFillColorCautionBrush",
-                DoctorStatus.Failed => "SystemFillColorCriticalBrush",
-                _ => "TextFillColorSecondaryBrush"
-            };
-            return Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(key, out var b) && b is Microsoft.UI.Xaml.Media.Brush brush
-                ? brush
-                : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
-        }
+            DoctorStatus.Passed => "SystemFillColorSuccessBrush",
+            DoctorStatus.Warning => "SystemFillColorCautionBrush",
+            DoctorStatus.Failed => "SystemFillColorCriticalBrush",
+            _ => "TextFillColorSecondaryBrush"
+        };
+        return Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(key, out var b) && b is Microsoft.UI.Xaml.Media.Brush brush
+            ? brush
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Gray);
     }
 
-    public Microsoft.UI.Xaml.Media.Brush StatusBackgroundBrush
+    /// <summary>Theme-aware background for a status badge.</summary>
+    public static Microsoft.UI.Xaml.Media.Brush BackgroundFor(DoctorStatus status)
     {
-        get
+        var key = status switch
         {
-            var key = Status switch
-            {
-                DoctorStatus.Passed => "SystemFillColorSuccessBackgroundBrush",
-                DoctorStatus.Warning => "SystemFillColorCautionBackgroundBrush",
-                DoctorStatus.Failed => "SystemFillColorCriticalBackgroundBrush",
-                _ => "CardBackgroundFillColorDefaultBrush"
-            };
-            return Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(key, out var b) && b is Microsoft.UI.Xaml.Media.Brush brush
-                ? brush
-                : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
-        }
+            DoctorStatus.Passed => "SystemFillColorSuccessBackgroundBrush",
+            DoctorStatus.Warning => "SystemFillColorCautionBackgroundBrush",
+            DoctorStatus.Failed => "SystemFillColorCriticalBackgroundBrush",
+            _ => "CardBackgroundFillColorDefaultBrush"
+        };
+        return Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(key, out var b) && b is Microsoft.UI.Xaml.Media.Brush brush
+            ? brush
+            : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
     }
 
     public bool HasFixAction => Result.HasFixAction;
@@ -91,11 +99,53 @@ public sealed class DoctorCheckItemViewModel : ObservableObject
     }
 }
 
-public sealed class DoctorGroupViewModel
+public sealed partial class DoctorGroupViewModel : ObservableObject
 {
     public string Category { get; set; } = string.Empty;
     public string CategoryIcon { get; set; } = "\uE9D9";
     public ObservableCollection<DoctorCheckItemViewModel> Items { get; set; } = new();
+
+    /// <summary>Worst status found in the group — drives sort order and the header accent.</summary>
+    public DoctorStatus Severity => Items.Count == 0
+        ? DoctorStatus.Passed
+        : Items.Select(i => i.Status).OrderByDescending(DoctorCheckItemViewModel.RankOf).First();
+
+    public bool HasProblems => Severity != DoctorStatus.Passed;
+
+    /// <summary>Number of checks in the group that did not pass.</summary>
+    public int ProblemCount => Items.Count(i => i.Status != DoctorStatus.Passed);
+
+    private bool _isExpanded = true;
+    /// <summary>Whether the group is expanded. Problem groups open by default.</summary>
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set => SetProperty(ref _isExpanded, value);
+    }
+
+    public string CountBadgeText => Items.Count == 1 ? "1 check" : $"{Items.Count} checks";
+
+    public string StatusText => Severity switch
+    {
+        DoctorStatus.Failed => "Failed",
+        DoctorStatus.Warning => "Warning",
+        _ => "Passed"
+    };
+
+    public string StatusGlyph => Severity switch
+    {
+        DoctorStatus.Passed => "\uE73E",
+        DoctorStatus.Warning => "\uE7BA",
+        DoctorStatus.Failed => "\uE711",
+        _ => "\uE946"
+    };
+
+    public Microsoft.UI.Xaml.Media.Brush StatusForegroundBrush => DoctorCheckItemViewModel.ForegroundFor(Severity);
+    public Microsoft.UI.Xaml.Media.Brush StatusBackgroundBrush => DoctorCheckItemViewModel.BackgroundFor(Severity);
+
+    public string AutomationDescription => HasProblems
+        ? $"{Category}: {ProblemCount} of {Items.Count} checks need attention."
+        : $"{Category}: all {Items.Count} checks passed.";
 }
 
 public sealed class DoctorViewModel : ObservableObject
@@ -163,6 +213,35 @@ public sealed class DoctorViewModel : ObservableObject
         set => SetProperty(ref _totalCount, value);
     }
 
+    private int _healthScore;
+    /// <summary>Weighted 0-100 workstation health score for the latest scan.</summary>
+    public int HealthScore
+    {
+        get => _healthScore;
+        set => SetProperty(ref _healthScore, value);
+    }
+
+    public string HealthScoreText => TotalCount == 0 ? "—" : $"{HealthScore}";
+
+    public string HealthHeadline => TotalCount == 0
+        ? "Not scanned"
+        : FailedCount > 0
+            ? "Needs attention"
+            : WarningCount > 0
+                ? "Minor issues"
+                : "Healthy";
+
+    public string HealthScoreAutomationName =>
+        TotalCount == 0
+            ? "Workstation health score not yet scanned."
+            : $"Workstation health score {HealthScore} out of 100. {HealthHeadline}.";
+
+    public Microsoft.UI.Xaml.Media.Brush HealthScoreForegroundBrush =>
+        TotalCount == 0 ? DoctorCheckItemViewModel.ForegroundFor(DoctorStatus.Passed)
+        : FailedCount > 0 ? DoctorCheckItemViewModel.ForegroundFor(DoctorStatus.Failed)
+        : WarningCount > 0 ? DoctorCheckItemViewModel.ForegroundFor(DoctorStatus.Warning)
+        : DoctorCheckItemViewModel.ForegroundFor(DoctorStatus.Passed);
+
     private DoctorReport? _lastReport;
     public DoctorReport? LastReport
     {
@@ -186,22 +265,42 @@ public sealed class DoctorViewModel : ObservableObject
             WarningCount = report.WarningCount;
             FailedCount = report.FailedCount;
             TotalCount = report.TotalCount;
+            HealthScore = report.HealthScore;
 
             SummaryText = $"{PassedCount} passed, {WarningCount} warning{(WarningCount == 1 ? "" : "s")}, {FailedCount} failed";
 
             GroupedChecks.Clear();
-            foreach (var group in report.Checks.GroupBy(c => c.Category))
-            {
-                var icon = GetCategoryIcon(group.Key);
-                var groupVm = new DoctorGroupViewModel
+
+            // Order each group's checks by severity (failed first) and order the
+            // groups themselves so the ones needing attention surface at the top.
+            var groups = report.Checks
+                .GroupBy(c => c.Category)
+                .Select(group => new DoctorGroupViewModel
                 {
                     Category = group.Key,
-                    CategoryIcon = icon,
+                    CategoryIcon = GetCategoryIcon(group.Key),
                     Items = new ObservableCollection<DoctorCheckItemViewModel>(
-                        group.Select(item => new DoctorCheckItemViewModel(item)))
-                };
-                GroupedChecks.Add(groupVm);
+                        group
+                            .OrderByDescending(c => DoctorCheckItemViewModel.RankOf(c.Status))
+                            .ThenBy(c => c.Title, StringComparer.CurrentCultureIgnoreCase)
+                            .Select(c => new DoctorCheckItemViewModel(c)))
+                })
+                .OrderByDescending(g => DoctorCheckItemViewModel.RankOf(g.Severity))
+                .ThenBy(g => g.Category, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                // Expand problem groups so failures are visible immediately; keep
+                // fully-passing groups collapsed to reduce scanning effort.
+                group.IsExpanded = group.Severity != DoctorStatus.Passed;
+                GroupedChecks.Add(group);
             }
+
+            OnPropertyChanged(nameof(HealthScoreText));
+            OnPropertyChanged(nameof(HealthHeadline));
+            OnPropertyChanged(nameof(HealthScoreAutomationName));
+            OnPropertyChanged(nameof(HealthScoreForegroundBrush));
         }
         catch (OperationCanceledException)
         {
@@ -217,10 +316,47 @@ public sealed class DoctorViewModel : ObservableObject
         }
     }
 
-    public string GetMarkdownReport()
+    public string GetMarkdownReport(bool redactSensitiveInfo = false)
     {
-        return LastReport?.ToMarkdown() ?? "# Workstation Doctor Report\nNo diagnostic data available.";
+        var markdown = LastReport?.ToMarkdown() ?? "# Workstation Doctor Report\nNo diagnostic data available.";
+        return redactSensitiveInfo ? RedactSensitiveInfo(markdown) : markdown;
     }
+
+    /// <summary>
+    /// Replaces the current user profile path, username and machine name with
+    /// environment-variable placeholders (%USERPROFILE%, %USERNAME%,
+    /// %COMPUTERNAME%) so a diagnostic report can be shared safely.
+    /// </summary>
+    public static string RedactSensitiveInfo(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+
+        var profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        if (!string.IsNullOrWhiteSpace(profile))
+        {
+            var winPath = profile.TrimEnd('\\', '/');
+            text = ReplaceOrdinalIgnoreCase(text, winPath, "%USERPROFILE%");
+            text = ReplaceOrdinalIgnoreCase(text, winPath.Replace('\\', '/'), "%USERPROFILE%");
+        }
+
+        var userName = Environment.UserName;
+        if (!string.IsNullOrWhiteSpace(userName))
+        {
+            text = ReplaceOrdinalIgnoreCase(text, $@"C:\Users\{userName}", "%USERPROFILE%");
+            text = ReplaceOrdinalIgnoreCase(text, $@"\Users\{userName}", @"\Users\%USERNAME%");
+        }
+
+        var machineName = Environment.MachineName;
+        if (!string.IsNullOrWhiteSpace(machineName))
+        {
+            text = ReplaceOrdinalIgnoreCase(text, machineName, "%COMPUTERNAME%");
+        }
+
+        return text;
+    }
+
+    private static string ReplaceOrdinalIgnoreCase(string source, string oldValue, string newValue)
+        => string.IsNullOrEmpty(oldValue) ? source : source.Replace(oldValue, newValue, StringComparison.OrdinalIgnoreCase);
 
     private static string GetCategoryIcon(string category) => category switch
     {

@@ -748,7 +748,7 @@ public sealed partial class HomeViewModel : ObservableObject
         HealthTotalCount = report.TotalCount;
 
         HasHealthData = report.TotalCount > 0;
-        HealthScore = HasHealthData ? (double)report.PassedCount / report.TotalCount * 100.0 : 0.0;
+        HealthScore = HasHealthData ? report.HealthScore : 0.0;
 
         HealthHeadline = !HasHealthData
             ? "Not scanned"
