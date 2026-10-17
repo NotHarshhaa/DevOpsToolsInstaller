@@ -11,6 +11,59 @@
 
     <appControls:PageContainer>
         <Grid>
+            <!-- ══════════════════════════════════ -->
+            <!--  RESPONSIVE STATES                  -->
+            <!-- ══════════════════════════════════ -->
+            <VisualStateManager.VisualStateGroups>
+                <!-- Hero: drop the artwork and give the copy the full width when
+                     there is not enough room for a two-column banner. -->
+                <VisualStateGroup x:Name="HomeHeroStates">
+                    <VisualState x:Name="HeroNarrow">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="0" />
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="HeroArtwork.Visibility" Value="Collapsed" />
+                            <Setter Target="HeroTextGrid.(Grid.ColumnSpan)" Value="2" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="HeroWide">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="880" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                </VisualStateGroup>
+
+                <!-- Health / recents / trends: one column when narrow, side by side
+                     once there is room for both cards. -->
+                <VisualStateGroup x:Name="HomeDataStates">
+                    <VisualState x:Name="DataStacked">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="0" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    <VisualState x:Name="DataSideBySide">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="1180" />
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="HealthCard.(Grid.Row)" Value="0" />
+                            <Setter Target="HealthCard.(Grid.Column)" Value="0" />
+                            <Setter Target="HealthCard.(Grid.ColumnSpan)" Value="1" />
+                            <Setter Target="RecentsCard.(Grid.Row)" Value="0" />
+                            <Setter Target="RecentsCard.(Grid.Column)" Value="1" />
+                            <Setter Target="RecentsCard.(Grid.ColumnSpan)" Value="1" />
+                            <Setter Target="InstallsTrendCard.(Grid.Row)" Value="0" />
+                            <Setter Target="InstallsTrendCard.(Grid.Column)" Value="0" />
+                            <Setter Target="InstallsTrendCard.(Grid.ColumnSpan)" Value="1" />
+                            <Setter Target="UpdatesTrendCard.(Grid.Row)" Value="0" />
+                            <Setter Target="UpdatesTrendCard.(Grid.Column)" Value="1" />
+                            <Setter Target="UpdatesTrendCard.(Grid.ColumnSpan)" Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+
             <ScrollViewer>
                 <StackPanel Spacing="24">
                     <StackPanel.ChildrenTransitions>
@@ -27,33 +80,44 @@
                             BorderBrush="{ThemeResource InAppSurfaceStrokeBrush}"
                             BorderThickness="1"
                             Background="{ThemeResource InAppSurfaceFillBrush}">
-                        <Grid MinHeight="176">
+                        <Grid MinHeight="150">
+                            <Grid.ColumnDefinitions>
+                                <!-- Copy is capped at 55% of the banner so it can never
+                                     run underneath the artwork, which owns the rest. -->
+                                <ColumnDefinition Width="55*" />
+                                <ColumnDefinition Width="45*" />
+                            </Grid.ColumnDefinitions>
+
                             <!-- Subtle in-app acrylic surface -->
                             <controls:SystemBackdropElement
+                                Grid.ColumnSpan="2"
                                 SystemBackdrop="{StaticResource InAppAcrylicBackdrop}"
                                 CornerRadius="12"
                                 IsHitTestVisible="False" />
 
-                            <!-- Hero Banner Illustration (Right-aligned with gradient blend) -->
-                            <Grid HorizontalAlignment="Right" Width="440" Opacity="0.45" IsHitTestVisible="False">
+                            <!-- Hero Banner Illustration, left edge faded into the surface.
+                                 It lives in its own column, so the fade never lands on text. -->
+                            <Grid x:Name="HeroArtwork" Grid.Column="1" IsHitTestVisible="False">
                                 <Image Source="ms-appx:///Assets/HeroBanner.jpg"
                                        Stretch="UniformToFill"
+                                       Opacity="0.45"
                                        HorizontalAlignment="Right"
                                        VerticalAlignment="Center" />
-                                <Grid>
-                                    <Grid.Background>
+                                <Rectangle>
+                                    <Rectangle.Fill>
                                         <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
                                             <GradientStop Color="{ThemeResource SolidBackgroundFillColorBase}" Offset="0.0" />
-                                            <GradientStop Color="#401A1A1A" Offset="0.45" />
+                                            <GradientStop Color="#401A1A1A" Offset="0.4" />
                                             <GradientStop Color="Transparent" Offset="1.0" />
                                         </LinearGradientBrush>
-                                    </Grid.Background>
-                                </Grid>
+                                    </Rectangle.Fill>
+                                </Rectangle>
                             </Grid>
 
-                            <!-- Hero Content Container -->
-                            <Grid Padding="28,24" RowSpacing="12">
+                            <!-- Hero Content Container (text column only) -->
+                            <Grid x:Name="HeroTextGrid" Grid.Column="0" Padding="26,18" RowSpacing="10">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -76,12 +140,11 @@
                                            Text="Discover and download official DevOps tool installers in one place. Vendor setup wizards run interactively with standard UAC prompts — no silent switches."
                                            Style="{StaticResource PageSubtitleStyle}"
                                            FontSize="13"
-                                           MaxWidth="720"
                                            HorizontalAlignment="Left"
                                            TextWrapping="Wrap" />
 
                                 <!-- Bottom row: Primary and Secondary CTAs -->
-                                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="0,4,0,0">
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center" Margin="0,2,0,0">
                                     <Button x:Name="HeroBrowseCatalogButton"
                                             Style="{StaticResource AccentButtonStyle}"
                                             Click="BrowseCatalog_Click"
@@ -107,6 +170,47 @@
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>
+
+                                <!-- Next best action: one concrete thing to do right now, so the
+                                     banner carries signal instead of dead space. -->
+                                <Border Grid.Row="3"
+                                        Visibility="{Binding HasNextAction, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Padding="10,6"
+                                        CornerRadius="6"
+                                        BorderThickness="1"
+                                        VerticalAlignment="Bottom"
+                                        Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                                    <Grid ColumnSpacing="10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <FontIcon Grid.Column="0" FontSize="12" VerticalAlignment="Center"
+                                                  Glyph="&#xE7BA;"
+                                                  Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                  Visibility="{Binding IsNextActionWarning, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <FontIcon Grid.Column="0" FontSize="12" VerticalAlignment="Center"
+                                                  Glyph="&#xE73E;"
+                                                  Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                  Visibility="{Binding IsNextActionWarning, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+
+                                        <TextBlock Grid.Column="1" Text="{Binding NextActionText}"
+                                                   FontSize="12" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center"
+                                                   AutomationProperties.Name="{Binding NextActionText}" />
+
+                                        <Button Grid.Column="2" Click="NextAction_Click"
+                                                Tag="{Binding NextActionTag}"
+                                                Padding="12,5" CornerRadius="4"
+                                                VerticalAlignment="Center"
+                                                Visibility="{Binding HasNextActionButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <TextBlock Text="{Binding NextActionButtonText}" FontSize="12" FontWeight="SemiBold" />
+                                        </Button>
+                                    </Grid>
+                                </Border>
                             </Grid>
                         </Grid>
                     </Border>
@@ -179,23 +283,24 @@
                         <!-- Stepper Skeleton Strip -->
                         <Border Style="{StaticResource FeatureCardStyle}" Height="76" Background="{ThemeResource ControlFillColorDefaultBrush}" />
 
-                        <!-- Core Features Skeletons (3x2 grid) -->
-                        <Grid ColumnSpacing="12" RowSpacing="12">
+                        <!-- Health ring + recently installed skeletons -->
+                        <Grid ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="5*" />
+                                <ColumnDefinition Width="7*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Style="{StaticResource FeatureCardStyle}" Height="156" Background="{ThemeResource ControlFillColorDefaultBrush}" />
+                            <Border Grid.Column="1" Style="{StaticResource FeatureCardStyle}" Height="156" Background="{ThemeResource ControlFillColorDefaultBrush}" />
+                        </Grid>
+
+                        <!-- Trend sparkline skeletons -->
+                        <Grid ColumnSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="130" />
-                                <RowDefinition Height="130" />
-                            </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
-                            <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
-                            <Border Grid.Row="0" Grid.Column="2" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
-                            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
-                            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
-                            <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource FeatureCardStyle}" Background="{ThemeResource ControlFillColorDefaultBrush}" />
+                            <Border Grid.Column="0" Style="{StaticResource FeatureCardStyle}" Height="104" Background="{ThemeResource ControlFillColorDefaultBrush}" />
+                            <Border Grid.Column="1" Style="{StaticResource FeatureCardStyle}" Height="104" Background="{ThemeResource ControlFillColorDefaultBrush}" />
                         </Grid>
                     </StackPanel>
 
@@ -244,20 +349,25 @@
                                     Style="{StaticResource QuickActionCardStyle}"
                                     Click="InstalledMetric_Click"
                                     AutomationProperties.Name="{Binding InstalledMetricAutomationName}">
-                                <Grid Padding="16,14" RowSpacing="6">
+                                <Grid Padding="16,12" RowSpacing="4">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="30" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
                                         <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
                                         <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
                                     <TextBlock Grid.Row="1" Text="{Binding InstalledCount}"
-                                               Style="{StaticResource MetricNumberStyle}" />
+                                               Style="{StaticResource MetricNumberStyle}"
+                                               VerticalAlignment="Center" />
                                     <TextBlock Grid.Row="2" Text="Installed tools"
                                                Style="{StaticResource MetricLabelStyle}" />
+                                    <TextBlock Grid.Row="3" Text="Manage, update or uninstall installed tools"
+                                               FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </Grid>
                             </Button>
 
@@ -268,11 +378,12 @@
                                     Style="{StaticResource QuickActionCardStyle}"
                                     Click="UpdatesMetric_Click"
                                     AutomationProperties.Name="{Binding UpdatesMetricAutomationName}">
-                                <Grid Padding="16,14" RowSpacing="6">
+                                <Grid Padding="16,12" RowSpacing="4">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="30" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
                                         <FontIcon Glyph="&#xE895;" FontSize="14"
@@ -288,13 +399,23 @@
                                     <TextBlock Grid.Row="1" Text="{Binding UpdateCount}"
                                                Style="{StaticResource MetricNumberStyle}"
                                                Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                               VerticalAlignment="Center"
                                                Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <TextBlock Grid.Row="1" Text="{Binding UpdateCount}"
                                                Style="{StaticResource MetricNumberStyle}"
                                                Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                               VerticalAlignment="Center"
                                                Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                     <TextBlock Grid.Row="2" Text="Updates available"
                                                Style="{StaticResource MetricLabelStyle}" />
+                                    <TextBlock Grid.Row="3" Text="Newer releases are waiting in the catalog"
+                                               FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <TextBlock Grid.Row="3" Text="Everything is on the latest version"
+                                               FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                 </Grid>
                             </Button>
 
@@ -305,110 +426,351 @@
                                     Style="{StaticResource QuickActionCardStyle}"
                                     Click="DownloadsMetric_Click"
                                     AutomationProperties.Name="{Binding DownloadsMetricAutomationName}">
-                                <Grid Padding="16,14" RowSpacing="6">
+                                <Grid Padding="16,12" RowSpacing="4">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="30" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
                                         <FontIcon Glyph="&#xE896;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
                                         <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
                                     <TextBlock Grid.Row="1" Text="{Binding ActiveDownloadsCount}"
-                                               Style="{StaticResource MetricNumberStyle}" />
+                                               Style="{StaticResource MetricNumberStyle}"
+                                               VerticalAlignment="Center" />
                                     <TextBlock Grid.Row="2" Text="Downloading"
                                                Style="{StaticResource MetricLabelStyle}" />
+                                    <TextBlock Grid.Row="3" Text="Live transfer speed and validation progress"
+                                               FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </Grid>
                             </Button>
 
-                            <!-- Metric 4: PATH Health -->
+                            <!-- Metric 4: Needs attention (deep-links to Doctor).
+                                 The card always navigates, so the clickable affordance is
+                                 unambiguous; the reason is shown inline instead of in a flyout. -->
                             <Button x:Name="MetricCardPath"
                                     helpers:Motion.HoverLift="True"
                                     Grid.Row="0" Grid.Column="3"
                                     Style="{StaticResource QuickActionCardStyle}"
+                                    Click="PathMetric_Click"
                                     AutomationProperties.Name="{Binding PathMetricAutomationName}">
-                                <Button.Flyout>
-                                    <Flyout x:Name="PathDetailsFlyout"
-                                            FlyoutPresenterStyle="{StaticResource AcrylicFlyoutPresenterStyle}">
-                                        <StackPanel Width="340" Spacing="12" Padding="4">
-                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                                <FontIcon Glyph="&#xE756;" FontSize="16" Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
-                                                <TextBlock Text="PATH environment diagnostics" FontWeight="SemiBold" FontSize="14" />
-                                            </StackPanel>
-
-                                            <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left" Padding="8,4">
-                                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                                    <FontIcon Glyph="&#xE73E;" FontSize="11"
-                                                              Foreground="{ThemeResource SystemFillColorSuccessBrush}"
-                                                              Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                                    <FontIcon Glyph="&#xE783;" FontSize="11"
-                                                              Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                                              Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                                    <TextBlock Text="{Binding PathStatus}" FontWeight="SemiBold" FontSize="11" />
-                                                </StackPanel>
-                                            </Border>
-
-                                            <TextBlock Text="{Binding PathSummary}"
-                                                       TextWrapping="Wrap"
-                                                       Style="{StaticResource CaptionTextBlockStyle}"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-
-                                            <StackPanel Spacing="4">
-                                                <TextBlock Text="Tools binary folder" FontSize="11"
-                                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                                <TextBox Text="{Binding PathBinFolder}"
-                                                         IsReadOnly="True" FontSize="11"
-                                                         FontFamily="Consolas, monospace" />
-                                            </StackPanel>
-
-                                            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
-                                                <Button Content="Open folder" Click="OpenBinFolder_Click"
-                                                        Padding="12,6" CornerRadius="4"
-                                                        AutomationProperties.Name="Open tools bin folder in File Explorer" />
-                                                <Button Content="Copy path" Click="CopyBinFolder_Click"
-                                                        Padding="12,6" CornerRadius="4"
-                                                        AutomationProperties.Name="Copy binary folder path to clipboard" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                    </Flyout>
-                                </Button.Flyout>
-
-                                <Grid Padding="16,14" RowSpacing="6">
+                                <Grid Padding="16,12" RowSpacing="4">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="30" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
-                                        <FontIcon Glyph="&#xE756;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
-                                        <FontIcon Glyph="&#xE712;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
+                                        <FontIcon Glyph="&#xE756;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left"
+                                                  Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <FontIcon Glyph="&#xE7BA;" FontSize="14" Foreground="{ThemeResource SystemFillColorCautionBrush}" HorizontalAlignment="Left"
+                                                  Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
+
                                     <TextBlock Grid.Row="1" Text="{Binding PathStatus}"
-                                               FontSize="20" FontWeight="SemiBold" MinHeight="38"
+                                               FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
                                                Foreground="{ThemeResource SystemFillColorSuccessBrush}"
                                                Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <TextBlock Grid.Row="1" Text="{Binding PathStatus}"
-                                               FontSize="20" FontWeight="SemiBold" MinHeight="38"
+                                               FontSize="17" FontWeight="SemiBold" VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
                                                Foreground="{ThemeResource SystemFillColorCautionBrush}"
                                                Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                    <TextBlock Grid.Row="2" Text="PATH status"
+
+                                    <TextBlock Grid.Row="2" Text="Workstation health"
                                                Style="{StaticResource MetricLabelStyle}" />
+
+                                    <!-- The reason: why it needs attention, in the card itself -->
+                                    <TextBlock Grid.Row="3" Text="{Binding PathReason}"
+                                               FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                               AutomationProperties.Name="{Binding PathReason}" />
                                 </Grid>
                             </Button>
                         </Grid>
 
                         <!-- ══════════════════════════════════ -->
-                        <!--  SESSION TRENDS                    -->
+                        <!--  3. CORE FEATURES (COLLAPSIBLE)    -->
                         <!-- ══════════════════════════════════ -->
-                        <Grid ColumnSpacing="12">
+                        <Expander x:Name="CoreFeaturesExpander"
+                                  HorizontalAlignment="Stretch"
+                                  HorizontalContentAlignment="Stretch"
+                                  IsExpanded="False"
+                                  Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                            <Expander.Header>
+                                <StackPanel Spacing="2" Padding="0,6,0,6">
+                                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <FontIcon Glyph="&#xE8F1;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                        <TextBlock Text="Core features" Style="{StaticResource SectionHeaderStyle}" FontSize="16" />
+                                        <Border Style="{StaticResource BadgeStyle}">
+                                            <TextBlock Text="9 capabilities" FontSize="10"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="Everything you need to provision and maintain a secure DevOps workstation"
+                                               Style="{StaticResource PageSubtitleStyle}" />
+                                </StackPanel>
+                            </Expander.Header>
+
+                            <ItemsRepeater ItemsSource="{Binding CoreFeatures}" Margin="0,6,0,4">
+                                <ItemsRepeater.Layout>
+                                    <UniformGridLayout MinItemWidth="310"
+                                                       MinRowSpacing="12"
+                                                       MinColumnSpacing="12"
+                                                       MaximumRowsOrColumns="3"
+                                                       ItemsStretch="Fill" />
+                                </ItemsRepeater.Layout>
+                                <ItemsRepeater.ItemTemplate>
+                                    <DataTemplate x:DataType="viewmodels:HomeFeatureCardViewModel">
+                                        <Border Style="{StaticResource FeatureCardStyle}"
+                                                helpers:Motion.HoverLift="True"
+                                                AutomationProperties.Name="{x:Bind AutomationName}">
+                                            <Grid RowSpacing="10">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Accent Icon Badge -->
+                                                <Grid Grid.Row="0">
+                                                    <Border Style="{StaticResource FeatureIconBadgeStyle}" HorizontalAlignment="Left">
+                                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="16"
+                                                                  Foreground="{ThemeResource CustomAccentPrimaryBrush}"
+                                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
+
+                                                <!-- Card Title -->
+                                                <TextBlock Grid.Row="1"
+                                                           Text="{x:Bind Title}"
+                                                           Style="{StaticResource CardTitleStyle}"
+                                                           FontSize="15" />
+
+                                                <!-- Benefit Description -->
+                                                <TextBlock Grid.Row="2"
+                                                           Text="{x:Bind Benefit}"
+                                                           Style="{StaticResource CaptionTextBlockStyle}"
+                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                           TextWrapping="Wrap"
+                                                           VerticalAlignment="Top" />
+
+                                                <!-- Action Button / Link -->
+                                                <Button Grid.Row="3"
+                                                        Click="FeatureCardAction_Click"
+                                                        Tag="{x:Bind NavigationTarget}"
+                                                        HorizontalAlignment="Stretch"
+                                                        Padding="12,6"
+                                                        CornerRadius="4"
+                                                        AutomationProperties.Name="{x:Bind ActionLabel}">
+                                                    <Grid>
+                                                        <TextBlock Text="{x:Bind ActionLabel}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Left" />
+                                                        <FontIcon Glyph="&#xE76C;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                                    </Grid>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsRepeater.ItemTemplate>
+                            </ItemsRepeater>
+                        </Expander>
+
+                        <!-- ══════════════════════════════════ -->
+                        <!--  4. WORKSTATION HEALTH + RECENT     -->
+                        <!-- ══════════════════════════════════ -->
+                        <Grid x:Name="HealthRecentsGrid" ColumnSpacing="12" RowSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="4*" />
+                                <ColumnDefinition Width="6*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Health ring, computed from the fast Doctor subset -->
+                            <Border x:Name="HealthCard" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardStyle}" Padding="16,14">
+                                <Grid ColumnSpacing="16" RowSpacing="10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0" Grid.Column="0" Width="88" Height="88" VerticalAlignment="Top"
+                                          AutomationProperties.Name="{Binding HealthRingAutomationName}">
+                                        <ProgressRing IsActive="True" IsIndeterminate="False"
+                                                      Minimum="0" Maximum="100" Value="{Binding HealthScore}"
+                                                      Width="88" Height="88"
+                                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                      Visibility="{Binding IsHealthHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <ProgressRing IsActive="True" IsIndeterminate="False"
+                                                      Minimum="0" Maximum="100" Value="{Binding HealthScore}"
+                                                      Width="88" Height="88"
+                                                      Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                      Visibility="{Binding IsHealthDegraded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <ProgressRing IsActive="True" IsIndeterminate="False"
+                                                      Minimum="0" Maximum="100" Value="{Binding HealthScore}"
+                                                      Width="88" Height="88"
+                                                      Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                      Visibility="{Binding IsHealthCritical, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding HealthScoreText}"
+                                                   FontSize="18" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+                                    </Grid>
+
+                                    <StackPanel Grid.Row="0" Grid.Column="1" Spacing="5">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE95E;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <TextBlock Text="Workstation health" Style="{StaticResource CardTitleStyle}" />
+                                        </StackPanel>
+
+                                        <TextBlock Text="{Binding HealthHeadline}" FontWeight="SemiBold" FontSize="13"
+                                                   Foreground="{ThemeResource SystemFillColorSuccessBrush}"
+                                                   Visibility="{Binding IsHealthHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding HealthHeadline}" FontWeight="SemiBold" FontSize="13"
+                                                   Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                   Visibility="{Binding IsHealthDegraded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding HealthHeadline}" FontWeight="SemiBold" FontSize="13"
+                                                   Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                                                   Visibility="{Binding IsHealthCritical, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding HealthHeadline}" FontWeight="SemiBold" FontSize="13"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   Visibility="{Binding HasHealthData, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+
+                                        <TextBlock Text="{Binding HealthCountsText}"
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{Binding HealthDetail}"
+                                                   FontSize="11" TextWrapping="Wrap" MaxLines="2" TextTrimming="CharacterEllipsis"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                    </StackPanel>
+
+                                    <!-- Actions get their own full-width row so they can never
+                                         clip when the card is narrow. -->
+                                    <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                                Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+                                        <Button Click="RunDoctor_Click"
+                                                Style="{StaticResource AccentButtonStyle}"
+                                                Padding="14,6" CornerRadius="4"
+                                                AutomationProperties.Name="Run full workstation diagnostics">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE95E;" FontSize="11" />
+                                                <TextBlock Text="Run Doctor" FontSize="12" FontWeight="SemiBold" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Content="Open tools folder" Click="OpenBinFolder_Click"
+                                                Padding="12,6" CornerRadius="4"
+                                                AutomationProperties.Name="Open tools bin folder in File Explorer" />
+                                        <HyperlinkButton Content="Copy PATH folder" Click="CopyBinFolder_Click" FontSize="12"
+                                                         AutomationProperties.Name="Copy binary folder path to clipboard" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- Recently installed, from the local install history -->
+                            <Border x:Name="RecentsCard" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardStyle}" Padding="16,14">
+                                <Grid>
+                                    <StackPanel Spacing="6"
+                                                Visibility="{Binding HasRecentInstalls, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <FontIcon Glyph="&#xE81C;" FontSize="13" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                                <TextBlock Text="Recently installed" Style="{StaticResource CardTitleStyle}" />
+                                            </StackPanel>
+                                            <HyperlinkButton Grid.Column="1" Content="Manage tools" FontSize="12"
+                                                             Click="InstalledMetric_Click"
+                                                             AutomationProperties.Name="Manage installed tools" />
+                                        </Grid>
+
+                                        <ItemsControl ItemsSource="{Binding RecentInstalls}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnSpacing="10" Padding="0,7"
+                                                          BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                                          BorderThickness="0,0,0,1"
+                                                          AutomationProperties.Name="{Binding AutomationLabel}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <FontIcon Grid.Column="0" Glyph="{Binding Glyph}" FontSize="12"
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                  VerticalAlignment="Center" />
+
+                                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="12"
+                                                                       TextTrimming="CharacterEllipsis" MaxLines="1" />
+                                                            <TextBlock Text="{Binding Version}" FontSize="11"
+                                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                                       VerticalAlignment="Center" />
+                                                            <Border Style="{StaticResource BadgeStyle}">
+                                                                <TextBlock Text="{Binding ActionLabel}" FontSize="10"
+                                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <TextBlock Grid.Column="2" Text="{Binding TimeText}" FontSize="11"
+                                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                                   VerticalAlignment="Center" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+
+                                    <!-- Friendly empty state until there is history -->
+                                    <StackPanel Spacing="6" VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                Padding="0,10"
+                                                Visibility="{Binding HasRecentInstalls, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                        <FontIcon Glyph="&#xE7C3;" FontSize="24"
+                                                  Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                  HorizontalAlignment="Center" />
+                                        <TextBlock Text="No installs recorded yet" FontWeight="SemiBold" FontSize="13"
+                                                   HorizontalAlignment="Center" />
+                                        <TextBlock Text="Install your first tool and it will show up here, newest first."
+                                                   FontSize="11" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="320"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- ══════════════════════════════════ -->
+                        <!--  5. LOCAL ACTIVITY TRENDS          -->
+                        <!-- ══════════════════════════════════ -->
+                        <Grid x:Name="TrendGrid" ColumnSpacing="12" RowSpacing="12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
 
-                            <!-- Downloads trend -->
-                            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Padding="14,10">
+                            <!-- Installs per day -->
+                            <Border x:Name="InstallsTrendCard" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardStyle}" Padding="14,12">
                                 <StackPanel Spacing="6">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -417,29 +779,34 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <FontIcon Glyph="&#xE896;" FontSize="12" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                            <TextBlock Text="Downloads trend (this session)" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
+                                            <TextBlock Text="Installs by day" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
                                         </StackPanel>
-                                        <TextBlock x:Name="DownloadsTrendValueText" Grid.Column="1" Text="0 active"
+                                        <TextBlock Grid.Column="1" Text="{Binding InstallsTrendTotalText}"
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                                     </Grid>
-                                    <Grid Height="56">
-                                        <lvc:CartesianChart x:Name="DownloadsTrendChart" Visibility="Collapsed"
-                                                            Series="{x:Bind DownloadsTrendSeries, Mode=OneTime}"
-                                                            XAxes="{x:Bind DownloadsTrendXAxes, Mode=OneTime}"
-                                                            YAxes="{x:Bind DownloadsTrendYAxes, Mode=OneTime}"
-                                                            AutomationProperties.Name="Downloads trend chart" />
-                                        <TextBlock x:Name="DownloadsTrendEmpty" Text="Sampling… trends appear as activity is detected."
+                                    <Grid Height="72">
+                                        <lvc:CartesianChart x:Name="InstallsTrendChart" Visibility="Collapsed"
+                                                            Series="{x:Bind InstallsTrendSeries, Mode=OneTime}"
+                                                            XAxes="{x:Bind InstallsTrendXAxes, Mode=OneTime}"
+                                                            YAxes="{x:Bind InstallsTrendYAxes, Mode=OneTime}"
+                                                            TooltipPosition="Hidden"
+                                                            AutomationProperties.Name="Installs per day chart" />
+                                        <TextBlock x:Name="InstallsTrendEmpty"
+                                                   Text="No activity yet — installs are recorded locally and charted here."
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" FontSize="10"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                                    TextWrapping="Wrap" TextAlignment="Center" />
                                     </Grid>
+                                    <TextBlock Text="{Binding TrendRangeText}" FontSize="10"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </StackPanel>
                             </Border>
 
-                            <!-- Updates trend -->
-                            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Padding="14,10">
+                            <!-- Updates per day -->
+                            <Border x:Name="UpdatesTrendCard" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardStyle}" Padding="14,12">
                                 <StackPanel Spacing="6">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -448,24 +815,28 @@
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                                             <FontIcon Glyph="&#xE895;" FontSize="12" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                            <TextBlock Text="Updates available trend (this session)" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
+                                            <TextBlock Text="Updates by day" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
                                         </StackPanel>
-                                        <TextBlock x:Name="UpdatesTrendValueText" Grid.Column="1" Text="0 outdated"
+                                        <TextBlock Grid.Column="1" Text="{Binding UpdatesTrendTotalText}"
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" VerticalAlignment="Center" />
                                     </Grid>
-                                    <Grid Height="56">
+                                    <Grid Height="72">
                                         <lvc:CartesianChart x:Name="UpdatesTrendChart" Visibility="Collapsed"
                                                             Series="{x:Bind UpdatesTrendSeries, Mode=OneTime}"
                                                             XAxes="{x:Bind UpdatesTrendXAxes, Mode=OneTime}"
                                                             YAxes="{x:Bind UpdatesTrendYAxes, Mode=OneTime}"
-                                                            AutomationProperties.Name="Updates available trend chart" />
-                                        <TextBlock x:Name="UpdatesTrendEmpty" Text="Sampling… trends appear as activity is detected."
+                                                            TooltipPosition="Hidden"
+                                                            AutomationProperties.Name="Updates per day chart" />
+                                        <TextBlock x:Name="UpdatesTrendEmpty"
+                                                   Text="No activity yet — updates are recorded locally and charted here."
                                                    Style="{StaticResource CaptionTextBlockStyle}"
                                                    Foreground="{ThemeResource TextFillColorTertiaryBrush}" FontSize="10"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                                    TextWrapping="Wrap" TextAlignment="Center" />
                                     </Grid>
+                                    <TextBlock Text="{Binding TrendRangeText}" FontSize="10"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -666,81 +1037,7 @@
                         </Border>
 
                         <!-- ══════════════════════════════════ -->
-                        <!--  4. CORE FEATURES SHOWCASE GRID    -->
-                        <!-- ══════════════════════════════════ -->
-                        <StackPanel x:Name="CoreFeaturesContainer" Spacing="12">
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Core features" Style="{StaticResource SectionHeaderStyle}" FontSize="16" />
-                                <TextBlock Text="Everything you need to provision and maintain a secure DevOps workstation"
-                                           Style="{StaticResource PageSubtitleStyle}" />
-                            </StackPanel>
-
-                            <ItemsRepeater ItemsSource="{Binding CoreFeatures}">
-                                <ItemsRepeater.Layout>
-                                    <UniformGridLayout MinItemWidth="310"
-                                                       MinRowSpacing="12"
-                                                       MinColumnSpacing="12"
-                                                       MaximumRowsOrColumns="3"
-                                                       ItemsStretch="Fill" />
-                                </ItemsRepeater.Layout>
-                                <ItemsRepeater.ItemTemplate>
-                                    <DataTemplate x:DataType="viewmodels:HomeFeatureCardViewModel">
-                                        <Border Style="{StaticResource FeatureCardStyle}"
-                                                helpers:Motion.HoverLift="True"
-                                                AutomationProperties.Name="{x:Bind AutomationName}">
-                                            <Grid RowSpacing="10">
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="Auto" />
-                                                    <RowDefinition Height="*" />
-                                                    <RowDefinition Height="Auto" />
-                                                </Grid.RowDefinitions>
-
-                                                <!-- Accent Icon Badge -->
-                                                <Grid Grid.Row="0">
-                                                    <Border Style="{StaticResource FeatureIconBadgeStyle}" HorizontalAlignment="Left">
-                                                        <FontIcon Glyph="{x:Bind Glyph}" FontSize="16"
-                                                                  Foreground="{ThemeResource CustomAccentPrimaryBrush}"
-                                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </Grid>
-
-                                                <!-- Card Title -->
-                                                <TextBlock Grid.Row="1"
-                                                           Text="{x:Bind Title}"
-                                                           Style="{StaticResource CardTitleStyle}"
-                                                           FontSize="15" />
-
-                                                <!-- Benefit Description -->
-                                                <TextBlock Grid.Row="2"
-                                                           Text="{x:Bind Benefit}"
-                                                           Style="{StaticResource CaptionTextBlockStyle}"
-                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                           TextWrapping="Wrap"
-                                                           VerticalAlignment="Top" />
-
-                                                <!-- Action Button / Link -->
-                                                <Button Grid.Row="3"
-                                                        Click="FeatureCardAction_Click"
-                                                        Tag="{x:Bind NavigationTarget}"
-                                                        HorizontalAlignment="Stretch"
-                                                        Padding="12,6"
-                                                        CornerRadius="4"
-                                                        AutomationProperties.Name="{x:Bind ActionLabel}">
-                                                    <Grid>
-                                                        <TextBlock Text="{x:Bind ActionLabel}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Left" />
-                                                        <FontIcon Glyph="&#xE76C;" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                                                    </Grid>
-                                                </Button>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsRepeater.ItemTemplate>
-                            </ItemsRepeater>
-                        </StackPanel>
-
-                        <!-- ══════════════════════════════════ -->
-                        <!--  5. YOUR STACKS                    -->
+                        <!--  6. YOUR STACKS                    -->
                         <!-- ══════════════════════════════════ -->
                         <StackPanel Spacing="12">
                             <Grid>

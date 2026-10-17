@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel.DataTransfer;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
-using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -31,83 +30,71 @@ public sealed partial class HomePage : Page, IRefreshablePage
         HeroVersionChipText.Text = $"v{AppUpdaterService.CurrentVersion} • WinUI 3";
 
         Loaded += HomePage_Loaded;
-        Unloaded += (s, e) => TeardownTrendCharts();
-        ActualThemeChanged += (s, e) => RebuildTrendChartPaints();
+        ActualThemeChanged += (s, e) => RenderActivityTrends();
     }
 
-    // ── Session trend charts (downloads / updates, 1 sample per second) ──
+    // ── Local activity sparklines (installs / updates per day) ──
+    //
+    // The values come from the persisted install history file, so the charts
+    // survive app restarts and never need a network call.
 
-    private readonly ChartTelemetry.BoundedValues _downloadsTrend = new();
-    private readonly ChartTelemetry.BoundedValues _updatesTrend = new();
-    private DispatcherQueueTimer? _trendTimer;
+    private readonly ChartTelemetry.BoundedValues _installsTrend = new(InstallTrendService.DefaultDays);
+    private readonly ChartTelemetry.BoundedValues _updatesTrend = new(InstallTrendService.DefaultDays);
 
-    public System.Collections.ObjectModel.ObservableCollection<ISeries> DownloadsTrendSeries { get; private set; } = new();
-    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> DownloadsTrendXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
-    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> DownloadsTrendYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.ObjectModel.ObservableCollection<ISeries> InstallsTrendSeries { get; private set; } = new();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> InstallsTrendXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
+    public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> InstallsTrendYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
     public System.Collections.ObjectModel.ObservableCollection<ISeries> UpdatesTrendSeries { get; private set; } = new();
     public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> UpdatesTrendXAxes { get; private set; } = ChartTelemetry.HiddenAxes();
     public System.Collections.Generic.IEnumerable<LiveChartsCore.Kernel.Sketches.ICartesianAxis> UpdatesTrendYAxes { get; private set; } = ChartTelemetry.HiddenAxes();
 
-    private void InitializeTrendCharts()
+    /// <summary>
+    /// Fills the daily sparklines from the persisted activity history, and keeps
+    /// the friendly empty state until there is at least one recorded day.
+    /// </summary>
+    private void RenderActivityTrends()
     {
-        RebuildTrendChartPaints();
+        var activity = ViewModel.DailyActivity;
 
-        if (_trendTimer is null)
+        if (activity.Count == 0)
         {
-            // 1 sample/second — well under the 4/s throttle ceiling.
-            _trendTimer = DispatcherQueue.CreateTimer();
-            _trendTimer.Interval = TimeSpan.FromSeconds(1);
-            _trendTimer.Tick += (s, e) => SampleTrends();
+            InstallsTrendChart.Visibility = Visibility.Collapsed;
+            UpdatesTrendChart.Visibility = Visibility.Collapsed;
+            InstallsTrendEmpty.Visibility = Visibility.Visible;
+            UpdatesTrendEmpty.Visibility = Visibility.Visible;
+            return;
         }
-        _trendTimer.Start();
-    }
 
-    private void RebuildTrendChartPaints()
-    {
-        DownloadsTrendXAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
-        DownloadsTrendYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
-        DownloadsTrendSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        _installsTrend.ClearSamples();
+        _updatesTrend.ClearSamples();
+        foreach (var day in activity)
         {
-            ChartTelemetry.CreateSparkLine(_downloadsTrend)
+            _installsTrend.Push(day.Installs);
+            _updatesTrend.Push(day.Updates);
+        }
+
+        var labels = activity.Select(day => day.ShortLabel).ToArray();
+
+        InstallsTrendXAxes = ChartTelemetry.CreateDailySparkAxes(labels, ActualTheme);
+        InstallsTrendYAxes = ChartTelemetry.HiddenAxes();
+        InstallsTrendSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
+        {
+            ChartTelemetry.CreateSparkLine(_installsTrend)
         };
-        UpdatesTrendXAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
-        UpdatesTrendYAxes = ChartTelemetry.CreateSparkAxes(ActualTheme);
+        UpdatesTrendXAxes = ChartTelemetry.CreateDailySparkAxes(labels, ActualTheme);
+        UpdatesTrendYAxes = ChartTelemetry.HiddenAxes();
         UpdatesTrendSeries = new System.Collections.ObjectModel.ObservableCollection<ISeries>
         {
             ChartTelemetry.CreateSparkLine(_updatesTrend)
         };
+
         Bindings.Update();
-    }
 
-    private void SampleTrends()
-    {
-        _downloadsTrend.Push(ViewModel.ActiveDownloadsCount);
-        _updatesTrend.Push(ViewModel.UpdateCount);
-
-        DownloadsTrendValueText.Text = $"{ViewModel.ActiveDownloadsCount} active";
-        UpdatesTrendValueText.Text = $"{ViewModel.UpdateCount} outdated";
-
-        // Empty state until a chart has something to draw.
-        bool downloadsDrawable = _downloadsTrend.Count >= 2 && _downloadsTrend.Any(v => v.Value > 0);
-        bool updatesDrawable = _updatesTrend.Count >= 2 && _updatesTrend.Any(v => v.Value > 0);
-        DownloadsTrendChart.Visibility = downloadsDrawable ? Visibility.Visible : Visibility.Collapsed;
-        UpdatesTrendChart.Visibility = updatesDrawable ? Visibility.Visible : Visibility.Collapsed;
-        DownloadsTrendEmpty.Visibility = downloadsDrawable ? Visibility.Collapsed : Visibility.Visible;
-        UpdatesTrendEmpty.Visibility = updatesDrawable ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    /// <summary>Stops sampling and releases chart data (navigation away / unload).</summary>
-    private void TeardownTrendCharts()
-    {
-        _trendTimer?.Stop();
-        _downloadsTrend.ClearSamples();
-        _updatesTrend.ClearSamples();
-    }
-
-    protected override void OnNavigatedFrom(NavigationEventArgs e)
-    {
-        base.OnNavigatedFrom(e);
-        TeardownTrendCharts();
+        bool drawable = ViewModel.HasTrendData && activity.Count >= 2;
+        InstallsTrendChart.Visibility = drawable ? Visibility.Visible : Visibility.Collapsed;
+        UpdatesTrendChart.Visibility = drawable ? Visibility.Visible : Visibility.Collapsed;
+        InstallsTrendEmpty.Visibility = drawable ? Visibility.Collapsed : Visibility.Visible;
+        UpdatesTrendEmpty.Visibility = drawable ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async void HomePage_Loaded(object sender, RoutedEventArgs e)
@@ -117,7 +104,7 @@ public sealed partial class HomePage : Page, IRefreshablePage
 
         await ViewModel.LoadDashboardAsync(mw);
         SeeAllStacksText.Text = $"See all {ViewModel.Stacks.Count}";
-        InitializeTrendCharts();
+        RenderActivityTrends();
     }
 
     private async void RetryScan_Click(object sender, RoutedEventArgs e)
@@ -285,6 +272,22 @@ public sealed partial class HomePage : Page, IRefreshablePage
 
     private void DownloadsMetric_Click(object sender, RoutedEventArgs e)
         => App.MainWindowInstance?.NavigateTo("Downloads");
+
+    /// <summary>Runs the action offered by the hero's "next best action" line.</summary>
+    private void NextAction_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { Tag: string tag } && !string.IsNullOrWhiteSpace(tag))
+        {
+            App.MainWindowInstance?.NavigateTo(tag);
+        }
+    }
+
+    /// <summary>The "Needs attention" metric deep-links to full Doctor diagnostics.</summary>
+    private void PathMetric_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("Doctor");
+
+    private void RunDoctor_Click(object sender, RoutedEventArgs e)
+        => App.MainWindowInstance?.NavigateTo("Doctor");
 
     private void MetricGrid_SizeChanged(object sender, SizeChangedEventArgs e)
     {

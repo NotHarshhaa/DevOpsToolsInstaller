@@ -119,6 +119,33 @@ public static class ChartTelemetry
         ];
     }
 
+    /// <summary>
+    /// Axes for a daily sparkline: sparse date labels along X (so 30 days do not
+    /// turn into 30 overlapping labels) and a hidden Y axis — the totals are
+    /// shown as text next to the chart.
+    /// </summary>
+    public static Axis[] CreateDailySparkAxes(string[] labels, ElementTheme theme)
+    {
+        var text = TextColor(theme);
+        return
+        [
+            new Axis // X — dates, at most one label per week
+            {
+                Labels = labels,
+                LabelsPaint = new SolidColorPaint(text),
+                TextSize = 9,
+                MinStep = 7,
+                ShowSeparatorLines = false,
+                SeparatorsPaint = null
+            },
+            new Axis // Y — hidden
+            {
+                IsVisible = false,
+                LabelsPaint = null
+            }
+        ];
+    }
+
     /// <summary>Axes for a labeled bar chart (tool names on X, values on Y).</summary>
     public static Axis[] CreateLabeledAxes(string[] labels, ElementTheme theme, double labelsRotation)
     {

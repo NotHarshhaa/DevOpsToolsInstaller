@@ -130,6 +130,30 @@ public static class DoctorService
         };
     }
 
+    /// <summary>
+    /// Fast subset of the diagnostics used by the Home page health ring: PATH
+    /// health, prerequisites, CLI shadowing and PATH integration. The version
+    /// freshness probe is deliberately excluded because it launches every
+    /// installed CLI, which would make a dashboard scan far too slow.
+    /// </summary>
+    public static Task<DoctorReport> RunQuickHealthAsync(CancellationToken ct = default)
+    {
+        return Task.Run(() =>
+        {
+            var results = new List<DoctorCheckResult>();
+            CheckPathConflictsAndDuplicates(results);
+            CheckPrerequisites(results, null);
+            CheckCliBinaryShadowing(results);
+            CheckToolsInstalledNotOnPath(results);
+
+            return new DoctorReport
+            {
+                ScanTime = DateTime.Now,
+                Checks = results
+            };
+        }, ct);
+    }
+
     private static void CheckPathConflictsAndDuplicates(List<DoctorCheckResult> results)
     {
         var doc = PathDoctorService.Diagnose();

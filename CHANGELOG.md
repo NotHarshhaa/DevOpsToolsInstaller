@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Navigation**: new **Profiles & History** (`ProfilesPage`) navigation item, **Custom Tools** (`CatalogEditorPage`) footer item, and command-palette entries for both.
 - **Shared page chrome (`Controls/PageHeader.xaml`, `Controls/PageContainer.cs`)**: every page now uses one header control (title, optional count badge, optional subtitle, optional right-aligned actions) inside one layout container (uniform 32/24 padding, 1200px centred content column so titles and left edges line up; `FullWidth="True"` for the Catalog and Installed grids so tables use every pixel).
 - **Window material setting (`Settings → Appearance → Window material`)**: choose **Mica (neutral)**, **Mica Alt**, **Acrylic**, or **None** for the title bar and sidebar. Persisted in `settings.json`; applied live without a restart.
+- **Home dashboard redesign (`Views/HomePage.xaml`)**:
+  - Hero copy is capped at 55% of the banner and the artwork lives in its own column with a gradient-faded left edge, so the two can never overlap; a single **next best action** line (PATH warnings → *Run Doctor*, pending updates, active downloads) replaces the empty space under the calls to action.
+  - **Workstation health ring** driven by `DoctorService.RunQuickHealthAsync()` — the fast Doctor subset (PATH, prerequisites, CLI shadowing, PATH integration) that skips the slow per-CLI version probes — with the score, pass/warn/fail counts and the failing checks listed inline.
+  - **Recently installed** list (last 5 installs, updates and rollbacks) with the reason and date for each entry.
+  - Four **equal-height, clickable** metric cards; *Needs attention* now states the reason on the card and deep-links to **Doctor**.
+  - **Installs/updates by day** sparklines (last 30 days) rendered with LiveCharts, with a friendly empty state until there is history.
+  - **Core features** is now a collapsed `Expander` placed directly under the metrics, so it is visible without scrolling.
+- **Persisted local activity trend (`Services/InstallTrendService.cs`)**: aggregates installs and updates per day from the existing `history.jsonl` install history — a local file, never a network call — so the Home sparklines survive restarts and can never disagree with the History page.
 
 ### Changed
 - `ArtifactService.Perform` now runs pre/post-install hooks (when enabled) and records successful installs to the install history.
@@ -46,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Keyboard shortcuts**: `Ctrl+F` focuses the global search, `Ctrl+,` opens Settings, `F5` refreshes the current page (via a new `IRefreshablePage` interface implemented across Home, Catalog, Stacks, Installed, Doctor, Downloads, Profiles and Custom Tools), and `Ctrl+1`–`Ctrl+7` jump between sections.
 - **Command palette**: added *Refresh current page*, *Open downloads folder* and *Capture workstation snapshot* actions.
 - **Responsive layouts**: `NavigationView` now uses an adaptive pane (`PaneDisplayMode="Auto"`); `CatalogEditorPage` and `ToolDetailPage` use `VisualStateManager` breakpoints so two-column layouts stack and the install action row wraps on narrow windows. The shared page header moves its actions onto their own row below 780px; the Catalog and Downloads toolbars reflow (icon-only command bar / wrapped filter chips) and the Installed table scrolls horizontally rather than clipping columns when the window is narrow.
+- **Home page layout**: the hero drops the artwork below 880px so the copy keeps the full banner width, and the health/recently-installed and trend rows collapse from two columns to one below 1180px; the health card's actions sit on their own row so they never clip.
 - **Tool detail upgrades**: new *Installation status* card (installed / downloaded / not installed with detected version), a *What's new in this version* release-notes expander (fetched from the vendor's GitHub releases when available), and a *Related tools* card linking to other tools in the same category.
 - **Visual polish**: subtle springy hover lift (`helpers:Motion.HoverLift`) on list-item cards across the Profiles and Custom Tools pages.
 - **Accessibility & discoverability**: automation names on the empty-state control and its action button, plus tooltips on every navigation item describing the destination.

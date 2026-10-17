@@ -237,6 +237,54 @@ public sealed class HomeFeatureCardViewModel : ObservableObject
     public string AutomationName => $"{Title}: {Benefit}. Action: {ActionLabel}.";
 }
 
+/// <summary>A single row in the Home "Recently installed" list.</summary>
+public sealed class HomeRecentInstallItemViewModel
+{
+    public string Name { get; }
+    public string Version { get; }
+    public string ActionLabel { get; }
+    public string Glyph { get; }
+    public string TimeText { get; }
+
+    public string AutomationLabel => $"{Name}, {ActionLabel.ToLowerInvariant()}, {TimeText}";
+
+    public HomeRecentInstallItemViewModel(InstallHistoryEvent evt)
+    {
+        Name = string.IsNullOrWhiteSpace(evt.ToolName) ? evt.ToolId : evt.ToolName;
+        Version = string.IsNullOrWhiteSpace(evt.Version) ? string.Empty : $"v{evt.Version}";
+
+        ActionLabel = evt.Action switch
+        {
+            nameof(HistoryAction.Update) => "Updated",
+            nameof(HistoryAction.Rollback) => "Rolled back",
+            nameof(HistoryAction.Uninstall) => "Uninstalled",
+            _ => "Installed"
+        };
+
+        Glyph = evt.Action switch
+        {
+            nameof(HistoryAction.Update) => "\uE895",
+            nameof(HistoryAction.Rollback) => "\uE7A7",
+            nameof(HistoryAction.Uninstall) => "\uE74D",
+            _ => "\uE896"
+        };
+
+        TimeText = DescribeWhen(evt.Timestamp);
+    }
+
+    private static string DescribeWhen(DateTime when)
+    {
+        int days = (DateTime.Today - when.Date).Days;
+        return days switch
+        {
+            <= 0 => $"Today {when:HH:mm}",
+            1 => $"Yesterday {when:HH:mm}",
+            < 7 => $"{days} days ago",
+            _ => when.ToString("MMM d")
+        };
+    }
+}
+
 public sealed partial class HomeViewModel : ObservableObject
 {
     private readonly IPathHealthService _pathHealthService;
@@ -308,15 +356,116 @@ public sealed partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private string _searchQuery = string.Empty;
 
+    // ── Hero "next best action" line ──
+    [ObservableProperty]
+    private bool _hasNextAction;
+
+    [ObservableProperty]
+    private string _nextActionText = string.Empty;
+
+    [ObservableProperty]
+    private string _nextActionButtonText = string.Empty;
+
+    [ObservableProperty]
+    private string _nextActionTag = string.Empty;
+
+    [ObservableProperty]
+    private bool _isNextActionWarning;
+
+    // ── Workstation health ring (fast Doctor subset) ──
+    [ObservableProperty]
+    private bool _hasHealthData;
+
+    [ObservableProperty]
+    private double _healthScore;
+
+    [ObservableProperty]
+    private int _healthPassedCount;
+
+    [ObservableProperty]
+    private int _healthWarningCount;
+
+    [ObservableProperty]
+    private int _healthFailedCount;
+
+    [ObservableProperty]
+    private int _healthTotalCount;
+
+    [ObservableProperty]
+    private string _healthHeadline = "Not scanned";
+
+    [ObservableProperty]
+    private string _healthCountsText = string.Empty;
+
+    [ObservableProperty]
+    private string _healthDetail = string.Empty;
+
+    // ── Local activity history (sparklines) ──
+    [ObservableProperty]
+    private bool _hasTrendData;
+
+    [ObservableProperty]
+    private string _installsTrendTotalText = "0 installs";
+
+    [ObservableProperty]
+    private string _updatesTrendTotalText = "0 updates";
+
+    [ObservableProperty]
+    private string _trendRangeText = string.Empty;
+
+    // ── Recently installed ──
+    [ObservableProperty]
+    private bool _hasRecentInstalls;
+
+    [ObservableProperty]
+    private string _pathReason = string.Empty;
+
     public string InstalledMetricAutomationName => $"Installed tools: {InstalledCount}";
     public string UpdatesMetricAutomationName => $"Tool updates available: {UpdateCount}";
     public string DownloadsMetricAutomationName => $"Active downloads: {ActiveDownloadsCount}";
     public string PathMetricAutomationName => $"PATH health status: {PathStatus}";
+    public string HealthRingAutomationName => HasHealthData
+        ? $"Workstation health {HealthScore:F0} percent, {HealthCountsText}"
+        : "Workstation health has not been scanned";
+
+    public bool HasNextActionButton => !string.IsNullOrEmpty(NextActionButtonText);
+    public bool IsHealthHealthy => HasHealthData && HealthFailedCount == 0 && HealthWarningCount == 0;
+    public bool IsHealthDegraded => HasHealthData && HealthFailedCount == 0 && HealthWarningCount > 0;
+    public bool IsHealthCritical => HasHealthData && HealthFailedCount > 0;
+    public string HealthScoreText => HasHealthData ? $"{HealthScore:F0}%" : "—";
 
     partial void OnInstalledCountChanged(int value) => OnPropertyChanged(nameof(InstalledMetricAutomationName));
     partial void OnUpdateCountChanged(int value) => OnPropertyChanged(nameof(UpdatesMetricAutomationName));
     partial void OnActiveDownloadsCountChanged(int value) => OnPropertyChanged(nameof(DownloadsMetricAutomationName));
     partial void OnPathStatusChanged(string value) => OnPropertyChanged(nameof(PathMetricAutomationName));
+    partial void OnNextActionButtonTextChanged(string value) => OnPropertyChanged(nameof(HasNextActionButton));
+
+    partial void OnHasHealthDataChanged(bool value) => RaiseHealthComputed();
+    partial void OnHealthPassedCountChanged(int value) => RaiseHealthComputed();
+    partial void OnHealthWarningCountChanged(int value) => RaiseHealthComputed();
+    partial void OnHealthFailedCountChanged(int value) => RaiseHealthComputed();
+    partial void OnHealthScoreChanged(double value)
+    {
+        OnPropertyChanged(nameof(HealthScoreText));
+        OnPropertyChanged(nameof(HealthRingAutomationName));
+    }
+
+    private void RaiseHealthComputed()
+    {
+        OnPropertyChanged(nameof(IsHealthHealthy));
+        OnPropertyChanged(nameof(IsHealthDegraded));
+        OnPropertyChanged(nameof(IsHealthCritical));
+        OnPropertyChanged(nameof(HealthScoreText));
+        OnPropertyChanged(nameof(HealthRingAutomationName));
+    }
+
+    public ObservableCollection<HomeRecentInstallItemViewModel> RecentInstalls { get; } = new();
+
+    /// <summary>
+    /// Installs/updates per day for the trailing window, used by the Home
+    /// sparklines. Persisted locally (see <see cref="InstallTrendService"/>).
+    /// </summary>
+    public IReadOnlyList<DailyInstallActivity> DailyActivity { get; private set; } = Array.Empty<DailyInstallActivity>();
 
     public ObservableCollection<HomeFeatureCardViewModel> CoreFeatures { get; } = new();
     public ObservableCollection<ActiveDownloadItemViewModel> ActiveDownloads { get; } = new();
@@ -366,6 +515,7 @@ public sealed partial class HomeViewModel : ObservableObject
             ActiveDownloadsCount = 0;
             NextInQueueText = null;
             HasNextInQueue = false;
+            UpdateNextBestAction();
             return;
         }
 
@@ -409,6 +559,8 @@ public sealed partial class HomeViewModel : ObservableObject
             NextInQueueText = null;
             HasNextInQueue = false;
         }
+
+        UpdateNextBestAction();
     }
 
     public async Task LoadDashboardAsync(MainWindow mw, CancellationToken ct = default)
@@ -456,6 +608,9 @@ public sealed partial class HomeViewModel : ObservableObject
             PathSummary = pathReport.Summary;
             PathBinFolder = pathReport.BinFolder;
             PathFixCommand = pathReport.SuggestedFixCommand;
+            PathReason = pathReport.IsHealthy
+                ? "User PATH is clean and Tools\\bin is registered."
+                : CompactPathIssue(pathReport.Summary);
 
             // 3. Tool Updates check
             var updates = await _toolUpdateService.CheckForUpdatesAsync(_installedTools, ct);
@@ -468,6 +623,17 @@ public sealed partial class HomeViewModel : ObservableObject
             UpdateCount = Updates.Count;
             HasUpdates = UpdateCount > 0;
             CanUpdateAll = UpdateCount >= 2;
+
+            // 3a. Persisted local activity history (installs / updates per day)
+            RefreshActivityHistory();
+
+            // 3b. Lightweight workstation health for the health ring. The fast
+            //     Doctor subset is used so the dashboard never waits on the
+            //     version-freshness probes that launch every installed CLI.
+            await RefreshHealthAsync(ct);
+
+            // 3c. Single "next best action" for the hero
+            UpdateNextBestAction();
 
             // Dynamic Subtitle
             UpdateDynamicSubtitle();
@@ -513,6 +679,160 @@ public sealed partial class HomeViewModel : ObservableObject
         {
             DynamicSubtitle = "Select a curated stack or search the catalog to configure your workstation.";
         }
+    }
+
+    /// <summary>
+    /// Rebuilds the persisted per-day activity series and the "Recently
+    /// installed" list from the local install history file.
+    /// </summary>
+    public void RefreshActivityHistory()
+    {
+        DailyActivity = InstallTrendService.GetDailyActivity();
+
+        int installs = DailyActivity.Sum(d => d.Installs);
+        int updates = DailyActivity.Sum(d => d.Updates);
+
+        HasTrendData = installs > 0 || updates > 0;
+        InstallsTrendTotalText = installs == 1 ? "1 install" : $"{installs} installs";
+        UpdatesTrendTotalText = updates == 1 ? "1 update" : $"{updates} updates";
+        TrendRangeText = DailyActivity.Count > 0
+            ? $"Last {DailyActivity.Count} days · {DailyActivity[0].Date:MMM d} – {DailyActivity[^1].Date:MMM d}"
+            : string.Empty;
+
+        var recent = InstallHistoryService.Load(60)
+            .Where(e => IsActivityAction(e.Action))
+            .Take(5)
+            .ToList();
+
+        RecentInstalls.Clear();
+        foreach (var evt in recent)
+        {
+            RecentInstalls.Add(new HomeRecentInstallItemViewModel(evt));
+        }
+        HasRecentInstalls = RecentInstalls.Count > 0;
+
+        OnPropertyChanged(nameof(DailyActivity));
+    }
+
+    private static bool IsActivityAction(string action) =>
+        string.Equals(action, nameof(HistoryAction.Install), StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(action, nameof(HistoryAction.Update), StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(action, nameof(HistoryAction.Rollback), StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Runs the fast Doctor subset that backs the Home health ring.</summary>
+    private async Task RefreshHealthAsync(CancellationToken ct)
+    {
+        try
+        {
+            var report = await DoctorService.RunQuickHealthAsync(ct);
+            ApplyHealthReport(report);
+        }
+        catch (OperationCanceledException)
+        {
+            // Page navigated away — keep whatever is already shown.
+        }
+        catch (Exception ex)
+        {
+            HasHealthData = false;
+            HealthHeadline = "Not scanned";
+            HealthCountsText = "The quick health scan could not run.";
+            HealthDetail = ex.Message;
+        }
+    }
+
+    private void ApplyHealthReport(DoctorReport report)
+    {
+        HealthPassedCount = report.PassedCount;
+        HealthWarningCount = report.WarningCount;
+        HealthFailedCount = report.FailedCount;
+        HealthTotalCount = report.TotalCount;
+
+        HasHealthData = report.TotalCount > 0;
+        HealthScore = HasHealthData ? (double)report.PassedCount / report.TotalCount * 100.0 : 0.0;
+
+        HealthHeadline = !HasHealthData
+            ? "Not scanned"
+            : report.FailedCount > 0
+                ? "Needs attention"
+                : report.WarningCount > 0
+                    ? "Minor issues"
+                    : "Healthy";
+
+        HealthCountsText = HasHealthData
+            ? $"{report.PassedCount} passed • {report.WarningCount} warning{(report.WarningCount == 1 ? "" : "s")} • {report.FailedCount} failed"
+            : "No checks ran";
+
+        var problems = report.Checks
+            .Where(c => c.Status != DoctorStatus.Passed)
+            .Select(c => c.Title)
+            .ToList();
+
+        HealthDetail = problems.Count == 0
+            ? "PATH, prerequisites and CLI conflicts all look good."
+            : string.Join(" • ", problems.Take(3)) +
+              (problems.Count > 3 ? $" (+{problems.Count - 3} more)" : string.Empty);
+    }
+
+    /// <summary>Picks the single most useful thing to do right now for the hero.</summary>
+    public void UpdateNextBestAction()
+    {
+        if (!IsPathHealthy)
+        {
+            NextActionText = $"{PathReason} Run Doctor to fix it.";
+            NextActionButtonText = "Run Doctor";
+            NextActionTag = "Doctor";
+            IsNextActionWarning = true;
+        }
+        else if (UpdateCount > 0)
+        {
+            NextActionText = UpdateCount == 1
+                ? "1 tool update is available."
+                : $"{UpdateCount} tool updates are available.";
+            NextActionButtonText = "Review updates";
+            NextActionTag = "Installed";
+            IsNextActionWarning = false;
+        }
+        else if (HasActiveDownloads)
+        {
+            NextActionText = ActiveDownloadsCount == 1
+                ? "1 download is in progress."
+                : $"{ActiveDownloadsCount} downloads are in progress.";
+            NextActionButtonText = "View downloads";
+            NextActionTag = "Downloads";
+            IsNextActionWarning = false;
+        }
+        else if (HasInstalledTools)
+        {
+            NextActionText = $"Nothing to do — all {InstalledCount} installed tools are current and PATH is healthy.";
+            NextActionButtonText = string.Empty;
+            NextActionTag = string.Empty;
+            IsNextActionWarning = false;
+        }
+        else
+        {
+            NextActionText = "Nothing installed yet — start from a curated stack or browse the catalog.";
+            NextActionButtonText = "Browse catalog";
+            NextActionTag = "Catalog";
+            IsNextActionWarning = false;
+        }
+
+        HasNextAction = true;
+    }
+
+    /// <summary>Shortens the Doctor PATH summary into a phrase for the metric card.</summary>
+    private static string CompactPathIssue(string summary)
+    {
+        if (string.IsNullOrWhiteSpace(summary)) return "PATH needs attention.";
+
+        var text = summary.Trim();
+        const string prefix = "Found ";
+        const string suffix = " in User PATH.";
+
+        if (text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) text = text[prefix.Length..];
+        if (text.EndsWith(suffix, StringComparison.OrdinalIgnoreCase)) text = text[..^suffix.Length];
+
+        text = text.Trim().TrimEnd('.');
+        return string.IsNullOrEmpty(text) ? "PATH needs attention." : $"{text} in PATH.";
     }
 
     private void BuildStacks(MainWindow mw)
@@ -760,6 +1080,8 @@ public sealed partial class HomeViewModel : ObservableObject
                         HasUpdates = UpdateCount > 0;
                         CanUpdateAll = UpdateCount >= 2;
                     }
+                    RefreshActivityHistory();
+                    UpdateNextBestAction();
                     UpdateDynamicSubtitle();
                 });
 
@@ -839,6 +1161,8 @@ public sealed partial class HomeViewModel : ObservableObject
                 UpdateCount = Updates.Count;
                 HasUpdates = UpdateCount > 0;
                 CanUpdateAll = UpdateCount >= 2;
+                RefreshActivityHistory();
+                UpdateNextBestAction();
                 UpdateDynamicSubtitle();
             });
 
@@ -907,7 +1231,11 @@ public sealed partial class HomeViewModel : ObservableObject
                 }
             }
 
-            _ = mw.DispatcherQueue.TryEnqueue(SyncActiveDownloads);
+            _ = mw.DispatcherQueue.TryEnqueue(() =>
+            {
+                SyncActiveDownloads();
+                RefreshActivityHistory();
+            });
 
             ToastService.Show(
                 $"{stack.Name}: {installedCount}/{missingTools.Count} tools installed",
