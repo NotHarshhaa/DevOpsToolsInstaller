@@ -50,6 +50,7 @@
                 HorizontalAlignment="Stretch"
                 DefaultLabelPosition="Right"
                 OverflowButtonVisibility="Auto"
+                Margin="0,0,32,0"
                 Background="Transparent">
                 <CommandBar.Content>
                     <!-- Just the filter segment: a single auto-sized control keeps
@@ -142,7 +143,7 @@
             <!-- ══════════════════════════════════ -->
             <!--  CLI HEALTH LATENCY CHART           -->
             <!-- ══════════════════════════════════ -->
-            <StackPanel Grid.Row="2" Spacing="10">
+            <StackPanel Grid.Row="2" Spacing="10" Margin="0,0,32,0">
 
                 <!-- Populated by "Check CLIs" -->
                 <Border x:Name="LatencyChartCard"
@@ -245,7 +246,7 @@
                     <!-- ══════════════════════════════════ -->
                     <!--  TABLE HEADER ROW (sortable)       -->
                     <!-- ══════════════════════════════════ -->
-                    <Border Grid.Row="0" Padding="16,4" Margin="0,4,0,0">
+                    <Border Grid.Row="0" Padding="16,4" Margin="0,4,32,0">
                         <Grid ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="40" />
@@ -310,7 +311,7 @@
                         Grid.Row="1"
                         SelectionMode="None"
                         IsItemClickEnabled="False"
-                        Padding="0,0,0,12">
+                        Padding="0,0,32,12">
                         <ListView.ItemContainerTransitions>
                             <TransitionCollection>
                                 <AddDeleteThemeTransition />
@@ -607,7 +608,7 @@
             <!-- ══════════════════════════════════ -->
             <!--  FOOTER STATUS BAR                 -->
             <!-- ══════════════════════════════════ -->
-            <Grid Grid.Row="4" Margin="0,6,0,14" ColumnSpacing="16" VerticalAlignment="Center">
+            <Grid Grid.Row="4" Margin="0,6,32,14" ColumnSpacing="16" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

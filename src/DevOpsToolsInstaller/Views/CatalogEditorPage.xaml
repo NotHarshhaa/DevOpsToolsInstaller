@@ -32,11 +32,12 @@
                                     Subtitle="Add your own HTTPS-hosted tools to the catalog. Custom entries flow through the same SHA-256 and Authenticode pipeline as the shipped catalog." />
 
             <controls:InfoBar x:Name="NoticeInfoBar" Grid.Row="1" IsOpen="False" IsClosable="True"
+                              Margin="0,0,32,0"
                               Severity="Success" AutomationProperties.Name="Catalog editor status message" />
 
             <!-- Two columns, edge to edge: the form fills the left column so the
                  list never floats away from it on wide windows. -->
-            <Grid Grid.Row="2" ColumnSpacing="16" x:Name="EditorLayoutGrid">
+            <Grid Grid.Row="2" ColumnSpacing="16" x:Name="EditorLayoutGrid" Margin="0,0,32,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition x:Name="FormColumn" Width="*" MinWidth="300" />
                     <ColumnDefinition x:Name="SideColumn" Width="380" />

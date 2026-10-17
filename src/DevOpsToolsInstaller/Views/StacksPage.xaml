@@ -319,7 +319,7 @@
                         </Grid>
 
                         <!-- ROW 1: Category Filter Chips -->
-                        <Grid Grid.Row="1" ColumnSpacing="6">
+                        <Grid Grid.Row="1" ColumnSpacing="6" Margin="0,0,32,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
@@ -375,7 +375,7 @@
                             SelectionMode="None"
                             IsItemClickEnabled="True"
                             ItemClick="StacksGridView_ItemClick"
-                            Padding="0,6,0,8"
+                            Padding="0,6,32,8"
                             HorizontalAlignment="Stretch"
                             SizeChanged="StacksGridView_SizeChanged">
                             <GridView.ItemContainerTransitions>
@@ -606,7 +606,7 @@
                         </GridView>
 
                         <!-- ROW 3: Footer Status Bar -->
-                        <Grid Grid.Row="3" Margin="0,4,0,4" VerticalAlignment="Center">
+                        <Grid Grid.Row="3" Margin="0,4,32,4" VerticalAlignment="Center">
                             <TextBlock x:Name="FooterStatusText"
                                        Text="Loading stacks…"
                                        FontSize="12"

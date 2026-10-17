@@ -23,7 +23,7 @@
     </Page.Resources>
 
     <appControls:PageContainer>
-        <ScrollViewer>
+        <ScrollViewer Padding="0,0,32,24">
             <StackPanel Spacing="20">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>

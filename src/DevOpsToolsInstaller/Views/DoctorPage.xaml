@@ -202,7 +202,7 @@
             <!-- ══════════════════════════════════ -->
             <!--  GROUPED RESULTS (scrollable)      -->
             <!-- ══════════════════════════════════ -->
-            <ScrollViewer Grid.Row="1" VerticalScrollMode="Auto" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="1" VerticalScrollMode="Auto" VerticalScrollBarVisibility="Auto" Padding="0,0,32,24">
                 <ItemsControl ItemsSource="{x:Bind ViewModel.GroupedChecks, Mode=OneWay}"
                               AutomationProperties.Name="Workstation diagnostic groups"
                               Margin="0,0,0,24">

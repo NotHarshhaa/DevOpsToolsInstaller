@@ -29,7 +29,7 @@
             </appControls:PageHeader>
 
             <!-- Hero card (ConnectedAnimation target) -->
-            <Border x:Name="HeroCard" Grid.Row="1" Style="{StaticResource CardStyle}" Padding="18,16">
+            <Border x:Name="HeroCard" Grid.Row="1" Style="{StaticResource CardStyle}" Padding="18,16" Margin="0,0,32,0">
                 <Grid ColumnSpacing="16" RowSpacing="12" x:Name="HeroGrid">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="HeroLogoCol" Width="Auto" />
@@ -156,7 +156,7 @@
             </Border>
 
             <!-- Details -->
-            <ScrollViewer Grid.Row="2" Padding="0,2,0,0">
+            <ScrollViewer Grid.Row="2" Padding="0,2,32,24">
                 <StackPanel Spacing="12" MaxWidth="1000" HorizontalAlignment="Stretch">
 
                     <tk:SettingsCard x:Name="DescriptionCard"

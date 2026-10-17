@@ -7,7 +7,7 @@
     <!-- Shared page header: title, optional count badge, optional subtitle and
          optional right-aligned actions. Below the wide breakpoint the actions
          drop onto their own row so nothing is squeezed out on narrow windows. -->
-    <Grid x:Name="HeaderGrid" ColumnSpacing="16" RowSpacing="0">
+    <Grid x:Name="HeaderGrid" ColumnSpacing="16" RowSpacing="0" Margin="0,0,32,0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />

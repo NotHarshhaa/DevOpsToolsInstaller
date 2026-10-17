@@ -33,76 +33,9 @@ public static class Motion
 
     private static void OnHoverLiftChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        if (d is not FrameworkElement el)
-        {
-            return;
-        }
-
-        if ((bool)e.NewValue)
-        {
-            el.PointerEntered += OnHoverLiftEntered;
-            el.PointerExited += OnHoverLiftLeft;
-            el.PointerCanceled += OnHoverLiftLeft;
-            el.GotFocus += OnHoverLiftFocused;
-            el.LostFocus += OnHoverLiftUnfocused;
-            el.SizeChanged += OnHoverLiftSizeChanged;
-            el.Unloaded += OnHoverLiftUnloaded;
-        }
-        else
-        {
-            el.PointerEntered -= OnHoverLiftEntered;
-            el.PointerExited -= OnHoverLiftLeft;
-            el.PointerCanceled -= OnHoverLiftLeft;
-            el.GotFocus -= OnHoverLiftFocused;
-            el.LostFocus -= OnHoverLiftUnfocused;
-            el.SizeChanged -= OnHoverLiftSizeChanged;
-            el.Unloaded -= OnHoverLiftUnloaded;
-        }
-    }
-
-    private static void OnHoverLiftEntered(object sender, PointerRoutedEventArgs e)
-    {
-        // Respect the Windows "reduce animations" accessibility setting.
-        if (!AnimationSettingsHelper.AnimationsEnabled) return;
-        AnimateScale((UIElement)sender, 1.02f);
-    }
-
-    private static void OnHoverLiftLeft(object sender, PointerRoutedEventArgs e)
-        => AnimateScale((UIElement)sender, 1f);
-
-    private static void OnHoverLiftFocused(object sender, RoutedEventArgs e)
-    {
-        if (!AnimationSettingsHelper.AnimationsEnabled) return;
-        AnimateScale((UIElement)sender, 1.02f);
-    }
-
-    private static void OnHoverLiftUnfocused(object sender, RoutedEventArgs e)
-        => AnimateScale((UIElement)sender, 1f);
-
-    private static void OnHoverLiftSizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        // Scale around the element's center so the lift feels balanced.
-        var visual = ElementCompositionPreview.GetElementVisual((UIElement)sender);
-        visual.CenterPoint = new Vector3((float)e.NewSize.Width / 2f, (float)e.NewSize.Height / 2f, 0f);
-    }
-
-    private static void OnHoverLiftUnloaded(object sender, RoutedEventArgs e)
-        => AnimateScale((UIElement)sender, 1f);
-
-    private static void AnimateScale(UIElement el, float target)
-    {
-        var visual = ElementCompositionPreview.GetElementVisual(el);
-        var compositor = visual.Compositor;
-
-        // Back-out bezier (y overshoots 1.0) gives the springy settle that
-        // natural-motion springs provide, without requiring spring factories.
-        var scale = compositor.CreateVector3KeyFrameAnimation();
-        scale.InsertKeyFrame(1f, new Vector3(target, target, 1f),
-            compositor.CreateCubicBezierEasingFunction(
-                new Vector2(0.175f, 0.885f), new Vector2(0.32f, 1.5f)));
-        scale.Duration = TimeSpan.FromMilliseconds(200);
-
-        visual.StartAnimation("Scale", scale);
+        // Scaling composition visuals (e.g. 1.02f) breaks DirectWrite subpixel pixel-grid snapping
+        // and triggers bilinear texture filtering in DirectComposition, causing text to look blurry/fuzzy.
+        // Disabled so all text, badges, and controls remain 100% sharp and crisp on both hover and focus.
     }
 
     // ── Pulse: gentle looping opacity pulse ─────────────────────────────

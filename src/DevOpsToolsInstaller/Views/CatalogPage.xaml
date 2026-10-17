@@ -685,6 +685,7 @@
                         Title="Stack Filter Active"
                         Message="Showing only tools belonging to this curated stack. All tools in this stack are pre-selected for installation."
                         CornerRadius="6"
+                        Margin="0,0,32,0"
                         Closed="ActiveStackInfoBar_Closed">
                         <InfoBar.ActionButton>
                             <Button Content="Show All Tools" Click="ClearStackFilter_Click" Padding="12,5" CornerRadius="4" />
@@ -703,6 +704,7 @@
                     HorizontalAlignment="Stretch"
                     DefaultLabelPosition="Right"
                     IsOpen="False"
+                    Margin="0,0,32,0"
                     OverflowButtonVisibility="Auto"
                     Background="Transparent">
                     <CommandBar.Content>
@@ -850,7 +852,7 @@
                 <!-- ══════════════════════════════════ -->
                 <!--  CATEGORY FILTER CHIPS             -->
                 <!-- ══════════════════════════════════ -->
-                <Grid Grid.Row="2" ColumnSpacing="6">
+                <Grid Grid.Row="2" ColumnSpacing="6" Margin="0,0,32,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -918,7 +920,7 @@
                 <Grid Grid.Row="3">
                     <ScrollViewer x:Name="ToolsScrollViewer"
                                   VerticalScrollBarVisibility="Auto"
-                                  Padding="0,6,0,8">
+                                  Padding="0,6,32,8">
                         <ItemsRepeater x:Name="ToolsRepeater" HorizontalAlignment="Stretch"
                                        ItemTemplate="{StaticResource CatalogCardTemplate}">
                             <ItemsRepeater.Layout>
@@ -966,7 +968,7 @@
                 <!-- ══════════════════════════════════ -->
                 <!--  FOOTER STATUS BAR                 -->
                 <!-- ══════════════════════════════════ -->
-                <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+                <Grid Grid.Row="4" Margin="0,6,32,14" VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />

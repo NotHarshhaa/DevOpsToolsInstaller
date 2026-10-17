@@ -23,7 +23,7 @@ public sealed class PageContainer : Panel
             nameof(PagePadding),
             typeof(Thickness),
             typeof(PageContainer),
-            new PropertyMetadata(new Thickness(32, 24, 32, 24), OnLayoutPropertyChanged));
+            new PropertyMetadata(new Thickness(32, 24, 0, 24), OnLayoutPropertyChanged));
 
     /// <summary>Identifies the <see cref="MaxContentWidth"/> dependency property.</summary>
     public static readonly DependencyProperty MaxContentWidthProperty =
@@ -41,14 +41,14 @@ public sealed class PageContainer : Panel
             typeof(PageContainer),
             new PropertyMetadata(false, OnLayoutPropertyChanged));
 
-    /// <summary>Outer padding around the content (defaults to a uniform 32/24 gutter).</summary>
+    /// <summary>Outer padding around the content (defaults to 32 left, 24 top, 0 right, 24 bottom so scrollbars reach the corner right).</summary>
     public Thickness PagePadding
     {
         get => (Thickness)GetValue(PagePaddingProperty);
         set => SetValue(PagePaddingProperty, value);
     }
 
-    /// <summary>Maximum width of the centred content column.</summary>
+    /// <summary>Maximum width of the content column.</summary>
     public double MaxContentWidth
     {
         get => (double)GetValue(MaxContentWidthProperty);
@@ -67,27 +67,17 @@ public sealed class PageContainer : Panel
         ((PageContainer)d).InvalidateMeasure();
     }
 
-    private Size ConstrainInner(Size available)
-    {
-        var pad = PagePadding;
-        var width = double.IsInfinity(available.Width)
-            ? double.PositiveInfinity
-            : Math.Max(0, available.Width - pad.Left - pad.Right);
-        var height = double.IsInfinity(available.Height)
-            ? double.PositiveInfinity
-            : Math.Max(0, available.Height - pad.Top - pad.Bottom);
-
-        if (!FullWidth && !double.IsInfinity(width))
-        {
-            width = Math.Min(width, Math.Max(0, MaxContentWidth));
-        }
-
-        return new Size(width, height);
-    }
-
     protected override Size MeasureOverride(Size availableSize)
     {
-        var inner = ConstrainInner(availableSize);
+        var pad = PagePadding;
+        var width = double.IsInfinity(availableSize.Width)
+            ? double.PositiveInfinity
+            : Math.Max(0, availableSize.Width - pad.Left - pad.Right);
+        var height = double.IsInfinity(availableSize.Height)
+            ? double.PositiveInfinity
+            : Math.Max(0, availableSize.Height - pad.Top - pad.Bottom);
+
+        var inner = new Size(width, height);
 
         var contentWidth = 0d;
         var contentHeight = 0d;
@@ -98,32 +88,25 @@ public sealed class PageContainer : Panel
             contentHeight = Math.Max(contentHeight, child.DesiredSize.Height);
         }
 
-        var pad = PagePadding;
-        var width = double.IsInfinity(availableSize.Width)
+        var resultWidth = double.IsInfinity(availableSize.Width)
             ? contentWidth + pad.Left + pad.Right
             : availableSize.Width;
-        var height = double.IsInfinity(availableSize.Height)
+        var resultHeight = double.IsInfinity(availableSize.Height)
             ? contentHeight + pad.Top + pad.Bottom
             : availableSize.Height;
 
-        return new Size(width, height);
+        return new Size(resultWidth, resultHeight);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
     {
         var pad = PagePadding;
-        var inner = ConstrainInner(finalSize);
-
-        var offsetX = pad.Left;
-        if (!FullWidth && !double.IsInfinity(inner.Width))
-        {
-            // Centre the capped column inside the padded band.
-            offsetX += Math.Max(0, (finalSize.Width - pad.Left - pad.Right - inner.Width) / 2);
-        }
+        var childWidth = Math.Max(0, finalSize.Width - pad.Left - pad.Right);
+        var childHeight = Math.Max(0, finalSize.Height - pad.Top - pad.Bottom);
 
         foreach (UIElement child in Children)
         {
-            child.Arrange(new Rect(offsetX, pad.Top, inner.Width, inner.Height));
+            child.Arrange(new Rect(pad.Left, pad.Top, childWidth, childHeight));
         }
 
         return finalSize;

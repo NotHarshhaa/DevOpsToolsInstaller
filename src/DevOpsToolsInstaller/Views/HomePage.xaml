@@ -64,7 +64,7 @@
                 </VisualStateGroup>
             </VisualStateManager.VisualStateGroups>
 
-            <ScrollViewer>
+            <ScrollViewer Padding="0,0,32,24">
                 <StackPanel Spacing="24">
                     <StackPanel.ChildrenTransitions>
                         <TransitionCollection>

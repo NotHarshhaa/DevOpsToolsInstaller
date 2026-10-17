@@ -28,6 +28,7 @@
                 <InfoBar x:Name="ScheduleInfoBar"
                          IsOpen="False"
                          Severity="Informational"
+                         Margin="0,0,32,0"
                          Title="Off-Peak Download Scheduler Active"
                          Message="Transfers are queued for off-peak hours.">
                     <InfoBar.ActionButton>
@@ -39,7 +40,7 @@
             <!-- ══════════════════════════════════ -->
             <!--  SEARCH, FILTERS & COMMAND BAR     -->
             <!-- ══════════════════════════════════ -->
-            <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="8">
+            <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="8" Margin="0,0,32,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -164,6 +165,7 @@
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                         BorderThickness="1" CornerRadius="8" Padding="14,10"
+                        Margin="0,0,32,0"
                         Visibility="Collapsed">
                     <StackPanel Spacing="6">
                         <Grid>
@@ -196,7 +198,7 @@
                     Grid.Row="1"
                     SelectionMode="None"
                     IsItemClickEnabled="False"
-                    Padding="0,2,0,12">
+                    Padding="0,2,32,12">
                     <ListView.ItemContainerTransitions>
                         <TransitionCollection>
                             <AddDeleteThemeTransition />

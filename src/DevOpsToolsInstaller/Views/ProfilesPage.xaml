@@ -35,6 +35,7 @@
 
             <!-- STATUS BAR -->
             <controls:InfoBar x:Name="NoticeInfoBar" Grid.Row="1" IsOpen="False" IsClosable="True"
+                              Margin="0,0,32,0"
                               Severity="Success" AutomationProperties.Name="Profiles status message" />
 
             <!-- CONTENT -->
@@ -58,7 +59,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel x:Name="ProfilesToolbar" Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <StackPanel x:Name="ProfilesToolbar" Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,32,0">
                         <Button Click="CaptureProfile_Click" Style="{StaticResource AccentButtonStyle}"
                                 AutomationProperties.Name="Capture current workstation as a profile">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -85,7 +86,8 @@
                     </StackPanel>
 
                     <ListView x:Name="ProfilesList" Grid.Row="1" SelectionMode="None"
-                              ScrollViewer.HorizontalScrollMode="Disabled">
+                              ScrollViewer.HorizontalScrollMode="Disabled"
+                              Padding="0,0,32,12">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Border Style="{StaticResource ListViewCardStyle}" helpers:Motion.HoverLift="True">
@@ -131,7 +133,7 @@
                          The toolbar is hidden while empty so the capture action
                          is never shown twice. -->
                     <ScrollViewer x:Name="ProfilesEmpty" Grid.Row="1" Visibility="Collapsed"
-                                  VerticalScrollBarVisibility="Auto" Padding="0,8,0,16">
+                                  VerticalScrollBarVisibility="Auto" Padding="0,8,32,16">
                         <StackPanel Spacing="16" MaxWidth="680" HorizontalAlignment="Center">
                             <StackPanel Spacing="6" HorizontalAlignment="Center">
                                 <TextBlock Text="No profiles yet"
@@ -202,7 +204,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,32,0">
                         <Button Click="CaptureSnapshot_Click" Style="{StaticResource AccentButtonStyle}"
                                 AutomationProperties.Name="Capture a new workstation snapshot">
                             <StackPanel Orientation="Horizontal" Spacing="6">
@@ -221,7 +223,7 @@
                         </Button>
                     </StackPanel>
 
-                    <ListView x:Name="SnapshotsList" Grid.Row="1" SelectionMode="None">
+                    <ListView x:Name="SnapshotsList" Grid.Row="1" SelectionMode="None" Padding="0,0,32,12">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Border Style="{StaticResource ListViewCardStyle}" helpers:Motion.HoverLift="True">
@@ -274,7 +276,7 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,32,0">
                         <Button Click="RefreshHistory_Click" AutomationProperties.Name="Refresh history">
                             <StackPanel Orientation="Horizontal" Spacing="6">
                                 <FontIcon Glyph="&#xE72C;" FontSize="13" />
@@ -296,7 +298,7 @@
                         </Button>
                     </StackPanel>
 
-                    <ListView x:Name="HistoryList" Grid.Row="1" SelectionMode="None">
+                    <ListView x:Name="HistoryList" Grid.Row="1" SelectionMode="None" Padding="0,0,32,12">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <Border Style="{StaticResource ListViewCardStyle}" helpers:Motion.HoverLift="True">
@@ -339,7 +341,7 @@
                 </Grid>
 
                 <!-- ── SYNC ─────────────────────────────────────────────── -->
-                <ScrollViewer x:Name="SyncContainer" Visibility="Collapsed">
+                <ScrollViewer x:Name="SyncContainer" Visibility="Collapsed" Padding="0,0,32,24">
                     <StackPanel Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
                         <Border Style="{StaticResource CardStyle}">
                             <StackPanel Spacing="12">
