@@ -58,6 +58,20 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#383838" />
 
+            <!-- Catalog category row: fades the scrolling chip row into the page
+                 background so it reads as scrollable rather than clipped. The
+                 opaque stop matches SolidBackgroundFillColorBase for this theme;
+                 the transparent stop keeps the same RGB so the blend never
+                 produces a grey halo. -->
+            <LinearGradientBrush x:Key="ChipEdgeFadeLeftBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#202020" />
+                <GradientStop Offset="1" Color="#00202020" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ChipEdgeFadeRightBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#00202020" />
+                <GradientStop Offset="1" Color="#202020" />
+            </LinearGradientBrush>
+
         </ResourceDictionary>
 
         <ResourceDictionary x:Key="Light">
@@ -109,6 +123,29 @@
 
             <SolidColorBrush x:Key="SectionAccentLineBrush" Color="#E5E5E5" />
 
+            <!-- Catalog category row edge fades (light theme). -->
+            <LinearGradientBrush x:Key="ChipEdgeFadeLeftBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#F3F3F3" />
+                <GradientStop Offset="1" Color="#00F3F3F3" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ChipEdgeFadeRightBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#00F3F3F3" />
+                <GradientStop Offset="1" Color="#F3F3F3" />
+            </LinearGradientBrush>
+
+        </ResourceDictionary>
+
+        <!-- High contrast: the page colour is a system colour, so no blending is
+             attempted — the scroll buttons carry the "more to the side" cue. -->
+        <ResourceDictionary x:Key="HighContrast">
+            <LinearGradientBrush x:Key="ChipEdgeFadeLeftBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#00000000" />
+                <GradientStop Offset="1" Color="#00000000" />
+            </LinearGradientBrush>
+            <LinearGradientBrush x:Key="ChipEdgeFadeRightBrush" StartPoint="0,0" EndPoint="1,0">
+                <GradientStop Offset="0" Color="#00000000" />
+                <GradientStop Offset="1" Color="#00000000" />
+            </LinearGradientBrush>
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 
@@ -297,6 +334,42 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════ -->
+    <!--  CATALOG TOOL CARDS                                         -->
+    <!-- ═══════════════════════════════════════════════════════════ -->
+
+    <!-- Catalog tool card. Zero padding: the card's own grid owns the spacing so
+         the checkbox, description and action row line up across every card. -->
+    <Style x:Key="ToolCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- Accent ring drawn on top of a card whose checkbox is checked. Kept as a
+         separate overlay so selection never re-flows the card contents. -->
+    <Style x:Key="ToolCardSelectionRingStyle" TargetType="Border">
+        <Setter Property="BorderBrush" Value="{ThemeResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <!-- Floating "N selected" action bar pinned to the bottom of the page. -->
+    <Style x:Key="SelectionBarStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource FlyoutPresenterBackground}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14,10" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
     </Style>
 
     <!-- ═══════════════════════════════════════════════════════════ -->

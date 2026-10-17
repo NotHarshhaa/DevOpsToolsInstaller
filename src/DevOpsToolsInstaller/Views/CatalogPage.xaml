@@ -5,120 +5,734 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:models="using:DevOpsToolsInstaller.Models"
     xmlns:appControls="using:DevOpsToolsInstaller.Controls"
-    xmlns:helpers="using:DevOpsToolsInstaller.Helpers"
-    xmlns:tk="using:CommunityToolkit.WinUI.Controls">
+    xmlns:helpers="using:DevOpsToolsInstaller.Helpers">
+
+    <Page.Resources>
+        <!-- Compact label/value styles for the right-hand tool detail pane. -->
+        <Style x:Key="PaneFieldLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Width" Value="76" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+        </Style>
+
+        <Style x:Key="PaneFieldValueStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        </Style>
+
+        <!-- Category chips are built in code so the row can scroll instead of
+             clipping; these thin wrappers give the code-behind a stable key to
+             swap the selected/unselected look. -->
+        <Style x:Key="CatalogChipStyle" TargetType="Button" BasedOn="{StaticResource CategoryChipStyle}" />
+        <Style x:Key="CatalogChipSelectedStyle" TargetType="Button" BasedOn="{StaticResource SelectedCategoryChipStyle}" />
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!--  CARD DENSITY: full card (default)                             -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <DataTemplate x:Key="CatalogCardTemplate">
+            <Grid>
+                <!-- The whole card is a hit target for the detail pane; nested
+                     buttons/checkboxes opt out (see ToolCard_Tapped). -->
+                <Border Style="{StaticResource ToolCardStyle}"
+                        MinHeight="164"
+                        Tag="tool-card"
+                        helpers:Motion.HoverLift="True"
+                        Tapped="ToolCard_Tapped"
+                        AutomationProperties.Name="{Binding Name}">
+                    <Border.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE946;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Switch Version…" Click="VersionPicker_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8EC;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Text="Copy Install Command" Click="CopyCommand_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8C8;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Toggle Favorite" Click="ToggleFavorite_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="{Binding FavoriteGlyph}" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Border.ContextFlyout>
+
+                    <Grid Padding="14,12" RowSpacing="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <!-- Header: selection · logo · name/vendor · star + details -->
+                        <Grid Grid.Row="0" ColumnSpacing="10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0"
+                                      MinWidth="0"
+                                      VerticalAlignment="Center"
+                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                      ToolTipService.ToolTip="Select for batch install"
+                                      AutomationProperties.Name="Select this tool for batch install" />
+
+                            <Border Grid.Column="1" Width="36" Height="36" CornerRadius="6"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1"
+                                    VerticalAlignment="Center">
+                                <Grid>
+                                    <FontIcon Glyph="{Binding IconGlyph}" FontSize="16"
+                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                    <Image Width="24" Height="24" Stretch="Uniform"
+                                           Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                           ImageFailed="LogoImage_ImageFailed" />
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Grid.Column="2" VerticalAlignment="Center" Spacing="2">
+                                <TextBlock Text="{Binding Name}"
+                                           Style="{StaticResource BodyStrongTextBlockStyle}"
+                                           FontSize="14"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding VendorLabel}"
+                                           FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="0" VerticalAlignment="Top">
+                                <Button Background="Transparent" BorderThickness="0" Padding="5,4" CornerRadius="4"
+                                        Click="ToggleFavorite_Click"
+                                        ToolTipService.ToolTip="Toggle favorite"
+                                        AutomationProperties.Name="Toggle favorite">
+                                    <FontIcon Glyph="{Binding FavoriteGlyph}" FontSize="13"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                                <Button Background="Transparent" BorderThickness="0" Padding="5,4" CornerRadius="4"
+                                        Click="ToolDetails_Click"
+                                        ToolTipService.ToolTip="Open tool details"
+                                        AutomationProperties.Name="Open tool details">
+                                    <FontIcon Glyph="&#xE76C;" FontSize="12"
+                                              Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- One-line description -->
+                        <TextBlock Grid.Row="1"
+                                   Text="{Binding Description}"
+                                   FontSize="12"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                        <!-- Status badges: category · update · installed version -->
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="6">
+                            <Border Style="{StaticResource BadgeStyle}">
+                                <TextBlock Text="{Binding Category}" FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Border>
+
+                            <Border Style="{StaticResource BadgeStyle}"
+                                    Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE72C;" FontSize="10"
+                                              Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                    <TextBlock Text="Update available" FontSize="11"
+                                               Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{StaticResource BadgeStyle}"
+                                    Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE73E;" FontSize="10"
+                                              Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                    <TextBlock Text="{Binding InstalledVersionLabel}" FontSize="11"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Footer: version picker · install actions -->
+                        <Grid Grid.Row="4" ColumnSpacing="8" Margin="0,2,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <HyperlinkButton Grid.Column="0"
+                                             Padding="0"
+                                             VerticalAlignment="Center"
+                                             HorizontalAlignment="Left"
+                                             Click="ToolDetails_Click"
+                                             ToolTipService.ToolTip="Select specific or previous release version">
+                                <Border Style="{StaticResource BadgeStyle}">
+                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                        <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <TextBlock Text="{Binding DisplayVersionWithV}" FontSize="11"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </Border>
+                            </HyperlinkButton>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ProgressRing Width="16" Height="16" IsActive="True"
+                                              Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                                <!-- Install SplitButton: primary = Install; chevron = version / download only / homepage -->
+                                <SplitButton
+                                             Background="{ThemeResource AccentFillColorDefaultBrush}"
+                                             Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                             Click="InstallSingleTool_Click"
+                                             ToolTipService.ToolTip="Download and install this tool"
+                                             AutomationProperties.Name="Install tool"
+                                             Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,0,6,0">
+                                        <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                        <TextBlock Text="Install" FontWeight="SemiBold" FontSize="12" />
+                                    </StackPanel>
+                                    <SplitButton.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem Text="Choose version..." Click="VersionPicker_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8EC;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem Text="Download only (skip install)" Click="DownloadOnly_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE896;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator />
+                                            <MenuFlyoutItem Text="Open homepage" Click="OpenHomepage_Click">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE774;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </SplitButton.Flyout>
+                                </SplitButton>
+
+                                <Button Style="{StaticResource DefaultButtonStyle}"
+                                        Click="InstalledAction_Click"
+                                        Padding="12,5" CornerRadius="4"
+                                        ToolTipService.ToolTip="Tool is installed. Click for options."
+                                        Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                        <TextBlock Text="Installed" FontSize="12" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Accent ring for multi-selection (overlay: never re-flows the card) -->
+                <Border Style="{StaticResource ToolCardSelectionRingStyle}"
+                        Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <!--  CARD DENSITY: compact list row                                -->
+        <!-- ══════════════════════════════════════════════════════════════ -->
+        <DataTemplate x:Key="CatalogCompactRowTemplate">
+            <Grid>
+                <Border Style="{StaticResource ToolCardStyle}"
+                        MinHeight="56"
+                        Tag="tool-card"
+                        Tapped="ToolCard_Tapped"
+                        AutomationProperties.Name="{Binding Name}">
+                    <Border.ContextFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE946;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Switch Version…" Click="VersionPicker_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8EC;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Text="Copy Install Command" Click="CopyCommand_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8C8;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Toggle Favorite" Click="ToggleFavorite_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="{Binding FavoriteGlyph}" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Border.ContextFlyout>
+
+                    <Grid Padding="10,7" ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0" MinWidth="0" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                  ToolTipService.ToolTip="Select for batch install"
+                                  AutomationProperties.Name="Select this tool for batch install" />
+
+                        <Border Grid.Column="1" Width="28" Height="28" CornerRadius="5"
+                                Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1" VerticalAlignment="Center">
+                            <Grid>
+                                <FontIcon Glyph="{Binding IconGlyph}" FontSize="13"
+                                          Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                <Image Width="18" Height="18" Stretch="Uniform"
+                                       Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
+                                       ImageFailed="LogoImage_ImageFailed" />
+                            </Grid>
+                        </Border>
+
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Category}" FontSize="11"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Button Grid.Column="3" Background="Transparent" BorderThickness="0" Padding="4,3" CornerRadius="4"
+                                Click="ToggleFavorite_Click"
+                                ToolTipService.ToolTip="Toggle favorite"
+                                AutomationProperties.Name="Toggle favorite">
+                            <FontIcon Glyph="{Binding FavoriteGlyph}" FontSize="12"
+                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </Button>
+
+                        <StackPanel Grid.Column="4" Spacing="2" VerticalAlignment="Center" MinWidth="96">
+                            <StackPanel Orientation="Horizontal" Spacing="4"
+                                        Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <FontIcon Glyph="&#xE72C;" FontSize="10" Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                <TextBlock Text="Update available" FontSize="11"
+                                           Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="4"
+                                        Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <FontIcon Glyph="&#xE73E;" FontSize="10" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                <TextBlock Text="{Binding InstalledVersionLabel}" FontSize="11"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button Style="{StaticResource DefaultButtonStyle}"
+                                    Click="InstalledAction_Click"
+                                    Padding="10,4" CornerRadius="4"
+                                    ToolTipService.ToolTip="Tool is installed. Click for options."
+                                    Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock Text="Installed" FontSize="12" />
+                            </Button>
+                            <Button Style="{StaticResource AccentButtonStyle}"
+                                    Click="CompactInstall_Click"
+                                    Padding="10,4" CornerRadius="4"
+                                    ToolTipService.ToolTip="Download and install this tool"
+                                    AutomationProperties.Name="Install tool"
+                                    Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
+                                <TextBlock Text="Install" FontWeight="SemiBold" FontSize="12" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource ToolCardSelectionRingStyle}"
+                        Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
 
     <appControls:PageContainer FullWidth="True">
-        <Grid RowSpacing="12">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
+        <!-- Right-hand detail pane. Inline so the tool grid reflows beside it
+             instead of being covered. -->
+        <SplitView x:Name="DetailSplitView"
+                   PanePlacement="Right"
+                   DisplayMode="Inline"
+                   IsPaneOpen="False"
+                   OpenPaneLength="400"
+                   CompactPaneLength="0"
+                   BorderThickness="0"
+                   PaneBackground="Transparent"
+                   Background="Transparent"
+                   PaneClosed="DetailSplitView_PaneClosed">
 
-            <!-- ══════════════════════════════════ -->
-            <!--  HEADER                            -->
-            <!-- ══════════════════════════════════ -->
-            <StackPanel Grid.Row="0" Spacing="8">
-                <appControls:PageHeader x:Name="Header"
-                                        Title="Tool Catalog"
-                                        Subtitle="Select the tools you need or pick a curated stack preset to download in one go." />
+            <SplitView.Pane>
+                <Border x:Name="DetailPaneRoot"
+                        Margin="12,0,0,0"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Translation="0,0,32">
+                    <Border.Shadow>
+                        <ThemeShadow />
+                    </Border.Shadow>
 
-                <!-- Active Curated Stack InfoBar -->
-                <InfoBar
-                    x:Name="ActiveStackInfoBar"
-                    IsOpen="False"
-                    IsClosable="True"
-                    Severity="Informational"
-                    Title="Stack Filter Active"
-                    Message="Showing only tools belonging to this curated stack. All tools in this stack are pre-selected for installation."
-                    CornerRadius="6"
-                    Closed="ActiveStackInfoBar_Closed">
-                    <InfoBar.ActionButton>
-                        <Button Content="Show All Tools" Click="ClearStackFilter_Click" Padding="12,5" CornerRadius="4" />
-                    </InfoBar.ActionButton>
-                </InfoBar>
-            </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
 
-            <!-- ══════════════════════════════════ -->
-            <!--  NATIVE COMMAND BAR                -->
-            <!-- ══════════════════════════════════ -->
-            <Grid Grid.Row="1" ColumnSpacing="12" RowSpacing="10">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                        <!-- Pane header (connected-animation target) -->
+                        <Grid Grid.Row="0" Padding="16,14" ColumnSpacing="12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border x:Name="PaneLogoBorder" Grid.Column="0" Width="44" Height="44" CornerRadius="8"
+                                    Background="{ThemeResource ControlFillColorDefaultBrush}"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                    BorderThickness="1" VerticalAlignment="Center">
+                                <Grid>
+                                    <FontIcon x:Name="PaneGlyph" Glyph="&#xE74C;" FontSize="20"
+                                              Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    <Image x:Name="PaneLogo" Width="28" Height="28" Stretch="Uniform"
+                                           ImageFailed="PaneLogo_ImageFailed" />
+                                </Grid>
+                            </Border>
+
+                            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+                                <TextBlock x:Name="PaneName" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock x:Name="PaneVendor" FontSize="12"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </StackPanel>
+
+                            <Button Grid.Column="2" Background="Transparent" BorderThickness="0"
+                                    Padding="6,5" CornerRadius="4"
+                                    VerticalAlignment="Top"
+                                    Click="PaneClose_Click"
+                                    ToolTipService.ToolTip="Close details"
+                                    AutomationProperties.Name="Close tool details">
+                                <FontIcon Glyph="&#xE711;" FontSize="12"
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </Button>
+                        </Grid>
+
+                        <ScrollViewer Grid.Row="1" Padding="16,0,16,10" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Spacing="12">
+
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <Border Style="{StaticResource BadgeStyle}">
+                                        <TextBlock x:Name="PaneCategory" FontSize="11"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                    <Border Style="{StaticResource BadgeStyle}">
+                                        <TextBlock x:Name="PaneKind" FontSize="11"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Border>
+                                    <Border x:Name="PaneInstalledBadge" Style="{StaticResource BadgeStyle}" Visibility="Collapsed">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <FontIcon Glyph="&#xE73E;" FontSize="10"
+                                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                                            <TextBlock x:Name="PaneInstalledText" FontSize="11"
+                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Border>
+                                    <Button x:Name="PaneFavoriteButton" Background="Transparent" BorderThickness="0"
+                                            Padding="5,2" CornerRadius="4" VerticalAlignment="Center"
+                                            Click="PaneFavorite_Click"
+                                            ToolTipService.ToolTip="Toggle favorite"
+                                            AutomationProperties.Name="Toggle favorite">
+                                        <FontIcon x:Name="PaneFavoriteIcon" Glyph="&#xE734;" FontSize="13"
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </Button>
+                                </StackPanel>
+
+                                <TextBlock x:Name="PaneDescription" TextWrapping="Wrap"
+                                           Style="{StaticResource BodyTextBlockStyle}"
+                                           Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+
+                                <!-- Version picker -->
+                                <ComboBox x:Name="PaneVersionCombo"
+                                          HorizontalAlignment="Stretch"
+                                          Header="Version"
+                                          PlaceholderText="Latest"
+                                          SelectionChanged="PaneVersion_SelectionChanged" />
+
+                                <!-- Field rows -->
+                                <StackPanel Spacing="8">
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Installed"
+                                                   Style="{StaticResource PaneFieldLabelStyle}" />
+                                        <TextBlock Grid.Column="1" x:Name="PaneInstalledDetail"
+                                                   Style="{StaticResource PaneFieldValueStyle}" Text="Not installed" />
+                                    </Grid>
+
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Size"
+                                                   Style="{StaticResource PaneFieldLabelStyle}" />
+                                        <TextBlock Grid.Column="1" x:Name="PaneSizeText"
+                                                   Style="{StaticResource PaneFieldValueStyle}" Text="—" />
+                                    </Grid>
+
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="License"
+                                                   Style="{StaticResource PaneFieldLabelStyle}" />
+                                        <TextBlock Grid.Column="1" x:Name="PaneLicenseText"
+                                                   Style="{StaticResource PaneFieldValueStyle}" Text="—" />
+                                    </Grid>
+
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="SHA-256"
+                                                   Style="{StaticResource PaneFieldLabelStyle}" />
+                                        <TextBlock Grid.Column="1" x:Name="PaneShaText"
+                                                   Style="{StaticResource PaneFieldValueStyle}"
+                                                   FontFamily="Consolas" Text="Not published" />
+                                        <Button Grid.Column="2" Background="Transparent" BorderThickness="0"
+                                                Padding="5,2" CornerRadius="4" Click="CopySha_Click"
+                                                ToolTipService.ToolTip="Copy SHA-256 checksum"
+                                                AutomationProperties.Name="Copy SHA-256 checksum">
+                                            <FontIcon Glyph="&#xE8C8;" FontSize="11"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Button>
+                                    </Grid>
+
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Source"
+                                                   Style="{StaticResource PaneFieldLabelStyle}" />
+                                        <TextBlock Grid.Column="1" x:Name="PaneSourceUrl"
+                                                   Style="{StaticResource PaneFieldValueStyle}"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        <Button Grid.Column="2" Background="Transparent" BorderThickness="0"
+                                                Padding="5,2" CornerRadius="4" Click="CopySourceUrl_Click"
+                                                ToolTipService.ToolTip="Copy direct download link"
+                                                AutomationProperties.Name="Copy direct download link">
+                                            <FontIcon Glyph="&#xE8C8;" FontSize="11"
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+
+                                <!-- Links -->
+                                <StackPanel Spacing="2">
+                                    <HyperlinkButton x:Name="PaneReleaseNotesLink" Padding="0"
+                                                     Content="Release notes"
+                                                     Click="PaneReleaseNotes_Click"
+                                                     AutomationProperties.Name="Open vendor release notes" />
+                                    <HyperlinkButton x:Name="PaneSourceLink" Padding="0"
+                                                     Content="Direct download link"
+                                                     Click="PaneSourceLink_Click"
+                                                     AutomationProperties.Name="Open direct download link" />
+                                    <HyperlinkButton x:Name="PaneHomepageLink" Padding="0"
+                                                     Content="Homepage"
+                                                     Click="PaneHomepage_Click"
+                                                     AutomationProperties.Name="Open tool homepage" />
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+
+                        <!-- Pane actions -->
+                        <Border Grid.Row="2" Padding="16,12"
+                                BorderThickness="0,1,0,0"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}">
+                            <StackPanel Spacing="8">
+                                <Grid ColumnSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Button Grid.Column="0" x:Name="PaneInstallButton"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Click="PaneInstall_Click"
+                                            AutomationProperties.Name="Install tool">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE896;" FontSize="13" />
+                                            <TextBlock Text="Install" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button Grid.Column="1" x:Name="PaneDownloadOnlyButton"
+                                            Click="PaneDownloadOnly_Click"
+                                            ToolTipService.ToolTip="Download without running the install step">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8B7;" FontSize="12" />
+                                            <TextBlock Text="Download only" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+
+                                <Button x:Name="PaneFullDetailsButton"
+                                        HorizontalAlignment="Stretch"
+                                        Click="PaneFullDetails_Click"
+                                        AutomationProperties.Name="Open full tool details page">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE946;" FontSize="12" />
+                                        <TextBlock Text="Full details, versions &amp; hooks" />
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </SplitView.Pane>
+
+            <Grid RowSpacing="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroup x:Name="ToolbarLayoutStates">
-                        <!-- Narrow: icon-only command bar drops onto its own row. -->
+                        <!-- Narrow: compact search box, icon-only command bar. -->
                         <VisualState x:Name="NarrowToolbar">
                             <VisualState.StateTriggers>
                                 <AdaptiveTrigger MinWindowWidth="0" />
                             </VisualState.StateTriggers>
                             <VisualState.Setters>
-                                <Setter Target="SearchBox.Width" Value="200" />
+                                <Setter Target="SearchBox.Width" Value="180" />
                                 <Setter Target="ToolsCommandBar.DefaultLabelPosition" Value="Collapsed" />
-                                <Setter Target="ToolsCommandBar.(Grid.Row)" Value="1" />
-                                <Setter Target="ToolsCommandBar.(Grid.Column)" Value="0" />
-                                <Setter Target="ToolsCommandBar.(Grid.ColumnSpan)" Value="3" />
-                                <Setter Target="ToolsCommandBar.HorizontalAlignment" Value="Left" />
                             </VisualState.Setters>
                         </VisualState>
-                        <!-- Wide: search, labelled command bar and CTA share one row. -->
+                        <!-- Wide: roomy search box and labelled commands. -->
                         <VisualState x:Name="WideToolbar">
                             <VisualState.StateTriggers>
                                 <AdaptiveTrigger MinWindowWidth="1120" />
                             </VisualState.StateTriggers>
                             <VisualState.Setters>
-                                <Setter Target="SearchBox.Width" Value="340" />
+                                <Setter Target="SearchBox.Width" Value="320" />
                                 <Setter Target="ToolsCommandBar.DefaultLabelPosition" Value="Right" />
-                                <Setter Target="ToolsCommandBar.(Grid.Row)" Value="0" />
-                                <Setter Target="ToolsCommandBar.(Grid.Column)" Value="1" />
-                                <Setter Target="ToolsCommandBar.(Grid.ColumnSpan)" Value="1" />
-                                <Setter Target="ToolsCommandBar.HorizontalAlignment" Value="Right" />
                             </VisualState.Setters>
                         </VisualState>
                     </VisualStateGroup>
                 </VisualStateManager.VisualStateGroups>
 
-                <!-- Search box -->
-                <AutoSuggestBox
-                    Grid.Row="0"
-                    Grid.Column="0"
-                    x:Name="SearchBox"
-                    Width="340"
-                    PlaceholderText="Search tools, categories, descriptions…"
-                    QueryIcon="Find"
-                    VerticalAlignment="Center"
-                    TextChanged="SearchBox_TextChanged" />
+                <!-- ══════════════════════════════════ -->
+                <!--  HEADER                            -->
+                <!-- ══════════════════════════════════ -->
+                <StackPanel Grid.Row="0" Spacing="8">
+                    <appControls:PageHeader x:Name="Header"
+                                            Title="Tool Catalog"
+                                            Subtitle="Select the tools you need or pick a curated stack preset to download in one go." />
 
-                <!-- Native Win11 CommandBar: overflow, hover and keyboard handling for free -->
+                    <!-- Active Curated Stack InfoBar -->
+                    <InfoBar
+                        x:Name="ActiveStackInfoBar"
+                        IsOpen="False"
+                        IsClosable="True"
+                        Severity="Informational"
+                        Title="Stack Filter Active"
+                        Message="Showing only tools belonging to this curated stack. All tools in this stack are pre-selected for installation."
+                        CornerRadius="6"
+                        Closed="ActiveStackInfoBar_Closed">
+                        <InfoBar.ActionButton>
+                            <Button Content="Show All Tools" Click="ClearStackFilter_Click" Padding="12,5" CornerRadius="4" />
+                        </InfoBar.ActionButton>
+                    </InfoBar>
+                </StackPanel>
+
+                <!-- ══════════════════════════════════ -->
+                <!--  COMMAND BAR                       -->
+                <!-- ══════════════════════════════════ -->
+                <!-- Native Win11 CommandBar: it stretches so the least important
+                     commands fold into the "…" overflow menu as the window narrows. -->
                 <CommandBar
-                    Grid.Row="0"
-                    Grid.Column="1"
+                    Grid.Row="1"
                     x:Name="ToolsCommandBar"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
+                    HorizontalAlignment="Stretch"
                     DefaultLabelPosition="Right"
                     IsOpen="False"
-                    OverflowButtonVisibility="Collapsed"
+                    OverflowButtonVisibility="Auto"
                     Background="Transparent">
                     <CommandBar.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,12,0">
-                            <ProgressRing x:Name="BusyRing" Width="18" Height="18" Visibility="Collapsed" />
-                            <TextBlock x:Name="StatusText" VerticalAlignment="Center"
-                                       FontSize="12"
-                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                        </StackPanel>
+                        <Grid ColumnSpacing="10" Margin="0,0,12,0" VerticalAlignment="Center">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <AutoSuggestBox
+                                Grid.Column="0"
+                                x:Name="SearchBox"
+                                Width="320"
+                                PlaceholderText="Search tools, categories, descriptions…"
+                                QueryIcon="Find"
+                                VerticalAlignment="Center"
+                                TextChanged="SearchBox_TextChanged" />
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <ProgressRing x:Name="BusyRing" Width="18" Height="18" Visibility="Collapsed" />
+                                <TextBlock x:Name="StatusText" VerticalAlignment="Center"
+                                           FontSize="12"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Grid>
                     </CommandBar.Content>
+
                     <CommandBar.PrimaryCommands>
                         <AppBarButton x:Name="SortButton" Label="Sort" ToolTipService.ToolTip="Sort tools">
                             <AppBarButton.Icon>
@@ -126,47 +740,47 @@
                             </AppBarButton.Icon>
                             <AppBarButton.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="A → Z" Tag="az" Click="Sort_Click" />
-                                    <MenuFlyoutItem Text="Z → A" Tag="za" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="A → Z" Tag="az" GroupName="CatalogSort" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="Z → A" Tag="za" GroupName="CatalogSort" Click="Sort_Click" />
                                     <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Text="By Category" Tag="category" Click="Sort_Click" />
-                                    <MenuFlyoutItem Text="By Kind" Tag="kind" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="By Category" Tag="category" GroupName="CatalogSort" IsChecked="True" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="By Kind" Tag="kind" GroupName="CatalogSort" Click="Sort_Click" />
                                     <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Text="Downloaded first" Tag="downloaded" Click="Sort_Click" />
-                                    <MenuFlyoutItem Text="Favorites first" Tag="favorites" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="Downloaded first" Tag="downloaded" GroupName="CatalogSort" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="Favorites first" Tag="favorites" GroupName="CatalogSort" Click="Sort_Click" />
                                 </MenuFlyout>
                             </AppBarButton.Flyout>
                         </AppBarButton>
 
-                        <AppBarButton x:Name="StatusFilterButton" Label="All" ToolTipService.ToolTip="Filter by status (All, Not Installed, Installed, Updates)">
+                        <AppBarButton x:Name="StatusFilterButton" Label="Filter: All" ToolTipService.ToolTip="Filter by status (All, Not Installed, Installed, Updates)">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE71C;" />
                             </AppBarButton.Icon>
                             <AppBarButton.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="All Tools" Tag="all" Click="StatusFilter_Click" />
+                                    <RadioMenuFlyoutItem Text="All Tools" Tag="all" GroupName="CatalogFilter" IsChecked="True" Click="StatusFilter_Click" />
                                     <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Text="Not Installed (Ready to Install)" Tag="not_installed" Click="StatusFilter_Click">
-                                        <MenuFlyoutItem.Icon>
+                                    <RadioMenuFlyoutItem Text="Not Installed (Ready to Install)" Tag="not_installed" GroupName="CatalogFilter" Click="StatusFilter_Click">
+                                        <RadioMenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE896;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Installed &amp; Deployed" Tag="installed" Click="StatusFilter_Click">
-                                        <MenuFlyoutItem.Icon>
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
+                                    <RadioMenuFlyoutItem Text="Installed &amp; Deployed" Tag="installed" GroupName="CatalogFilter" Click="StatusFilter_Click">
+                                        <RadioMenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE73E;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Updates Available" Tag="updates" Click="StatusFilter_Click">
-                                        <MenuFlyoutItem.Icon>
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
+                                    <RadioMenuFlyoutItem Text="Updates Available" Tag="updates" GroupName="CatalogFilter" Click="StatusFilter_Click">
+                                        <RadioMenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE72C;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
                                     <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Text="Favorites Only" Tag="favorites" Click="StatusFilter_Click">
-                                        <MenuFlyoutItem.Icon>
+                                    <RadioMenuFlyoutItem Text="Favorites Only" Tag="favorites" GroupName="CatalogFilter" Click="StatusFilter_Click">
+                                        <RadioMenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE734;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
                                 </MenuFlyout>
                             </AppBarButton.Flyout>
                         </AppBarButton>
@@ -180,17 +794,30 @@
                             </AppBarButton.Flyout>
                         </AppBarButton>
 
+                        <AppBarButton x:Name="DensityButton" Label="Density: Cards" ToolTipService.ToolTip="Change how tools are laid out">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE80A;" />
+                            </AppBarButton.Icon>
+                            <AppBarButton.Flyout>
+                                <MenuFlyout>
+                                    <RadioMenuFlyoutItem Text="Cards" Tag="cards" GroupName="CatalogDensity" IsChecked="True" Click="Density_Click">
+                                        <RadioMenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE80A;" />
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
+                                    <RadioMenuFlyoutItem Text="Compact list" Tag="list" GroupName="CatalogDensity" Click="Density_Click">
+                                        <RadioMenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE8FD;" />
+                                        </RadioMenuFlyoutItem.Icon>
+                                    </RadioMenuFlyoutItem>
+                                </MenuFlyout>
+                            </AppBarButton.Flyout>
+                        </AppBarButton>
+
                         <AppBarButton x:Name="SelectAllButton" Label="Select all" Click="SelectAll_Click"
                                       ToolTipService.ToolTip="Select all visible tools">
                             <AppBarButton.Icon>
                                 <FontIcon Glyph="&#xE8B3;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-
-                        <AppBarButton x:Name="ClearButton" Label="Clear" Click="Clear_Click"
-                                      ToolTipService.ToolTip="Deselect all tools">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE894;" />
                             </AppBarButton.Icon>
                         </AppBarButton>
 
@@ -222,311 +849,202 @@
                     </CommandBar.PrimaryCommands>
                 </CommandBar>
 
-                <!-- Download CTA button -->
-                <Button Grid.Row="0" Grid.Column="2" x:Name="DownloadButton"
-                        Style="{StaticResource AccentButtonStyle}"
-                        Click="Download_Click" Padding="14,7"
-                        VerticalAlignment="Center"
-                        ToolTipService.ToolTip="Download and install selected tools">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE896;" FontSize="13" />
-                        <TextBlock x:Name="DownloadButtonText" Text="Download selected" FontWeight="SemiBold" />
-                    </StackPanel>
-                </Button>
-            </Grid>
+                <!-- ══════════════════════════════════ -->
+                <!--  CATEGORY FILTER CHIPS             -->
+                <!-- ══════════════════════════════════ -->
+                <Grid Grid.Row="2" ColumnSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-            <!-- ══════════════════════════════════ -->
-            <!--  CATEGORY FILTER CHIPS             -->
-            <!-- ══════════════════════════════════ -->
-            <Grid Grid.Row="2" ColumnSpacing="6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
+                    <!-- Scroll Left Button -->
+                    <Button Grid.Column="0" x:Name="ScrollLeftButton" Click="ScrollLeft_Click"
+                            CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
+                            Visibility="Collapsed"
+                            ToolTipService.ToolTip="Scroll categories left"
+                            AutomationProperties.Name="Scroll categories left">
+                        <FontIcon Glyph="&#xE76B;" FontSize="11" />
+                    </Button>
 
-                <!-- Scroll Left Button -->
-                <Button Grid.Column="0" x:Name="ScrollLeftButton" Click="ScrollLeft_Click"
-                        CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
-                        Visibility="Collapsed"
-                        ToolTipService.ToolTip="Scroll left">
-                    <FontIcon Glyph="&#xE76B;" FontSize="11" />
-                </Button>
+                    <!-- Scrollable chip row. Chips are built in code (BuildCategoryChips)
+                         inside a horizontal StackPanel, which is measured at
+                         infinity: the row can never clip. The two gradient
+                         rectangles above it fade the cut-off edges into the page
+                         background. -->
+                    <Grid Grid.Column="1">
+                        <ScrollViewer x:Name="ChipsScrollViewer"
+                                      HorizontalScrollBarVisibility="Hidden"
+                                      HorizontalScrollMode="Enabled"
+                                      VerticalScrollBarVisibility="Disabled"
+                                      VerticalScrollMode="Disabled"
+                                      ViewChanged="ChipsScrollViewer_ViewChanged"
+                                      SizeChanged="ChipsScrollViewer_SizeChanged"
+                                      AutomationProperties.Name="Category filter">
+                            <StackPanel x:Name="CategoryChipPanel"
+                                        Orientation="Horizontal"
+                                        Spacing="6"
+                                        Padding="1,2,1,2" />
+                        </ScrollViewer>
 
-                <!-- Scrollable Chips Container -->
-                <ScrollViewer Grid.Column="1" x:Name="ChipsScrollViewer"
-                              HorizontalScrollBarVisibility="Hidden"
-                              HorizontalScrollMode="Enabled"
-                              VerticalScrollBarVisibility="Disabled"
-                              VerticalScrollMode="Disabled"
-                              ViewChanged="ChipsScrollViewer_ViewChanged"
-                              SizeChanged="ChipsScrollViewer_SizeChanged">
-                    <tk:Segmented x:Name="CategorySegmented" Padding="0,2,0,2"
-                             
-                                  AutomationProperties.Name="Category filter">
-                        <tk:SegmentedItem Content="All Tools" Tag="All" IsSelected="True" />
-                        <tk:SegmentedItem Content="Favorites" Tag="Favorites" />
-                        <tk:SegmentedItem Content="Cloud CLIs" Tag="Cloud CLIs" />
-                        <tk:SegmentedItem Content="Containerization" Tag="Containerization" />
-                        <tk:SegmentedItem Content="Kubernetes" Tag="Kubernetes" />
-                        <tk:SegmentedItem Content="Infrastructure as Code" Tag="Infrastructure as Code" />
-                        <tk:SegmentedItem Content="CI/CD and Version Control" Tag="CI/CD &amp; Version Control" />
-                        <tk:SegmentedItem Content="Monitoring and Observability" Tag="Monitoring &amp; Observability" />
-                        <tk:SegmentedItem Content="Security" Tag="Security" />
-                        <tk:SegmentedItem Content="Networking" Tag="Networking" />
-                        <tk:SegmentedItem Content="Policy and Compliance" Tag="Policy &amp; Compliance" />
-                        <tk:SegmentedItem Content="Database and Data" Tag="Database &amp; Data" />
-                        <tk:SegmentedItem Content="Editors and Terminals" Tag="Editors &amp; Terminals" />
-                        <tk:SegmentedItem Content="Utilities" Tag="Utilities" />
-                    </tk:Segmented>
-                </ScrollViewer>
+                        <Rectangle x:Name="ChipFadeLeft"
+                                   Width="26"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Stretch"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed"
+                                   Fill="{ThemeResource ChipEdgeFadeLeftBrush}" />
 
-                <!-- Scroll Right Button -->
-                <Button Grid.Column="2" x:Name="ScrollRightButton" Click="ScrollRight_Click"
-                        CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
-                        ToolTipService.ToolTip="Scroll right">
-                    <FontIcon Glyph="&#xE76C;" FontSize="11" />
-                </Button>
-            </Grid>
+                        <Rectangle x:Name="ChipFadeRight"
+                                   Width="26"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Stretch"
+                                   IsHitTestVisible="False"
+                                   Visibility="Collapsed"
+                                   Fill="{ThemeResource ChipEdgeFadeRightBrush}" />
+                    </Grid>
 
-            <!-- ══════════════════════════════════ -->
-            <!--  REDESIGNED TOOL CARDS GRID        -->
-            <!-- ══════════════════════════════════ -->
-            <GridView
-                x:Name="ToolsGridView"
-                Grid.Row="3"
-                SelectionMode="None"
-                IsItemClickEnabled="False"
-                Padding="0,6,0,8"
-                HorizontalAlignment="Stretch"
-                SizeChanged="ToolsGridView_SizeChanged">
-                <GridView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <ItemsWrapGrid x:Name="ToolsItemsWrapGrid" Orientation="Horizontal" ItemWidth="360" ItemHeight="145" />
-                    </ItemsPanelTemplate>
-                </GridView.ItemsPanel>
-                <GridView.ItemContainerStyle>
-                    <Style TargetType="GridViewItem">
-                        <Setter Property="Margin" Value="6" />
-                        <Setter Property="Padding" Value="0" />
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="VerticalContentAlignment" Value="Stretch" />
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="BorderThickness" Value="0" />
-                    </Style>
-                </GridView.ItemContainerStyle>
-                <GridView.ItemTemplate>
-                    <DataTemplate>
-                        <!-- Standard Windows 11 Card -->
-                        <Border Style="{StaticResource CardStyle}" Padding="16,14" helpers:Motion.HoverLift="True">
-                            <Border.ContextFlyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
-                                        <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE946;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Switch Version…" Click="VersionPicker_Click">
-                                        <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE8EC;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                    <MenuFlyoutSeparator />
-                                    <MenuFlyoutItem Text="Copy Install Command" Click="CopyCommand_Click">
-                                        <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE8C8;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                    <MenuFlyoutItem Text="Toggle Favorite" Click="ToggleFavorite_Click">
-                                        <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="{Binding FavoriteGlyph}" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                </MenuFlyout>
-                            </Border.ContextFlyout>
+                    <!-- Scroll Right Button -->
+                    <Button Grid.Column="2" x:Name="ScrollRightButton" Click="ScrollRight_Click"
+                            CornerRadius="4" Padding="6,6" VerticalAlignment="Center"
+                            ToolTipService.ToolTip="Scroll categories right"
+                            AutomationProperties.Name="Scroll categories right">
+                        <FontIcon Glyph="&#xE76C;" FontSize="11" />
+                    </Button>
+                </Grid>
 
-                            <!-- Card Interior Content Grid -->
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
+                <!-- ══════════════════════════════════ -->
+                <!--  TOOL GRID (virtualized)           -->
+                <!-- ══════════════════════════════════ -->
+                <Grid Grid.Row="3">
+                    <ScrollViewer x:Name="ToolsScrollViewer"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Padding="0,6,0,8">
+                        <ItemsRepeater x:Name="ToolsRepeater" HorizontalAlignment="Stretch"
+                                       ItemTemplate="{StaticResource CatalogCardTemplate}">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="340"
+                                                   MinRowSpacing="12"
+                                                   MinColumnSpacing="12"
+                                                   ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                        </ItemsRepeater>
+                    </ScrollViewer>
 
-                                <!-- TOP SECTION: Logo + Title/Category + Details Button -->
-                                <Grid Grid.Row="0" ColumnSpacing="12">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <!-- Tool Brand Logo -->
-                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="6"
-                                            Background="{ThemeResource ControlFillColorDefaultBrush}"
+                    <!-- Shimmer placeholders while the catalog loads (suppressed
+                         when reduce-motion is on). -->
+                    <ScrollViewer x:Name="ShimmerPanel" Visibility="Collapsed"
+                                  VerticalScrollBarVisibility="Disabled">
+                        <ItemsRepeater x:Name="ShimmerRepeater">
+                            <ItemsRepeater.Layout>
+                                <UniformGridLayout MinItemWidth="340"
+                                                   MinItemHeight="176"
+                                                   MinRowSpacing="12"
+                                                   MinColumnSpacing="12"
+                                                   ItemsStretch="Fill" />
+                            </ItemsRepeater.Layout>
+                            <ItemsRepeater.ItemTemplate>
+                                <DataTemplate>
+                                    <Border MinHeight="176" CornerRadius="8"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                                             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                                             BorderThickness="1"
-                                            VerticalAlignment="Center">
-                                        <Grid>
-                                            <FontIcon Glyph="{Binding IconGlyph}" FontSize="18"
-                                                      Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Visibility="{Binding HasLogo, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                            <Image Width="28" Height="28" Stretch="Uniform"
-                                                   Source="{Binding LogoUrl, Converter={StaticResource StringToImageSourceConverter}}"
-                                                   ImageFailed="LogoImage_ImageFailed" />
-                                        </Grid>
-                                    </Border>
+                                            helpers:Motion.Pulse="True" />
+                                </DataTemplate>
+                            </ItemsRepeater.ItemTemplate>
+                        </ItemsRepeater>
+                    </ScrollViewer>
 
-                                    <!-- Tool Name & Category Badge -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                                        <TextBlock Text="{Binding Name}"
-                                                   Style="{StaticResource BodyStrongTextBlockStyle}"
-                                                   FontSize="14"
-                                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                                   TextTrimming="CharacterEllipsis" />
+                    <appControls:EmptyStateControl x:Name="NoResults"
+                                                   Visibility="Collapsed"
+                                                   Glyph="&#xE721;"
+                                                   Title="No tools match your filters"
+                                                   Message="Try a different search term, clear the status filter, or switch back to All Tools."
+                                                   ActionText="Clear filters"
+                                                   ActionClick="NoResults_ActionClick" />
+                </Grid>
 
-                                        <!-- Category Badge -->
-                                        <Border Style="{StaticResource BadgeStyle}" HorizontalAlignment="Left">
-                                            <TextBlock Text="{Binding Category}"
-                                                       FontSize="11"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </Border>
-                                    </StackPanel>
+                <!-- ══════════════════════════════════ -->
+                <!--  FOOTER STATUS BAR                 -->
+                <!-- ══════════════════════════════════ -->
+                <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
 
-                                    <!-- Inspect Details Button -->
-                                    <Button Grid.Column="2" VerticalAlignment="Top"
-                                            Background="Transparent" BorderThickness="0"
-                                            Padding="6,5" CornerRadius="4"
-                                            Click="ToolDetails_Click"
-                                            ToolTipService.ToolTip="Inspect tool specifications">
-                                        <FontIcon Glyph="&#xE946;" FontSize="13"
-                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </Button>
-                                </Grid>
+                    <TextBlock Grid.Column="0"
+                               x:Name="FooterStatusText"
+                               Text="90 tools available"
+                               FontSize="12"
+                               Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                               VerticalAlignment="Center" />
 
-                                <!-- BOTTOM SECTION: Version Badge (Left) + Action Button (Right) -->
-                                <Grid Grid.Row="1" Margin="0,12,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <HyperlinkButton Content="Refresh Catalog" Click="RefreshCatalog_Click"
+                                         FontSize="11" Padding="4,2"
+                                         Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                    </StackPanel>
+                </Grid>
 
-                                    <!-- Version Badge (Clickable to switch versions) -->
-                                    <HyperlinkButton Grid.Column="0"
-                                                     Padding="0"
-                                                     VerticalAlignment="Center"
-                                                     HorizontalAlignment="Left"
-                                                     Click="VersionPicker_Click"
-                                                     ToolTipService.ToolTip="Select specific or previous release version">
-                                        <Border Style="{StaticResource BadgeStyle}">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <FontIcon Glyph="&#xE8EC;" FontSize="10" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                                <TextBlock Text="{Binding DisplayVersionWithV}" FontSize="11"
-                                                           Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                            </StackPanel>
-                                        </Border>
-                                    </HyperlinkButton>
+                <!-- ══════════════════════════════════ -->
+                <!--  SELECTION BAR (floats when items  -->
+                <!--  are checked)                      -->
+                <!-- ══════════════════════════════════ -->
+                <Border Grid.Row="3" x:Name="SelectionBar"
+                        Style="{StaticResource SelectionBarStyle}"
+                        Margin="0,0,0,10"
+                        Translation="0,0,32"
+                        Visibility="Collapsed">
+                    <Border.Shadow>
+                        <ThemeShadow />
+                    </Border.Shadow>
 
-                                    <!-- Action Buttons with Native Fluent Hover States -->
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                        <!-- Downloading Progress Indicator -->
-                                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
-                                                    Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <ProgressRing Width="16" Height="16" IsActive="True" />
-                                            <TextBlock Text="Installing…" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                        </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE8B3;" FontSize="13"
+                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock x:Name="SelectionCountText"
+                                   Text="0 selected"
+                                   VerticalAlignment="Center"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
 
-                                        <!-- Install SplitButton: primary = Install;
-                                             chevron menu = choose version / download only / homepage -->
-                                        <SplitButton
-                                                     Background="{ThemeResource AccentFillColorDefaultBrush}"
-                                                     Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                                                     Click="InstallSingleTool_Click"
-                                                     ToolTipService.ToolTip="Download and install this tool"
-                                                     AutomationProperties.Name="Install tool"
-                                                     Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}">
-                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,0,6,0">
-                                                <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                                <TextBlock Text="Install" FontWeight="SemiBold" FontSize="12" />
-                                            </StackPanel>
-                                            <SplitButton.Flyout>
-                                                <MenuFlyout>
-                                                    <MenuFlyoutItem Text="Choose version..." Click="VersionPicker_Click">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <FontIcon Glyph="&#xE8EC;" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                    <MenuFlyoutItem Text="Download only (skip install)" Click="DownloadOnly_Click">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <FontIcon Glyph="&#xE896;" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                    <MenuFlyoutSeparator />
-                                                    <MenuFlyoutItem Text="Open homepage" Click="OpenHomepage_Click">
-                                                        <MenuFlyoutItem.Icon>
-                                                            <FontIcon Glyph="&#xE774;" />
-                                                        </MenuFlyoutItem.Icon>
-                                                    </MenuFlyoutItem>
-                                                </MenuFlyout>
-                                            </SplitButton.Flyout>
-                                        </SplitButton>
+                        <Rectangle Width="1" Height="18" Margin="4,0"
+                                   Fill="{ThemeResource CardStrokeColorDefaultBrush}" />
 
-                                        <!-- Native Windows 11 Installed Button (DefaultButtonStyle with checkmark) -->
-                                        <Button Style="{StaticResource DefaultButtonStyle}"
-                                                Click="InstalledAction_Click"
-                                                Padding="12,5" CornerRadius="4"
-                                                ToolTipService.ToolTip="Tool is installed. Click for options."
-                                                Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
-                                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                                <FontIcon Glyph="&#xE73E;" FontSize="12" Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                                <TextBlock Text="Installed" FontSize="12" />
-                                            </StackPanel>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </GridView.ItemTemplate>
-            </GridView>
+                        <Button x:Name="SelectionDownloadButton"
+                                Style="{StaticResource AccentButtonStyle}"
+                                Padding="12,6" CornerRadius="4"
+                                Click="SelectionDownload_Click"
+                                ToolTipService.ToolTip="Download and install every selected tool">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE896;" FontSize="12" />
+                                <TextBlock Text="Download" FontWeight="SemiBold" FontSize="12" />
+                            </StackPanel>
+                        </Button>
 
-            <!-- Shimmer loading placeholders (suppressed when reduce-motion is on) -->
-            <StackPanel x:Name="LoadingShimmerPanel" Grid.Row="3" Spacing="10" Margin="0,6,0,8" Visibility="Collapsed">
-                <!-- Skeleton cards pulse via Motion.Pulse; the pulse is suppressed
-                     when the Windows "reduce animations" setting is on. -->
-                <Border Height="120" CornerRadius="8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                        helpers:Motion.Pulse="True" />
-                <Border Height="120" CornerRadius="8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                        helpers:Motion.Pulse="True" />
-                <Border Height="120" CornerRadius="8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
-                        helpers:Motion.Pulse="True" />
-            </StackPanel>
+                        <Button Padding="12,6" CornerRadius="4"
+                                Click="SelectionSaveProfile_Click"
+                                ToolTipService.ToolTip="Save the current selection as a named workstation profile">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE74E;" FontSize="12" />
+                                <TextBlock Text="Save as profile" FontSize="12" />
+                            </StackPanel>
+                        </Button>
 
-            <!-- ══════════════════════════════════ -->
-            <!--  FOOTER STATUS BAR                 -->
-            <!-- ══════════════════════════════════ -->
-            <Grid Grid.Row="4" Margin="0,6,0,14" VerticalAlignment="Center">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0"
-                           x:Name="FooterStatusText"
-                           Text="90 tools available"
-                           FontSize="12"
-                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                           VerticalAlignment="Center" />
-
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <HyperlinkButton Content="Refresh Catalog" Click="RefreshCatalog_Click"
-                                     FontSize="11" Padding="4,2"
-                                     Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
-                </StackPanel>
+                        <Button Padding="12,6" CornerRadius="4"
+                                Click="SelectionClear_Click"
+                                ToolTipService.ToolTip="Deselect every tool">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE894;" FontSize="12" />
+                                <TextBlock Text="Clear" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
             </Grid>
-        </Grid>
+        </SplitView>
     </appControls:PageContainer>
 </Page>

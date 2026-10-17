@@ -1,11 +1,18 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
 using DevOpsToolsInstaller.Helpers;
@@ -27,25 +34,73 @@ public sealed class ToolCategoryGroup : List<ToolDefinition>
 
 public sealed partial class CatalogPage : Page, IRefreshablePage
 {
+    /// <summary>Pixels moved by one click of the category scroll buttons.</summary>
+    private const double ChipScrollStep = 220;
+
+    /// <summary>Skeleton cards drawn while the catalog loads.</summary>
+    private const int ShimmerCardCount = 6;
+
+    /// <summary>Marker set on a card template's root border so a click on any
+    /// child can walk back up to the card itself.</summary>
+    private const string CardRootTag = "tool-card";
+
+    /// <summary>
+    /// The category chips, in display order: (button label, catalog category).
+    /// The tag must be the exact category string the catalog uses — the display
+    /// label is the friendlier short form shown on the chip.
+    /// </summary>
+    private static readonly (string Label, string Tag)[] CategoryDefinitions =
+    {
+        ("All Tools", "All"),
+        ("Favorites", "Favorites"),
+        ("Cloud CLIs", "Cloud CLIs"),
+        ("Containerization", "Containerization"),
+        ("Kubernetes", "Kubernetes"),
+        ("Infrastructure as Code", "Infrastructure as Code"),
+        ("CI/CD & Version Control", "CI/CD and Version Control"),
+        ("Monitoring & Observability", "Monitoring and Observability"),
+        ("Security", "Security"),
+        ("Networking", "Networking"),
+        ("Policy & Compliance", "Policy & Compliance"),
+        ("Database & Data", "Database & Data"),
+        ("Editors & Terminals", "Editors and Terminals"),
+        ("Utilities", "Utilities"),
+    };
+
     private readonly ObservableCollection<ToolDefinition> _filteredTools = new();
+    private readonly List<Button> _categoryChipButtons = new();
+    private readonly HashSet<ToolDefinition> _hookedTools = new();
+
     private bool _busy;
+    private bool _hooked;
     private CancellationTokenSource? _downloadCts;
     private string _selectedCategory = "All";
     private string _sortMode = "category"; // az, za, category, kind, downloaded, favorites
-    private string _statusFilter = "all"; // all, not_installed, installed, updates, favorites
+    private string _statusFilter = "all";  // all, not_installed, installed, updates, favorites
+    private string _density = "cards";     // cards, list
     private ToolBundle? _activeBundle;
     private Microsoft.UI.Dispatching.DispatcherQueueTimer? _searchDebounceTimer;
+
+    // Detail pane state
+    private ToolDefinition? _detailTool;
+    private int _detailLoadToken;
+    private int _connectedAnimationKey;
+    private bool _suppressVersionChange;
 
     public CatalogPage()
     {
         InitializeComponent();
-        CategorySegmented.SelectionChanged += CategorySegmented_SelectionChanged;
 
         Header.BadgeText = "All tools";
 
-        ToolsGridView.ItemsSource = _filteredTools;
+        ToolsRepeater.ItemTemplate = (DataTemplate)Resources["CatalogCardTemplate"];
+        ToolsRepeater.ItemsSource = _filteredTools;
+        ShimmerRepeater.ItemsSource = Enumerable.Range(0, ShimmerCardCount).ToArray();
+
+        BuildCategoryChips();
 
         Loaded += CatalogPage_Loaded;
+        Unloaded += CatalogPage_Unloaded;
     }
 
     private async void CatalogPage_Loaded(object sender, RoutedEventArgs e)
@@ -53,12 +108,14 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         var mw = App.MainWindowInstance;
         if (mw is null) return;
 
+        HookCatalog(mw);
+
         if (mw.Tools.Count == 0)
         {
             // Shimmer placeholders while the catalog loads; suppressed under
             // the Windows "reduce animations" setting (falls back to the ring).
             var showShimmer = AnimationSettingsHelper.AnimationsEnabled;
-            LoadingShimmerPanel.Visibility = showShimmer ? Visibility.Visible : Visibility.Collapsed;
+            ShowShimmer(showShimmer);
             SetBusy(true, "Loading catalog...");
             try
             {
@@ -70,8 +127,9 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             }
             finally
             {
-                LoadingShimmerPanel.Visibility = Visibility.Collapsed;
+                ShowShimmer(false);
                 SetBusy(false);
+                HookCatalog(mw);
             }
         }
 
@@ -83,6 +141,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         }
 
         ApplyFilter();
+        ApplyDensity();
         PopulatePresetsMenu();
 
         if (!string.IsNullOrWhiteSpace(mw.PendingBundleSelectionId))
@@ -122,7 +181,352 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         });
 
         UpdateScrollButtons();
+        UpdateSelectionBar();
     }
+
+    private void CatalogPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        // The page is cached by the Frame, so unhook the long-lived catalog
+        // subscriptions here to avoid leaking handlers across navigations.
+        var mw = App.MainWindowInstance;
+        if (mw is not null)
+        {
+            mw.Tools.CollectionChanged -= Tools_CollectionChanged;
+        }
+
+        foreach (var tool in _hookedTools)
+        {
+            tool.PropertyChanged -= Tool_PropertyChanged;
+        }
+
+        _hookedTools.Clear();
+        _hooked = false;
+
+        CloseDetailPane();
+    }
+
+    // ── Selection model plumbing ─────────────────────────────────────────
+
+    /// <summary>
+    /// Subscribes to the catalog so the selection bar and the open detail pane
+    /// stay in sync when any tool's state changes.
+    /// </summary>
+    private void HookCatalog(MainWindow mw)
+    {
+        if (!_hooked)
+        {
+            mw.Tools.CollectionChanged += Tools_CollectionChanged;
+            _hooked = true;
+        }
+
+        foreach (var tool in mw.Tools)
+        {
+            if (_hookedTools.Add(tool))
+            {
+                tool.PropertyChanged += Tool_PropertyChanged;
+            }
+        }
+    }
+
+    private void Tools_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        // A Reset (catalog reload) carries no OldItems, so unhook everything and
+        // re-subscribe to whatever the collection now holds.
+        if (e.Action == NotifyCollectionChangedAction.Reset)
+        {
+            foreach (var hooked in _hookedTools)
+            {
+                hooked.PropertyChanged -= Tool_PropertyChanged;
+            }
+            _hookedTools.Clear();
+
+            if (sender is ObservableCollection<ToolDefinition> tools)
+            {
+                foreach (var tool in tools)
+                {
+                    if (_hookedTools.Add(tool))
+                    {
+                        tool.PropertyChanged += Tool_PropertyChanged;
+                    }
+                }
+            }
+
+            UpdateSelectionBar();
+            return;
+        }
+
+        if (e.NewItems is not null)
+        {
+            foreach (ToolDefinition tool in e.NewItems)
+            {
+                if (_hookedTools.Add(tool))
+                {
+                    tool.PropertyChanged += Tool_PropertyChanged;
+                }
+            }
+        }
+
+        if (e.OldItems is not null)
+        {
+            foreach (ToolDefinition tool in e.OldItems)
+            {
+                if (_hookedTools.Remove(tool))
+                {
+                    tool.PropertyChanged -= Tool_PropertyChanged;
+                }
+            }
+        }
+    }
+
+    private void Tool_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (sender is not ToolDefinition tool) return;
+
+        if (e.PropertyName is nameof(ToolDefinition.IsSelected))
+        {
+            UpdateSelectionBar();
+            return;
+        }
+
+        if (ReferenceEquals(tool, _detailTool) &&
+            e.PropertyName is nameof(ToolDefinition.IsInstalled)
+                or nameof(ToolDefinition.Status)
+                or nameof(ToolDefinition.DetectedVersion)
+                or nameof(ToolDefinition.DownloadUrl)
+                or nameof(ToolDefinition.FileName)
+                or nameof(ToolDefinition.Sha256)
+                or nameof(ToolDefinition.IsFavorite)
+                or nameof(ToolDefinition.SelectedVersion))
+        {
+            RefreshDetailPane();
+        }
+    }
+
+    private void UpdateSelectionBar()
+    {
+        if (SelectionBar is null) return;
+
+        var mw = App.MainWindowInstance;
+        var selected = mw?.Tools.Where(t => t.IsSelected).ToList() ?? new List<ToolDefinition>();
+
+        if (selected.Count == 0)
+        {
+            SelectionBar.Visibility = Visibility.Collapsed;
+            ToolsScrollViewer.Padding = new Thickness(0, 6, 0, 8);
+            return;
+        }
+
+        var downloadable = DownloadableSelection(selected).Count;
+
+        SelectionCountText.Text = selected.Count == 1
+            ? "1 selected"
+            : $"{selected.Count} selected";
+        SelectionDownloadButton.IsEnabled = !_busy && downloadable > 0;
+        SelectionDownloadButton.Opacity = downloadable > 0 ? 1 : 0.5;
+        ToolTipService.SetToolTip(SelectionDownloadButton, downloadable > 0
+            ? $"Download and install {downloadable} selected tool(s)"
+            : "Every selected tool is already downloaded and up to date");
+
+        SelectionBar.Visibility = Visibility.Visible;
+
+        // Reserve room at the bottom of the grid so the floating bar never hides
+        // the last row of cards.
+        ToolsScrollViewer.Padding = new Thickness(0, 6, 0, 88);
+    }
+
+    /// <summary>
+    /// The tools in a selection that a batch download would actually act on:
+    /// not on this machine yet, or installed but with a newer release available.
+    /// The selection bar's count and the download itself share this predicate so
+    /// the number always matches what happens.
+    /// </summary>
+    private static List<ToolDefinition> DownloadableSelection(IEnumerable<ToolDefinition> tools) =>
+        tools
+            .Where(t => t.Status != ToolStatus.Downloading &&
+                        (!t.IsDownloadedOrInstalled || t.HasUpdate))
+            .ToList();
+
+    private void SelectionClear_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        foreach (var tool in mw.Tools) tool.IsSelected = false;
+        UpdateSelectionBar();
+    }
+
+    private async void SelectionSaveProfile_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var selected = mw.Tools.Where(t => t.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            StatusText.Text = "Select at least one tool before saving a profile.";
+            return;
+        }
+
+        var nameBox = new TextBox
+        {
+            Header = "Profile name",
+            PlaceholderText = "e.g. Frontend workstation",
+            Text = $"{Environment.MachineName} selection"
+        };
+        var descriptionBox = new TextBox
+        {
+            Header = "Description (optional)",
+            PlaceholderText = "What is this profile for?"
+        };
+
+        var panel = new StackPanel { Spacing = 10, MaxWidth = 400 };
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"Save the {selected.Count} selected tool(s) as a named workstation profile you can reapply on any machine.",
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        });
+        panel.Children.Add(nameBox);
+        panel.Children.Add(descriptionBox);
+
+        var dialog = new ContentDialog
+        {
+            Title = "Save selection as profile",
+            Content = panel,
+            PrimaryButtonText = "Save profile",
+            CloseButtonText = "Cancel",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+        if (string.IsNullOrWhiteSpace(nameBox.Text))
+        {
+            StatusText.Text = "A profile name is required.";
+            return;
+        }
+
+        var profile = ProfileStoreService.CreateFromSelection(
+            nameBox.Text, descriptionBox.Text, selected.Select(t => t.Id));
+
+        StatusText.Text = $"Saved profile '{profile.Name}' with {profile.ToolCount} tool(s).";
+        ToastService.Show("Profile saved",
+            $"{profile.Name} — {profile.ToolCount} tool(s). Manage it on the Profiles page.");
+    }
+
+    // ── Category chips ───────────────────────────────────────────────────
+
+    private void BuildCategoryChips()
+    {
+        CategoryChipPanel.Children.Clear();
+        _categoryChipButtons.Clear();
+
+        foreach (var (label, tag) in CategoryDefinitions)
+        {
+            var chip = new Button
+            {
+                Content = label,
+                Tag = tag,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            chip.Click += CategoryChip_Click;
+            AutomationProperties.SetName(chip, $"{label} category filter");
+
+            CategoryChipPanel.Children.Add(chip);
+            _categoryChipButtons.Add(chip);
+        }
+
+        UpdateChipSelection();
+    }
+
+    private void UpdateChipSelection()
+    {
+        var selected = Resources["CatalogChipSelectedStyle"] as Style;
+        var normal = Resources["CatalogChipStyle"] as Style;
+
+        foreach (var chip in _categoryChipButtons)
+        {
+            var isSelected = chip.Tag is string tag &&
+                             string.Equals(tag, _selectedCategory, StringComparison.OrdinalIgnoreCase);
+            chip.Style = isSelected ? selected : normal;
+        }
+    }
+
+    private void CategoryChip_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string tag } chip) return;
+
+        _selectedCategory = tag;
+        UpdateChipSelection();
+        ApplyFilter();
+        chip.StartBringIntoView();
+
+        // Re-evaluate the fade now that the row may have scrolled.
+        DispatcherQueue.TryEnqueue(UpdateScrollButtons);
+    }
+
+    private void ScrollLeft_Click(object sender, RoutedEventArgs e)
+    {
+        var target = Math.Max(0, ChipsScrollViewer.HorizontalOffset - ChipScrollStep);
+        ChipsScrollViewer.ChangeView(target, null, null, false);
+    }
+
+    private void ScrollRight_Click(object sender, RoutedEventArgs e)
+    {
+        var target = Math.Min(ChipsScrollViewer.ScrollableWidth, ChipsScrollViewer.HorizontalOffset + ChipScrollStep);
+        ChipsScrollViewer.ChangeView(target, null, null, false);
+    }
+
+    private void ChipsScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs? e)
+        => UpdateScrollButtons();
+
+    private void ChipsScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        => UpdateScrollButtons();
+
+    private void UpdateScrollButtons()
+    {
+        if (ChipsScrollViewer is null || ScrollLeftButton is null || ScrollRightButton is null) return;
+
+        ScrollLeftButton.Visibility = ChipsScrollViewer.HorizontalOffset > 5
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        ScrollRightButton.Visibility = ChipsScrollViewer.HorizontalOffset < (ChipsScrollViewer.ScrollableWidth - 5)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        ApplyChipEdgeFade();
+    }
+
+    /// <summary>
+    /// Shows a soft gradient over whichever edge of the category row has more
+    /// chips hidden beyond it, so the row reads as scrollable rather than
+    /// clipped. The overlays are plain rectangles filled with a theme-aware
+    /// gradient; when the row fits, both are hidden so no chip is ever dimmed.
+    /// </summary>
+    private void ApplyChipEdgeFade()
+    {
+        if (ChipsScrollViewer is null || ChipFadeLeft is null || ChipFadeRight is null) return;
+
+        var width = ChipsScrollViewer.ActualWidth;
+        if (width <= 0 || double.IsNaN(width))
+        {
+            ChipFadeLeft.Visibility = Visibility.Collapsed;
+            ChipFadeRight.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        ChipFadeLeft.Visibility = ChipsScrollViewer.HorizontalOffset > 1
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+
+        ChipFadeRight.Visibility = ChipsScrollViewer.HorizontalOffset < ChipsScrollViewer.ScrollableWidth - 1
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+    }
+
+    // ── Filtering / sorting ──────────────────────────────────────────────
 
     private void ApplyFilter()
     {
@@ -179,12 +583,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         // Fast path: if items match exactly, do not churn the ObservableCollection
         if (_filteredTools.Count == sortedList.Count && _filteredTools.SequenceEqual(sortedList))
         {
-            var count = _filteredTools.Count;
-            StatusText.Text = $"{count} of {mw.Tools.Count} tools shown";
-            if (FooterStatusText != null)
-            {
-                FooterStatusText.Text = $"{count} tools available • Catalog: {CatalogService.CatalogFreshness}";
-            }
+            FinishFilterRefresh(mw, _filteredTools.Count, updateStatus: true);
             return;
         }
 
@@ -218,67 +617,502 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             }
         }
 
-        var totalShown = _filteredTools.Count;
-        StatusText.Text = $"{totalShown} of {mw.Tools.Count} tools shown";
-        if (FooterStatusText != null)
+        FinishFilterRefresh(mw, _filteredTools.Count, updateStatus: true);
+    }
+
+    private void FinishFilterRefresh(MainWindow mw, int shown, bool updateStatus)
+    {
+        if (updateStatus)
         {
-            FooterStatusText.Text = $"{totalShown} tools available • Catalog: {CatalogService.CatalogFreshness}";
+            StatusText.Text = $"{shown} of {mw.Tools.Count} tools shown";
+            if (FooterStatusText != null)
+            {
+                FooterStatusText.Text = $"{shown} tools available • Catalog: {CatalogService.CatalogFreshness}";
+            }
+        }
+
+        if (NoResults != null)
+        {
+            NoResults.Visibility = shown == 0 && ShimmerPanel.Visibility != Visibility.Visible
+                ? Visibility.Visible
+                : Visibility.Collapsed;
         }
     }
 
-    // ── Category Chips ──────────────────────────────────────────────────
-
-    private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void NoResults_ActionClick(object sender, RoutedEventArgs e)
     {
-        // Use the sender: this event can fire during XAML parse (initial
-        // IsSelected) before the generated field is connected.
-        if (sender is not CommunityToolkit.WinUI.Controls.Segmented segmented ||
-            segmented.SelectedItem is not CommunityToolkit.WinUI.Controls.SegmentedItem selected)
-        {
-            return;
-        }
-        _selectedCategory = selected.Tag as string ?? "All";
-        selected.StartBringIntoView();
+        SearchBox.Text = string.Empty;
+        _statusFilter = "all";
+        StatusFilterButton.Label = "Filter: All";
+        _selectedCategory = "All";
+        _activeBundle = null;
+        ActiveStackInfoBar.IsOpen = false;
+        Header.BadgeText = "All tools";
+        UpdateChipSelection();
         ApplyFilter();
-    }
-
-    private void ScrollLeft_Click(object sender, RoutedEventArgs e)
-    {
-        var target = Math.Max(0, ChipsScrollViewer.HorizontalOffset - 220);
-        ChipsScrollViewer.ChangeView(target, null, null, false);
-    }
-
-    private void ScrollRight_Click(object sender, RoutedEventArgs e)
-    {
-        var target = Math.Min(ChipsScrollViewer.ScrollableWidth, ChipsScrollViewer.HorizontalOffset + 220);
-        ChipsScrollViewer.ChangeView(target, null, null, false);
-    }
-
-    private void ChipsScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs? e)
-    {
-        UpdateScrollButtons();
-    }
-
-    private void ChipsScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        UpdateScrollButtons();
-    }
-
-    private void UpdateScrollButtons()
-    {
-        if (ChipsScrollViewer == null || ScrollLeftButton == null || ScrollRightButton == null) return;
-        ScrollLeftButton.Visibility = ChipsScrollViewer.HorizontalOffset > 5 ? Visibility.Visible : Visibility.Collapsed;
-        ScrollRightButton.Visibility = ChipsScrollViewer.HorizontalOffset < (ChipsScrollViewer.ScrollableWidth - 5)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
     }
 
     /// <summary>Every tool currently visible in the catalog grid.</summary>
     private IEnumerable<ToolDefinition> VisibleTools => _filteredTools;
 
-    // ── Search & Command Bar Layout ──────────────────────────────────────
-    // (The native CommandBar handles overflow/labels automatically, so the
-    //  old manual width-responsive layout code was removed with it.)
+    // ── Density ──────────────────────────────────────────────────────────
+
+    private void Density_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuFlyoutItem { Tag: string tag } item) return;
+        _density = tag;
+        ApplyDensity();
+        StatusText.Text = tag == "list" ? "Compact list layout." : "Card layout.";
+    }
+
+    /// <summary>
+    /// Swaps the repeater's layout (and item template) between the roomy card
+    /// grid and the compact single-line list. The items source is reset so the
+    /// repeater re-realizes every element with the new template.
+    /// </summary>
+    private void ApplyDensity()
+    {
+        var compact = string.Equals(_density, "list", StringComparison.OrdinalIgnoreCase);
+        var templateKey = compact ? "CatalogCompactRowTemplate" : "CatalogCardTemplate";
+
+        if (Resources[templateKey] is DataTemplate template)
+        {
+            ToolsRepeater.ItemTemplate = template;
+        }
+
+        ToolsRepeater.Layout = compact
+            ? new StackLayout { Orientation = Orientation.Vertical, Spacing = 8 }
+            : new UniformGridLayout
+            {
+                MinItemWidth = 340,
+                MinRowSpacing = 12,
+                MinColumnSpacing = 12,
+                ItemsStretch = UniformGridLayoutItemsStretch.Fill
+            };
+
+        // Force re-realization: ItemsRepeater recycles containers per template.
+        ToolsRepeater.ItemsSource = null;
+        ToolsRepeater.ItemsSource = _filteredTools;
+
+        if (DensityButton is not null)
+        {
+            DensityButton.Label = compact ? "Density: List" : "Density: Cards";
+            DensityButton.Icon = new FontIcon { Glyph = compact ? "\uE8FD" : "\uE80A" };
+        }
+    }
+
+    // ── Right-hand detail pane ───────────────────────────────────────────
+
+    private void ToolCard_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement card || card.DataContext is not ToolDefinition tool) return;
+
+        // Ignore taps that landed on an interactive child (checkbox, install
+        // split-button, favorite star, version link …).
+        if (IsInteractiveSource(e.OriginalSource as DependencyObject, card)) return;
+
+        OpenDetailPane(tool, card);
+    }
+
+    private static bool IsInteractiveSource(DependencyObject? source, DependencyObject boundary)
+    {
+        while (source is not null && !ReferenceEquals(source, boundary))
+        {
+            if (source is ButtonBase or HyperlinkButton or SplitButton or MenuFlyoutItem or TextBox)
+            {
+                return true;
+            }
+
+            source = VisualTreeHelper.GetParent(source);
+        }
+
+        return false;
+    }
+
+    private void ToolDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool } element) return;
+
+        // Context-menu items are not part of the card's visual tree, so the
+        // row lookup legitimately fails there and the pane simply opens without
+        // a connected animation.
+        OpenDetailPane(tool, FindCardRoot(element));
+    }
+
+    /// <summary>Walks up from a card's child to the card's own root border.</summary>
+    private static FrameworkElement? FindCardRoot(DependencyObject? element)
+    {
+        while (element is not null)
+        {
+            if (element is Border { Tag: CardRootTag } border) return border;
+            element = VisualTreeHelper.GetParent(element);
+        }
+
+        return null;
+    }
+
+    /// <summary>Depth-first search for the card's logo badge (glyph + image pair).</summary>
+    private static Border? FindLogoBadge(DependencyObject root)
+    {
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+
+            if (child is Border { Child: Grid grid } candidate &&
+                grid.Children.OfType<Image>().Any() &&
+                grid.Children.OfType<FontIcon>().Any())
+            {
+                return candidate;
+            }
+
+            if (FindLogoBadge(child) is { } found) return found;
+        }
+
+        return null;
+    }
+
+    private void OpenDetailPane(ToolDefinition tool, FrameworkElement? source)
+    {
+        if (!ReferenceEquals(_detailTool, tool))
+        {
+            UnhookDetailTool();
+            ShowDetailPane(tool);
+        }
+
+        DetailSplitView.IsPaneOpen = true;
+
+        // Let the grid reflow first so the connected animation starts from the
+        // card's final position rather than its pre-reflow one.
+        DetailPaneRoot.UpdateLayout();
+
+        if (source is null || !AnimationSettingsHelper.AnimationsEnabled) return;
+
+        try
+        {
+            var from = FindLogoBadge(source) ?? source;
+            var key = $"catalogToolDetail{++_connectedAnimationKey}";
+            var animation = ConnectedAnimationService.GetForCurrentView().PrepareToAnimate(key, from);
+            animation?.TryStart(PaneLogoBorder);
+        }
+        catch
+        {
+            // A connected animation is a nicety: if the runtime refuses the
+            // target the pane is simply already visible.
+        }
+    }
+
+    private void CloseDetailPane()
+    {
+        UnhookDetailTool();
+        _detailTool = null;
+        if (DetailSplitView is not null) DetailSplitView.IsPaneOpen = false;
+    }
+
+    private void DetailSplitView_PaneClosed(SplitView sender, object args)
+    {
+        // PaneClosed arrives after the close animation, so a rapid re-open of a
+        // different tool can land first — don't clear that pane's state.
+        if (sender.IsPaneOpen) return;
+
+        UnhookDetailTool();
+        _detailTool = null;
+    }
+
+    private void PaneClose_Click(object sender, RoutedEventArgs e) => CloseDetailPane();
+
+    private void UnhookDetailTool()
+    {
+        // Bump the token so an in-flight licence lookup can no longer write to
+        // the pane now that it is showing (or going to show) a different tool.
+        _detailLoadToken++;
+    }
+
+    private void ShowDetailPane(ToolDefinition tool)
+    {
+        _detailTool = tool;
+
+        PaneName.Text = tool.Name;
+        PaneVendor.Text = tool.VendorLabel;
+        PaneCategory.Text = tool.Category;
+        PaneKind.Text = tool.KindLabel;
+        PaneDescription.Text = string.IsNullOrWhiteSpace(tool.Description)
+            ? "No description was provided for this tool in the catalog."
+            : tool.Description;
+        PaneGlyph.Glyph = string.IsNullOrWhiteSpace(tool.IconGlyph) ? "\uE74C" : tool.IconGlyph;
+
+        ApplyPaneLogo(tool);
+
+        // Version picker (guarded: populating it raises SelectionChanged).
+        _suppressVersionChange = true;
+        PaneVersionCombo.Items.Clear();
+        foreach (var version in tool.AllAvailableVersions)
+        {
+            PaneVersionCombo.Items.Add(version);
+        }
+
+        var selectedIndex = 0;
+        for (var i = 0; i < PaneVersionCombo.Items.Count; i++)
+        {
+            if (PaneVersionCombo.Items[i] is not string candidate) continue;
+
+            var value = candidate.Replace("(Latest)", "").Trim();
+            if (string.Equals(value, tool.SelectedVersion, StringComparison.OrdinalIgnoreCase))
+            {
+                selectedIndex = i;
+                break;
+            }
+        }
+        PaneVersionCombo.SelectedIndex = PaneVersionCombo.Items.Count > 0 ? selectedIndex : -1;
+        _suppressVersionChange = false;
+
+        RefreshDetailPane();
+        _ = LoadLicenseAsync(tool);
+    }
+
+    private void ApplyPaneLogo(ToolDefinition tool)
+    {
+        ImageSource? imageSource = null;
+
+        if (tool.HasLogo)
+        {
+            try
+            {
+                // Reuse the same URL handling the catalog cards bind through, so
+                // ms-appx:/// and https:// logos both resolve identically.
+                imageSource = new Converters.StringToImageSourceConverter()
+                    .Convert(tool.LogoUrl, typeof(ImageSource), string.Empty, string.Empty)
+                    as ImageSource;
+            }
+            catch
+            {
+                imageSource = null;
+            }
+        }
+
+        PaneLogo.Source = imageSource;
+        PaneLogo.Visibility = imageSource is null ? Visibility.Collapsed : Visibility.Visible;
+        PaneGlyph.Visibility = imageSource is null ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void PaneLogo_ImageFailed(object sender, ExceptionRoutedEventArgs e)
+    {
+        PaneLogo.Visibility = Visibility.Collapsed;
+        PaneGlyph.Visibility = Visibility.Visible;
+    }
+
+    private void RefreshDetailPane()
+    {
+        var tool = _detailTool;
+        if (tool is null) return;
+
+        PaneInstalledBadge.Visibility = tool.IsDownloadedOrInstalled ? Visibility.Visible : Visibility.Collapsed;
+        PaneInstalledText.Text = tool.InstalledVersionLabel;
+
+        PaneInstalledDetail.Text = !tool.IsDownloadedOrInstalled
+            ? "Not installed on this machine"
+            : string.IsNullOrWhiteSpace(tool.DetectedVersion)
+                ? tool.StatusText
+                : $"{tool.DisplayDetectedVersion} — {tool.VersionStateText}";
+
+        PaneSizeText.Text = GetArtifactSizeText(tool);
+
+        PaneShaText.Text = string.IsNullOrWhiteSpace(tool.Sha256) ? "Not published" : tool.Sha256;
+        ToolTipService.SetToolTip(PaneShaText, tool.Sha256);
+
+        PaneSourceUrl.Text = string.IsNullOrWhiteSpace(tool.DownloadUrl) ? "Not published" : tool.DownloadUrl;
+        ToolTipService.SetToolTip(PaneSourceUrl, tool.DownloadUrl);
+
+        PaneFavoriteIcon.Glyph = tool.FavoriteGlyph;
+
+        var installed = tool.IsDownloadedOrInstalled;
+        PaneInstallButton.Visibility = installed ? Visibility.Collapsed : Visibility.Visible;
+        PaneDownloadOnlyButton.Visibility = installed ? Visibility.Collapsed : Visibility.Visible;
+        PaneInstallButton.IsEnabled = !_busy;
+
+        PaneReleaseNotesLink.Visibility = ToolReleaseNotesService.GetReleasesUrl(tool.DownloadUrl) is null
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        PaneSourceLink.Visibility = string.IsNullOrWhiteSpace(tool.DownloadUrl)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        PaneHomepageLink.Visibility = string.IsNullOrWhiteSpace(tool.Homepage)
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private static string GetArtifactSizeText(ToolDefinition tool)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(tool.FileName))
+            {
+                var path = Path.Combine(DownloadService.DefaultDownloadsFolder, tool.FileName);
+                if (File.Exists(path))
+                {
+                    return CustomStacksService.FormatBytes(new FileInfo(path).Length);
+                }
+            }
+        }
+        catch
+        {
+            // Fall through to the unknown-size label.
+        }
+
+        return "Not downloaded yet";
+    }
+
+    private async Task LoadLicenseAsync(ToolDefinition tool)
+    {
+        var token = ++_detailLoadToken;
+
+        if (!string.IsNullOrWhiteSpace(tool.License))
+        {
+            PaneLicenseText.Text = tool.License;
+            return;
+        }
+
+        var githubHosted = ToolReleaseNotesService.IsGitHubHosted(tool.DownloadUrl);
+        if (!githubHosted)
+        {
+            PaneLicenseText.Text = "See vendor homepage";
+            return;
+        }
+
+        PaneLicenseText.Text = "Checking…";
+
+        string? spdx = null;
+        try
+        {
+            spdx = await ToolReleaseNotesService.GetRepositoryLicenseAsync(tool.DownloadUrl);
+        }
+        catch
+        {
+            // Offline or rate-limited: fall through to the generic label.
+        }
+
+        // The user may have opened a different tool while this was in flight.
+        if (token != _detailLoadToken || !ReferenceEquals(_detailTool, tool)) return;
+
+        PaneLicenseText.Text = spdx ?? "Not declared by vendor";
+    }
+
+    private void PaneVersion_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_suppressVersionChange || _detailTool is null) return;
+        if (PaneVersionCombo.SelectedItem is not string raw) return;
+
+        var clean = raw.Replace("(Latest)", "").Trim();
+        if (string.IsNullOrWhiteSpace(clean)) return;
+
+        _detailTool.SetVersion(clean);
+
+        StatusText.Text = _detailTool.IsPreviousVersionSelected
+            ? $"{_detailTool.Name} pinned to v{_detailTool.SelectedVersion}."
+            : $"{_detailTool.Name} reset to the latest release.";
+
+        RefreshDetailPane();
+        ApplyFilter();
+    }
+
+    private async void PaneInstall_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailTool is null) return;
+        await RunSingleToolAsync(_detailTool, installAfter: true);
+        RefreshDetailPane();
+    }
+
+    private async void PaneDownloadOnly_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailTool is null) return;
+        await RunSingleToolAsync(_detailTool, installAfter: false);
+        RefreshDetailPane();
+    }
+
+    private void PaneFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailTool is null) return;
+        _detailTool.IsFavorite = FavoritesService.Toggle(_detailTool.Id);
+    }
+
+    private void PaneHomepage_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(_detailTool?.Homepage))
+        {
+            LauncherService.OpenUrl(_detailTool.Homepage);
+        }
+    }
+
+    private void PaneSourceLink_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(_detailTool?.DownloadUrl))
+        {
+            LauncherService.OpenUrl(_detailTool.DownloadUrl);
+        }
+    }
+
+    private void PaneReleaseNotes_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailTool is null) return;
+
+        var url = ToolReleaseNotesService.GetReleasesUrl(_detailTool.DownloadUrl);
+        if (!string.IsNullOrWhiteSpace(url))
+        {
+            LauncherService.OpenUrl(url);
+        }
+        else if (!string.IsNullOrWhiteSpace(_detailTool.Homepage))
+        {
+            LauncherService.OpenUrl(_detailTool.Homepage);
+        }
+    }
+
+    private void PaneFullDetails_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailTool is null) return;
+        Frame.Navigate(typeof(ToolDetailPage), _detailTool);
+    }
+
+    private void CopySha_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_detailTool?.Sha256))
+        {
+            StatusText.Text = "This tool does not publish a SHA-256 checksum.";
+            return;
+        }
+
+        CopyToClipboard(_detailTool.Sha256);
+        StatusText.Text = $"Copied the SHA-256 checksum for {_detailTool.Name}.";
+    }
+
+    private void CopySourceUrl_Click(object sender, RoutedEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_detailTool?.DownloadUrl)) return;
+
+        CopyToClipboard(_detailTool.DownloadUrl);
+        StatusText.Text = $"Copied the download link for {_detailTool.Name}.";
+    }
+
+    private static void CopyToClipboard(string text)
+    {
+        var package = new DataPackage();
+        package.SetText(text);
+        Clipboard.SetContent(package);
+    }
+
+    // ── Shimmer ──────────────────────────────────────────────────────────
+
+    private void ShowShimmer(bool show)
+    {
+        if (ShimmerPanel is null) return;
+        ShimmerPanel.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        ToolsScrollViewer.Visibility = show ? Visibility.Collapsed : Visibility.Visible;
+        if (NoResults is not null) NoResults.Visibility = Visibility.Collapsed;
+    }
+
+    // ── Search & Command Bar ─────────────────────────────────────────────
+    // (The native CommandBar handles overflow/labels automatically.)
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
@@ -311,11 +1145,11 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         _statusFilter = tag;
         StatusFilterButton.Label = tag switch
         {
-            "not_installed" => "Not Installed",
-            "installed" => "Installed",
-            "updates" => "Updates",
-            "favorites" => "Favorites",
-            _ => "All"
+            "not_installed" => "Filter: Not installed",
+            "installed" => "Filter: Installed",
+            "updates" => "Filter: Updates",
+            "favorites" => "Filter: Favorites",
+            _ => "Filter: All"
         };
         ApplyFilter();
     }
@@ -334,25 +1168,19 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
     {
         if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
 
-        var commands = new List<string>();
-
-        // Build a useful clipboard block
-        commands.Add($"# {tool.Name} v{tool.Version}");
-        commands.Add($"# Direct download URL:");
-        commands.Add($"curl -LO \"{tool.DownloadUrl}\"");
+        var commands = new List<string>
+        {
+            $"# {tool.Name} v{tool.Version}",
+            "# Direct download URL:",
+            $"curl -LO \"{tool.DownloadUrl}\""
+        };
 
         if (!string.IsNullOrWhiteSpace(tool.Sha256))
         {
             commands.Add($"# SHA256: {tool.Sha256}");
         }
 
-        var text = string.Join(Environment.NewLine, commands);
-
-        var dp = new DataPackage();
-        dp.SetText(text);
-        Clipboard.SetContent(dp);
-
-        // Provide feedback
+        CopyToClipboard(string.Join(Environment.NewLine, commands));
         StatusText.Text = $"Copied install command for {tool.Name}";
     }
 
@@ -405,10 +1233,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             Text = "Explore All Stacks Section…",
             Icon = new FontIcon { Glyph = "\uE71D" }
         };
-        browseAllItem.Click += (s, e) =>
-        {
-            mw.NavigateTo("Stacks");
-        };
+        browseAllItem.Click += (s, e) => mw.NavigateTo("Stacks");
         PresetsMenuFlyout.Items.Add(browseAllItem);
         PresetsMenuFlyout.Items.Add(new MenuFlyoutSeparator());
 
@@ -422,10 +1247,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             };
             ToolTipService.SetToolTip(item, bundle.Description);
             var capturedBundle = bundle;
-            item.Click += (s, e) =>
-            {
-                ApplyBundleSelection(capturedBundle);
-            };
+            item.Click += (s, e) => ApplyBundleSelection(capturedBundle);
             PresetsMenuFlyout.Items.Add(item);
         }
     }
@@ -439,13 +1261,14 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         int selectedCount = mw.SelectBundle(bundle);
 
         ActiveStackInfoBar.Title = $"Stack Filter: {bundle.Name} ({bundle.Tools.Count} tools)";
-        ActiveStackInfoBar.Message = $"Showing only tools included in {bundle.Name}. All {selectedCount} tools are pre-selected. Click 'Download' to install them, or customize your selection.";
+        ActiveStackInfoBar.Message = $"Showing only tools included in {bundle.Name}. All {selectedCount} tools are pre-selected. Use the selection bar to download them, or customize your selection.";
         ActiveStackInfoBar.IsOpen = true;
 
         Header.BadgeText = $"{bundle.Name} ({bundle.Tools.Count} tools)";
         StatusText.Text = $"Showing {selectedCount} tools from {bundle.Name}";
 
         ApplyFilter();
+        UpdateSelectionBar();
     }
 
     private void ClearStackFilter_Click(object sender, RoutedEventArgs e)
@@ -463,17 +1286,12 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         ApplyFilter();
     }
 
-
     // ── Select / Clear ──────────────────────────────────────────────────
 
     private void SelectAll_Click(object sender, RoutedEventArgs e)
     {
         foreach (var item in VisibleTools) item.IsSelected = true;
-    }
-
-    private void Clear_Click(object sender, RoutedEventArgs e)
-    {
-        foreach (var item in VisibleTools) item.IsSelected = false;
+        UpdateSelectionBar();
     }
 
     // ── Export / Import ─────────────────────────────────────────────────
@@ -492,7 +1310,6 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
         var savePicker = new FileSavePicker();
 
-        // Get the HWND from the current window
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance!);
         WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
 
@@ -527,25 +1344,24 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         var json = await Windows.Storage.FileIO.ReadTextAsync(file);
         var count = ProfileService.Import(json, mw.Tools);
         ApplyFilter();
+        UpdateSelectionBar();
         StatusText.Text = $"Imported profile — {count} tool(s) selected from {file.Name}";
     }
 
-    // ── Download ────────────────────────────────────────────────────────
+    // ── Batch download (selection bar) ──────────────────────────────────
 
-    private async void Download_Click(object sender, RoutedEventArgs e)
+    private async void SelectionDownload_Click(object sender, RoutedEventArgs e)
     {
         var mw = App.MainWindowInstance;
         if (mw is null || _busy) return;
 
-        var selected = VisibleTools
-            .Where(t => t.IsSelected && t.Status != ToolStatus.Downloaded && t.Status != ToolStatus.Downloading)
-            .ToList();
+        var selected = DownloadableSelection(mw.Tools.Where(t => t.IsSelected));
 
         if (selected.Count == 0)
         {
-            var anySelected = VisibleTools.Any(t => t.IsSelected);
+            var anySelected = mw.Tools.Any(t => t.IsSelected);
             StatusText.Text = anySelected
-                ? "Selected tool(s) are already downloaded or currently downloading."
+                ? "Every selected tool is already downloaded and up to date."
                 : "Select at least one tool to download.";
             return;
         }
@@ -599,46 +1415,18 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         StatusText.Text = "Cancelling downloads...";
     }
 
-    // ── Tool Detail Dialog ──────────────────────────────────────────────
-
-    private void ToolDetails_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
-
-        // Animate the whole card into the detail page (when allowed).
-        FrameworkElement? animationSource = sender as FrameworkElement;
-        var parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(animationSource!);
-        while (parent is not null)
-        {
-            if (parent is Border border && border.Child is not null &&
-                Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(border) is Microsoft.UI.Xaml.Controls.GridViewItem)
-            {
-                animationSource = border;
-                break;
-            }
-            parent = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(parent);
-        }
-
-        if (Helpers.AnimationSettingsHelper.AnimationsEnabled && animationSource is not null)
-        {
-            Microsoft.UI.Xaml.Media.Animation.ConnectedAnimationService
-                .GetForCurrentView().PrepareToAnimate("toolCard", animationSource);
-        }
-
-        Frame.Navigate(typeof(ToolDetailPage), tool);
-    }
-
     // ── Busy state ──────────────────────────────────────────────────────
 
     private void SetBusy(bool busy, string? status = null)
     {
         _busy = busy;
         BusyRing.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-        DownloadButton.IsEnabled = !busy;
         SelectAllButton.IsEnabled = !busy;
-        ClearButton.IsEnabled = !busy;
         PresetsButton.IsEnabled = !busy;
         ProfileButton.IsEnabled = !busy;
+        DensityButton.IsEnabled = !busy;
+        if (SelectionDownloadButton is not null) SelectionDownloadButton.IsEnabled = !busy;
+        if (PaneInstallButton is not null) PaneInstallButton.IsEnabled = !busy;
         if (status is not null) StatusText.Text = status;
     }
 
@@ -656,7 +1444,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         {
             Text = $"Choose a specific release version of {tool.Name}. You can select from known releases or enter a custom version tag.",
             TextWrapping = TextWrapping.Wrap,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
         });
 
         // Curated versions combo box
@@ -680,7 +1468,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         {
             FontSize = 11,
             TextWrapping = TextWrapping.Wrap,
-            Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
         };
 
         void UpdatePreview(string v)
@@ -745,7 +1533,6 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         }
         else if (result == ContentDialogResult.Secondary)
         {
-            // Reset to latest
             tool.SetVersion(tool.Version);
             StatusText.Text = $"Reset {tool.Name} to latest version (v{tool.Version}).";
         }
@@ -768,31 +1555,16 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         }
     }
 
-    private double _lastItemWidth;
-    private int _lastColumnCount;
-
-    private void ToolsGridView_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        if (ToolsGridView.ItemsPanelRoot is ItemsWrapGrid wrapGrid)
-        {
-            var width = e.NewSize.Width - 24;
-            if (width > 200)
-            {
-                int columns = width >= 1080 ? 3 : (width >= 700 ? 2 : 1);
-                var itemWidth = Math.Floor(width / columns);
-                if (columns != _lastColumnCount || Math.Abs(itemWidth - _lastItemWidth) > 3)
-                {
-                    _lastColumnCount = columns;
-                    _lastItemWidth = itemWidth;
-                    wrapGrid.ItemWidth = itemWidth;
-                }
-            }
-        }
-    }
-
-    // ── 1-Click Install Button on Card ──────────────────────────────────
+    // ── Install actions ─────────────────────────────────────────────────
 
     private async void InstallSingleTool_Click(Microsoft.UI.Xaml.Controls.SplitButton sender, Microsoft.UI.Xaml.Controls.SplitButtonClickEventArgs args)
+    {
+        if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
+        await RunSingleToolAsync(tool, installAfter: true);
+    }
+
+    /// <summary>Compact-list row install button.</summary>
+    private async void CompactInstall_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not FrameworkElement { DataContext: ToolDefinition tool }) return;
         await RunSingleToolAsync(tool, installAfter: true);

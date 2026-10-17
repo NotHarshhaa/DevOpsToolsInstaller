@@ -82,6 +82,15 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     public string Homepage { get; set; } = string.Empty;
 
     /// <summary>
+    /// Optional SPDX license identifier ("MIT", "Apache-2.0", …) declared in
+    /// the catalog for reference. Informational only — nothing is enforced.
+    /// When omitted, the catalog falls back to the licence the tool's own
+    /// repository publishes.
+    /// </summary>
+    [JsonPropertyName("license")]
+    public string License { get; set; } = string.Empty;
+
+    /// <summary>
     /// Optional URL to the tool's brand logo (SVG or raster). When present the
     /// catalog renders it in place of the <see cref="IconGlyph"/>. If the image
     /// fails to load (e.g. offline) the glyph is shown as a graceful fallback.
@@ -223,6 +232,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsDownloading));
                 OnPropertyChanged(nameof(ActionStatusText));
                 OnPropertyChanged(nameof(ActionLabel));
+                OnPropertyChanged(nameof(InstalledVersionLabel));
                 UpdateStatusText();
 
                 // Transfer ended (or restarted): release the sparkline
@@ -276,6 +286,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(IsDownloadedOrInstalled));
                 OnPropertyChanged(nameof(ActionStatusText));
                 OnPropertyChanged(nameof(ActionLabel));
+                OnPropertyChanged(nameof(InstalledVersionLabel));
             }
         }
     }
@@ -321,6 +332,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 OnPropertyChanged(nameof(HasComparableVersion));
                 OnPropertyChanged(nameof(VersionStateText));
                 OnPropertyChanged(nameof(DisplayDetectedVersion));
+                OnPropertyChanged(nameof(InstalledVersionLabel));
             }
         }
     }
@@ -359,6 +371,21 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         : HasUpdate ? "Update available"
         : IsUpToDate ? "Up to date"
         : "Installed";
+
+    /// <summary>
+    /// Short "what is on this machine" label for the catalog card's installed
+    /// badge, e.g. "Installed v1.9.5". Empty when nothing is installed yet.
+    /// </summary>
+    [JsonIgnore]
+    public string InstalledVersionLabel
+    {
+        get
+        {
+            if (!IsDownloadedOrInstalled) return string.Empty;
+            if (!string.IsNullOrWhiteSpace(DetectedVersion)) return $"Installed v{DetectedVersion}";
+            return Status == ToolStatus.Downloaded ? "Downloaded" : "Installed";
+        }
+    }
 
     /// <summary>
     /// Compares the installed version against the catalog version numerically
@@ -722,6 +749,108 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     /// <summary>True when a brand logo URL is available for this tool.</summary>
     [JsonIgnore]
     public bool HasLogo => !string.IsNullOrWhiteSpace(LogoUrl);
+
+    /// <summary>
+    /// Friendly vendor/source name for the catalog card, derived from the
+    /// tool's homepage (falling back to its download host) — for example
+    /// "github.com" becomes "GitHub". Unknown hosts are shown verbatim so the
+    /// card can always tell the user where a tool comes from.
+    /// </summary>
+    [JsonIgnore]
+    public string VendorLabel
+    {
+        get
+        {
+            var host = TryGetHost(Homepage) ?? TryGetHost(DownloadUrl);
+            if (host is null) return "Unknown source";
+
+            host = host.TrimStart('.').ToLowerInvariant();
+            if (host.StartsWith("www.", StringComparison.Ordinal)) host = host[4..];
+
+            foreach (var (suffix, name) in VendorHosts)
+            {
+                if (host.Equals(suffix, StringComparison.Ordinal) ||
+                    host.EndsWith("." + suffix, StringComparison.Ordinal))
+                {
+                    return name;
+                }
+            }
+
+            return host;
+        }
+    }
+
+    /// <summary>Host-name → friendly vendor name table, matched on domain suffix.</summary>
+    private static readonly (string Suffix, string Name)[] VendorHosts =
+    {
+        ("github.com", "GitHub"),
+        ("githubusercontent.com", "GitHub"),
+        ("github.io", "GitHub Pages"),
+        ("gitlab.com", "GitLab"),
+        ("bitbucket.org", "Bitbucket"),
+        ("amazonaws.com", "Amazon Web Services"),
+        ("aws.amazon.com", "Amazon Web Services"),
+        ("microsoft.com", "Microsoft"),
+        ("aka.ms", "Microsoft"),
+        ("azure.com", "Microsoft"),
+        ("azureedge.net", "Microsoft"),
+        ("google.com", "Google"),
+        ("googleapis.com", "Google"),
+        ("k8s.io", "Kubernetes"),
+        ("kubernetes.io", "Kubernetes"),
+        ("helm.sh", "Helm"),
+        ("hashicorp.com", "HashiCorp"),
+        ("docker.com", "Docker"),
+        ("docker.io", "Docker"),
+        ("grafana.com", "Grafana Labs"),
+        ("prometheus.io", "Prometheus"),
+        ("elastic.co", "Elastic"),
+        ("jetbrains.com", "JetBrains"),
+        ("apache.org", "Apache"),
+        ("nodejs.org", "Node.js"),
+        ("python.org", "Python"),
+        ("go.dev", "Go"),
+        ("golang.org", "Go"),
+        ("rust-lang.org", "Rust"),
+        ("mozilla.org", "Mozilla"),
+        ("postgresql.org", "PostgreSQL"),
+        ("mysql.com", "MySQL"),
+        ("mongodb.com", "MongoDB"),
+        ("redis.io", "Redis"),
+        ("nginx.org", "NGINX"),
+        ("jetstack.io", "Jetstack"),
+        ("snyk.io", "Snyk"),
+        ("cloudflare.com", "Cloudflare"),
+        ("datadoghq.com", "Datadog"),
+        ("newrelic.com", "New Relic"),
+        ("atlassian.com", "Atlassian"),
+        ("jfrog.com", "JFrog"),
+        ("sonarsource.com", "SonarSource"),
+        ("sonarqube.org", "SonarSource"),
+        ("anchore.com", "Anchore"),
+        ("aquasec.com", "Aqua Security"),
+        ("openpolicyagent.org", "Open Policy Agent"),
+        ("istio.io", "Istio"),
+        ("cilium.io", "Cilium"),
+        ("bitnami.com", "Bitnami"),
+        ("oracle.com", "Oracle"),
+        ("ibm.com", "IBM"),
+        ("redhat.com", "Red Hat"),
+        ("vmware.com", "VMware"),
+        ("influxdata.com", "InfluxData"),
+        ("min.io", "MinIO"),
+        ("cncf.io", "CNCF"),
+        ("bundler.io", "Bundler"),
+        ("ruby-lang.org", "Ruby"),
+        ("gnu.org", "GNU"),
+        ("wireshark.org", "Wireshark"),
+    };
+
+    /// <summary>Extracts the host of an absolute URL, or null when it is not one.</summary>
+    private static string? TryGetHost(string? url)
+        => !string.IsNullOrWhiteSpace(url) && Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            ? uri.Host
+            : null;
 
     private void UpdateStatusText()
     {

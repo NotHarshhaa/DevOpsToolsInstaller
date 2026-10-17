@@ -91,6 +91,82 @@ public static class ToolReleaseNotesService
         }
     }
 
+    /// <summary>
+    /// Best-effort link to the vendor's release-notes page for the release the
+    /// tool's download URL pins. Derived purely from the URL — no network call —
+    /// so the detail pane can offer the link instantly, even offline.
+    /// Returns null for vendors that are not GitHub-hosted.
+    /// </summary>
+    public static string? GetReleasesUrl(string downloadUrl)
+    {
+        var repo = TryParseRepo(downloadUrl);
+        if (repo is null)
+        {
+            return null;
+        }
+
+        var tag = TryParseTag(downloadUrl);
+        return tag is not null
+            ? $"https://github.com/{repo.Value.owner}/{repo.Value.repo}/releases/tag/{Uri.EscapeDataString(tag)}"
+            : $"https://github.com/{repo.Value.owner}/{repo.Value.repo}/releases/latest";
+    }
+
+    private static readonly Dictionary<string, string?> LicenseCache = new();
+
+    /// <summary>
+    /// Resolves the SPDX licence identifier of the tool's GitHub repository
+    /// (e.g. "MIT", "Apache-2.0"). Returns null for vendors that are not
+    /// GitHub-hosted, for repositories without a detected licence, or when the
+    /// network failed. Cached per repository for the session.
+    /// </summary>
+    public static async Task<string?> GetRepositoryLicenseAsync(string downloadUrl)
+    {
+        var repo = TryParseRepo(downloadUrl);
+        if (repo is null)
+        {
+            return null;
+        }
+
+        var key = $"{repo.Value.owner}/{repo.Value.repo}";
+        if (LicenseCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        try
+        {
+            using var response = await Http.GetAsync($"https://api.github.com/repos/{repo.Value.owner}/{repo.Value.repo}");
+            if (!response.IsSuccessStatusCode)
+            {
+                LicenseCache[key] = null;
+                return null;
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
+
+            string? spdx = null;
+            if (doc.RootElement.TryGetProperty("license", out var license) &&
+                license.ValueKind == JsonValueKind.Object &&
+                license.TryGetProperty("spdx_id", out var spdxElement))
+            {
+                spdx = spdxElement.GetString();
+                if (string.Equals(spdx, "NOASSERTION", StringComparison.OrdinalIgnoreCase))
+                {
+                    spdx = null;
+                }
+            }
+
+            LicenseCache[key] = spdx;
+            return spdx;
+        }
+        catch
+        {
+            // Don't cache failures — a transient network error should retry.
+            return null;
+        }
+    }
+
     private static (string owner, string repo)? TryParseRepo(string url)
     {
         // Matches github.com/<owner>/<repo>/releases/...
