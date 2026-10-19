@@ -824,11 +824,11 @@
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                    <Button Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click"
+                                    <Button x:Name="UpdateBannerInstallButton" Style="{StaticResource AccentButtonStyle}" Click="InstallUpdate_Click"
                                             AutomationProperties.Name="View and install update">
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE896;" FontSize="12" />
-                                            <TextBlock Text="View &amp; Update" FontWeight="SemiBold" />
+                                            <TextBlock x:Name="UpdateBannerInstallText" Text="View &amp; Update" FontWeight="SemiBold" />
                                         </StackPanel>
                                     </Button>
                                 </StackPanel>

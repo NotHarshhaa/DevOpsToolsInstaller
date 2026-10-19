@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **App update check for Microsoft Store installs**: the previously installed-from-Store app queried GitHub Releases and, because packaged apps intentionally suppress the GitHub updater (`AppUpdaterService.CheckForUpdatesAsync` returns `null` for MSIX installs), the Settings and About pages misread that as *“Unable to reach GitHub Releases. Please check your internet connection.”* Both pages now branch on package identity: Store-managed installs query the **Microsoft Store** (`Windows.Services.Store` addendum — `Services/StoreUpdateService.cs`) instead of GitHub, surface pending Store package updates in the update banner (with the Store's own install prompt, falling back to opening the app's product page in the Store), and report *“Updates are managed by the Microsoft Store”* when up to date — so a Store install never sees a GitHub error. Portable and Inno Setup installs keep the GitHub Releases flow unchanged.
+
 ## [3.1.0] - 2026-10-17
 
 ### Added

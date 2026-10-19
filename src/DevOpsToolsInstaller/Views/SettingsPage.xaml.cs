@@ -22,6 +22,9 @@ public sealed partial class SettingsPage : Page
 
     private AppReleaseInfo? _discoveredRelease;
 
+    /// <summary>True when the latest check was against the Microsoft Store, so the banner install button routes to the Store flow instead of the GitHub update dialog.</summary>
+    private bool _isStoreUpdate;
+
     // Settings search state: remembers which expanders were open before the
     // first search so clearing the box restores the user's layout.
     private bool _filterActive;
@@ -840,6 +843,15 @@ public sealed partial class SettingsPage : Page
             UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"];
             UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
 
+            // Store installs have package identity: the Store is the only valid
+            // update channel and GitHub Releases must never be queried there
+            // (releases carry .exe payloads for portable/Setup installs only).
+            if (AppUpdaterService.IsRunningAsPackagedApp)
+            {
+                await CheckStoreForUpdatesAsync();
+                return;
+            }
+
             var release = await AppUpdaterService.CheckForUpdatesAsync();
             UpdateLastCheckedDisplay();
 
@@ -889,8 +901,54 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    /// <summary>
+    /// Update check for Microsoft Store installations: queries the Store (not
+    /// GitHub) and, with an update pending, routes the banner's install button
+    /// to the Store flow instead of the GitHub download dialog.
+    /// </summary>
+    private async Task CheckStoreForUpdatesAsync()
+    {
+        var store = await StoreUpdateService.CheckAsync();
+        UpdateLastCheckedDisplay();
+
+        if (store.IsUpdateAvailable)
+        {
+            _discoveredRelease = null;
+            _isStoreUpdate = true;
+            UpdateStatusBadgeText.Text = "Store Update Available";
+            UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+
+            UpdateAvailableTitle.Text = "Update Available — Microsoft Store";
+            UpdateAvailableSubtitle.Text = $"A new version ({store.CurrentVersion} is installed) is available through the Microsoft Store. Install it directly from the app or open the Store.";
+            UpdateBannerInstallText.Text = "Update via Store";
+            UpdateAvailableBanner.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            _isStoreUpdate = false;
+            UpdateAvailableBanner.Visibility = Visibility.Collapsed;
+            UpdateStatusBadgeText.Text = $"Up to date (v{AppUpdaterService.CurrentVersion})";
+            UpdateStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBackgroundBrush"];
+            UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+            ShowNotice("Updates for this installation are managed by the Microsoft Store. You are on the latest version the Store has.", InfoBarSeverity.Success);
+        }
+    }
+
     private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
     {
+        // Store installs: the banner button runs the Store's own install prompt
+        // (or falls back to opening the product page there).
+        if (_isStoreUpdate)
+        {
+            var ok = await StoreUpdateService.InstallNowAsync();
+            if (!ok)
+            {
+                await StoreUpdateService.OpenStorePageAsync();
+            }
+            return;
+        }
+
         if (_discoveredRelease != null)
         {
             await UpdateDialog.ShowAsync(this.XamlRoot, _discoveredRelease);

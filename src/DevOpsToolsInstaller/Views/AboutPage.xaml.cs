@@ -108,9 +108,18 @@ public sealed partial class AboutPage : Page
             AboutCheckText.Text = "Checking…";
             AboutInfoBar.IsOpen = false;
 
-            var release = await Services.AppUpdaterService.CheckForUpdatesAsync();
+            var release = (Services.AppUpdaterService.IsRunningAsPackagedApp)
+                ? null
+                : await Services.AppUpdaterService.CheckForUpdatesAsync();
+
             if (release == null)
             {
+                if (Services.AppUpdaterService.IsRunningAsPackagedApp)
+                {
+                    await CheckStoreForUpdatesAsync();
+                    return;
+                }
+
                 AboutInfoBar.Severity = InfoBarSeverity.Warning;
                 AboutInfoBar.Title = "Update Check Failed";
                 AboutInfoBar.Message = "Unable to reach GitHub Releases API. Please check your internet connection.";
@@ -151,6 +160,37 @@ public sealed partial class AboutPage : Page
             AboutCheckIcon.Visibility = Visibility.Visible;
             AboutCheckText.Text = "Check for Updates";
             AboutCheckUpdatesButton.IsEnabled = true;
+        }
+    }
+
+    /// <summary>
+    /// Update check for Microsoft Store installations: queries the Store (not
+    /// GitHub) and, with an update pending, triggers the Store's own install
+    /// prompt — falling back to opening the app's product page in the Store.
+    /// </summary>
+    private async Task CheckStoreForUpdatesAsync()
+    {
+        var store = await Services.StoreUpdateService.CheckAsync();
+
+        if (store.IsUpdateAvailable)
+        {
+            AboutInfoBar.Severity = InfoBarSeverity.Success;
+            AboutInfoBar.Title = "Update Available — Microsoft Store";
+            AboutInfoBar.Message = "A newer version is available through the Microsoft Store. Confirm the install prompt to update (the Store may restart the app).";
+            AboutInfoBar.IsOpen = true;
+
+            var started = await Services.StoreUpdateService.InstallNowAsync();
+            if (!started)
+            {
+                await Services.StoreUpdateService.OpenStorePageAsync();
+            }
+        }
+        else
+        {
+            AboutInfoBar.Severity = InfoBarSeverity.Informational;
+            AboutInfoBar.Title = "Up to Date";
+            AboutInfoBar.Message = $"Updates for this installation are managed by the Microsoft Store — you are on the latest version (v{store.CurrentVersion}).";
+            AboutInfoBar.IsOpen = true;
         }
     }
 }
