@@ -1499,8 +1499,69 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
         UpdatePreview(tool.SelectedVersion);
 
-        panel.Children.Add(new TextBlock { Text = "Available Releases:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
+        // ── Assemble the dialog content ────────────────────────────────────
+        var canFetchLive = ToolVersionHistoryService.CanFetchVersionHistory(tool.Id, tool.DownloadUrl);
+
+        if (!tool.SupportsVersionTargeting)
+        {
+            // The vendor serves a single always-latest static link (aka.ms
+            // redirect, "latest" channel download, fixed MSI name): selecting
+            // an older version cannot change what gets downloaded. Be upfront
+            // instead of silently installing the newest release.
+            panel.Children.Add(new InfoBar
+            {
+                Severity = InfoBarSeverity.Warning,
+                Title = "This vendor serves one always-latest installer link",
+                Message = canFetchLive
+                    ? "The download link doesn't carry the version, but the vendor mirrors its releases to GitHub — choose an older build from the live release list below."
+                    : "The download URL doesn't carry the version and the vendor keeps no mirror we can rewrite, so selecting an older version here would still download the newest release. Curated versions are shown for reference; install an archived build manually via the vendor's release archive (then add it as a custom tool).",
+                IsOpen = true,
+                IsClosable = false,
+                MaxWidth = 460
+            });
+
+            combo.IsEnabled = false;
+            customBox.IsEnabled = false;
+        }
+
+        panel.Children.Add(new TextBlock { Text = "Catalog versions:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold });
         panel.Children.Add(combo);
+
+        // Live GitHub releases: the newest releases of the vendor repository,
+        // fetched on demand — for GitHub-hosted tools this reflects what the
+        // vendor actually published (fresher than the curated catalog list)
+        // and lets users install an old version exactly as shipped. Tools whose
+        // vendor CDN has a verified GitHub mirror (helm, kind, minikube,
+        // dbeaver) get the same treatment even though their catalog URL points
+        // at the vendor's own site.
+        var ghCombo = new ComboBox
+        {
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            PlaceholderText = "Fetching recent releases…",
+            IsEnabled = false
+        };
+        var ghStatus = new TextBlock
+        {
+            FontSize = 11,
+            TextWrapping = TextWrapping.Wrap,
+            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+        };
+        var ghReleasesByVersion = new Dictionary<string, ToolReleaseVersion>(StringComparer.OrdinalIgnoreCase);
+
+        if (canFetchLive)
+        {
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Recent releases (last 5, fetched live):",
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                Margin = new Thickness(0, 6, 0, 0)
+            });
+            panel.Children.Add(ghCombo);
+            panel.Children.Add(ghStatus);
+
+            _ = LoadGitHubReleasesAsync(tool, ghCombo, ghStatus, ghReleasesByVersion, customBox, UpdatePreview);
+        }
+
         panel.Children.Add(new TextBlock { Text = "Custom Version:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 0) });
         panel.Children.Add(customBox);
         panel.Children.Add(previewBox);
@@ -1527,8 +1588,21 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
             if (!string.IsNullOrWhiteSpace(chosen))
             {
-                tool.SetVersion(chosen);
-                StatusText.Text = $"Updated {tool.Name} to version v{tool.SelectedVersion}.";
+                // When the chosen version came from the live GitHub lookup and
+                // its exact Windows asset was identified, install that artifact
+                // directly — vendors rename files between releases, so the
+                // templated file name alone would otherwise 404.
+                if (ghReleasesByVersion.TryGetValue(chosen, out var release) &&
+                    !string.IsNullOrWhiteSpace(release.WindowsAssetUrl))
+                {
+                    tool.SetVersionWithAsset(release.Version, release.WindowsAssetUrl, release.WindowsAssetName ?? "");
+                    StatusText.Text = $"Set {tool.Name} to {release.TagName} from the GitHub release asset {release.WindowsAssetName}.";
+                }
+                else
+                {
+                    tool.SetVersion(chosen);
+                    StatusText.Text = $"Updated {tool.Name} to version v{tool.SelectedVersion}.";
+                }
             }
         }
         else if (result == ContentDialogResult.Secondary)
@@ -1536,6 +1610,73 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             tool.SetVersion(tool.Version);
             StatusText.Text = $"Reset {tool.Name} to latest version (v{tool.Version}).";
         }
+    }
+
+    /// <summary>Wrapper so a ComboBox item renders the release readably.</summary>
+    private sealed class GitHubReleaseChoice
+    {
+        public GitHubReleaseChoice(ToolReleaseVersion release) => Release = release;
+
+        public ToolReleaseVersion Release { get; }
+
+        public override string ToString()
+        {
+            var date = Release.PublishedAt is { } published
+                ? published.LocalDateTime.ToString("MMM d, yyyy")
+                : null;
+            var text = $"v{Release.Version}";
+            if (date is not null) text += $"  ·  {date}";
+            if (Release.IsPrerelease) text += "  ·  pre-release";
+            return text;
+        }
+    }
+
+    /// <summary>
+    /// Fetches the tool's last 5 GitHub releases in the background and
+    /// populates the release combo box. Runs after the dialog is shown, so the
+    /// picker is usable immediately and fills in as results arrive.
+    /// </summary>
+    private static async Task LoadGitHubReleasesAsync(
+        ToolDefinition tool,
+        ComboBox ghCombo,
+        TextBlock ghStatus,
+        Dictionary<string, ToolReleaseVersion> ghReleasesByVersion,
+        TextBox customBox,
+        Action<string> updatePreview)
+    {
+        var releases = await ToolVersionHistoryService.GetRecentReleasesAsync(tool.Id, tool.DownloadUrl);
+        if (releases is null || releases.Count == 0)
+        {
+            ghStatus.Text = "Couldn't fetch recent GitHub releases — use the catalog versions or enter a version manually.";
+            ghCombo.PlaceholderText = "Unavailable";
+            return;
+        }
+
+        foreach (var release in releases)
+        {
+            if (ghReleasesByVersion.ContainsKey(release.Version)) continue;
+            ghReleasesByVersion[release.Version] = release;
+            ghCombo.Items.Add(new GitHubReleaseChoice(release));
+        }
+
+        // Prune releases that were removed between fetches (defensive; cached
+        // lists are immutable per fetch).
+        if (ghCombo.Items.Count == 0)
+        {
+            ghStatus.Text = "No published GitHub releases found for this repository.";
+            return;
+        }
+
+        ghCombo.IsEnabled = true;
+        ghCombo.PlaceholderText = "Select a GitHub release…";
+        ghStatus.Text = "Fetched live from the vendor's GitHub releases.";
+
+        ghCombo.SelectionChanged += (s, ev) =>
+        {
+            if (ghCombo.SelectedItem is not GitHubReleaseChoice choice) return;
+            customBox.Text = choice.Release.Version;
+            updatePreview(choice.Release.Version);
+        };
     }
 
     // ── Logo fallback ───────────────────────────────────────────────────

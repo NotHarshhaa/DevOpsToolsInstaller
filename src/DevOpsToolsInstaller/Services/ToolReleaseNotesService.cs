@@ -179,6 +179,15 @@ public static class ToolReleaseNotesService
         return (match.Groups[1].Value, match.Groups[2].Value);
     }
 
+    /// <summary>
+    /// Parses the GitHub owner/repository pair that a releases-hosted download
+    /// URL points at, or null when the vendor is not GitHub-hosted. Exposed for
+    /// sibling services (e.g. version history) that reuse the same URL
+    /// convention without re-implementing the regex.
+    /// </summary>
+    public static (string Owner, string Repo)? GetGitHubRepo(string downloadUrl)
+        => TryParseRepo(downloadUrl);
+
     private static string? TryParseTag(string url)
     {
         // URLs pin tags: github.com/o/r/releases/download/v1.2.3/... or /releases/tag/v1.2.3

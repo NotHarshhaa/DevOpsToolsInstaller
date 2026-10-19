@@ -833,6 +833,14 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                 DownloadUrl = _originalDownloadUrl.Replace(
                     "/releases/latest/download/", $"/releases/download/v{cleanTarget}/");
             }
+            else if (_originalDownloadUrl.Contains("/releases/latest/", StringComparison.Ordinal))
+            {
+                // Versioned CDN buckets that expose every release but only
+                // advertise a "latest" channel (minikube / skaffold GCS
+                // mirrors): rewrite the channel segment to the pinned release.
+                DownloadUrl = _originalDownloadUrl.Replace(
+                    "/releases/latest/", $"/releases/v{cleanTarget}/");
+            }
             else if (_originalDownloadUrl.Contains("/releases/download/"))
             {
                 // Replace release tag in URL
@@ -864,6 +872,74 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         // The offered catalog version just changed, so any pin/ignore decision
         // recorded against the previous one must be re-evaluated.
         RefreshUpdatePreferences();
+    }
+
+    /// <summary>
+    /// Applies a specific version exactly like <see cref="SetVersion"/> does,
+    /// then overrides the download URL and file name with a concrete release
+    /// asset. Used when a live GitHub release lookup identified the exact
+    /// artifact for the chosen version, so the file name stays correct even
+    /// when vendors rename files between releases.
+    /// </summary>
+    public void SetVersionWithAsset(string newVersion, string downloadUrl, string fileName)
+    {
+        SetVersion(newVersion);
+
+        if (!string.IsNullOrWhiteSpace(downloadUrl))
+            DownloadUrl = downloadUrl;
+        if (!string.IsNullOrWhiteSpace(fileName))
+            FileName = fileName;
+
+        OnPropertyChanged(nameof(DownloadUrl));
+        OnPropertyChanged(nameof(FileName));
+        OnPropertyChanged(nameof(NameWithVersion));
+    }
+
+    /// <summary>
+    /// True when selecting an older version can actually change what gets
+    /// downloaded: the catalog URL embeds the version (or a templated
+    /// <c>{version}</c>), or the vendor keeps old builds at predictable URLs we
+    /// know how to rewrite (GitHub release tags, versioned CDNs such as
+    /// HashiCorp/GCS buckets, <c>/releases/latest/</c> channels). Vendors that
+    /// serve a single always-latest link (aka.ms redirects, <c>AWSCLIV2.msi</c>,
+    /// Docker Desktop's main channel) cannot be pointed at older builds from a
+    /// static URL — for those the version picker offers curated versions for
+    /// reference only instead of silently downloading the latest release.
+    /// </summary>
+    [JsonIgnore]
+    public bool SupportsVersionTargeting
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(VersionTemplate))
+            {
+                return true;
+            }
+
+            var url = _originalDownloadUrl ?? DownloadUrl;
+            var version = _originalVersion ?? Version;
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return false;
+            }
+
+            // Version embedded in the URL itself (GitHub tag URLs, versioned
+            // CDNs, vendor archives that keep every build online).
+            if (!string.IsNullOrWhiteSpace(version) &&
+                url.Contains(version, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Channel URLs with schemes we rewrite in SetVersion.
+            if (url.Contains("/releases/latest/", StringComparison.OrdinalIgnoreCase) ||
+                url.Contains("/releases/download/", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 
     /// <summary>Name and version combined for display, e.g. "Terraform 1.9.5".</summary>
