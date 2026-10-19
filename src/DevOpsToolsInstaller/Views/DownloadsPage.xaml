@@ -318,12 +318,12 @@
                                                                FontWeight="SemiBold" FontSize="11"
                                                                Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                     <TextBlock Text="•" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                                               Visibility="{Binding DownloadEta, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                                               Visibility="{Binding HasEta, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                     <TextBlock Text="{Binding DownloadEta, Mode=OneWay}"
                                                                Style="{StaticResource CaptionTextBlockStyle}"
                                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                                                FontSize="11"
-                                                               Visibility="{Binding DownloadEta, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                                               Visibility="{Binding HasEta, Converter={StaticResource BoolToVisibilityConverter}}" />
                                                 </StackPanel>
 
                                                 <!-- Progress Percentage -->

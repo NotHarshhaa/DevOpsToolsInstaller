@@ -920,7 +920,7 @@ public sealed partial class SettingsPage : Page
             UpdateStatusBadgeText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
 
             UpdateAvailableTitle.Text = "Update Available — Microsoft Store";
-            UpdateAvailableSubtitle.Text = $"A new version ({store.CurrentVersion} is installed) is available through the Microsoft Store. Install it directly from the app or open the Store.";
+            UpdateAvailableSubtitle.Text = $"Current version: v{store.CurrentVersion}. A newer build is available in the Microsoft Store — install it directly, or open the Store to update.";
             UpdateBannerInstallText.Text = "Update via Store";
             UpdateAvailableBanner.Visibility = Visibility.Visible;
         }

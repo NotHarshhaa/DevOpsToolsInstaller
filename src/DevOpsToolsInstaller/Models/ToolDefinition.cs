@@ -162,9 +162,14 @@ public sealed class ToolDefinition : INotifyPropertyChanged
             {
                 _downloadEta = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(HasEta));
             }
         }
     }
+
+    /// <summary>True while a live ETA estimate is available for display.</summary>
+    [JsonIgnore]
+    public bool HasEta => !string.IsNullOrEmpty(_downloadEta);
 
     // ── Live download-speed telemetry (DownloadsPage sparkline) ─────────
     // Numeric speed samples arrive on a download worker thread (~2.5/s,
@@ -267,6 +272,7 @@ public sealed class ToolDefinition : INotifyPropertyChanged
                         HasSpeedSamples = false;
                         OnPropertyChanged(nameof(DownloadSpeed));
                         OnPropertyChanged(nameof(DownloadEta));
+                        OnPropertyChanged(nameof(HasEta));
                     });
                 }
             }

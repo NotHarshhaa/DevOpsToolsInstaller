@@ -42,8 +42,8 @@ public static class StoreUpdateService
 
         try
         {
-            var context = StoreContext.GetDefault();
-            var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+            var updates = await RunStoreQueryAsync(
+                ctx => ctx.GetAppAndOptionalStorePackageUpdatesAsync().AsTask());
             SettingsService.LastUpdateCheckTime = DateTime.Now;
             SettingsService.SaveSettings();
 
@@ -58,6 +58,29 @@ public static class StoreUpdateService
     }
 
     /// <summary>
+    /// Runs a read-only <see cref="StoreContext"/> query on a dedicated MTA
+    /// thread and marshals the result back. This is the documented workaround
+    /// for the known issue where StoreContext calls made on a desktop app's UI
+    /// thread can deadlock. Each call gets a fresh context; nothing shows UI.
+    /// </summary>
+    private static Task<T> RunStoreQueryAsync<T>(Func<StoreContext, Task<T>> call)
+    {
+        var context = StoreContext.GetDefault();
+        var completion = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var thread = new Thread(async () =>
+        {
+            try { completion.SetResult(await call(context)); }
+            catch (Exception ex) { completion.SetException(ex); }
+        });
+        thread.SetApartmentState(ApartmentState.MTA);
+        thread.IsBackground = true;
+        thread.Start();
+
+        return completion.Task;
+    }
+
+    /// <summary>
     /// Opens the Store's install prompt (and downloads + replaces the app if the
     /// user confirms). Returns false when there was nothing to install or the
     /// flow was cancelled/failed.
@@ -68,12 +91,14 @@ public static class StoreUpdateService
 
         try
         {
-            var context = InitializeWithWindow(StoreContext.GetDefault());
-            var updates = await context.GetAppAndOptionalStorePackageUpdatesAsync();
+            var updates = await RunStoreQueryAsync(
+                ctx => ctx.GetAppAndOptionalStorePackageUpdatesAsync().AsTask());
             if (updates.Count == 0) return false;
 
             // The Store shows its own confirmation dialog and then downloads,
-            // installs and restarts the app.
+            // installs and restarts the app. The context is bound to the app
+            // window because the confirmation UI needs somewhere to display.
+            var context = InitializeWithWindow(StoreContext.GetDefault());
             var result = await context.RequestDownloadAndInstallStorePackageUpdatesAsync(updates);
             var state = result.OverallState;
             return state is StorePackageUpdateState.Completed or
@@ -98,8 +123,8 @@ public static class StoreUpdateService
 
         try
         {
-            var context = StoreContext.GetDefault();
-            var productResult = await context.GetStoreProductForCurrentAppAsync();
+            var productResult = await RunStoreQueryAsync(
+                ctx => ctx.GetStoreProductForCurrentAppAsync().AsTask());
             if (productResult.ExtendedError is not null ||
                 string.IsNullOrWhiteSpace(productResult.Product?.StoreId))
             {
