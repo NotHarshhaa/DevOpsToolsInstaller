@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="samGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF9900"/>
+      <stop offset="100%" stop-color="#E87400"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#samGrad)"/>
+  <!-- Serverless Cloud Silhouette -->
+  <path d="M 40 84 A 16 16 0 0 1 42 52 A 24 24 0 0 1 84 46 A 20 20 0 0 1 96 84 Z" fill="#232F3E" opacity="0.15"/>
+  <!-- AWS SAM Squirrel Mascot Face / Stylized Outline -->
+  <ellipse cx="64" cy="74" rx="28" ry="24" fill="#232F3E"/>
+  <!-- Cheeks -->
+  <circle cx="50" cy="76" r="14" fill="#FFFFFF"/>
+  <circle cx="78" cy="76" r="14" fill="#FFFFFF"/>
+  <!-- Nose & Mouth -->
+  <ellipse cx="64" cy="72" rx="5" ry="4" fill="#232F3E"/>
+  <path d="M 64 76 L 64 82 M 60 82 Q 64 86 68 82" stroke="#232F3E" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <ellipse cx="50" cy="62" rx="4" ry="5.5" fill="#FFFFFF"/>
+  <ellipse cx="78" cy="62" rx="4" ry="5.5" fill="#FFFFFF"/>
+  <circle cx="50" cy="62" r="2.5" fill="#232F3E"/>
+  <circle cx="78" cy="62" r="2.5" fill="#232F3E"/>
+  <!-- Squirrel Ears with Serverless / Cloud Tips -->
+  <path d="M 38 52 C 34 32, 44 26, 48 38 Z" fill="#232F3E"/>
+  <path d="M 90 52 C 94 32, 84 26, 80 38 Z" fill="#232F3E"/>
+  <path d="M 40 48 C 38 38, 44 34, 46 42 Z" fill="#FFB74D"/>
+  <path d="M 88 48 C 90 38, 84 34, 82 42 Z" fill="#FFB74D"/>
+  <!-- Terminal Prompt Badge in mouth/bottom -->
+  <rect x="46" y="92" width="36" height="14" rx="4" fill="#232F3E"/>
+  <text x="64" y="103" font-family="Consolas, monospace" font-size="10" font-weight="bold" fill="#00E676" text-anchor="middle">SAM</text>
+</svg>

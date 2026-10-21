@@ -1,0 +1,1109 @@
+{
+  "generatedAt": "2026-10-21T06:13:01Z",
+  "toolCount": 90,
+  "stackCount": 12,
+  "categories": [
+    "CI/CD and Version Control",
+    "Cloud CLIs",
+    "Containerization",
+    "Database & Data",
+    "Editors and Terminals",
+    "Infrastructure as Code",
+    "Kubernetes",
+    "Monitoring and Observability",
+    "Networking",
+    "Policy & Compliance",
+    "Security",
+    "Utilities"
+  ],
+  "tools": [
+    {
+      "id": "awscli",
+      "name": "AWS CLI",
+      "category": "Cloud CLIs",
+      "version": "2.17.55",
+      "kind": "installer",
+      "description": "Official command-line interface for Amazon Web Services",
+      "homepage": "https://aws.amazon.com/cli/",
+      "logo": "assets/logos/awscli.svg"
+    },
+    {
+      "id": "azure-cli",
+      "name": "Azure CLI",
+      "category": "Cloud CLIs",
+      "version": "2.64.0",
+      "kind": "installer",
+      "description": "Official command-line interface for Microsoft Azure",
+      "homepage": "https://learn.microsoft.com/cli/azure/",
+      "logo": "assets/logos/azure-cli.svg"
+    },
+    {
+      "id": "gcloud-cli",
+      "name": "Google Cloud CLI",
+      "category": "Cloud CLIs",
+      "version": "493.0.0",
+      "kind": "installer",
+      "description": "Official command-line interface for Google Cloud Platform",
+      "homepage": "https://cloud.google.com/sdk",
+      "logo": "assets/logos/gcloud-cli.svg"
+    },
+    {
+      "id": "oci-cli",
+      "name": "OCI CLI",
+      "category": "Cloud CLIs",
+      "version": "3.48.0",
+      "kind": "script",
+      "description": "Oracle Cloud Infrastructure command-line interface (PowerShell install script)",
+      "homepage": "https://docs.oracle.com/en-us/iaas/Content/API/Concepts/cliconcepts.htm",
+      "logo": "assets/logos/oci-cli.svg"
+    },
+    {
+      "id": "doctl",
+      "name": "doctl (DigitalOcean CLI)",
+      "category": "Cloud CLIs",
+      "version": "1.113.0",
+      "kind": "archive",
+      "description": "Official DigitalOcean command-line interface",
+      "homepage": "https://docs.digitalocean.com/reference/doctl/",
+      "logo": "assets/logos/doctl.svg"
+    },
+    {
+      "id": "docker-desktop",
+      "name": "Docker Desktop",
+      "category": "Containerization",
+      "version": "4.34.2",
+      "kind": "installer",
+      "description": "Container runtime, Docker Engine, and Kubernetes for Windows",
+      "homepage": "https://www.docker.com/products/docker-desktop/",
+      "logo": "assets/logos/docker-desktop.svg"
+    },
+    {
+      "id": "podman-desktop",
+      "name": "Podman Desktop",
+      "category": "Containerization",
+      "version": "1.16.2",
+      "kind": "installer",
+      "description": "Open-source container management tool, alternative to Docker Desktop",
+      "homepage": "https://podman-desktop.io/",
+      "logo": "assets/logos/podman-desktop.svg"
+    },
+    {
+      "id": "kubectl",
+      "name": "kubectl",
+      "category": "Kubernetes",
+      "version": "1.31.0",
+      "kind": "binary",
+      "description": "Kubernetes command-line tool for cluster management",
+      "homepage": "https://kubernetes.io/docs/reference/kubectl/",
+      "logo": "assets/logos/kubectl.svg"
+    },
+    {
+      "id": "helm",
+      "name": "Helm",
+      "category": "Kubernetes",
+      "version": "3.16.1",
+      "kind": "archive",
+      "description": "Kubernetes package manager for deploying charts",
+      "homepage": "https://helm.sh/",
+      "logo": "assets/logos/helm.svg"
+    },
+    {
+      "id": "k9s",
+      "name": "k9s",
+      "category": "Kubernetes",
+      "version": "0.32.5",
+      "kind": "archive",
+      "description": "Terminal-based UI for managing Kubernetes clusters",
+      "homepage": "https://k9scli.io/",
+      "logo": "assets/logos/k9s.svg"
+    },
+    {
+      "id": "minikube",
+      "name": "Minikube",
+      "category": "Kubernetes",
+      "version": "1.34.0",
+      "kind": "installer",
+      "description": "Run a single-node Kubernetes cluster locally",
+      "homepage": "https://minikube.sigs.k8s.io/",
+      "logo": "assets/logos/minikube.svg"
+    },
+    {
+      "id": "kind",
+      "name": "kind",
+      "category": "Kubernetes",
+      "version": "0.24.0",
+      "kind": "binary",
+      "description": "Run local Kubernetes clusters using Docker containers as nodes",
+      "homepage": "https://kind.sigs.k8s.io/",
+      "logo": "assets/logos/kind.png"
+    },
+    {
+      "id": "argocd",
+      "name": "Argo CD CLI",
+      "category": "Kubernetes",
+      "version": "2.12.3",
+      "kind": "binary",
+      "description": "CLI for Argo CD, the declarative GitOps continuous delivery tool for Kubernetes",
+      "homepage": "https://argo-cd.readthedocs.io/",
+      "logo": "assets/logos/argocd.svg"
+    },
+    {
+      "id": "eksctl",
+      "name": "eksctl",
+      "category": "Kubernetes",
+      "version": "0.190.0",
+      "kind": "archive",
+      "description": "Official CLI for creating and managing Amazon EKS clusters",
+      "homepage": "https://eksctl.io/",
+      "logo": "assets/logos/eksctl.svg"
+    },
+    {
+      "id": "skaffold",
+      "name": "Skaffold",
+      "category": "Kubernetes",
+      "version": "2.13.2",
+      "kind": "binary",
+      "description": "Command-line tool for continuous development on Kubernetes applications",
+      "homepage": "https://skaffold.dev/",
+      "logo": "assets/logos/skaffold.svg"
+    },
+    {
+      "id": "flux",
+      "name": "Flux CLI",
+      "category": "Kubernetes",
+      "version": "2.3.0",
+      "kind": "archive",
+      "description": "CLI for Flux, the GitOps toolkit for keeping Kubernetes in sync with sources",
+      "homepage": "https://fluxcd.io/",
+      "logo": "assets/logos/flux.svg"
+    },
+    {
+      "id": "istioctl",
+      "name": "istioctl",
+      "category": "Kubernetes",
+      "version": "1.23.2",
+      "kind": "archive",
+      "description": "Command-line tool for the Istio service mesh",
+      "homepage": "https://istio.io/",
+      "logo": "assets/logos/istioctl.svg"
+    },
+    {
+      "id": "terraform",
+      "name": "Terraform",
+      "category": "Infrastructure as Code",
+      "version": "1.9.5",
+      "kind": "archive",
+      "description": "Infrastructure as Code tool for provisioning cloud resources",
+      "homepage": "https://www.terraform.io/",
+      "logo": "assets/logos/terraform.svg"
+    },
+    {
+      "id": "opentofu",
+      "name": "OpenTofu",
+      "category": "Infrastructure as Code",
+      "version": "1.8.3",
+      "kind": "archive",
+      "description": "Open-source, community-driven fork of Terraform",
+      "homepage": "https://opentofu.org/",
+      "logo": "assets/logos/opentofu.svg"
+    },
+    {
+      "id": "pulumi",
+      "name": "Pulumi",
+      "category": "Infrastructure as Code",
+      "version": "3.130.0",
+      "kind": "archive",
+      "description": "Infrastructure as Code using real programming languages",
+      "homepage": "https://www.pulumi.com/",
+      "logo": "assets/logos/pulumi.svg"
+    },
+    {
+      "id": "terragrunt",
+      "name": "Terragrunt",
+      "category": "Infrastructure as Code",
+      "version": "0.67.6",
+      "kind": "binary",
+      "description": "Thin wrapper for Terraform/OpenTofu providing extra tools for keeping configs DRY",
+      "homepage": "https://terragrunt.gruntwork.io/",
+      "logo": "assets/logos/terragrunt.svg"
+    },
+    {
+      "id": "tflint",
+      "name": "TFLint",
+      "category": "Infrastructure as Code",
+      "version": "0.53.0",
+      "kind": "archive",
+      "description": "Pluggable linter for Terraform to catch errors and enforce best practices",
+      "homepage": "https://github.com/terraform-linters/tflint",
+      "logo": "assets/logos/tflint.svg"
+    },
+    {
+      "id": "packer",
+      "name": "Packer",
+      "category": "Infrastructure as Code",
+      "version": "1.11.2",
+      "kind": "archive",
+      "description": "Build automated machine images across multiple platforms from a single config",
+      "homepage": "https://www.packer.io/",
+      "logo": "assets/logos/packer.svg"
+    },
+    {
+      "id": "vault",
+      "name": "Vault",
+      "category": "Infrastructure as Code",
+      "version": "1.18.5",
+      "kind": "archive",
+      "description": "Manage secrets and protect sensitive data with identity-based access",
+      "homepage": "https://www.vaultproject.io/",
+      "logo": "assets/logos/vault.svg"
+    },
+    {
+      "id": "consul",
+      "name": "Consul",
+      "category": "Infrastructure as Code",
+      "version": "1.19.2",
+      "kind": "archive",
+      "description": "Service networking, service discovery, and health checking across services",
+      "homepage": "https://www.consul.io/",
+      "logo": "assets/logos/consul.svg"
+    },
+    {
+      "id": "nomad",
+      "name": "Nomad",
+      "category": "Infrastructure as Code",
+      "version": "1.8.4",
+      "kind": "archive",
+      "description": "Simple and flexible workload orchestrator for containers and legacy apps",
+      "homepage": "https://www.nomadproject.io/",
+      "logo": "assets/logos/nomad.svg"
+    },
+    {
+      "id": "vagrant",
+      "name": "Vagrant",
+      "category": "Infrastructure as Code",
+      "version": "2.4.1",
+      "kind": "installer",
+      "description": "Build and manage reproducible virtual machine development environments",
+      "homepage": "https://www.vagrantup.com/",
+      "logo": "assets/logos/vagrant.svg"
+    },
+    {
+      "id": "ansible",
+      "name": "Python 3 (for Ansible)",
+      "category": "Infrastructure as Code",
+      "version": "3.12.5",
+      "kind": "installer",
+      "description": "Python runtime required to run Ansible and DevOps automation tooling via pip on Windows",
+      "homepage": "https://www.ansible.com/",
+      "logo": "assets/logos/ansible.svg"
+    },
+    {
+      "id": "git",
+      "name": "Git for Windows",
+      "category": "CI/CD and Version Control",
+      "version": "2.46.0",
+      "kind": "installer",
+      "description": "Distributed version control system with Git Bash",
+      "homepage": "https://git-scm.com/",
+      "logo": "assets/logos/git.svg"
+    },
+    {
+      "id": "github-cli",
+      "name": "GitHub CLI",
+      "category": "CI/CD and Version Control",
+      "version": "2.54.0",
+      "kind": "installer",
+      "description": "GitHub's official command-line tool for repos, PRs, issues, and more",
+      "homepage": "https://cli.github.com/",
+      "logo": "assets/logos/github-cli.svg"
+    },
+    {
+      "id": "gitlab-cli",
+      "name": "GitLab CLI (glab)",
+      "category": "CI/CD and Version Control",
+      "version": "1.46.1",
+      "kind": "archive",
+      "description": "Official GitLab CLI for merge requests, pipelines, and issues",
+      "homepage": "https://gitlab.com/gitlab-org/cli",
+      "logo": "assets/logos/gitlab-cli.svg"
+    },
+    {
+      "id": "act",
+      "name": "act",
+      "category": "CI/CD and Version Control",
+      "version": "0.2.68",
+      "kind": "archive",
+      "description": "Run your GitHub Actions workflows locally using Docker",
+      "homepage": "https://github.com/nektos/act",
+      "logo": "assets/logos/act.svg"
+    },
+    {
+      "id": "prometheus",
+      "name": "Prometheus",
+      "category": "Monitoring and Observability",
+      "version": "2.54.1",
+      "kind": "archive",
+      "description": "Open-source systems monitoring and time-series alerting toolkit",
+      "homepage": "https://prometheus.io/",
+      "logo": "assets/logos/prometheus.svg"
+    },
+    {
+      "id": "grafana",
+      "name": "Grafana",
+      "category": "Monitoring and Observability",
+      "version": "11.2.0",
+      "kind": "installer",
+      "description": "Open-source analytics and interactive visualization dashboards",
+      "homepage": "https://grafana.com/",
+      "logo": "assets/logos/grafana.svg"
+    },
+    {
+      "id": "k6",
+      "name": "k6",
+      "category": "Monitoring and Observability",
+      "version": "0.53.0",
+      "kind": "archive",
+      "description": "Developer-centric load testing tool for performance and reliability testing",
+      "homepage": "https://k6.io/",
+      "logo": "assets/logos/k6.svg"
+    },
+    {
+      "id": "trivy",
+      "name": "Trivy",
+      "category": "Security",
+      "version": "0.72.0",
+      "kind": "archive",
+      "description": "Comprehensive security scanner for containers, IaC, and dependencies",
+      "homepage": "https://trivy.dev/",
+      "logo": "assets/logos/trivy.svg"
+    },
+    {
+      "id": "sops",
+      "name": "SOPS",
+      "category": "Security",
+      "version": "3.9.0",
+      "kind": "binary",
+      "description": "Encrypt/decrypt files (YAML, JSON, env) with KMS, age, PGP for secrets management",
+      "homepage": "https://github.com/getsops/sops",
+      "logo": "assets/logos/sops.svg"
+    },
+    {
+      "id": "gitleaks",
+      "name": "Gitleaks",
+      "category": "Security",
+      "version": "8.18.4",
+      "kind": "archive",
+      "description": "Detect and prevent hardcoded secrets like passwords and API keys in git repos",
+      "homepage": "https://github.com/gitleaks/gitleaks",
+      "logo": "assets/logos/gitleaks.svg"
+    },
+    {
+      "id": "vscode",
+      "name": "Visual Studio Code",
+      "category": "Editors and Terminals",
+      "version": "1.93.1",
+      "kind": "installer",
+      "description": "Lightweight, extensible source code editor by Microsoft",
+      "homepage": "https://code.visualstudio.com/",
+      "logo": "assets/logos/vscode.svg"
+    },
+    {
+      "id": "windows-terminal",
+      "name": "Windows Terminal",
+      "category": "Editors and Terminals",
+      "version": "1.24.11911.0",
+      "kind": "installer",
+      "description": "Modern terminal application for Windows with tabs and themes",
+      "homepage": "https://learn.microsoft.com/windows/terminal/",
+      "logo": "assets/logos/windows-terminal.svg"
+    },
+    {
+      "id": "putty",
+      "name": "PuTTY",
+      "category": "Editors and Terminals",
+      "version": "0.81",
+      "kind": "installer",
+      "description": "SSH and telnet client for remote server administration",
+      "homepage": "https://www.chiark.greenend.org.uk/~sgtatham/putty/",
+      "logo": "assets/logos/putty.svg"
+    },
+    {
+      "id": "jq",
+      "name": "jq",
+      "category": "Utilities",
+      "version": "1.7.1",
+      "kind": "binary",
+      "description": "Lightweight command-line JSON processor",
+      "homepage": "https://jqlang.github.io/jq/",
+      "logo": "assets/logos/jq.svg"
+    },
+    {
+      "id": "yq",
+      "name": "yq",
+      "category": "Utilities",
+      "version": "4.44.3",
+      "kind": "binary",
+      "description": "Lightweight command-line YAML, JSON, and XML processor",
+      "homepage": "https://github.com/mikefarah/yq",
+      "logo": "assets/logos/yq.svg"
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "category": "Utilities",
+      "version": "11.12.0",
+      "kind": "installer",
+      "description": "API development and testing platform",
+      "homepage": "https://www.postman.com/",
+      "logo": "assets/logos/postman.svg"
+    },
+    {
+      "id": "lazygit",
+      "name": "lazygit",
+      "category": "Utilities",
+      "version": "0.44.1",
+      "kind": "archive",
+      "description": "Simple terminal UI for git commands",
+      "homepage": "https://github.com/jesseduffield/lazygit",
+      "logo": "assets/logos/lazygit.svg"
+    },
+    {
+      "id": "lazydocker",
+      "name": "lazydocker",
+      "category": "Utilities",
+      "version": "0.23.3",
+      "kind": "archive",
+      "description": "Simple terminal UI for Docker and docker-compose",
+      "homepage": "https://github.com/jesseduffield/lazydocker",
+      "logo": "assets/logos/lazydocker.svg"
+    },
+    {
+      "id": "dive",
+      "name": "dive",
+      "category": "Utilities",
+      "version": "0.12.0",
+      "kind": "archive",
+      "description": "Tool for exploring Docker image layers and discovering ways to shrink them",
+      "homepage": "https://github.com/wagoodman/dive",
+      "logo": "assets/logos/dive.svg"
+    },
+    {
+      "id": "cosign",
+      "name": "Cosign",
+      "category": "Security",
+      "version": "3.1.3",
+      "kind": "binary",
+      "description": "Container signing, verification, and storage in OCI registries by Sigstore",
+      "homepage": "https://github.com/sigstore/cosign",
+      "logo": "assets/logos/cosign.svg"
+    },
+    {
+      "id": "syft",
+      "name": "Syft",
+      "category": "Security",
+      "version": "1.52.0",
+      "kind": "archive",
+      "description": "CLI tool for generating Software Bills of Materials (SBOMs) from container images",
+      "homepage": "https://github.com/anchore/syft",
+      "logo": "assets/logos/syft.svg"
+    },
+    {
+      "id": "grype",
+      "name": "Grype",
+      "category": "Security",
+      "version": "0.119.0",
+      "kind": "archive",
+      "description": "Vulnerability scanner for container images and filesystems by Anchore",
+      "homepage": "https://github.com/anchore/grype",
+      "logo": "assets/logos/grype.svg"
+    },
+    {
+      "id": "stern",
+      "name": "Stern",
+      "category": "Kubernetes",
+      "version": "1.34.0",
+      "kind": "archive",
+      "description": "Multi-pod and multi-container log tailing for Kubernetes",
+      "homepage": "https://github.com/stern/stern",
+      "logo": "assets/logos/stern.svg"
+    },
+    {
+      "id": "cilium-cli",
+      "name": "Cilium CLI",
+      "category": "Kubernetes",
+      "version": "0.20.0",
+      "kind": "archive",
+      "description": "Install, manage, and inspect Cilium service mesh and eBPF networking",
+      "homepage": "https://cilium.io/",
+      "logo": "assets/logos/cilium-cli.svg"
+    },
+    {
+      "id": "dagger",
+      "name": "Dagger",
+      "category": "CI/CD and Version Control",
+      "version": "0.21.9",
+      "kind": "archive",
+      "description": "Programmable CI/CD engine that runs application delivery pipelines in containers",
+      "homepage": "https://dagger.io/",
+      "logo": "assets/logos/dagger.svg"
+    },
+    {
+      "id": "task",
+      "name": "Task",
+      "category": "CI/CD and Version Control",
+      "version": "3.53.1",
+      "kind": "archive",
+      "description": "A task runner and simpler alternative to Make written in Go",
+      "homepage": "https://taskfile.dev/",
+      "logo": "assets/logos/task.svg"
+    },
+    {
+      "id": "infracost",
+      "name": "Infracost",
+      "category": "Infrastructure as Code",
+      "version": "0.10.45",
+      "kind": "archive",
+      "description": "Cloud cost estimates for Terraform in pull requests and terminal",
+      "homepage": "https://www.infracost.io/",
+      "logo": "assets/logos/infracost.svg"
+    },
+    {
+      "id": "vector",
+      "name": "Vector",
+      "category": "Monitoring and Observability",
+      "version": "0.58.0",
+      "kind": "installer",
+      "description": "High-performance observability data pipeline for logs and metrics",
+      "homepage": "https://vector.dev/",
+      "logo": "assets/logos/vector.svg"
+    },
+    {
+      "id": "logcli",
+      "name": "LogCLI",
+      "category": "Monitoring and Observability",
+      "version": "3.7.8",
+      "kind": "archive",
+      "description": "Command-line tool for querying Grafana Loki log streams",
+      "homepage": "https://grafana.com/oss/loki/",
+      "logo": "assets/logos/logcli.svg"
+    },
+    {
+      "id": "just",
+      "name": "Just",
+      "category": "Utilities",
+      "version": "1.58.0",
+      "kind": "archive",
+      "description": "Handy command runner for saving and running project-specific recipes",
+      "homepage": "https://github.com/casey/just",
+      "logo": "assets/logos/just.svg"
+    },
+    {
+      "id": "starship",
+      "name": "Starship",
+      "category": "Utilities",
+      "version": "1.26.0",
+      "kind": "installer",
+      "description": "Fast, customizable cross-shell prompt showing Git, K8s, AWS, and GCP context",
+      "homepage": "https://starship.rs/",
+      "logo": "assets/logos/starship.svg"
+    },
+    {
+      "id": "fzf",
+      "name": "FZF",
+      "category": "Utilities",
+      "version": "0.74.4",
+      "kind": "archive",
+      "description": "General-purpose command-line fuzzy finder",
+      "homepage": "https://github.com/junegunn/fzf",
+      "logo": "assets/logos/fzf.svg"
+    },
+    {
+      "id": "ripgrep",
+      "name": "Ripgrep",
+      "category": "Utilities",
+      "version": "15.2.0",
+      "kind": "archive",
+      "description": "Fast line-oriented search tool that recursively searches directory for regex",
+      "homepage": "https://github.com/BurntSushi/ripgrep",
+      "logo": "assets/logos/ripgrep.svg"
+    },
+    {
+      "id": "bat",
+      "name": "Bat",
+      "category": "Utilities",
+      "version": "0.26.1",
+      "kind": "archive",
+      "description": "A cat clone with syntax highlighting and Git integration",
+      "homepage": "https://github.com/sharkdp/bat",
+      "logo": "assets/logos/bat.svg"
+    },
+    {
+      "id": "neovim",
+      "name": "Neovim",
+      "category": "Editors and Terminals",
+      "version": "0.12.5",
+      "kind": "installer",
+      "description": "Vim-fork focused on extensibility and usability, widely used as a terminal IDE",
+      "homepage": "https://neovim.io/",
+      "logo": "assets/logos/neovim.svg"
+    },
+    {
+      "id": "notepad-plus-plus",
+      "name": "Notepad++",
+      "category": "Editors and Terminals",
+      "version": "8.9.8",
+      "kind": "installer",
+      "description": "Free and open-source source code editor and Notepad replacement",
+      "homepage": "https://notepad-plus-plus.org/",
+      "logo": "assets/logos/notepad-plus-plus.svg"
+    },
+    {
+      "id": "intellij-idea-community",
+      "name": "IntelliJ IDEA Community",
+      "category": "Editors and Terminals",
+      "version": "2025.3",
+      "kind": "installer",
+      "description": "Capable and ergonomic IDE for JVM and Android development by JetBrains",
+      "homepage": "https://www.jetbrains.com/idea/",
+      "logo": "assets/logos/intellij-idea-community.svg"
+    },
+    {
+      "id": "pycharm-community",
+      "name": "PyCharm Community",
+      "category": "Editors and Terminals",
+      "version": "2025.3",
+      "kind": "installer",
+      "description": "The Python IDE for Professional Developers and DevOps scripting by JetBrains",
+      "homepage": "https://www.jetbrains.com/pycharm/",
+      "logo": "assets/logos/pycharm-community.svg"
+    },
+    {
+      "id": "visual-studio-community",
+      "name": "Visual Studio Community",
+      "category": "Editors and Terminals",
+      "version": "2022",
+      "kind": "installer",
+      "description": "Comprehensive, full-featured IDE for Windows, C++, C#, .NET and cloud workloads",
+      "homepage": "https://visualstudio.microsoft.com/vs/community/",
+      "logo": "assets/logos/visual-studio-community.svg"
+    },
+    {
+      "id": "sublime-text",
+      "name": "Sublime Text",
+      "category": "Editors and Terminals",
+      "version": "4200",
+      "kind": "installer",
+      "description": "Sophisticated text editor for code, markup, and prose with fast performance",
+      "homepage": "https://www.sublimetext.com/",
+      "logo": "assets/logos/sublime-text.svg"
+    },
+    {
+      "id": "rancher-desktop",
+      "name": "Rancher Desktop",
+      "category": "Containerization",
+      "version": "1.16.0",
+      "kind": "installer",
+      "description": "Open-source container management and Kubernetes on the desktop, free Docker Desktop alternative",
+      "homepage": "https://rancherdesktop.io/",
+      "logo": "assets/logos/rancher-desktop.svg"
+    },
+    {
+      "id": "nerdctl",
+      "name": "nerdctl",
+      "category": "Containerization",
+      "version": "2.0.2",
+      "kind": "archive",
+      "description": "Docker-compatible CLI for containerd with rootless containers and lazy-pulling support",
+      "homepage": "https://github.com/containerd/nerdctl",
+      "logo": "assets/logos/nerdctl.svg"
+    },
+    {
+      "id": "ngrok",
+      "name": "ngrok",
+      "category": "Networking",
+      "version": "3.16.0",
+      "kind": "archive",
+      "description": "Expose local servers to the internet for webhooks, demos, and testing",
+      "homepage": "https://ngrok.com/",
+      "logo": "assets/logos/ngrok.svg"
+    },
+    {
+      "id": "cloudflared",
+      "name": "Cloudflared",
+      "category": "Networking",
+      "version": "2024.10.0",
+      "kind": "installer",
+      "description": "Cloudflare Tunnel client for secure, zero-trust connections to your origin server",
+      "homepage": "https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/",
+      "logo": "assets/logos/cloudflared.svg"
+    },
+    {
+      "id": "linkerd",
+      "name": "Linkerd CLI",
+      "category": "Networking",
+      "version": "2.14.10",
+      "kind": "binary",
+      "description": "Ultra-lightweight Kubernetes service mesh for security, observability, and reliability",
+      "homepage": "https://linkerd.io/",
+      "logo": "assets/logos/linkerd.svg"
+    },
+    {
+      "id": "tkn",
+      "name": "Tekton CLI",
+      "category": "CI/CD and Version Control",
+      "version": "0.38.1",
+      "kind": "archive",
+      "description": "CLI for Tekton, the Kubernetes-native open-source CI/CD pipeline framework",
+      "homepage": "https://tekton.dev/",
+      "logo": "assets/logos/tkn.svg"
+    },
+    {
+      "id": "kustomize",
+      "name": "Kustomize",
+      "category": "Kubernetes",
+      "version": "5.5.0",
+      "kind": "archive",
+      "description": "Template-free customization of Kubernetes YAML configurations",
+      "homepage": "https://kustomize.io/",
+      "logo": "assets/logos/kustomize.svg"
+    },
+    {
+      "id": "kubectx",
+      "name": "kubectx + kubens",
+      "category": "Kubernetes",
+      "version": "0.9.5",
+      "kind": "archive",
+      "description": "Fast way to switch between Kubernetes clusters and namespaces",
+      "homepage": "https://github.com/ahmetb/kubectx",
+      "logo": "assets/logos/kubectx.svg"
+    },
+    {
+      "id": "k3d",
+      "name": "K3d",
+      "category": "Kubernetes",
+      "version": "5.7.5",
+      "kind": "binary",
+      "description": "Lightweight wrapper to run K3s (Rancher's minimal Kubernetes) in Docker containers",
+      "homepage": "https://k3d.io/",
+      "logo": "assets/logos/k3d.svg"
+    },
+    {
+      "id": "velero",
+      "name": "Velero",
+      "category": "Kubernetes",
+      "version": "1.15.0",
+      "kind": "archive",
+      "description": "Backup and migrate Kubernetes resources and persistent volumes for disaster recovery",
+      "homepage": "https://velero.io/",
+      "logo": "assets/logos/velero.svg"
+    },
+    {
+      "id": "helmfile",
+      "name": "Helmfile",
+      "category": "Kubernetes",
+      "version": "0.168.0",
+      "kind": "binary",
+      "description": "Declarative spec for deploying and managing multiple Helm chart releases",
+      "homepage": "https://helmfile.readthedocs.io/",
+      "logo": "assets/logos/helmfile.svg"
+    },
+    {
+      "id": "opa",
+      "name": "OPA (Open Policy Agent)",
+      "category": "Policy & Compliance",
+      "version": "1.0.0",
+      "kind": "binary",
+      "description": "General-purpose policy engine for unified policy enforcement across the stack (CNCF graduated)",
+      "homepage": "https://www.openpolicyagent.org/",
+      "logo": "assets/logos/opa.svg"
+    },
+    {
+      "id": "kyverno-cli",
+      "name": "Kyverno CLI",
+      "category": "Policy & Compliance",
+      "version": "1.13.2",
+      "kind": "archive",
+      "description": "Kubernetes-native policy management for security, compliance, and best practices",
+      "homepage": "https://kyverno.io/",
+      "logo": "assets/logos/kyverno-cli.svg"
+    },
+    {
+      "id": "dbeaver",
+      "name": "DBeaver Community",
+      "category": "Database & Data",
+      "version": "24.2.1",
+      "kind": "installer",
+      "description": "Free universal database management tool supporting all major SQL and NoSQL databases",
+      "homepage": "https://dbeaver.io/",
+      "logo": "assets/logos/dbeaver.svg"
+    },
+    {
+      "id": "aws-sam-cli",
+      "name": "AWS SAM CLI",
+      "category": "Cloud CLIs",
+      "version": "1.125.0",
+      "kind": "installer",
+      "description": "CLI for AWS Serverless Application Model to build, test, and deploy Lambda functions",
+      "homepage": "https://aws.amazon.com/serverless/sam/",
+      "logo": "assets/logos/aws-sam-cli.svg"
+    },
+    {
+      "id": "fd",
+      "name": "fd",
+      "category": "Utilities",
+      "version": "10.2.0",
+      "kind": "archive",
+      "description": "Simple, fast, and user-friendly alternative to the find command",
+      "homepage": "https://github.com/sharkdp/fd",
+      "logo": "assets/logos/fd.svg"
+    },
+    {
+      "id": "delta",
+      "name": "delta",
+      "category": "Utilities",
+      "version": "0.18.2",
+      "kind": "archive",
+      "description": "Syntax-highlighting pager for git, diff, and grep output with side-by-side view",
+      "homepage": "https://github.com/dandavison/delta",
+      "logo": "assets/logos/delta.svg"
+    },
+    {
+      "id": "eza",
+      "name": "eza",
+      "category": "Utilities",
+      "version": "0.20.15",
+      "kind": "archive",
+      "description": "Modern replacement for ls with colors, Git integration, and tree view",
+      "homepage": "https://eza.rocks/",
+      "logo": "assets/logos/eza.svg"
+    },
+    {
+      "id": "zoxide",
+      "name": "zoxide",
+      "category": "Utilities",
+      "version": "0.9.6",
+      "kind": "archive",
+      "description": "Smarter cd command that learns your habits and jumps to frequently used directories",
+      "homepage": "https://github.com/ajeetdsouza/zoxide",
+      "logo": "assets/logos/zoxide.svg"
+    },
+    {
+      "id": "insomnia",
+      "name": "Insomnia",
+      "category": "Utilities",
+      "version": "10.1.1",
+      "kind": "installer",
+      "description": "Open-source API client for designing, testing, and debugging REST, GraphQL, and gRPC",
+      "homepage": "https://insomnia.rest/",
+      "logo": "assets/logos/insomnia.svg"
+    },
+    {
+      "id": "alacritty",
+      "name": "Alacritty",
+      "category": "Editors and Terminals",
+      "version": "0.14.0",
+      "kind": "installer",
+      "description": "GPU-accelerated terminal emulator focused on speed and simplicity",
+      "homepage": "https://alacritty.org/",
+      "logo": "assets/logos/alacritty.svg"
+    },
+    {
+      "id": "wezterm",
+      "name": "WezTerm",
+      "category": "Editors and Terminals",
+      "version": "20240203-110809-5046fc22",
+      "kind": "archive",
+      "description": "GPU-accelerated cross-platform terminal emulator and multiplexer with Lua configuration",
+      "homepage": "https://wezfurlong.org/wezterm/",
+      "logo": "assets/logos/wezterm.svg"
+    }
+  ],
+  "stacks": [
+    {
+      "id": "k8s-starter",
+      "name": "Kubernetes Starter Pack",
+      "category": "Containerization",
+      "description": "Everything you need to get started with Kubernetes development and management",
+      "tools": [
+        "kubectl",
+        "helm",
+        "k9s",
+        "minikube",
+        "stern",
+        "kustomize",
+        "kubectx"
+      ]
+    },
+    {
+      "id": "k8s-advanced",
+      "name": "Kubernetes Advanced",
+      "category": "Containerization",
+      "description": "Production-grade Kubernetes tooling for GitOps, service mesh, and disaster recovery",
+      "tools": [
+        "kubectl",
+        "helm",
+        "argocd",
+        "flux",
+        "istioctl",
+        "cilium-cli",
+        "velero",
+        "helmfile",
+        "k9s"
+      ]
+    },
+    {
+      "id": "container-essentials",
+      "name": "Container Essentials",
+      "category": "Containerization",
+      "description": "Everything you need for building, running, and debugging containers",
+      "tools": [
+        "docker-desktop",
+        "lazydocker",
+        "dive",
+        "trivy",
+        "cosign",
+        "syft"
+      ]
+    },
+    {
+      "id": "cloud-engineer",
+      "name": "Cloud Engineer Essentials",
+      "category": "Cloud",
+      "description": "Core tools for multi-cloud infrastructure management across AWS, Azure, and GCP",
+      "tools": [
+        "awscli",
+        "azure-cli",
+        "gcloud-cli",
+        "terraform",
+        "terragrunt",
+        "tflint",
+        "infracost",
+        "vault"
+      ]
+    },
+    {
+      "id": "aws-developer",
+      "name": "AWS Developer Kit",
+      "category": "Cloud",
+      "description": "Complete toolkit for AWS cloud development and serverless applications",
+      "tools": [
+        "awscli",
+        "aws-sam-cli",
+        "eksctl",
+        "terraform",
+        "docker-desktop"
+      ]
+    },
+    {
+      "id": "cicd-pipeline",
+      "name": "CI/CD Pipeline Builder",
+      "category": "CI/CD",
+      "description": "Tools for building, testing, and automating software delivery pipelines",
+      "tools": [
+        "git",
+        "github-cli",
+        "act",
+        "dagger",
+        "task",
+        "docker-desktop",
+        "tkn"
+      ]
+    },
+    {
+      "id": "devops-security",
+      "name": "DevSecOps Toolkit",
+      "category": "Security",
+      "description": "Security scanning, secrets management, and compliance tools for DevOps pipelines",
+      "tools": [
+        "trivy",
+        "gitleaks",
+        "sops",
+        "cosign",
+        "syft",
+        "grype",
+        "opa",
+        "kyverno-cli"
+      ]
+    },
+    {
+      "id": "iac-complete",
+      "name": "Infrastructure as Code Complete",
+      "category": "IaC",
+      "description": "Full IaC toolkit with provisioning, cost estimation, linting, and secrets management",
+      "tools": [
+        "terraform",
+        "opentofu",
+        "pulumi",
+        "terragrunt",
+        "tflint",
+        "packer",
+        "vault",
+        "infracost"
+      ]
+    },
+    {
+      "id": "observability-stack",
+      "name": "Observability Stack",
+      "category": "Monitoring",
+      "description": "End-to-end monitoring, metrics collection, logging, and performance testing",
+      "tools": [
+        "prometheus",
+        "grafana",
+        "k6",
+        "vector",
+        "logcli"
+      ]
+    },
+    {
+      "id": "terminal-poweruser",
+      "name": "Terminal Power User",
+      "category": "Terminal",
+      "description": "Modern CLI tools that supercharge your terminal productivity",
+      "tools": [
+        "windows-terminal",
+        "starship",
+        "fzf",
+        "ripgrep",
+        "bat",
+        "fd",
+        "eza",
+        "zoxide",
+        "delta",
+        "jq",
+        "yq"
+      ]
+    },
+    {
+      "id": "developer-workstation",
+      "name": "Developer Workstation Setup",
+      "category": "Workstation",
+      "description": "Complete one-click setup for a new developer machine with all essential DevOps tools",
+      "tools": [
+        "git",
+        "github-cli",
+        "vscode",
+        "docker-desktop",
+        "kubectl",
+        "helm",
+        "terraform",
+        "jq",
+        "postman",
+        "windows-terminal",
+        "starship"
+      ]
+    },
+    {
+      "id": "networking-mesh",
+      "name": "Networking & Service Mesh",
+      "category": "Networking",
+      "description": "Tools for tunneling, zero-trust networking, and service mesh management",
+      "tools": [
+        "ngrok",
+        "cloudflared",
+        "linkerd",
+        "istioctl",
+        "cilium-cli"
+      ]
+    }
+  ]
+}

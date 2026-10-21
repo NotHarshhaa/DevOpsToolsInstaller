@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="kctxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#326CE5"/>
+      <stop offset="100%" stop-color="#0F4DB8"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#kctxGrad)"/>
+  <!-- Central Helm Circle -->
+  <circle cx="64" cy="64" r="24" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+  <circle cx="64" cy="64" r="8" fill="#FFFFFF"/>
+  <!-- Spokes -->
+  <line x1="64" y1="28" x2="64" y2="40" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="64" y1="88" x2="64" y2="100" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="28" y1="64" x2="40" y2="64" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="88" y1="64" x2="100" y2="64" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="38" y1="38" x2="47" y2="47" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="81" y1="81" x2="90" y2="90" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="90" y1="38" x2="81" y2="47" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <line x1="47" y1="81" x2="38" y2="90" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <!-- Context Switch Circular Arrows -->
+  <path d="M 64 16 A 48 48 0 0 1 112 64" fill="none" stroke="#60A5FA" stroke-width="5" stroke-dasharray="6,4"/>
+  <polygon points="112,64 104,52 120,52" fill="#60A5FA"/>
+  <path d="M 64 112 A 48 48 0 0 1 16 64" fill="none" stroke="#60A5FA" stroke-width="5" stroke-dasharray="6,4"/>
+  <polygon points="16,64 24,76 8,76" fill="#60A5FA"/>
+</svg>

@@ -898,10 +898,475 @@ p:last-child {
   color: var(--mute);
 }
 
+/* Installation channels — one-by-one list layout.
+   Each channel is a full-width row: index, description, then the action
+   (buttons / commands), instead of the side-by-side card grid. */
+.channel-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.channel-row {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr) minmax(0, 22rem);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.channel-row__index {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+}
+
+.channel-row__num {
+  font-family: var(--font-mono);
+  font-size: var(--font-h3);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.channel-row__body h3 {
+  margin-bottom: var(--space-1);
+}
+
+.channel-row__action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: stretch;
+}
+
+.channel-row__action .btn-primary,
+.channel-row__action .btn-secondary {
+  width: 100%;
+}
+
+.channel-row__action .code-block {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5b. CATALOG COMPONENTS (tool grid, filters, stacks)
+   -------------------------------------------------------------------------- */
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line);
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 22rem;
+  max-width: 34rem;
+  padding: 0 var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  min-height: 46px;
+}
+
+.search-field__prefix {
+  font-family: var(--font-mono);
+  font-size: var(--font-small);
+  color: var(--mute);
+}
+
+.search-field__input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-small);
+  padding: 12px 0;
+  min-width: 0;
+}
+
+.search-field__input::placeholder {
+  color: var(--mute);
+}
+
+.search-field:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.catalog-count {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-3) 0;
+}
+
+.filter-chip {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: transparent;
+  border: 1px dashed var(--line);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-style var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.filter-chip:hover,
+.filter-chip:focus-visible {
+  border-style: solid;
+  border-color: var(--ink);
+}
+
+.filter-chip.is-active {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: var(--space-2);
+}
+
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  scroll-margin-top: calc(var(--header-height) + var(--space-3));
+}
+
+.tool-card:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.tool-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tool-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 5px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.tool-logo__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tool-logo__mono {
+  font-family: var(--font-mono);
+  font-size: var(--font-small);
+  font-weight: 700;
+  color: var(--mute);
+}
+
+.tool-card__name {
+  font-size: var(--font-base);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.tool-card__cat {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.tool-card__desc {
+  font-size: var(--font-small);
+  color: var(--mute);
+  margin: 0;
+  flex: 1;
+}
+
+.tool-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--line);
+}
+
+.tool-card__version {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  font-weight: 700;
+}
+
+.tool-card__kind {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: var(--space-3);
+}
+
+.stack-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+.stack-card__name {
+  font-size: var(--font-base);
+  font-weight: 700;
+  margin: 0;
+}
+
+.stack-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.stack-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  color: var(--mute);
+}
+
+/* Long tool names ellipsize so a chip never widens its card. */
+.stack-tool > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stack-tool .tool-logo {
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  border: 0;
+}
+
+.stack-card__count {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  padding-top: var(--space-1);
+  border-top: 1px dashed var(--line);
+}
+
+/* Tool wall (homepage) — the vendor logo wall */
+.toolwall {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.toolwall__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.toolwall__title {
+  font-size: var(--font-h2);
+  font-weight: 700;
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.logo-wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.logo-wall__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  padding: 6px;
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.logo-wall__item:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.logo-wall__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logo-wall__item span {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  font-weight: 700;
+  color: var(--mute);
+}
+
+/* Grid items default to min-width:auto, which lets long unbreakable content
+   (code blocks, command strings) push a column past the viewport on narrow
+   screens. Every grid child in the layout opts out so it can shrink and let
+   its own content scroll or wrap instead. */
+.feature-showcase-card > *,
+.hero-content > *,
+.channel-list > *,
+.channel-row > *,
+.channel-row__action > *,
+.tool-grid > *,
+.tool-card > *,
+.stack-grid > *,
+.stack-card > *,
+.tour-grid > *,
+.tour-shot > *,
+.grid-2 > *,
+.grid-3 > *,
+.grid-4 > *,
+.footer-grid > * {
+  min-width: 0;
+}
+
+/* Long inline code (winget package IDs, file names) must wrap rather than
+   widen its container. */
+code {
+  overflow-wrap: anywhere;
+}
+
+/* Product tour — real application screenshots with a gentle floating motion */
+.tour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: var(--space-4) var(--space-3);
+}
+
+.tour-shot {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  animation: floaty 7.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Stagger the drift so the wall breathes instead of pulsing in unison. */
+.tour-shot:nth-child(2n) { animation-delay: -1.9s; }
+.tour-shot:nth-child(3n) { animation-delay: -3.4s; }
+.tour-shot:nth-child(4n) { animation-delay: -5.1s; }
+.tour-shot:nth-child(5n) { animation-delay: -2.6s; }
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+.tour-shot__frame {
+  position: relative;
+  padding: 6px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  box-shadow: 8px 8px 0 -1px var(--line);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.tour-shot__frame:hover {
+  box-shadow: 12px 12px 0 -1px var(--ink);
+}
+
+.tour-shot__frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+}
+
+.tour-shot__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+  border-top: 1px dashed var(--line);
+}
+
+.tour-shot__title {
+  font-family: var(--font-mono);
+  font-size: var(--font-small);
+  font-weight: 700;
+  margin: 0;
+}
+
+.tour-shot__note {
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+  text-align: right;
+}
+
 /* --------------------------------------------------------------------------
    6. UTILITIES
-   -------------------------------------------------------------------------- */
-.text-center { text-align: center; }
+   -------------------------------------------------------------------------- */.text-center { text-align: center; }
 .text-right { text-align: right; }
 .mt-0 { margin-top: 0; }
 .mt-1 { margin-top: var(--space-1); }
@@ -987,9 +1452,28 @@ p:last-child {
   }
 }
 
+/* Installation channels stack into a single column before the description
+   column gets too narrow to read. */
+@media (max-width: 1080px) {
+  .channel-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+
 @media (max-width: 768px) {
   .mobile-nav-toggle {
     display: inline-flex;
+  }
+
+  /* Comfortable touch targets on touch devices. */
+  .filter-chip {
+    min-height: 40px;
+    padding: 10px 14px;
+  }
+
+  .search-field {
+    min-height: 50px;
   }
 
   .site-nav {

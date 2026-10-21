@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tool Catalog — DevOps Tools Installer</title>
+  <meta name="description" content="Browse all 90 official DevOps tools and cloud CLIs available in DevOps Tools Installer, with vendor logos, versions, and 12 curated stacks. Every download is pulled directly from the vendor's own endpoint.">
+  <link rel="canonical" href="https://notharshhaa.github.io/DevOpsToolsInstaller/catalog.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Tool Catalog — DevOps Tools Installer">
+  <meta property="og:description" content="90 official DevOps tools and cloud CLIs with real vendor logos, live versions, and 12 curated stacks — installed straight from upstream endpoints.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://notharshhaa.github.io/DevOpsToolsInstaller/catalog.html">
+  <meta property="og:image" content="https://notharshhaa.github.io/DevOpsToolsInstaller/assets/banner.png">
+
+  <!-- Favicon & Stylesheet -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Header -->
+  <header class="site-header" role="banner">
+    <div class="container">
+      <a href="index.html" class="logo-link" aria-label="DevOps Tools Installer Home">
+        <svg viewBox="0 0 260 36" width="220" height="30" fill="currentColor" aria-hidden="true">
+          <g transform="translate(2, 2)">
+            <rect x="0" y="0" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M9 11 L15 16 L9 21" fill="none" stroke="currentColor" stroke-width="2"/>
+            <line x1="17" y1="21" x2="23" y2="21" stroke="currentColor" stroke-width="2"/>
+            <path d="M-2 4 V-2 H4 M28 -2 H34 V4 M34 28 V34 H28 M4 34 H-2 V28" fill="none" stroke="currentColor" stroke-width="1"/>
+          </g>
+          <text x="46" y="22" font-family="ui-monospace, monospace" font-size="15" font-weight="700" letter-spacing="-0.02em" fill="currentColor">DEVOPS TOOLS</text>
+          <text x="180" y="22" font-family="ui-monospace, monospace" font-size="11" font-weight="400" letter-spacing="0.08em" fill="currentColor">INSTALLER</text>
+          <line x1="46" y="28" x2="252" y2="28" stroke="currentColor" stroke-width="0.75" stroke-dasharray="3 3"/>
+        </svg>
+      </a>
+
+      <button id="nav-toggle" class="mobile-nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Toggle navigation">
+        MENU
+      </button>
+
+      <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
+        <ul class="nav-list">
+          <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="catalog.html" class="nav-link" aria-current="page">Catalog</a></li>
+          <li><a href="features.html" class="nav-link">Features</a></li>
+          <li><a href="security.html" class="nav-link">Security</a></li>
+          <li><a href="cli.html" class="nav-link">CLI</a></li>
+          <li><a href="download.html" class="nav-link">Download</a></li>
+          <li><a href="faq.html" class="nav-link">FAQ</a></li>
+        </ul>
+        <div class="header-actions">
+          <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main">
+    <div class="container breadcrumb-nav">
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb-list">
+          <li class="breadcrumb-item"><a href="index.html" class="breadcrumb-link">Home</a></li>
+          <li class="breadcrumb-item" aria-current="page">Catalog</li>
+        </ol>
+      </nav>
+    </div>
+
+    <!-- Page Header -->
+    <section class="section-tight" aria-labelledby="page-title">
+      <div class="container">
+        <span class="micro-label">[01] TOOL CATALOG</span>
+        <h1 id="page-title" class="mb-2">90 official tools. 12 categories. One window.</h1>
+        <p class="text-mute" style="max-width: 780px;">
+          Every entry is fetched from the vendor's own release endpoint at install time — nothing is bundled, nothing is mirrored.
+          Versions below are read from the signed catalog the app ships with; the app can also pin an older release from each tool's
+          live GitHub history.
+        </p>
+        <div class="badge-row mt-3">
+          <span class="badge-chip badge-chip-fill" id="catalog-count-chip">90 TOOLS</span>
+          <span class="badge-chip" id="catalog-category-chip">12 CATEGORIES</span>
+          <span class="badge-chip" id="catalog-stack-chip">12 STACKS</span>
+          <span class="badge-chip badge-chip-mute">SIGNED CATALOG</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- Toolbar -->
+    <section class="section-tight" aria-labelledby="browse-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[02]</span>
+          <span class="micro-label">BROWSE &amp; FILTER</span>
+          <h2 id="browse-title" class="mb-4">Search the catalog</h2>
+
+          <div class="catalog-toolbar">
+            <div class="search-field">
+              <span class="search-field__prefix" aria-hidden="true">⌕</span>
+              <input id="catalog-search" type="search" class="search-field__input" placeholder="Search 90 tools — e.g. terraform, kubectl, aws"
+                     autocomplete="off" aria-label="Search tools by name, category, or description">
+            </div>
+            <span class="catalog-count" id="catalog-count" role="status" aria-live="polite">Loading catalog…</span>
+          </div>
+
+          <div class="filter-chips" id="catalog-filters" role="group" aria-label="Filter tools by category">
+            <button type="button" class="filter-chip is-active" data-category="all">All</button>
+          </div>
+
+          <div class="tool-grid" id="catalog-grid" aria-busy="true">
+            <p class="text-mute" style="grid-column: 1 / -1;">Loading catalog…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
+    <!-- Curated Stacks -->
+    <section class="section" aria-labelledby="stacks-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[03]</span>
+          <span class="micro-label">CURATED STACKS</span>
+          <h2 id="stacks-title" class="mb-2">Install a role-based stack in one click</h2>
+          <p class="text-mute mb-4" style="max-width: 760px;">
+            Each stack is a curated tool set assembled by the project — a Kubernetes starter pack, a cloud engineer bundle, a complete
+            IaC chain, and more. The app resolves every member of the stack and installs them together.
+          </p>
+
+          <div class="stack-grid" id="stack-grid" aria-busy="true">
+            <p class="text-mute" style="grid-column: 1 / -1;">Loading stacks…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section section-tight" aria-labelledby="catalog-cta-title">
+      <div class="container">
+        <div class="corner-box text-center">
+          <span class="micro-label">[04] READY WHEN YOU ARE</span>
+          <h2 id="catalog-cta-title" class="mb-2">Provision any of these in minutes.</h2>
+          <p class="text-mute mb-4">Free, open source, zero telemetry. Installs never run silently — every vendor wizard still asks.</p>
+          <div class="flex justify-between items-center flex-wrap gap-2" style="justify-content: center;">
+            <a href="download.html" class="btn-primary">Download for Windows</a>
+            <a href="features.html" class="btn-secondary">See all features</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="logo-link mb-2">
+            <span class="font-mono" style="font-size: 1.1rem; font-weight: 700;">DEVOPS TOOLS INSTALLER</span>
+          </div>
+          <p class="text-mute" style="font-size: var(--font-small); max-width: 380px;">
+            A native Windows 11 desktop application to discover, verify, and provision cloud CLIs, containers, and infrastructure tools. Open source under Apache-2.0.
+          </p>
+          <div class="badge-row mt-2">
+            <span class="badge-chip">v3.1.0</span>
+            <span class="badge-chip">WinUI 3</span>
+            <span class="badge-chip">.NET 8</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="catalog.html" class="footer-link">Tool Catalog</a></li>
+            <li><a href="features.html" class="footer-link">Features</a></li>
+            <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
+            <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
+            <li><a href="download.html" class="footer-link">Download</a></li>
+            <li><a href="faq.html" class="footer-link">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Resources</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="footer-link" target="_blank" rel="noopener noreferrer">Latest Release (v3.1.0) ↗</a></li>
+            <li><a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="footer-link" target="_blank" rel="noopener noreferrer">Microsoft Store ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CHANGELOG.md" class="footer-link" target="_blank" rel="noopener noreferrer">Changelog ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/CONTRIBUTING.md" class="footer-link" target="_blank" rel="noopener noreferrer">Contributing Guide ↗</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Legal &amp; Policy</h4>
+          <ul class="footer-links">
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/LICENSE" class="footer-link" target="_blank" rel="noopener noreferrer">Apache-2.0 License ↗</a></li>
+            <li><a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/blob/master/PRIVACY.md" class="footer-link" target="_blank" rel="noopener noreferrer">Privacy Notice ↗</a></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Zero Telemetry Mode</span></li>
+            <li><span class="text-mute" style="font-size: var(--font-small);">Signed Catalog (ECDSA)</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevOps Tools Installer. Licensed under Apache 2.0.</div>
+        <div>All third-party trademarks and logos belong to their respective copyright holders.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Theme + mobile nav (shared with every page)
+    const rootEl = document.documentElement;
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        const isDark = rootEl.getAttribute('data-theme') === 'dark' ||
+          (!rootEl.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        rootEl.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+      });
+    }
+
+    const navBtn = document.getElementById('nav-toggle');
+    const navMenu = document.getElementById('site-nav');
+    if (navBtn && navMenu) {
+      navBtn.addEventListener('click', () => {
+        const isOpen = navMenu.classList.toggle('is-open');
+        navBtn.setAttribute('aria-expanded', String(isOpen));
+      });
+    }
+
+    // ── Catalog rendering ────────────────────────────────────────────
+    const grid = document.getElementById('catalog-grid');
+    const stackGrid = document.getElementById('stack-grid');
+    const filters = document.getElementById('catalog-filters');
+    const search = document.getElementById('catalog-search');
+    const countEl = document.getElementById('catalog-count');
+    const kindLabel = { installer: 'Installer', archive: 'Archive', binary: 'Binary', script: 'Script' };
+
+    let tools = [];
+    let stacks = [];
+    let activeCategory = 'all';
+    let query = '';
+
+    const escapeHtml = (value) => String(value || '').replace(/[&<>"']/g, ch => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]
+    ));
+
+    const logoFor = (tool) => tool.logo
+      ? `<img class="tool-logo__img" src="${escapeHtml(tool.logo)}" alt="" width="40" height="40">`
+      : `<span class="tool-logo__mono" aria-hidden="true">${escapeHtml(tool.name.slice(0, 2).toUpperCase())}</span>`;
+
+    const renderTools = () => {
+      const needle = query.trim().toLowerCase();
+      const list = tools.filter(tool => {
+        if (activeCategory !== 'all' && tool.category !== activeCategory) return false;
+        if (!needle) return true;
+        return (tool.name + ' ' + tool.category + ' ' + tool.description + ' ' + tool.version)
+          .toLowerCase().includes(needle);
+      });
+
+      if (!list.length) {
+        grid.innerHTML = '<p class="text-mute" style="grid-column: 1 / -1;">No tools match that filter. Try another keyword or category.</p>';
+      } else {
+        grid.innerHTML = list.map(tool => `
+          <article class="tool-card" id="${escapeHtml(tool.id)}">
+            <div class="tool-card__head">
+              <span class="tool-logo">${logoFor(tool)}</span>
+              <div>
+                <h3 class="tool-card__name">${escapeHtml(tool.name)}</h3>
+                <span class="tool-card__cat">${escapeHtml(tool.category)}</span>
+              </div>
+            </div>
+            <p class="tool-card__desc">${escapeHtml(tool.description)}</p>
+            <div class="tool-card__foot">
+              <span class="tool-card__version">v${escapeHtml(tool.version)}</span>
+              ${tool.homepage ? `<a class="tool-card__kind" href="${escapeHtml(tool.homepage)}" target="_blank" rel="noopener noreferrer">Vendor ↗</a>` : `<span class="tool-card__kind">${escapeHtml(kindLabel[tool.kind] || tool.kind || 'Tool')}</span>`}
+            </div>
+          </article>`).join('');
+      }
+
+      countEl.textContent = list.length === tools.length
+        ? `${list.length} tools`
+        : `${list.length} of ${tools.length} tools`;
+      grid.setAttribute('aria-busy', 'false');
+    };
+
+    const renderStacks = () => {
+      if (!stacks.length) { stackGrid.innerHTML = ''; return; }
+      const byId = new Map(tools.map(t => [t.id, t]));
+      stackGrid.innerHTML = stacks.map(stack => {
+        const chips = stack.tools.map(id => {
+          const tool = byId.get(id);
+          if (!tool) return '';
+          return `<span class="stack-tool" title="${escapeHtml(tool.name)}">${logoFor(tool)}<span>${escapeHtml(tool.name)}</span></span>`;
+        }).join('');
+        return `
+          <article class="stack-card">
+            <span class="micro-label">${escapeHtml(stack.category)}</span>
+            <h3 class="stack-card__name">${escapeHtml(stack.name)}</h3>
+            <p class="text-mute" style="font-size: var(--font-small);">${escapeHtml(stack.description)}</p>
+            <div class="stack-tools">${chips}</div>
+            <span class="stack-card__count">${stack.tools.length} tool${stack.tools.length === 1 ? '' : 's'}</span>
+          </article>`;
+      }).join('');
+      stackGrid.setAttribute('aria-busy', 'false');
+    };
+
+    const renderFilters = () => {
+      const categories = [...new Set(tools.map(t => t.category))].sort();
+      const chips = ['<button type="button" class="filter-chip is-active" data-category="all">All</button>'];
+      categories.forEach(cat => {
+        chips.push(`<button type="button" class="filter-chip" data-category="${escapeHtml(cat)}">${escapeHtml(cat)}</button>`);
+      });
+      filters.innerHTML = chips.join('');
+      filters.querySelectorAll('.filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          filters.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('is-active'));
+          chip.classList.add('is-active');
+          activeCategory = chip.dataset.category;
+          renderTools();
+        });
+      });
+      document.getElementById('catalog-category-chip').textContent = `${categories.length} CATEGORIES`;
+    };
+
+    const scrollToHash = () => {
+      const id = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (target) target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+
+    window.addEventListener('hashchange', scrollToHash);
+
+    fetch('assets/catalog.json')
+      .then(response => {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      })
+      .then(data => {
+        tools = data.tools || [];
+        stacks = data.stacks || [];
+        document.getElementById('catalog-count-chip').textContent = `${tools.length} TOOLS`;
+        document.getElementById('catalog-stack-chip').textContent = `${stacks.length} STACKS`;
+        renderFilters();
+        renderTools();
+        renderStacks();
+        scrollToHash();
+      })
+      .catch(() => {
+        grid.innerHTML = '<p class="text-mute" style="grid-column: 1 / -1;">Catalog data could not be loaded. Download the app to browse the full catalog offline.</p>';
+        countEl.textContent = 'Catalog unavailable';
+        grid.setAttribute('aria-busy', 'false');
+      });
+
+    if (search) {
+      search.addEventListener('input', (event) => {
+        query = event.target.value;
+        renderTools();
+      });
+    }
+  </script>
+</body>
+</html>

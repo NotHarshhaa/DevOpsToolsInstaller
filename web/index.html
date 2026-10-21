@@ -64,6 +64,7 @@
       <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
         <ul class="nav-list">
           <li><a href="index.html" class="nav-link" aria-current="page">Home</a></li>
+          <li><a href="catalog.html" class="nav-link">Catalog</a></li>
           <li><a href="features.html" class="nav-link">Features</a></li>
           <li><a href="security.html" class="nav-link">Security</a></li>
           <li><a href="cli.html" class="nav-link">CLI</a></li>
@@ -109,6 +110,147 @@
         <!-- Offset Frame Placeholder -->
         <div class="offset-frame">
           <img src="assets/img/app-mockup.svg" alt="DevOps Tools Installer WinUI 3 desktop application dashboard with active downloads, metrics, and log drawer" class="w-full" width="960" height="560">
+        </div>
+      </div>
+    </section>
+
+    <!-- Tool Wall -->
+    <section class="section-tight" aria-labelledby="toolwall-title">
+      <div class="container">
+        <div class="toolwall">
+          <div class="toolwall__head">
+            <div>
+              <span class="micro-label">THE CATALOG</span>
+              <h2 id="toolwall-title" class="toolwall__title">90 official tools, vendor by vendor</h2>
+              <p class="text-mute" style="font-size: var(--font-small); max-width: 62ch;">
+                Every logo below is the vendor's own mark, pulled from the same signed catalog the app installs from.
+                Nothing is repackaged, nothing is mirrored.
+              </p>
+            </div>
+            <a href="catalog.html" class="btn-secondary">Browse the full catalog ↗</a>
+          </div>
+          <div class="logo-wall" id="logo-wall" aria-busy="true">
+            <p class="text-mute">Loading tool logos…</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Product Tour -->
+    <section class="section" aria-labelledby="tour-title">
+      <div class="container">
+        <div class="toolwall__head" style="margin-bottom: var(--space-4);">
+          <div>
+            <span class="micro-label">PRODUCT TOUR</span>
+            <h2 id="tour-title" class="toolwall__title">Every screen of the native Windows app</h2>
+            <p class="text-mute" style="font-size: var(--font-small); max-width: 66ch;">
+              Real captures from the WinUI 3 application — catalog, stacks, downloads, installed inventory, profiles, doctor and settings.
+              One window, no browser, no shell scripting required.
+            </p>
+          </div>
+          <a href="download.html" class="btn-primary">Download for Windows</a>
+        </div>
+
+        <div class="tour-grid">
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Homepage.png" alt="DevOps Tools Installer home screen with live catalog metrics and workstation status" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Home</span>
+              <span class="tour-shot__note">Live metrics &amp; status</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Tool-Catalog.png" alt="Tool Catalog page listing 90 DevOps tools with categories, logos and the detail pane" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Tool Catalog</span>
+              <span class="tour-shot__note">90 tools · detail pane</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Stacks.png" alt="Stacks page showing curated role-based bundles and the custom stack builder" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Stacks</span>
+              <span class="tour-shot__note">12 curated bundles</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Downloads.png" alt="Downloads page showing the transfer queue, status filters and empty state" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Downloads</span>
+              <span class="tour-shot__note">Queue · filters · resume</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Installed.png" alt="Installed page listing provisioned tools with versions and update actions" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Installed</span>
+              <span class="tour-shot__note">Inventory &amp; updates</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Profiles&amp;History.png" alt="Profiles and History page with the capture action and three starter profile templates" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Profiles &amp; History</span>
+              <span class="tour-shot__note">Templates &amp; snapshots</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Doctor.png" alt="Workstation Doctor page running five environment diagnostics with remediation actions" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Workstation Doctor</span>
+              <span class="tour-shot__note">5-point diagnostics</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Custom-tools.png" alt="Custom tools editor for adding organization specific artifacts to the catalog" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Custom Tools</span>
+              <span class="tour-shot__note">Your own artifacts</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/Settings.png" alt="Settings page with update policy, catalog source, scheduler and appearance preferences" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">Settings</span>
+              <span class="tour-shot__note">Policy &amp; preferences</span>
+            </figcaption>
+          </figure>
+
+          <figure class="tour-shot">
+            <div class="tour-shot__frame">
+              <img src="assets/img/About.png" alt="About page showing application version, license and diagnostics" width="1920" height="1020" decoding="async">
+            </div>
+            <figcaption class="tour-shot__caption">
+              <span class="tour-shot__title">About</span>
+              <span class="tour-shot__note">Version &amp; license</span>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </section>
@@ -399,6 +541,7 @@
           <h4 class="footer-col-title">Navigation</h4>
           <ul class="footer-links">
             <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="catalog.html" class="footer-link">Tool Catalog</a></li>
             <li><a href="features.html" class="footer-link">Features</a></li>
             <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
             <li><a href="cli.html" class="footer-link">Headless CLI</a></li>
@@ -474,6 +617,27 @@
         }
       });
     });
+
+    // Vendor logo wall — rendered from the signed catalog export
+    const logoWall = document.getElementById('logo-wall');
+    if (logoWall) {
+      fetch('assets/catalog.json')
+        .then(response => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
+        .then(data => {
+          const tools = data.tools || [];
+          logoWall.innerHTML = tools.map(tool => {
+            const mark = tool.logo
+              ? `<img src="${tool.logo}" alt="${tool.name}" title="${tool.name} — v${tool.version}" width="34" height="34">`
+              : `<span title="${tool.name}">${tool.name.slice(0, 2).toUpperCase()}</span>`;
+            return `<a class="logo-wall__item" href="catalog.html#${tool.id}" title="${tool.name} — v${tool.version}" aria-label="${tool.name}">${mark}</a>`;
+          }).join('');
+          logoWall.setAttribute('aria-busy', 'false');
+        })
+        .catch(() => {
+          logoWall.innerHTML = '<p class="text-mute">Tool logos could not be loaded. Open the catalog page to browse all 90 tools.</p>';
+          logoWall.setAttribute('aria-busy', 'false');
+        });
+    }
   </script>
 </body>
 </html>

@@ -45,6 +45,7 @@
       <nav id="site-nav" class="site-nav" role="navigation" aria-label="Main Navigation">
         <ul class="nav-list">
           <li><a href="index.html" class="nav-link">Home</a></li>
+          <li><a href="catalog.html" class="nav-link">Catalog</a></li>
           <li><a href="features.html" class="nav-link">Features</a></li>
           <li><a href="security.html" class="nav-link">Security</a></li>
           <li><a href="cli.html" class="nav-link">CLI</a></li>
@@ -125,75 +126,97 @@
           <span class="micro-label">INSTALLATION METHODS</span>
           <h2 id="channels-title" class="mb-4">Select Your Distribution Channel</h2>
 
-          <div class="grid-2">
+          <div class="channel-list">
             <!-- Option 1: Microsoft Store -->
-            <article class="corner-box">
-              <span class="micro-label">OPTION 01 // STORE AUTOMATION</span>
-              <h3 class="mb-1">Microsoft Store</h3>
-              <p class="text-mute mb-3" style="font-size: var(--font-small);">
-                Automatic background updates, sandbox verification, and seamless installation directly from Microsoft.
-              </p>
-              <div class="flex gap-2 flex-wrap mb-3">
-                <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="btn-primary" target="_blank" rel="noopener noreferrer">Open Microsoft Store ↗</a>
+            <article class="corner-box channel-row">
+              <div class="channel-row__index">
+                <span class="channel-row__num">01</span>
+                <span class="micro-label">STORE AUTOMATION</span>
               </div>
-              <p class="text-mute" style="font-size: var(--font-micro);">Or install from PowerShell via Store ID:</p>
-              <div class="code-block mt-1 mb-0">
-                <div class="code-header">
-                  <span>PowerShell (WinGet Store ID)</span>
-                  <button class="copy-btn" aria-label="Copy store winget command">COPY</button>
+              <div class="channel-row__body">
+                <h3 class="mb-1">Microsoft Store</h3>
+                <p class="text-mute mb-0" style="font-size: var(--font-small);">
+                  Automatic background updates, sandbox verification, and seamless installation directly from Microsoft.
+                </p>
+              </div>
+              <div class="channel-row__action">
+                <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG" class="btn-primary" target="_blank" rel="noopener noreferrer">Open Microsoft Store ↗</a>
+                <p class="text-mute" style="font-size: var(--font-micro);">Or install from PowerShell via Store ID:</p>
+                <div class="code-block">
+                  <div class="code-header">
+                    <span>PowerShell (WinGet Store ID)</span>
+                    <button class="copy-btn" aria-label="Copy store winget command">COPY</button>
+                  </div>
+                  <div class="code-content">winget install 9PJL0VR3H7VG</div>
                 </div>
-                <div class="code-content">winget install 9PJL0VR3H7VG</div>
               </div>
             </article>
 
             <!-- Option 2: WinGet Community -->
-            <article class="corner-box">
-              <span class="micro-label">OPTION 02 // WINDOWS PACKAGE MANAGER</span>
-              <h3 class="mb-1">WinGet Community Repository</h3>
-              <p class="text-mute mb-3" style="font-size: var(--font-small);">
-                Install directly using the native Windows Package Manager included with Windows 10 and 11.
-              </p>
-              <div class="code-block mt-0 mb-3">
-                <div class="code-header">
-                  <span>PowerShell (WinGet)</span>
-                  <button class="copy-btn" aria-label="Copy winget command">COPY</button>
-                </div>
-                <div class="code-content">winget install DevOpsToolsInstaller</div>
+            <article class="corner-box channel-row">
+              <div class="channel-row__index">
+                <span class="channel-row__num">02</span>
+                <span class="micro-label">WINDOWS PACKAGE MANAGER</span>
               </div>
-              <p class="text-mute" style="font-size: var(--font-micro);">
-                Explicit Package ID: <code>winget install --id NotHarshhaa.DevOpsToolsInstaller</code>
-              </p>
+              <div class="channel-row__body">
+                <h3 class="mb-1">WinGet Community Repository</h3>
+                <p class="text-mute mb-0" style="font-size: var(--font-small);">
+                  Install directly using the native Windows Package Manager included with Windows 10 and 11.
+                </p>
+              </div>
+              <div class="channel-row__action">
+                <div class="code-block">
+                  <div class="code-header">
+                    <span>PowerShell (WinGet)</span>
+                    <button class="copy-btn" aria-label="Copy winget command">COPY</button>
+                  </div>
+                  <div class="code-content">winget install DevOpsToolsInstaller</div>
+                </div>
+                <p class="text-mute" style="font-size: var(--font-micro);">
+                  Explicit Package ID: <code>winget install --id NotHarshhaa.DevOpsToolsInstaller</code>
+                </p>
+              </div>
             </article>
 
             <!-- Option 3: Setup Wizard -->
-            <article class="corner-box">
-              <span class="micro-label">OPTION 03 // STANDALONE INSTALLER</span>
-              <h3 class="mb-1">Windows Setup Wizard (.exe)</h3>
-              <p class="text-mute mb-3" style="font-size: var(--font-small);">
-                Branded Inno Setup installer. Detects running instances before upgrading, configures optional PATH registration, and provides clean uninstallation.
-              </p>
-              <div class="flex gap-2 flex-wrap mb-2">
-                <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="btn-primary" target="_blank" rel="noopener noreferrer">Download x64 Setup Wizard (v3.1.0) ↗</a>
+            <article class="corner-box channel-row">
+              <div class="channel-row__index">
+                <span class="channel-row__num">03</span>
+                <span class="micro-label">STANDALONE INSTALLER</span>
               </div>
-              <p class="text-mute" style="font-size: var(--font-micro);">
-                Filename: <code>DevOpsToolsInstaller_x64_Setup.exe</code>
-              </p>
+              <div class="channel-row__body">
+                <h3 class="mb-1">Windows Setup Wizard (.exe)</h3>
+                <p class="text-mute mb-0" style="font-size: var(--font-small);">
+                  Branded Inno Setup installer. Detects running instances before upgrading, configures optional PATH registration, and provides clean uninstallation.
+                </p>
+              </div>
+              <div class="channel-row__action">
+                <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="btn-primary" target="_blank" rel="noopener noreferrer">Download x64 Setup Wizard (v3.1.0) ↗</a>
+                <p class="text-mute" style="font-size: var(--font-micro);">
+                  Filename: <code>DevOpsToolsInstaller_x64_Setup.exe</code>
+                </p>
+              </div>
             </article>
 
             <!-- Option 4: Portable Single-File -->
-            <article class="corner-box">
-              <span class="micro-label">OPTION 04 // ZERO INSTALLATION</span>
-              <h3 class="mb-1">Portable Single-File Executable</h3>
-              <p class="text-mute mb-3" style="font-size: var(--font-small);">
-                Self-contained, compressed single-file binary. Drop it onto a USB flash drive or desktop. Doubles directly as the headless CLI.
-              </p>
-              <div class="flex gap-2 flex-wrap mb-2">
+            <article class="corner-box channel-row">
+              <div class="channel-row__index">
+                <span class="channel-row__num">04</span>
+                <span class="micro-label">ZERO INSTALLATION</span>
+              </div>
+              <div class="channel-row__body">
+                <h3 class="mb-1">Portable Single-File Executable</h3>
+                <p class="text-mute mb-0" style="font-size: var(--font-small);">
+                  Self-contained, compressed single-file binary. Drop it onto a USB flash drive or desktop. Doubles directly as the headless CLI.
+                </p>
+              </div>
+              <div class="channel-row__action">
                 <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="btn-secondary" target="_blank" rel="noopener noreferrer">Download x64 Executable (.exe) ↗</a>
                 <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest" class="btn-secondary" target="_blank" rel="noopener noreferrer">Download ARM64 Executable (.exe) ↗</a>
+                <p class="text-mute" style="font-size: var(--font-micro);">
+                  Filenames: <code>DevOpsToolsInstaller_x64.exe</code> / <code>_arm64.exe</code>
+                </p>
               </div>
-              <p class="text-mute" style="font-size: var(--font-micro);">
-                Filenames: <code>DevOpsToolsInstaller_x64.exe</code> / <code>_arm64.exe</code>
-              </p>
             </article>
           </div>
         </div>
@@ -270,6 +293,7 @@ Get-FileHash .\DevOpsToolsInstaller_x64_Setup.exe -Algorithm SHA256
           <h4 class="footer-col-title">Navigation</h4>
           <ul class="footer-links">
             <li><a href="index.html" class="footer-link">Home</a></li>
+            <li><a href="catalog.html" class="footer-link">Tool Catalog</a></li>
             <li><a href="features.html" class="footer-link">Features</a></li>
             <li><a href="security.html" class="footer-link">Security Pipeline</a></li>
             <li><a href="cli.html" class="footer-link">Headless CLI</a></li>

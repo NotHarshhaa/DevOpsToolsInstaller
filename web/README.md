@@ -8,7 +8,8 @@ A high-performance, minimalist, black-and-white static marketing website for **D
 
 ```text
 web/
-├── index.html                   # Homepage (Hero, How It Works, Features, Principles, Comparison)
+├── index.html                   # Homepage (Hero, Tool Wall, How It Works, Features, Principles, Comparison)
+├── catalog.html                # Live tool catalog: 90 tools with vendor logos, search/filter, 12 stacks
 ├── features.html                # Detailed feature showcase with technical mockups
 ├── security.html                # 6-stage zero-trust verification pipeline & negative guarantees
 ├── cli.html                     # Headless CLI command reference & automation examples
@@ -20,16 +21,51 @@ web/
 ├── README.md                    # This website documentation
 └── assets/
     ├── banner.png               # Banner graphic
+    ├── catalog.json             # Site payload exported from the signed catalog (tools, stacks, categories)
     ├── css/
     │   └── style.css            # Single stylesheet (tokens, reset, base, layout, components, utilities, pages)
-    └── img/
-        ├── logo.svg             # Technical wordmark logo with corner ticks
-        ├── app-mockup.svg       # WinUI 3 application interface blueprint placeholder
-        ├── feature-stacks.svg   # Custom Stack Builder 2-column composer mockup
-        ├── feature-doctor.svg   # Workstation Doctor 5-point environment diagnostics mockup
-        ├── feature-drawer.svg   # Universal Live Log Drawer (Ctrl+`) mockup
-        └── security-pipeline.svg # 6-stage cryptographic verification pipeline diagram
+    ├── img/
+    │   ├── logo.svg             # Technical wordmark logo with corner ticks
+    │   ├── app-mockup.svg       # WinUI 3 application interface blueprint placeholder
+    │   ├── feature-stacks.svg   # Custom Stack Builder 2-column composer mockup
+    │   ├── feature-doctor.svg   # Workstation Doctor 5-point environment diagnostics mockup
+    │   ├── feature-drawer.svg   # Universal Live Log Drawer (Ctrl+`) mockup
+    │   ├── security-pipeline.svg # 6-stage cryptographic verification pipeline diagram
+    │   ├── Homepage.png         # Real app capture — home dashboard
+    │   ├── Tool-Catalog.png     # Real app capture — tool catalog
+    │   ├── Stacks.png           # Real app capture — stacks
+    │   ├── Downloads.png        # Real app capture — downloads & deployments
+    │   ├── Installed.png        # Real app capture — installed inventory
+    │   ├── Profiles&History.png # Real app capture — profiles & history
+    │   ├── Doctor.png           # Real app capture — workstation doctor
+    │   ├── Custom-tools.png     # Real app capture — custom tools editor
+    │   ├── Settings.png         # Real app capture — settings
+    │   └── About.png            # Real app capture — about
+    └── logos/                   # 90 vendor logo SVGs (copied from the app's Assets/logos)
 ```
+
+---
+
+## 🧩 Keeping the site catalog in sync
+
+`catalog.html` and the homepage tool wall render from `web/assets/catalog.json`, which is
+**generated from the signed catalog** — never hand-edited. Regenerate it after any catalog
+change (the Catalog Refresh Bot workflow does this automatically):
+
+```powershell
+pwsh -File catalog/export-site-catalog.ps1
+```
+
+The script:
+
+1. Copies every vendor logo from `src/DevOpsToolsInstaller/Assets/logos` into `web/assets/logos`.
+2. Writes `web/assets/catalog.json` with the trimmed payload the site needs
+   (`id`, `name`, `category`, `version`, `kind`, `description`, `homepage`, `logo`) plus the
+   12 curated stacks from `catalog/bundles.json`.
+
+> **Note on colour:** the site is otherwise strictly monochrome. Vendor logos are the single
+> exception — they keep their brand colours inside a monochrome frame so the tools stay
+> instantly recognisable.
 
 ---
 

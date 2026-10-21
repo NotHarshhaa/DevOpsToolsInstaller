@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="kustGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#326CE5" />
+      <stop offset="100%" stop-color="#1A4DB8" />
+    </linearGradient>
+  </defs>
+  <!-- Background Shield/Badge -->
+  <rect x="8" y="8" width="112" height="112" rx="24" fill="url(#kustGrad)"/>
+  <!-- Layered YAML / Kustomize Template Sheets -->
+  <rect x="36" y="24" width="56" height="68" rx="6" fill="#FFFFFF" opacity="0.4" transform="rotate(-8 64 58)"/>
+  <rect x="42" y="28" width="56" height="68" rx="6" fill="#FFFFFF" opacity="0.75" transform="rotate(4 70 62)"/>
+  <rect x="38" y="32" width="56" height="68" rx="6" fill="#FFFFFF"/>
+  <!-- Lines on YAML template -->
+  <rect x="46" y="44" width="22" height="4" rx="2" fill="#326CE5"/>
+  <rect x="46" y="52" width="38" height="4" rx="2" fill="#90B4F5"/>
+  <rect x="46" y="60" width="32" height="4" rx="2" fill="#90B4F5"/>
+  <rect x="46" y="68" width="26" height="4" rx="2" fill="#90B4F5"/>
+  <!-- Customization Gear overlay -->
+  <circle cx="82" cy="84" r="18" fill="#FFB300" stroke="#FFFFFF" stroke-width="3"/>
+  <circle cx="82" cy="84" r="7" fill="#FFFFFF"/>
+</svg>

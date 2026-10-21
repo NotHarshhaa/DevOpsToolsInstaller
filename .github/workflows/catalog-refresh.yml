@@ -37,6 +37,11 @@ jobs:
           if ($env:STAMP_MISSING -eq 'true') { $args += '-StampMissing' } else { $args += '-StampChanged' }
           .\catalog\refresh-catalog.ps1 @args
 
+      - name: Export site catalog (vendor logos + web/assets/catalog.json)
+        shell: pwsh
+        run: |
+          .\catalog\export-site-catalog.ps1
+
       - name: Re-sign catalog (if key is configured)
         shell: pwsh
         env:
