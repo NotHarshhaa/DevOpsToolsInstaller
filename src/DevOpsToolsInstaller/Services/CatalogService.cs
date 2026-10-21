@@ -8,10 +8,10 @@ namespace DevOpsToolsInstaller.Services;
 public sealed class CatalogService
 {
     private const string RemoteCatalogUrl =
-        "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/main/catalog/catalog.json";
+        "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/HEAD/catalog/catalog.json";
 
     private const string RemoteBundlesUrl =
-        "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/main/catalog/bundles.json";
+        "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/HEAD/catalog/bundles.json";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

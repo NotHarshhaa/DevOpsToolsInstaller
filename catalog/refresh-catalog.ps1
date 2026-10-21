@@ -81,6 +81,23 @@ function Get-ReleaseNotesJson([string]$owner, [string]$repo, [string]$token) {
     }
 }
 
+function Set-ToolVersionHistory($tool, [string]$newVersion, [int]$maxHistory) {
+    # Tools may have no previousVersions array yet (e.g. doctl) — read it
+    # defensively instead of crashing the whole refresh run.
+    $history = @()
+    if ($null -ne $tool['previousVersions']) {
+        $history = @($tool['previousVersions'].AsArray() | ForEach-Object { [string]$_ })
+    }
+    # Build an explicit JsonArray: PowerShell cannot bind a multi-element
+    # object[] to the JsonObject indexer ("Unable to index into an object of
+    # type JsonObject"), which silently aborted whole refresh runs.
+    $array = [System.Text.Json.Nodes.JsonArray]::new()
+    foreach ($v in (@($newVersion) + $history | Select-Object -Unique | Select-Object -First $maxHistory)) {
+        [void]$array.Add([System.Text.Json.Nodes.JsonValue]::Create([string]$v))
+    }
+    $tool['previousVersions'] = $array
+}
+
 function Get-ArtifactSha256([string]$url) {
     $tmp = New-Item -ItemType Directory -Force -Path (Join-Path ([IO.Path]::GetTempPath()) "dti-stamp")
     $file = Join-Path $tmp.FullName ([IO.Path]::GetFileName(([uri]$url).LocalPath))
@@ -130,11 +147,21 @@ foreach ($tool in $root.AsArray()) {
                     $tool['fileName'] = ([string]$tool['fileName']).Replace($oldVersion, $newVersion)
                     # Clear any stale checksum — the old hash is wrong for the new artifact.
                     $tool['sha256'] = ""
-                    $history = @($tool['previousVersions'].AsArray() | ForEach-Object { [string]$_ })
-                    $tool['previousVersions'] = @($newVersion) + $history |
-                        Select-Object -Unique -First $MaxHistory | ForEach-Object { [System.Text.Json.Nodes.JsonValue]::Create($_) }
+                    Set-ToolVersionHistory $tool $newVersion $MaxHistory
                     $updated += "$id ($oldVersion -> $newVersion)"
-                } else {
+                }
+                elseif ($url -match '/releases/latest/(?:download/)?' -or $url -match 'aka\.ms|dl\.k8s\.io|kind\.sigs\.k8s\.io') {
+                    # The download URL points at a vendor "latest" channel or a
+                    # versioned CDN path we don't rewrite — the artifact always
+                    # serves its newest build anyway. Still record the version
+                    # bump so the app's "Newer than catalog" detection, the
+                    # version picker's history, and the age badge stay accurate.
+                    Write-Host "[bump-latest] $id : $oldVersion -> $newVersion (URL serves the latest channel)"
+                    $tool['version'] = $newVersion
+                    Set-ToolVersionHistory $tool $newVersion $MaxHistory
+                    $updated += "$id ($oldVersion -> $newVersion)"
+                }
+                else {
                     Write-Warning "[skip] $id : newer version $newVersion found but URL does not pin the version — manual update required."
                 }
             }
