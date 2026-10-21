@@ -1332,6 +1332,13 @@ code {
   box-shadow: 12px 12px 0 -1px var(--ink);
 }
 
+/* <picture> wrappers are inline by default, which leaves a baseline gap under
+   the image and breaks the frame borders. */
+picture {
+  display: block;
+  line-height: 0;
+}
+
 .tour-shot__frame img {
   display: block;
   width: 100%;

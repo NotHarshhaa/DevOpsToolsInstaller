@@ -40,7 +40,8 @@ web/
     │   ├── Doctor.png           # Real app capture — workstation doctor
     │   ├── Custom-tools.png     # Real app capture — custom tools editor
     │   ├── Settings.png         # Real app capture — settings
-    │   └── About.png            # Real app capture — about
+    │   ├── About.png            # Real app capture — about
+    │   └── *.webp               # Generated WebP variants (see below)
     └── logos/                   # 90 vendor logo SVGs (copied from the app's Assets/logos)
 ```
 
@@ -66,6 +67,36 @@ The script:
 > **Note on colour:** the site is otherwise strictly monochrome. Vendor logos are the single
 > exception — they keep their brand colours inside a monochrome frame so the tools stay
 > instantly recognisable.
+
+---
+
+## 🖼️ Image pipeline (WebP + lazy loading)
+
+The application screenshots are served as **WebP with a PNG fallback**, at two widths, and are
+lazy-loaded because they sit below the fold:
+
+```html
+<picture>
+  <source type="image/webp" srcset="assets/img/Homepage-960.webp 960w, assets/img/Homepage.webp 1920w"
+          sizes="(max-width: 768px) 100vw, 520px">
+  <img src="assets/img/Homepage.png" alt="…" width="1920" height="1020" loading="lazy" decoding="async">
+</picture>
+```
+
+- A phone downloads the **960w** variants — about **237 KB** for the whole tour instead of 1.6 MB.
+- Desktop (or any 2× display) pulls the 1920w variants; a browser without WebP falls back to PNG.
+- `banner.png` is intentionally **not** converted — it is the `og:image` social preview, and
+  crawlers expect PNG/JPEG.
+
+Regenerate the variants after replacing a screenshot:
+
+```powershell
+pip install pillow
+python web/tools/optimize-images.py
+```
+
+The script writes `web/assets/img/<name>.webp` (1920w) and `<name>-960.webp` (960w) and prints
+the before/after sizes.
 
 ---
 
