@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v3.1.0",
+    [string]$Tag = "v3.1.1",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -38,43 +38,35 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Release
 
 Welcome to the **__TAG__** release of **DevOps Tools Installer**!
-This release introduces **Workstation Profiles, Snapshots & Install History**, **Cloud-Synced Profiles & Pre/Post-Install Hooks**, an **In-App Custom Tool Catalog Editor**, **Live Download ETA & Telemetry**, **Dynamic Window Material Settings (Mica, Mica Alt, Acrylic)**, **Workstation Doctor Health Score & Safe PATH Remediation**, **Installed Tools Update Preferences & Actions**, **Unified Accent SplitButtons**, and **Subpixel Crisp Text & Corner Scrollbar Layout Alignment**.
+This release introduces **Live Version History (install any of the last 5 releases)**, **Microsoft Store Update Support**, **Working Download ETAs**, a **Live Signed Catalog**, and a **Rebuilt Website with the Full Tool Catalog**.
 
 ---
 
 ### ✨ What's New & Highlights in __TAG__
 
-#### 🗃️ Workstation Profiles, Snapshots & History (`ProfilesPage`)
-- **Named Workstation Profiles**: Capture currently installed toolsets or catalog selections into portable named profiles; 1-click **Apply** or **Install** all referenced tools.
-- **Point-in-Time Snapshots**: Snapshot installed tools, versions, and User PATH; diff against workstation changes and restore missing tools.
-- **Install History & Rollback**: Persistent JSONL activity trail (`history.jsonl`) recording installs, updates, uninstalls, and guided version rollbacks.
-- **Cloud-Synced Profiles**: Opt-in sync/push/pull of profiles, snapshots, custom tools, and hooks via OneDrive, Dropbox, or network shares.
-- **Starter Templates**: Profiles empty state includes curated templates (Kubernetes Developer, Cloud Engineer, IaC & Platform).
+#### 🕘 Live Version History — Install Older Releases
+- **Last 5 GitHub Releases, Live**: the per-tool version picker now queries the vendor's GitHub Releases API and lists the five most recent releases with publish date and pre-release markers.
+- **Exact Artifact Matching**: the release asset matching Windows and your CPU architecture (ARM64-aware) is selected and installed with its real download URL and file name, so renamed artifacts no longer 404.
+- **Vendor-CDN Coverage**: helm, kind, minikube and dbeaver — whose catalog URLs point at their own CDN — get the same live list through verified GitHub mirrors, and versioned CDNs that only advertise a `latest` channel now resolve to the pinned release.
+- **Honest Version Targeting**: vendors that serve a single always-latest link (AWS CLI, aka.ms redirects, Docker Desktop, Postman, VS Code) are now flagged in the picker instead of silently downloading the newest release while claiming to pin an old one.
 
-#### 🛠️ In-App Custom Tool Catalog Editor (`CatalogEditorPage`)
-- **Author & Manage Custom Tools**: Add your own HTTPS-hosted tools to the catalog with full SHA-256 and Authenticode validation.
-- **Live Preview Card**: Renders real-time mockup of custom tool card matching the official catalog styling.
-- **Catalog Feed Import/Export**: Easily share team tool feeds via JSON manifests (`custom_tools.json`).
+#### 🛒 Microsoft Store Update Support
+- **Store-Aware Update Checks**: Store-installed builds now query the Microsoft Store for updates instead of GitHub Releases — the “Unable to reach GitHub Releases” error is gone for Store installs.
+- **In-App Store Update Prompt**: pending package updates surface in the update banner with the Store's own install prompt, falling back to opening the product page.
+- **Deadlock-Free Store Queries**: all read-only Store queries run on a dedicated MTA thread, avoiding the known `StoreContext` UI-thread deadlock.
 
-#### ⚡ Telemetry & Asynchronous Loading States
-- **Live Download ETA**: Real-time ETA indicator calculated alongside transfer throughput.
-- **Segmented Filter Controls**: Modern Fluent segmented chips for instant download queue filtering.
-- **ProgressRing Hydration Overlays**: Smooth progress overlays across Profiles, Installed, and Stacks to eliminate empty-state flashing during async catalog hydration.
+#### 📥 Downloads That Tell The Truth
+- **Visible Transfer ETA**: download rows now show a live estimate (`~42 s`) alongside throughput, backed by a proper `HasEta` flag instead of a string-to-bool binding that hid it.
+- **Segmented Status Filter & Hydration Rings**: a Fluent segmented control filters the queue, and Profiles, Installed and Stacks show progress rings while data loads.
 
-#### 🩺 Workstation Doctor & Health Score (`DoctorPage`)
-- **Weighted 0-100 Health Score**: Real-time workstation health rating reflected on both Doctor and Home dashboards.
-- **Safe PATH Remediation**: Preview and safely deduplicate / remove dead PATH entries with automated User PATH backup and 1-click Undo.
-- **Report Redaction**: One-click redaction of local usernames and machine names when copying Markdown diagnostics reports for IT tickets.
+#### 🔐 A Live, Signed Catalog
+- **Correct Remote Branch**: the catalog is fetched from the repository's default branch via `/HEAD/`, so the app finally loads the live, signature-verified catalog instead of falling back to the embedded snapshot.
+- **Reliable Catalog Refresh Bot**: the refresh script no longer crashes on tools without version history and now bumps `releases/latest` channels too — the bot's PRs finally carry real version updates.
+- **Catalog → Site Export**: `web/assets/catalog.json` and the 90 vendor logos are generated from the signed catalog, so the website can never drift from what the app installs.
 
-#### ⚙️ Settings Workspace Modernization (`SettingsPage`)
-- **Fluent SettingsCard / Expander Architecture**: Redesigned on CommunityToolkit Settings controls with bold headers, descriptions, and collapsed value summaries.
-- **Section & Card Search**: Instant keyword search filtering across all settings categories.
-- **Security Posture Overview**: Real-time snapshot of signature verification policy, hooks status, proxy configuration, and audit log paths.
-
-#### 🎯 Crisp DirectWrite Text & Corner-Pinned Scrollbars
-- **Subpixel Text Clarity**: Eliminated GPU bilinear interpolation blur by removing composition visual scaling on hover/focus across all cards.
-- **Corner-Pinned Scrollbars**: Arranged scroll containers to the window boundary so vertical scrollbars sit flush against the far-right corner with 32px inner gutter.
-- **Unified Accent SplitButtons**: Consistent Fluent SplitButton styling with custom accent divider brushes across Catalog, Stacks, and Tool Details.
+#### 🌐 A Rebuilt Website
+- **Tool Catalog Page**: all 90 tools with real vendor logos, live versions, category filters, search and the 12 curated stacks.
+- **Product Tour**: all 10 application screens as a floating, lazily-loaded WebP gallery, plus a live stats band, an endless logo marquee and an interactive Stack Explorer.
 
 ---
 

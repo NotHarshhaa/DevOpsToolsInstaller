@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_Nothing pending yet — the next batch of changes will land here._
+
+## [3.1.1] - 2026-10-21
+
 ### Added
 - **Live version history in the version picker (`Services/ToolVersionHistoryService.cs`)**: the per-tool version picker (catalog card menu and tool detail pane) now fetches the **last 5 GitHub releases** of the vendor repository live and lists them below the curated catalog versions — newest first with publish date and a *pre-release* marker — so users who need an older build for compatibility can install exactly what the vendor shipped. For each release the service identifies the release asset matching Windows and the running architecture (ARM64-aware; falls back gracefully for platform-neutral Windows binaries like `kubectl.exe`), and picking one applies its **exact download URL and file name** via the new `ToolDefinition.SetVersionWithAsset` — vendors rename files between releases, so the templated file name alone would otherwise 404. Results are cached per repository for 10 minutes, failures are never cached and retry, non-GitHub-hosted tools keep using the curated `previousVersions` list, and the dialog stays fully usable while the fetch runs in the background.
 - **Old versions for vendor-CDN tools**: tools whose download lives on the vendor's own site but whose binaries are mirrored to GitHub releases (*helm*, *kind*, *minikube*, *dbeaver*, extensible via `ToolVersionHistoryService.FallbackRepos`) also get the live last-5 list, with the vendor's preferred artifact (installer/setup) preferred when a repo ships several Windows binaries. Versioned CDNs that only advertise a `latest` channel (minikube/skaffold GCS mirrors) now rewrite `/releases/latest/` → `/releases/v{version}/` so their curated old versions download correctly.
