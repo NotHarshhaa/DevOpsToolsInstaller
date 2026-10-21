@@ -1372,6 +1372,214 @@ picture {
 }
 
 /* --------------------------------------------------------------------------
+   5c. MOTION & INTERACTIVE COMPONENTS
+   -------------------------------------------------------------------------- */
+
+/* Reading progress rail pinned to the top of the viewport */
+.page-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: var(--ink);
+  z-index: 1200;
+  transition: width 120ms linear;
+}
+
+/* Scroll reveal — elements fade up once when they enter the viewport */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 520ms ease, transform 520ms ease;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Statistics band with count-up numbers */
+.stats-band {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: var(--space-3);
+}
+
+.stat {
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--line);
+}
+
+.stat:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.stat__value {
+  font-family: var(--font-mono);
+  font-size: var(--font-h1);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__label {
+  display: block;
+  margin-top: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* Logo marquee — endless ticker of vendor marks */
+.marquee {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-2) 0;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee__track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  animation: marquee-scroll 48s linear infinite;
+}
+
+.marquee:hover .marquee__track {
+  animation-play-state: paused;
+}
+
+.marquee--reverse .marquee__track {
+  animation-direction: reverse;
+  animation-duration: 62s;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee__item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 6px;
+  border: 1px solid transparent;
+  transition: border-color var(--transition-fast);
+}
+
+.marquee__item:hover {
+  border-color: var(--ink);
+}
+
+.marquee__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Interactive stack picker (data-driven from the catalog export) */
+.stack-picker {
+  display: grid;
+  grid-template-columns: 19rem minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.stack-picker__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stack-picker__btn {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: border-style var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.stack-picker__btn:hover,
+.stack-picker__btn:focus-visible {
+  border-style: solid;
+  border-color: var(--ink);
+}
+
+.stack-picker__btn.is-active {
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
+}
+
+.stack-picker__btn strong {
+  font-size: var(--font-small);
+  letter-spacing: 0.02em;
+}
+
+.stack-picker__btn span {
+  opacity: 0.7;
+}
+
+.stack-picker__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--ink);
+  background: var(--paper);
+}
+
+.stack-picker__tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.stack-picker__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--font-micro);
+  color: var(--mute);
+}
+
+.stack-picker__tool img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .stack-picker {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --------------------------------------------------------------------------
    6. UTILITIES
    -------------------------------------------------------------------------- */.text-center { text-align: center; }
 .text-right { text-align: right; }
@@ -1622,5 +1830,16 @@ picture {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* The ticker would freeze half-way through its track, and reveal-on-scroll
+     would leave content invisible — both are disabled outright. */
+  .marquee__track {
+    animation: none !important;
+  }
+
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -100,6 +100,26 @@ the before/after sizes.
 
 ---
 
+## ✨ Interactive & motion components
+
+The homepage ships several data-driven, motion-aware components. All of them degrade
+gracefully: no JavaScript → the static markup still renders, and `prefers-reduced-motion`
+disables every animation (the marquee stops, reveals are shown immediately, counters jump
+to their final value).
+
+| Component | Class | Behaviour |
+| :--- | :--- | :--- |
+| Reading progress | `.page-progress` | Fixed 3px rail that fills as the page scrolls |
+| Stats band | `.stats-band` / `.stat` | Count-up numbers triggered by `IntersectionObserver`, values seeded from `assets/catalog.json` |
+| Logo marquee | `.marquee` / `.marquee__track` | Endless ticker; the track is duplicated so the `translateX(-50%)` loop is seamless, pauses on hover, fades at both edges |
+| Stack Explorer | `.stack-picker` | 12 curated stacks as a tab list; selecting one renders that stack's tools (with logos) from the catalog export |
+| Scroll reveal | `.reveal` | Fades content up the first time it enters the viewport |
+
+Reveal targets are marked with the `reveal` class in the markup; the observer adds
+`is-visible` once and then stops watching the element.
+
+---
+
 ## 🎨 Design Tokens
 
 The site strictly enforces a monochrome technical design system with high-contrast (AA+) typography, zero border-radii, and signature drawing borders.

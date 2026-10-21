@@ -39,6 +39,7 @@
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
+  <div class="page-progress" id="page-progress" aria-hidden="true"></div>
 
   <!-- Header -->
   <header class="site-header" role="banner">
@@ -114,6 +115,39 @@
       </div>
     </section>
 
+    <!-- Statistics Band -->
+    <section class="section-tight" aria-labelledby="stats-title">
+      <div class="container">
+        <h2 id="stats-title" class="micro-label reveal">BY THE NUMBERS</h2>
+        <div class="stats-band mt-3" id="stats-band">
+          <div class="stat reveal">
+            <span class="stat__value" data-count="90" data-suffix="">0</span>
+            <span class="stat__label">Official tools</span>
+          </div>
+          <div class="stat reveal">
+            <span class="stat__value" data-count="12" data-suffix="">0</span>
+            <span class="stat__label">Curated stacks</span>
+          </div>
+          <div class="stat reveal">
+            <span class="stat__value" data-count="12" data-suffix="">0</span>
+            <span class="stat__label">Tool categories</span>
+          </div>
+          <div class="stat reveal">
+            <span class="stat__value" data-count="0" data-suffix="">0</span>
+            <span class="stat__label">Telemetry calls</span>
+          </div>
+          <div class="stat reveal">
+            <span class="stat__value" data-count="90" data-suffix="+">0</span>
+            <span class="stat__label">Vendor endpoints</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
+
     <!-- Tool Wall -->
     <section class="section-tight" aria-labelledby="toolwall-title">
       <div class="container">
@@ -129,12 +163,51 @@
             </div>
             <a href="catalog.html" class="btn-secondary">Browse the full catalog ↗</a>
           </div>
+
+          <!-- Endless vendor ticker -->
+          <div class="marquee" id="marquee" aria-hidden="true">
+            <div class="marquee__track" id="marquee-track"></div>
+          </div>
+
           <div class="logo-wall" id="logo-wall" aria-busy="true">
             <p class="text-mute">Loading tool logos…</p>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- Stack Picker -->
+    <section class="section" aria-labelledby="picker-title">
+      <div class="container">
+        <div class="index-rail">
+          <span class="index-rail-marker">[01]</span>
+          <span class="micro-label">STACK EXPLORER</span>
+          <h2 id="picker-title" class="mb-2 reveal">Pick a role. See the toolset.</h2>
+          <p class="text-mute mb-4 reveal" style="max-width: 74ch;">
+            Twelve curated stacks ship with the app. Pick one to preview exactly which tools land on the
+            workstation — the same bundles the Stack Builder installs in one click.
+          </p>
+
+          <div class="stack-picker reveal">
+            <div class="stack-picker__list" id="stack-picker-list" role="tablist" aria-label="Curated stacks"></div>
+            <div class="stack-picker__panel">
+              <span class="micro-label" id="stack-picker-category">STACK</span>
+              <h3 class="mb-1" id="stack-picker-name" style="font-size: var(--font-h3);">—</h3>
+              <p class="text-mute" id="stack-picker-desc" style="font-size: var(--font-small);">Pick a stack on the left.</p>
+              <div class="stack-picker__tools" id="stack-picker-tools"></div>
+              <div class="flex gap-2 flex-wrap mt-2">
+                <a href="download.html" class="btn-primary">Get the app</a>
+                <a href="features.html" class="btn-secondary">How stacks work ↗</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <hr class="double-rule" aria-hidden="true">
+    </div>
 
     <!-- Product Tour -->
     <section class="section" aria-labelledby="tour-title">
@@ -293,7 +366,7 @@
     <section class="section" aria-labelledby="how-it-works-title">
       <div class="container">
         <div class="index-rail">
-          <span class="index-rail-marker">[01]</span>
+          <span class="index-rail-marker">[02]</span>
           <span class="micro-label">WORKFLOW ARCHITECTURE</span>
           <h2 id="how-it-works-title" class="mb-4">How it works: from vendor release to local terminal.</h2>
 
@@ -332,7 +405,7 @@
     <section class="section" aria-labelledby="features-title">
       <div class="container">
         <div class="index-rail">
-          <span class="index-rail-marker">[02]</span>
+          <span class="index-rail-marker">[03]</span>
           <span class="micro-label">ENGINEERING HIGHLIGHTS</span>
           <h2 id="features-title" class="mb-4">Designed for platform engineers, SREs, and IT governance.</h2>
 
@@ -416,7 +489,7 @@
     <!-- Principles Band (Inverted Black and White Section) -->
     <section class="band-inverted" aria-labelledby="principles-title">
       <div class="container">
-        <span class="micro-label">[03] RADICAL TRANSPARENCY</span>
+        <span class="micro-label">[04] RADICAL TRANSPARENCY</span>
         <h2 id="principles-title" class="mb-4">Built on strict zero-trust workstation principles.</h2>
 
         <div class="grid-3">
@@ -451,7 +524,7 @@
     <section class="section" aria-labelledby="comparison-title">
       <div class="container">
         <div class="index-rail">
-          <span class="index-rail-marker">[04]</span>
+          <span class="index-rail-marker">[05]</span>
           <span class="micro-label">TECHNICAL COMPARISON</span>
           <h2 id="comparison-title" class="mb-2">How it compares to traditional Windows workflows.</h2>
           <p class="text-mute mb-4">A purpose-built workstation control plane compared to package managers and manual setups.</p>
@@ -535,7 +608,7 @@
     <section class="section section-tight" aria-labelledby="cta-title">
       <div class="container">
         <div class="corner-box text-center">
-          <span class="micro-label">[05] GET STARTED</span>
+          <span class="micro-label">[06] GET STARTED</span>
           <h2 id="cta-title" class="mb-2">Ready to provision your workstation?</h2>
           <p class="text-mute mb-4">
             Available on the Microsoft Store, through WinGet, as a standalone setup wizard, or as a portable CLI executable.
@@ -648,24 +721,150 @@
       });
     });
 
-    // Vendor logo wall — rendered from the signed catalog export
+    // ── Reading progress rail ─────────────────────────────────────────
+    const progress = document.getElementById('page-progress');
+    if (progress) {
+      const updateProgress = () => {
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        progress.style.width = (max > 0 ? (window.scrollY / max) * 100 : 0) + '%';
+      };
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+    }
+
+    // ── Reveal on scroll + count-up numbers ───────────────────────────
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealTargets = document.querySelectorAll('.reveal');
+    if (reduceMotion || !('IntersectionObserver' in window)) {
+      revealTargets.forEach(el => el.classList.add('is-visible'));
+    } else {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+      revealTargets.forEach(el => revealObserver.observe(el));
+    }
+
+    const countTargets = document.querySelectorAll('[data-count]');
+    const animateCount = (el) => {
+      const target = Number(el.dataset.count) || 0;
+      const suffix = el.dataset.suffix || '';
+      if (reduceMotion) { el.textContent = target + suffix; return; }
+      const duration = 1100;
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (t < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+    if ('IntersectionObserver' in window) {
+      const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCount(entry.target);
+            countObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      countTargets.forEach(el => countObserver.observe(el));
+    } else {
+      countTargets.forEach(animateCount);
+    }
+
+    // ── Catalog data: logo wall, marquee, stack explorer ──────────────
     const logoWall = document.getElementById('logo-wall');
-    if (logoWall) {
+    const marqueeTrack = document.getElementById('marquee-track');
+    const pickerList = document.getElementById('stack-picker-list');
+
+    const markFor = (tool, size) => tool.logo
+      ? `<img src="${tool.logo}" alt="${tool.name}" title="${tool.name} — v${tool.version}" width="${size}" height="${size}" loading="lazy" decoding="async">`
+      : `<span title="${tool.name}">${tool.name.slice(0, 2).toUpperCase()}</span>`;
+
+    const renderMarquee = (tools) => {
+      if (!marqueeTrack) return;
+      const items = tools.map(tool =>
+        `<span class="marquee__item">${tool.logo ? `<img src="${tool.logo}" alt="" width="32" height="32" loading="lazy" decoding="async">` : ''}</span>`
+      ).join('');
+      // Duplicated once so the -50% translate loops seamlessly.
+      marqueeTrack.innerHTML = items + items;
+    };
+
+    const renderPicker = (tools, stacks) => {
+      if (!pickerList) return;
+      const byId = new Map(tools.map(t => [t.id, t]));
+      const nameEl = document.getElementById('stack-picker-name');
+      const descEl = document.getElementById('stack-picker-desc');
+      const catEl = document.getElementById('stack-picker-category');
+      const toolsEl = document.getElementById('stack-picker-tools');
+
+      const select = (stack, button) => {
+        pickerList.querySelectorAll('.stack-picker__btn').forEach(b => {
+          b.classList.remove('is-active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        button.classList.add('is-active');
+        button.setAttribute('aria-selected', 'true');
+        nameEl.textContent = stack.name;
+        descEl.textContent = stack.description;
+        catEl.textContent = stack.category;
+        toolsEl.innerHTML = stack.tools.map(id => {
+          const tool = byId.get(id);
+          if (!tool) return '';
+          return `<span class="stack-picker__tool" title="${tool.name} — v${tool.version}">${markFor(tool, 20)}<span>${tool.name}</span></span>`;
+        }).join('');
+      };
+
+      pickerList.innerHTML = stacks.map((stack, i) =>
+        `<button type="button" class="stack-picker__btn" role="tab" aria-selected="false" data-stack="${stack.id}">
+           <strong>${stack.name}</strong>
+           <span>${stack.tools.length} tools · ${stack.category}</span>
+         </button>`
+      ).join('');
+
+      pickerList.querySelectorAll('.stack-picker__btn').forEach((button, i) => {
+        button.addEventListener('click', () => select(stacks[i], button));
+      });
+
+      if (stacks.length) select(stacks[0], pickerList.querySelector('.stack-picker__btn'));
+    };
+
+    if (logoWall || marqueeTrack || pickerList) {
       fetch('assets/catalog.json')
         .then(response => response.ok ? response.json() : Promise.reject(new Error('HTTP ' + response.status)))
         .then(data => {
           const tools = data.tools || [];
-          logoWall.innerHTML = tools.map(tool => {
-            const mark = tool.logo
-              ? `<img src="${tool.logo}" alt="${tool.name}" title="${tool.name} — v${tool.version}" width="34" height="34" loading="lazy" decoding="async">`
-              : `<span title="${tool.name}">${tool.name.slice(0, 2).toUpperCase()}</span>`;
-            return `<a class="logo-wall__item" href="catalog.html#${tool.id}" title="${tool.name} — v${tool.version}" aria-label="${tool.name}">${mark}</a>`;
-          }).join('');
-          logoWall.setAttribute('aria-busy', 'false');
+          const stacks = data.stacks || [];
+
+          if (logoWall) {
+            logoWall.innerHTML = tools.map(tool =>
+              `<a class="logo-wall__item" href="catalog.html#${tool.id}" title="${tool.name} — v${tool.version}" aria-label="${tool.name}">${markFor(tool, 34)}</a>`
+            ).join('');
+            logoWall.setAttribute('aria-busy', 'false');
+          }
+
+          renderMarquee(tools);
+          renderPicker(tools, stacks);
+
+          // Live counters straight from the signed catalog export.
+          const setCount = (selector, value) => {
+            const el = document.querySelector(selector);
+            if (el) el.dataset.count = value;
+          };
+          setCount('[data-count="90"]', tools.length);
+          setCount('[data-count="12"]', stacks.length);
         })
         .catch(() => {
-          logoWall.innerHTML = '<p class="text-mute">Tool logos could not be loaded. Open the catalog page to browse all 90 tools.</p>';
-          logoWall.setAttribute('aria-busy', 'false');
+          if (logoWall) {
+            logoWall.innerHTML = '<p class="text-mute">Tool logos could not be loaded. Open the catalog page to browse all 90 tools.</p>';
+            logoWall.setAttribute('aria-busy', 'false');
+          }
         });
     }
   </script>
