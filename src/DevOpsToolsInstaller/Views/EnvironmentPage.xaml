@@ -157,6 +157,12 @@
                                             <TextBlock Text="Manage search priority, reorder directories, remove dead paths, and eliminate CLI shadowing." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <Button Click="RestorePathBackup_Click" ToolTipService.ToolTip="Restore previously backed-up PATH configuration">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE777;" FontSize="11" />
+                                                    <TextBlock Text="Restore Backup" />
+                                                </StackPanel>
+                                            </Button>
                                             <Button Click="EnsureBinOnPath_Click">
                                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                                     <FontIcon Glyph="&#xE71B;" FontSize="11" />
@@ -187,6 +193,9 @@
                                             <TextBlock Text="Add to PATH" />
                                         </Button>
                                     </Grid>
+
+                                    <!-- PATH Filter -->
+                                    <TextBox x:Name="SearchPathInput" PlaceholderText="Filter PATH entries by name or folder..." TextChanged="SearchPathInput_TextChanged" Margin="0,2,0,2" />
 
                                     <!-- PATH items list -->
                                     <StackPanel x:Name="PathItemsContainer" Spacing="6" Margin="0,6,0,0">
@@ -231,6 +240,9 @@
                                             <TextBlock Text="Set Variable" />
                                         </Button>
                                     </Grid>
+
+                                    <!-- Variables Filter -->
+                                    <TextBox x:Name="SearchVarInput" PlaceholderText="Filter environment variables..." TextChanged="SearchVarInput_TextChanged" Margin="0,2,0,2" />
 
                                     <!-- Variables list -->
                                     <StackPanel x:Name="VariablesContainer" Spacing="6" Margin="0,6,0,0" />
@@ -339,22 +351,40 @@
 
                             <!-- OpenSSH Agent Card -->
                             <Border Style="{StaticResource CardStyle}">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="Windows OpenSSH Authentication Agent (ssh-agent)" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                        <TextBlock x:Name="SshAgentStatusText" Text="Detecting ssh-agent service status..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-                                    </StackPanel>
-                                    <Button Grid.Column="1" x:Name="EnableSshAgentButton" Click="EnableSshAgent_Click">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon Glyph="&#xE768;" FontSize="11" />
-                                            <TextBlock Text="Enable &amp; Start Agent" />
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="Windows OpenSSH Authentication Agent (ssh-agent)" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            <TextBlock x:Name="SshAgentStatusText" Text="Detecting ssh-agent service status..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                         </StackPanel>
-                                    </Button>
-                                </Grid>
+                                        <Button Grid.Column="1" x:Name="EnableSshAgentButton" Click="EnableSshAgent_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE768;" FontSize="11" />
+                                                <TextBlock Text="Enable &amp; Start Agent" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Quick SSH Connectivity Test -->
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                                        <Button Click="TestGitHubSsh_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE756;" FontSize="11" />
+                                                <TextBlock Text="Test GitHub SSH Auth" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Click="TestGitLabSsh_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE756;" FontSize="11" />
+                                                <TextBlock Text="Test GitLab SSH Auth" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </StackPanel>
                             </Border>
 
                         </StackPanel>
@@ -378,10 +408,12 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
 
                                         <ComboBox Grid.Column="0" x:Name="TerminalProfileCombo" Header="Default Profile" HorizontalAlignment="Stretch" />
-                                        <ComboBox Grid.Column="1" x:Name="TerminalFontCombo" Header="Font Face (Nerd Font for Starship/Oh-My-Posh)" HorizontalAlignment="Stretch" />
+                                        <ComboBox Grid.Column="1" x:Name="TerminalFontCombo" Header="Font Face (Nerd Font)" HorizontalAlignment="Stretch" />
+                                        <ComboBox Grid.Column="2" x:Name="TerminalSchemeCombo" Header="Theme / Color Scheme" HorizontalAlignment="Stretch" />
                                     </Grid>
 
                                     <Button Click="SaveTerminalSettings_Click" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Left">
@@ -403,17 +435,25 @@
                                         <CheckBox x:Name="OptCompletions" IsChecked="True"
                                                   Content="DevOps CLI Tab Completions (kubectl, helm, terraform, gh, docker, k9s, etc.)" />
                                         <CheckBox x:Name="OptAliases" IsChecked="True"
-                                                  Content="Curated DevOps Aliases (k=kubectl, tf=terraform, d=docker, dc=docker compose, g=git, kns=kubens, ktx=kubectx, ll=ls -la)" />
+                                                  Content="Curated DevOps Aliases (k=kubectl, tf=terraform, d=docker, dc=docker compose, g=git, gs=git status, h=helm, kns=kubens, ktx=kubectx, ll=ls -la)" />
                                         <CheckBox x:Name="OptStarship" IsChecked="True"
                                                   Content="Starship Prompt Integration (auto-initializes Starship if installed)" />
                                     </StackPanel>
 
-                                    <Button Click="ApplyPowerShellSetup_Click" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
-                                            <FontIcon Glyph="&#xE768;" FontSize="11" />
-                                            <TextBlock Text="Apply Recommended PowerShell Setup" />
-                                        </StackPanel>
-                                    </Button>
+                                    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                                        <Button Click="ApplyPowerShellSetup_Click" Style="{StaticResource AccentButtonStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE768;" FontSize="11" />
+                                                <TextBlock Text="Apply Recommended PowerShell Setup" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button Click="OpenProfileInEditor_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE70F;" FontSize="11" />
+                                                <TextBlock Text="Open $PROFILE in Editor" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
                                     <TextBlock Text="Note: An automated backup (.bak) of your existing profile is created before writing changes." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </StackPanel>
                             </Border>

@@ -1928,6 +1928,16 @@ public static class CliHost
             WriteLine(res.Message);
             WriteLine($"Public Key Content ({res.PublicKeyPath}):");
             WriteLine(res.PublicKeyContent);
+
+            if (File.Exists(res.KeyPath))
+            {
+                var (agentSuccess, agentMsg) = await GitSshSetupService.AddKeyToSshAgentAsync(res.KeyPath);
+                if (agentSuccess)
+                {
+                    WriteLine($"[ssh-agent] {agentMsg}");
+                }
+            }
+
             return 0;
         }
         WriteLine($"error: {res.Message}");

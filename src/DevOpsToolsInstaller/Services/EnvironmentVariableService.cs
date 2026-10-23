@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace DevOpsToolsInstaller.Services;
 
@@ -34,7 +35,7 @@ public sealed record DevOpsPreset(
 
 /// <summary>
 /// Comprehensive manager for User & System PATH, environment variables,
-/// DevOps variable presets, and live broadcast updates.
+/// automated timestamped PATH backups, DevOps variable presets, and live broadcast updates.
 /// </summary>
 public static class EnvironmentVariableService
 {
@@ -51,6 +52,10 @@ public static class EnvironmentVariableService
     private const int HWND_BROADCAST = 0xffff;
     private const uint WM_SETTINGCHANGE = 0x001A;
     private const uint SMTO_ABORTIFHUNG = 0x0002;
+
+    private static string BackupFolder => Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "DevOpsToolsInstaller", "backups", "path");
 
     public static readonly IReadOnlyList<DevOpsPreset> Presets = new List<DevOpsPreset>
     {
@@ -88,22 +93,90 @@ public static class EnvironmentVariableService
     }
 
     /// <summary>
-    /// Saves the PATH for the specified target and broadcasts the change.
+    /// Saves the PATH for the specified target, creates an automatic timestamped backup, and broadcasts the change.
     /// </summary>
-    public static bool SavePathEntries(IEnumerable<string> paths, EnvironmentVariableTarget target = EnvironmentVariableTarget.User)
+    public static bool SavePathEntries(IEnumerable<string> paths, EnvironmentVariableTarget target = EnvironmentVariableTarget.User, bool createBackup = true)
     {
         try
         {
-            var joined = string.Join(";", paths.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()));
+            var validList = paths.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => p.Trim()).ToList();
+
+            if (createBackup)
+            {
+                CreatePathBackup(validList, target);
+            }
+
+            var joined = string.Join(";", validList);
             Environment.SetEnvironmentVariable("Path", joined, target);
             BroadcastChange();
-            ActivityLogService.Info("Environment", $"Updated {target} PATH with {paths.Count()} entries.");
+            ActivityLogService.Info("Environment", $"Updated {target} PATH with {validList.Count} entries.");
             return true;
         }
         catch (Exception ex)
         {
             ActivityLogService.Error("Environment", $"Failed to save {target} PATH: {ex.Message}");
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Creates a timestamped JSON backup file of PATH entries before modification.
+    /// </summary>
+    public static string CreatePathBackup(IEnumerable<string> paths, EnvironmentVariableTarget target = EnvironmentVariableTarget.User)
+    {
+        try
+        {
+            Directory.CreateDirectory(BackupFolder);
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var filename = $"path_backup_{target}_{timestamp}.json";
+            var fullPath = Path.Combine(BackupFolder, filename);
+
+            var data = new
+            {
+                Target = target.ToString(),
+                Timestamp = DateTime.UtcNow,
+                Entries = paths.ToList()
+            };
+
+            File.WriteAllText(fullPath, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
+            return fullPath;
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// Restores PATH from the most recent backup file.
+    /// </summary>
+    public static (bool Success, string Message) RestoreLastPathBackup(EnvironmentVariableTarget target = EnvironmentVariableTarget.User)
+    {
+        try
+        {
+            if (!Directory.Exists(BackupFolder)) return (false, "No backup directory found.");
+
+            var files = Directory.GetFiles(BackupFolder, $"path_backup_{target}_*.json")
+                .OrderByDescending(File.GetCreationTimeUtc)
+                .ToList();
+
+            if (files.Count == 0) return (false, "No previous PATH backups found.");
+
+            var latest = files[0];
+            var json = File.ReadAllText(latest);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("Entries", out var entriesProp))
+            {
+                var entries = entriesProp.EnumerateArray().Select(e => e.GetString() ?? "").Where(s => !string.IsNullOrWhiteSpace(s)).ToList();
+                bool saved = SavePathEntries(entries, target, createBackup: false);
+                return (saved, saved ? $"Restored {entries.Count} PATH entries from backup ({Path.GetFileName(latest)})." : "Failed to write restored PATH.");
+            }
+
+            return (false, "Malformed backup file format.");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error restoring backup: {ex.Message}");
         }
     }
 
@@ -135,7 +208,7 @@ public static class EnvironmentVariableService
             valid.Add(item.Path);
         }
 
-        SavePathEntries(valid, target);
+        SavePathEntries(valid, target, createBackup: true);
         return (removedDups, removedDead);
     }
 
@@ -151,11 +224,11 @@ public static class EnvironmentVariableService
         entries.RemoveAll(p => string.Equals(p.TrimEnd('\\'), bin.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase));
         entries.Insert(0, bin);
 
-        return SavePathEntries(entries, EnvironmentVariableTarget.User);
+        return SavePathEntries(entries, EnvironmentVariableTarget.User, createBackup: true);
     }
 
     /// <summary>
-    /// Retrieves all user environment variables (excluding Path).
+    /// Retrieves all environment variables (excluding Path).
     /// </summary>
     public static List<EnvVariableItem> GetVariables(EnvironmentVariableTarget target = EnvironmentVariableTarget.User)
     {

@@ -113,7 +113,28 @@ public static class NewPcMigrationService
         var ps5 = Path.Combine(docs, "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1");
         if (File.Exists(ps5)) return ps5;
 
-        return ps7; // default target
+        // Try local user documents (bypassing OneDrive virtualization if needed)
+        var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var localDocsPs7 = Path.Combine(userProfile, "Documents", "PowerShell", "Microsoft.PowerShell_profile.ps1");
+        if (File.Exists(localDocsPs7)) return localDocsPs7;
+
+        var localDocsPs5 = Path.Combine(userProfile, "Documents", "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1");
+        if (File.Exists(localDocsPs5)) return localDocsPs5;
+
+        // Check if docs folder is writable; if not, fall back to local user documents
+        try
+        {
+            var testDir = Path.Combine(docs, "PowerShell");
+            Directory.CreateDirectory(testDir);
+            var testFile = Path.Combine(testDir, ".write_test");
+            File.WriteAllText(testFile, "");
+            File.Delete(testFile);
+            return ps7;
+        }
+        catch
+        {
+            return localDocsPs7;
+        }
     }
 
     public static string? GetWindowsTerminalSettingsPath()

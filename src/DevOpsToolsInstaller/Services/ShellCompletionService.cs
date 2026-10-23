@@ -120,18 +120,7 @@ public static class ShellCompletionService
     /// </summary>
     public static string GetPowerShellProfilePath()
     {
-        var docs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-        // Check modern PowerShell 7+ path first
-        var ps7Path = Path.Combine(docs, "PowerShell", "Microsoft.PowerShell_profile.ps1");
-        if (File.Exists(ps7Path)) return ps7Path;
-
-        // Check WindowsPowerShell 5.1 path
-        var ps5Path = Path.Combine(docs, "WindowsPowerShell", "Microsoft.PowerShell_profile.ps1");
-        if (File.Exists(ps5Path)) return ps5Path;
-
-        // Default to modern PowerShell path
-        return ps7Path;
+        return NewPcMigrationService.GetPowerShellProfilePath();
     }
 
     /// <summary>

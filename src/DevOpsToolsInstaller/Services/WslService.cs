@@ -40,12 +40,12 @@ public sealed record WslToolStatus(
     string? WindowsVersion);
 
 /// <summary>
-/// Service for WSL awareness, distribution detection, inside-WSL tool checks,
+/// Service for WSL awareness, distribution detection, inside-WSL tool checks and installation,
 /// and virtualization/WSL2 prerequisite remediation.
 /// </summary>
 public static class WslService
 {
-    private static readonly Regex CleanWslTextRegex = new(@"[^\x20-\x7E\r\n\t]", RegexOptions.Compiled);
+    private static readonly Regex AnsiRegex = new(@"\x1B\[[0-9;]*[a-zA-Z]", RegexOptions.Compiled);
 
     /// <summary>
     /// Checks whether wsl.exe is available on the machine.
@@ -65,7 +65,7 @@ public static class WslService
 
     /// <summary>
     /// Enumerates installed WSL distributions, parsing wsl -l -v output.
-    /// Safely handles UTF-16LE unicode encoding from wsl.exe.
+    /// Safely handles UTF-16LE unicode encoding and distro states.
     /// </summary>
     public static async Task<List<WslDistroInfo>> ListDistrosAsync()
     {
@@ -87,7 +87,7 @@ public static class WslService
                 bool isDefault = line.StartsWith("*");
                 var trimmed = line.TrimStart('*', ' ');
 
-                var parts = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var parts = trimmed.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length >= 3)
                 {
                     var name = parts[0].Trim();
@@ -108,7 +108,8 @@ public static class WslService
     }
 
     /// <summary>
-    /// Evaluates WSL2 and Virtualization prerequisites (VirtualMachinePlatform, WSL feature, Hyper-V).
+    /// Evaluates WSL2 and Virtualization prerequisites without requiring admin elevation:
+    /// uses wsl.exe status, CIM hypervisor presence, and registry service state.
     /// </summary>
     public static async Task<WslPrerequisiteReport> CheckPrerequisitesAsync()
     {
@@ -141,28 +142,36 @@ public static class WslService
 
         try
         {
-            // Query DISM features in background
-            var dismOutput = await RunPowerShellAsync("Get-WindowsOptionalFeature -Online | Where-Object { $_.FeatureName -in @('VirtualMachinePlatform', 'Microsoft-Windows-Subsystem-Linux', 'Microsoft-Hyper-V-All') } | Select-Object FeatureName, State | ConvertTo-Json");
-            if (!string.IsNullOrWhiteSpace(dismOutput))
+            // 1. Check HypervisorPresent via CIM (non-elevated)
+            var hyperOutput = await RunPowerShellAsync("(Get-CimInstance Win32_ComputerSystem).HypervisorPresent");
+            if (bool.TryParse(hyperOutput.Trim(), out bool isHyper) && isHyper)
             {
-                if (dismOutput.Contains("\"VirtualMachinePlatform\"", StringComparison.OrdinalIgnoreCase) &&
-                    dismOutput.Contains("\"Enabled\"", StringComparison.OrdinalIgnoreCase))
-                {
-                    vmpEnabled = true;
-                }
-                if (dismOutput.Contains("\"Microsoft-Windows-Subsystem-Linux\"", StringComparison.OrdinalIgnoreCase) &&
-                    dismOutput.Contains("\"Enabled\"", StringComparison.OrdinalIgnoreCase))
-                {
-                    wslFeatureEnabled = true;
-                }
-                if (dismOutput.Contains("\"Microsoft-Hyper-V", StringComparison.OrdinalIgnoreCase) &&
-                    dismOutput.Contains("\"Enabled\"", StringComparison.OrdinalIgnoreCase))
-                {
-                    hypervEnabled = true;
-                }
+                vmpEnabled = true;
+                hypervEnabled = true;
+            }
+
+            // 2. Check Virtualization in firmware
+            var fwOutput = await RunPowerShellAsync("(Get-CimInstance Win32_Processor | Select-Object -First 1).VirtualizationFirmwareEnabled");
+            if (bool.TryParse(fwOutput.Trim(), out bool fw) && !fw && !vmpEnabled)
+            {
+                firmwareVirt = false;
+            }
+
+            // 3. Inspect Registry service flags for WSL (read-only, no elevation needed)
+            var regCheck = await RunPowerShellAsync("Test-Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Services\\lxss'");
+            if (bool.TryParse(regCheck.Trim(), out bool hasLxss) && hasLxss)
+            {
+                wslFeatureEnabled = true;
             }
         }
         catch { }
+
+        // If wsl.exe --status returned a default version, WSL2 is definitely operational
+        if (!string.IsNullOrEmpty(wslVer))
+        {
+            wslFeatureEnabled = true;
+            vmpEnabled = true;
+        }
 
         if (!hasWsl || !wslFeatureEnabled)
         {
@@ -171,6 +180,10 @@ public static class WslService
         if (!vmpEnabled)
         {
             recs.Add("Enable 'Virtual Machine Platform' (required for WSL2, Docker Desktop, and minikube).");
+        }
+        if (!firmwareVirt)
+        {
+            recs.Add("Hardware virtualization (VT-x / AMD-V) appears disabled in your PC BIOS/UEFI firmware.");
         }
         if (recs.Count == 0)
         {
@@ -249,6 +262,73 @@ public static class WslService
     }
 
     /// <summary>
+    /// Launches an interactive terminal session inside the specified WSL distribution to execute tool installation.
+    /// Opens in a dedicated visible terminal so the user can review package manager output and provide sudo credentials.
+    /// </summary>
+    public static bool InstallToolInDistro(string distroName, string toolId, bool interactive = true)
+    {
+        if (!IsWslAvailable() || string.IsNullOrWhiteSpace(distroName)) return false;
+
+        var installCmd = GetInstallCommandForDistro(distroName, toolId);
+
+        try
+        {
+            if (interactive)
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "wsl.exe",
+                    Arguments = $"-d \"{distroName}\" bash -ic \"echo 'Installing {toolId} in {distroName}...'; {installCmd}; echo; echo 'Done. Press Enter to exit.'; read -r\"",
+                    UseShellExecute = true
+                };
+                Process.Start(psi);
+                ActivityLogService.Info("WSL", $"Launched interactive installer for '{toolId}' in '{distroName}'.");
+                return true;
+            }
+            else
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "wsl.exe",
+                    Arguments = $"-d \"{distroName}\" -- bash -c \"{installCmd}\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                return proc != null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ActivityLogService.Error("WSL", $"Failed to launch installation in WSL: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Opens an interactive bash terminal inside the selected WSL distribution.
+    /// </summary>
+    public static bool LaunchDistroTerminal(string distroName)
+    {
+        if (!IsWslAvailable() || string.IsNullOrWhiteSpace(distroName)) return false;
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "wsl.exe",
+                Arguments = $"-d \"{distroName}\"",
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Generates an elevated remediation script to enable VirtualMachinePlatform and WSL2.
     /// </summary>
     public static string GeneratePrerequisiteFixScript()
@@ -294,26 +374,48 @@ Write-Host "Prerequisites configured successfully. If prompted, please restart y
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
-            CreateNoWindow = true,
-            StandardOutputEncoding = Encoding.Unicode // wsl.exe uses UTF-16LE
+            CreateNoWindow = true
         };
 
         using var proc = Process.Start(psi);
         if (proc is null) return string.Empty;
 
-        var task = proc.StandardOutput.ReadToEndAsync();
-        var completed = await Task.WhenAny(task, Task.Delay(timeoutMs));
-        if (completed == task)
+        using var outMs = new MemoryStream();
+        using var errMs = new MemoryStream();
+
+        var outTask = proc.StandardOutput.BaseStream.CopyToAsync(outMs);
+        var errTask = proc.StandardError.BaseStream.CopyToAsync(errMs);
+
+        var completed = await Task.WhenAny(Task.WhenAll(outTask, errTask), Task.Delay(timeoutMs));
+        if (completed != Task.Delay(timeoutMs))
         {
             await proc.WaitForExitAsync();
-            return await task;
+            var outBytes = outMs.ToArray();
+            return DecodeProcessOutput(outBytes);
         }
 
         try { proc.Kill(); } catch { }
         return string.Empty;
     }
 
-    private static async Task<string> RunPowerShellAsync(string script, int timeoutMs = 12000)
+    private static string DecodeProcessOutput(byte[] bytes)
+    {
+        if (bytes == null || bytes.Length == 0) return string.Empty;
+
+        // Auto-detect UTF-16LE vs UTF-8
+        if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
+        {
+            return Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+        }
+        if (bytes.Length >= 2 && bytes[1] == 0x00)
+        {
+            return Encoding.Unicode.GetString(bytes);
+        }
+
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+    private static async Task<string> RunPowerShellAsync(string script, int timeoutMs = 10000)
     {
         var psi = new ProcessStartInfo
         {
@@ -343,8 +445,7 @@ Write-Host "Prerequisites configured successfully. If prompted, please restart y
     private static string CleanWslString(string input)
     {
         if (string.IsNullOrEmpty(input)) return string.Empty;
-        // Strip null characters and control codes
         var s = input.Replace("\0", "");
-        return CleanWslTextRegex.Replace(s, " ");
+        return AnsiRegex.Replace(s, "").Trim();
     }
 }

@@ -259,6 +259,91 @@ public static class GitSshSetupService
     }
 
     /// <summary>
+    /// Adds an SSH private key to the running Windows ssh-agent.
+    /// </summary>
+    public static async Task<(bool Success, string Message)> AddKeyToSshAgentAsync(string privateKeyPath)
+    {
+        if (!File.Exists(privateKeyPath)) return (false, $"Key file '{privateKeyPath}' does not exist.");
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "ssh-add.exe",
+                Arguments = $"\"{privateKeyPath}\"",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var proc = Process.Start(psi);
+            if (proc is null) return (false, "Could not start ssh-add.exe");
+
+            var outTask = proc.StandardOutput.ReadToEndAsync();
+            var errTask = proc.StandardError.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+
+            var stdout = await outTask;
+            var stderr = await errTask;
+
+            if (proc.ExitCode == 0)
+            {
+                ActivityLogService.Info("SSH", $"Added key '{Path.GetFileName(privateKeyPath)}' to ssh-agent.");
+                return (true, $"Key '{Path.GetFileName(privateKeyPath)}' successfully added to ssh-agent.");
+            }
+            else
+            {
+                var msg = !string.IsNullOrWhiteSpace(stderr) ? stderr.Trim() : stdout.Trim();
+                return (false, string.IsNullOrWhiteSpace(msg) ? "ssh-add returned non-zero code. Is ssh-agent running?" : msg);
+            }
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error adding key to agent: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Tests authentication against GitHub or GitLab via ssh -T git@host.
+    /// </summary>
+    public static async Task<(bool Success, string Output)> TestSshConnectionAsync(string host = "github.com")
+    {
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "ssh.exe",
+                Arguments = $"-T -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=6 git@{host}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var proc = Process.Start(psi);
+            if (proc is null) return (false, "Could not launch ssh.exe");
+
+            var outTask = proc.StandardOutput.ReadToEndAsync();
+            var errTask = proc.StandardError.ReadToEndAsync();
+            await proc.WaitForExitAsync();
+
+            var combined = ((await outTask) + "\n" + (await errTask)).Trim();
+
+            // GitHub returns exit code 1 with "Hi <username>! You've successfully authenticated"
+            // GitLab returns exit code 0 or 1 with "Welcome to GitLab, @username!"
+            bool authenticated = combined.Contains("successfully authenticated", StringComparison.OrdinalIgnoreCase) ||
+                                 combined.Contains("Welcome to GitLab", StringComparison.OrdinalIgnoreCase);
+
+            return (authenticated, combined);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"SSH connection test failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
     /// Script to enable and start Windows OpenSSH Authentication Agent.
     /// </summary>
     public static string GetEnableSshAgentScript()

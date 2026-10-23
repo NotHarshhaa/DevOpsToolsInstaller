@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -20,6 +21,7 @@ public sealed record TerminalSettingsSummary(
     string? SettingsPath,
     string? DefaultProfileName,
     string? CurrentFont,
+    string? CurrentScheme,
     IReadOnlyList<TerminalProfileItem> Profiles,
     IReadOnlyList<string> AvailableColorSchemes);
 
@@ -48,9 +50,14 @@ public static class TerminalPowerShellSetupService
         ["tf"] = "terraform",
         ["d"] = "docker",
         ["dc"] = "docker compose",
+        ["dps"] = "docker ps",
         ["g"] = "git",
+        ["gs"] = "git status",
+        ["h"] = "helm",
         ["kns"] = "kubens",
         ["ktx"] = "kubectx",
+        ["kgp"] = "kubectl get pods",
+        ["kgs"] = "kubectl get svc",
         ["ll"] = "Get-ChildItem -Force"
     };
 
@@ -62,14 +69,14 @@ public static class TerminalPowerShellSetupService
         var settingsPath = NewPcMigrationService.GetWindowsTerminalSettingsPath();
         if (string.IsNullOrEmpty(settingsPath) || !File.Exists(settingsPath))
         {
-            return new TerminalSettingsSummary(false, null, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
+            return new TerminalSettingsSummary(false, null, null, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
         }
 
         try
         {
             var json = await File.ReadAllTextAsync(settingsPath, Encoding.UTF8);
             var root = JsonNode.Parse(json);
-            if (root is null) return new TerminalSettingsSummary(true, settingsPath, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
+            if (root is null) return new TerminalSettingsSummary(true, settingsPath, null, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
 
             var defaultProfileGuid = root["defaultProfile"]?.GetValue<string>();
             string? currentFont = null;
@@ -78,6 +85,9 @@ public static class TerminalPowerShellSetupService
             var defaultFontFace = root["profiles"]?["defaults"]?["font"]?["face"]?.GetValue<string>()
                 ?? root["profiles"]?["defaults"]?["fontFace"]?.GetValue<string>();
             currentFont = defaultFontFace;
+
+            // Check profiles.defaults.colorScheme
+            var defaultScheme = root["profiles"]?["defaults"]?["colorScheme"]?.GetValue<string>();
 
             var profileItems = new List<TerminalProfileItem>();
             var profileList = root["profiles"]?["list"]?.AsArray();
@@ -98,7 +108,7 @@ public static class TerminalPowerShellSetupService
 
             var defaultProf = profileItems.FirstOrDefault(p => p.IsDefault);
 
-            var schemes = new List<string> { "Campbell", "One Half Dark", "Dracula", "Solarized Dark", "Vintage" };
+            var schemes = new List<string> { "Campbell", "One Half Dark", "Dracula", "Solarized Dark", "Vintage", "Tango Dark" };
             var schemesArray = root["schemes"]?.AsArray();
             if (schemesArray != null)
             {
@@ -112,12 +122,12 @@ public static class TerminalPowerShellSetupService
                 }
             }
 
-            return new TerminalSettingsSummary(true, settingsPath, defaultProf?.Name ?? "Default", currentFont, profileItems, schemes);
+            return new TerminalSettingsSummary(true, settingsPath, defaultProf?.Name ?? "Default", currentFont, defaultScheme, profileItems, schemes);
         }
         catch (Exception ex)
         {
             ActivityLogService.Warn("Terminal", $"Could not parse Windows Terminal settings: {ex.Message}");
-            return new TerminalSettingsSummary(true, settingsPath, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
+            return new TerminalSettingsSummary(true, settingsPath, null, null, null, Array.Empty<TerminalProfileItem>(), Array.Empty<string>());
         }
     }
 
@@ -190,6 +200,77 @@ public static class TerminalPowerShellSetupService
         catch (Exception ex)
         {
             ActivityLogService.Error("Terminal", $"Failed to update font face: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Updates the default color scheme (theme) across Windows Terminal profiles.
+    /// </summary>
+    public static async Task<bool> SetTerminalColorSchemeAsync(string schemeName)
+    {
+        var settingsPath = NewPcMigrationService.GetWindowsTerminalSettingsPath();
+        if (string.IsNullOrEmpty(settingsPath) || !File.Exists(settingsPath)) return false;
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(settingsPath, Encoding.UTF8);
+            var root = JsonNode.Parse(json);
+            if (root is null) return false;
+
+            var profilesNode = root["profiles"]?.AsObject();
+            if (profilesNode is null)
+            {
+                profilesNode = new JsonObject();
+                root["profiles"] = profilesNode;
+            }
+
+            var defaultsNode = profilesNode["defaults"]?.AsObject();
+            if (defaultsNode is null)
+            {
+                defaultsNode = new JsonObject();
+                profilesNode["defaults"] = defaultsNode;
+            }
+
+            defaultsNode["colorScheme"] = schemeName;
+            await File.WriteAllTextAsync(settingsPath, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }), Encoding.UTF8);
+            ActivityLogService.Info("Terminal", $"Updated Windows Terminal color scheme to '{schemeName}'.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ActivityLogService.Error("Terminal", $"Failed to update color scheme: {ex.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Launches the user's PowerShell profile in their default system editor.
+    /// </summary>
+    public static bool OpenProfileInEditor()
+    {
+        var path = NewPcMigrationService.GetPowerShellProfilePath();
+        var dir = Path.GetDirectoryName(path)!;
+        Directory.CreateDirectory(dir);
+        if (!File.Exists(path))
+        {
+            File.WriteAllText(path, "# PowerShell User Profile\n", Encoding.UTF8);
+        }
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c start \"\" \"{path}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+            Process.Start(psi);
+            return true;
+        }
+        catch
+        {
             return false;
         }
     }

@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using DevOpsToolsInstaller.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Pickers;
-using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
 
 public sealed partial class EnvironmentPage : Page, IRefreshablePage
 {
     private List<string> _currentPathEntries = new();
+    private List<PathItem> _allPathItems = new();
+    private List<EnvVariableItem> _allVariables = new();
     private List<WslDistroInfo> _wslDistros = new();
 
     public EnvironmentPage()
@@ -23,18 +25,20 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         Loaded += EnvironmentPage_Loaded;
     }
 
+    void IRefreshablePage.RefreshView() => _ = RefreshAsync();
+
     private async void EnvironmentPage_Loaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAllAsync();
+        await RefreshAsync();
     }
 
-    public void RefreshView() => _ = RefreshAllAsync();
+    private async void RefreshAll_Click(object sender, RoutedEventArgs e)
+    {
+        await RefreshAsync();
+        ShowNotice("Refreshed workstation environment status across all tabs.", InfoBarSeverity.Informational);
+    }
 
-    public async Task RefreshAsync() => await RefreshAllAsync();
-
-    private async void RefreshAll_Click(object sender, RoutedEventArgs e) => await RefreshAllAsync();
-
-    private async Task RefreshAllAsync()
+    public async Task RefreshAsync()
     {
         try
         {
@@ -59,7 +63,7 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         WslEngineStatusText.Text = prereqs.IsWslInstalled ? "Installed (Ready)" : "Not Detected";
         VmpStatusText.Text = prereqs.IsVirtualMachinePlatformEnabled ? "Enabled" : "Disabled (Needs Fix)";
         WslDefaultVersionText.Text = prereqs.WslVersion ?? "WSL 2";
-        WslRecommendationsText.Text = string.Join(" • ", prereqs.Recommendations);
+        WslRecommendationsText.Text = string.Join("   •   ", prereqs.Recommendations);
 
         _wslDistros = await WslService.ListDistrosAsync();
         DistrosContainer.Children.Clear();
@@ -120,15 +124,31 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
                 Grid.SetColumn(info, 0);
                 grid.Children.Add(info);
 
+                var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+
+                var termBtn = new Button
+                {
+                    Content = new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        Spacing = 4,
+                        Children = { new FontIcon { Glyph = "\uE756", FontSize = 11 }, new TextBlock { Text = "Open Terminal", FontSize = 12 } }
+                    },
+                    Padding = new Thickness(10, 4, 10, 4)
+                };
+                termBtn.Click += (s, e) => WslService.LaunchDistroTerminal(d.Name);
+                actions.Children.Add(termBtn);
+
                 var actionBtn = new Button
                 {
-                    Content = new TextBlock { Text = "Check Tools Inside", FontSize = 12 },
+                    Content = new TextBlock { Text = "Check Tools", FontSize = 12 },
                     Padding = new Thickness(10, 4, 10, 4)
                 };
                 actionBtn.Click += async (s, e) => await ProbeToolsForDistroAsync(d.Name);
+                actions.Children.Add(actionBtn);
 
-                Grid.SetColumn(actionBtn, 1);
-                grid.Children.Add(actionBtn);
+                Grid.SetColumn(actions, 1);
+                grid.Children.Add(actions);
 
                 card.Child = grid;
                 DistrosContainer.Children.Add(card);
@@ -234,17 +254,37 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
             Grid.SetColumn(statusPanel, 1);
             grid.Children.Add(statusPanel);
 
+            var btnPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+
+            if (!t.IsInstalledInWsl)
+            {
+                var installBtn = new Button { Padding = new Thickness(8, 4, 8, 4), Style = (Style)Application.Current.Resources["AccentButtonStyle"] };
+                installBtn.Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 4,
+                    Children = { new FontIcon { Glyph = "\uE896", FontSize = 11 }, new TextBlock { Text = "Install in WSL", FontSize = 11 } }
+                };
+                installBtn.Click += (s, e) =>
+                {
+                    WslService.InstallToolInDistro(distroName, t.ToolId, interactive: true);
+                    ShowNotice($"Launched interactive terminal installer for {t.Name} inside {distroName}.", InfoBarSeverity.Informational);
+                };
+                btnPanel.Children.Add(installBtn);
+            }
+
             var copyBtn = new Button { Padding = new Thickness(8, 4, 8, 4) };
-            copyBtn.Content = new TextBlock { Text = "Copy Install Cmd", FontSize = 11 };
+            copyBtn.Content = new TextBlock { Text = "Copy Cmd", FontSize = 11 };
             copyBtn.Click += (s, e) =>
             {
                 var cmd = WslService.GetInstallCommandForDistro(distroName, t.ToolId);
                 CopyToClipboard(cmd);
                 ShowNotice($"Copied install command for {t.Name} inside {distroName} to clipboard.", InfoBarSeverity.Success);
             };
+            btnPanel.Children.Add(copyBtn);
 
-            Grid.SetColumn(copyBtn, 2);
-            grid.Children.Add(copyBtn);
+            Grid.SetColumn(btnPanel, 2);
+            grid.Children.Add(btnPanel);
 
             row.Child = grid;
             WslToolsContainer.Children.Add(row);
@@ -256,80 +296,10 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
     private async Task LoadPathAndVariablesSectionAsync()
     {
         await Task.Yield();
-        var items = EnvironmentVariableService.GetPathEntries(EnvironmentVariableTarget.User);
-        _currentPathEntries = items.Select(i => i.Path).ToList();
+        _allPathItems = EnvironmentVariableService.GetPathEntries(EnvironmentVariableTarget.User);
+        _currentPathEntries = _allPathItems.Select(i => i.Path).ToList();
 
-        PathItemsContainer.Children.Clear();
-        for (int i = 0; i < items.Count; i++)
-        {
-            var item = items[i];
-            var card = new Border
-            {
-                Background = (Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
-                Padding = new Thickness(10, 6, 10, 6),
-                CornerRadius = new CornerRadius(5)
-            };
-
-            var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-            var idxText = new TextBlock
-            {
-                Text = $"#{i + 1}",
-                FontSize = 11,
-                Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"],
-                VerticalAlignment = VerticalAlignment.Center
-            };
-            Grid.SetColumn(idxText, 0);
-            grid.Children.Add(idxText);
-
-            var pathInfo = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
-            pathInfo.Children.Add(new TextBlock
-            {
-                Text = item.Path,
-                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
-                TextTrimming = TextTrimming.CharacterEllipsis
-            });
-            pathInfo.Children.Add(new TextBlock
-            {
-                Text = item.StatusText,
-                FontSize = 10,
-                Foreground = !item.Exists
-                    ? (Brush)Application.Current.Resources["SystemFillColorCautionBrush"]
-                    : (item.IsDevOpsBin
-                        ? (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"]
-                        : (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"])
-            });
-
-            Grid.SetColumn(pathInfo, 1);
-            grid.Children.Add(pathInfo);
-
-            var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center };
-            int capturedIdx = i;
-
-            var upBtn = new Button { Padding = new Thickness(6, 4, 6, 4), IsEnabled = capturedIdx > 0 };
-            upBtn.Content = new FontIcon { Glyph = "\uE70E", FontSize = 10 };
-            upBtn.Click += (s, e) => MovePathEntry(capturedIdx, -1);
-            actions.Children.Add(upBtn);
-
-            var downBtn = new Button { Padding = new Thickness(6, 4, 6, 4), IsEnabled = capturedIdx < items.Count - 1 };
-            downBtn.Content = new FontIcon { Glyph = "\uE70D", FontSize = 10 };
-            downBtn.Click += (s, e) => MovePathEntry(capturedIdx, 1);
-            actions.Children.Add(downBtn);
-
-            var delBtn = new Button { Padding = new Thickness(6, 4, 6, 4) };
-            delBtn.Content = new FontIcon { Glyph = "\uE74D", FontSize = 10 };
-            delBtn.Click += (s, e) => RemovePathEntry(capturedIdx);
-            actions.Children.Add(delBtn);
-
-            Grid.SetColumn(actions, 2);
-            grid.Children.Add(actions);
-
-            card.Child = grid;
-            PathItemsContainer.Children.Add(card);
-        }
+        RenderPathItems(SearchPathInput?.Text);
 
         // DevOps Presets
         PresetsContainer.Children.Clear();
@@ -377,8 +347,118 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         }
 
         // Custom Variables
-        var vars = EnvironmentVariableService.GetVariables(EnvironmentVariableTarget.User);
+        _allVariables = EnvironmentVariableService.GetVariables(EnvironmentVariableTarget.User);
+        RenderVariables(SearchVarInput?.Text);
+    }
+
+    private void RenderPathItems(string? filter)
+    {
+        PathItemsContainer.Children.Clear();
+        var items = string.IsNullOrWhiteSpace(filter)
+            ? _allPathItems
+            : _allPathItems.Where(p => p.Path.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (items.Count == 0)
+        {
+            PathItemsContainer.Children.Add(new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(filter) ? "No PATH entries found." : "No matching PATH entries found.",
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            });
+            return;
+        }
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            var card = new Border
+            {
+                Background = (Brush)Application.Current.Resources["ControlFillColorDefaultBrush"],
+                Padding = new Thickness(10, 6, 10, 6),
+                CornerRadius = new CornerRadius(5)
+            };
+
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var idxText = new TextBlock
+            {
+                Text = $"#{item.Index + 1}",
+                FontSize = 11,
+                Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"],
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(idxText, 0);
+            grid.Children.Add(idxText);
+
+            var pathInfo = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
+            pathInfo.Children.Add(new TextBlock
+            {
+                Text = item.Path,
+                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
+                TextTrimming = TextTrimming.CharacterEllipsis
+            });
+            pathInfo.Children.Add(new TextBlock
+            {
+                Text = item.StatusText,
+                FontSize = 10,
+                Foreground = !item.Exists
+                    ? (Brush)Application.Current.Resources["SystemFillColorCautionBrush"]
+                    : (item.IsDevOpsBin
+                        ? (Brush)Application.Current.Resources["SystemFillColorSuccessBrush"]
+                        : (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"])
+            });
+
+            Grid.SetColumn(pathInfo, 1);
+            grid.Children.Add(pathInfo);
+
+            var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 4, VerticalAlignment = VerticalAlignment.Center };
+            int originalIdx = item.Index;
+
+            var upBtn = new Button { Padding = new Thickness(6, 4, 6, 4), IsEnabled = originalIdx > 0 };
+            upBtn.Content = new FontIcon { Glyph = "\uE70E", FontSize = 10 };
+            upBtn.Click += (s, e) => MovePathEntry(originalIdx, -1);
+            actions.Children.Add(upBtn);
+
+            var downBtn = new Button { Padding = new Thickness(6, 4, 6, 4), IsEnabled = originalIdx < _currentPathEntries.Count - 1 };
+            downBtn.Content = new FontIcon { Glyph = "\uE70D", FontSize = 10 };
+            downBtn.Click += (s, e) => MovePathEntry(originalIdx, 1);
+            actions.Children.Add(downBtn);
+
+            var delBtn = new Button { Padding = new Thickness(6, 4, 6, 4) };
+            delBtn.Content = new FontIcon { Glyph = "\uE74D", FontSize = 10 };
+            delBtn.Click += (s, e) => RemovePathEntry(originalIdx);
+            actions.Children.Add(delBtn);
+
+            Grid.SetColumn(actions, 2);
+            grid.Children.Add(actions);
+
+            card.Child = grid;
+            PathItemsContainer.Children.Add(card);
+        }
+    }
+
+    private void RenderVariables(string? filter)
+    {
         VariablesContainer.Children.Clear();
+        var vars = string.IsNullOrWhiteSpace(filter)
+            ? _allVariables
+            : _allVariables.Where(v => v.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) || v.Value.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (vars.Count == 0)
+        {
+            VariablesContainer.Children.Add(new TextBlock
+            {
+                Text = string.IsNullOrWhiteSpace(filter) ? "No custom variables found." : "No matching variables found.",
+                Style = (Style)Application.Current.Resources["CaptionTextBlockStyle"],
+                Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            });
+            return;
+        }
+
         foreach (var v in vars)
         {
             var vRow = new Border
@@ -417,6 +497,26 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         }
     }
 
+    private void SearchPathInput_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        RenderPathItems(SearchPathInput.Text);
+    }
+
+    private void SearchVarInput_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        RenderVariables(SearchVarInput.Text);
+    }
+
+    private void RestorePathBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var (success, msg) = EnvironmentVariableService.RestoreLastPathBackup(EnvironmentVariableTarget.User);
+        ShowNotice(msg, success ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
+        if (success)
+        {
+            _ = LoadPathAndVariablesSectionAsync();
+        }
+    }
+
     private void MovePathEntry(int index, int delta)
     {
         int target = index + delta;
@@ -444,7 +544,7 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
     private void CleanPath_Click(object sender, RoutedEventArgs e)
     {
         var (dups, dead) = EnvironmentVariableService.CleanAndDeduplicatePath(EnvironmentVariableTarget.User);
-        ShowNotice($"PATH cleaned: removed {dups} duplicate entries and {dead} non-existent folders.", InfoBarSeverity.Success);
+        ShowNotice($"PATH cleaned: removed {dups} duplicate entries and {dead} non-existent folders. Backup created.", InfoBarSeverity.Success);
         _ = LoadPathAndVariablesSectionAsync();
     }
 
@@ -519,6 +619,10 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         else if (cfg.AutoCrlf == "false") GitAutoCrlfCombo.SelectedIndex = 2;
         else GitAutoCrlfCombo.SelectedIndex = 0;
 
+        if (string.Equals(cfg.CredentialHelper, "store", StringComparison.OrdinalIgnoreCase)) GitCredCombo.SelectedIndex = 1;
+        else if (string.Equals(cfg.CredentialHelper, "cache", StringComparison.OrdinalIgnoreCase)) GitCredCombo.SelectedIndex = 2;
+        else GitCredCombo.SelectedIndex = 0;
+
         // Existing SSH keys
         var keys = GitSshSetupService.GetExistingSshKeys();
         SshKeysContainer.Children.Clear();
@@ -558,6 +662,22 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
                 Grid.SetColumn(kInfo, 0);
                 kGrid.Children.Add(kInfo);
 
+                var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+
+                var addAgentBtn = new Button { Padding = new Thickness(8, 4, 8, 4) };
+                addAgentBtn.Content = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    Spacing = 4,
+                    Children = { new FontIcon { Glyph = "\uE71B", FontSize = 10 }, new TextBlock { Text = "Add to Agent", FontSize = 11 } }
+                };
+                addAgentBtn.Click += async (s, e) =>
+                {
+                    var (success, msg) = await GitSshSetupService.AddKeyToSshAgentAsync(k.PrivateKeyPath);
+                    ShowNotice(msg, success ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
+                };
+                actions.Children.Add(addAgentBtn);
+
                 var copyBtn = new Button { Padding = new Thickness(10, 4, 10, 4) };
                 copyBtn.Content = new StackPanel
                 {
@@ -574,9 +694,10 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
                         ShowNotice($"Copied public key '{k.Name}.pub' to clipboard. Paste into GitHub (Settings > SSH Keys) or GitLab.", InfoBarSeverity.Success);
                     }
                 };
+                actions.Children.Add(copyBtn);
 
-                Grid.SetColumn(copyBtn, 1);
-                kGrid.Children.Add(copyBtn);
+                Grid.SetColumn(actions, 1);
+                kGrid.Children.Add(actions);
 
                 kRow.Child = kGrid;
                 SshKeysContainer.Children.Add(kRow);
@@ -661,6 +782,20 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         }
     }
 
+    private async void TestGitHubSsh_Click(object sender, RoutedEventArgs e)
+    {
+        ShowNotice("Testing SSH authentication to GitHub (git@github.com)...", InfoBarSeverity.Informational);
+        var (success, output) = await GitSshSetupService.TestSshConnectionAsync("github.com");
+        ShowNotice(success ? $"GitHub SSH Authenticated! {output}" : $"GitHub SSH Result: {output}", success ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
+    }
+
+    private async void TestGitLabSsh_Click(object sender, RoutedEventArgs e)
+    {
+        ShowNotice("Testing SSH authentication to GitLab (git@gitlab.com)...", InfoBarSeverity.Informational);
+        var (success, output) = await GitSshSetupService.TestSshConnectionAsync("gitlab.com");
+        ShowNotice(success ? $"GitLab SSH Authenticated! {output}" : $"GitLab SSH Result: {output}", success ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
+    }
+
     // ── TAB 4: TERMINAL & POWERSHELL ────────────────────────────────────────
 
     private async Task LoadTerminalPowerShellSectionAsync()
@@ -690,6 +825,21 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
             TerminalFontCombo.SelectedIndex = 0;
         }
 
+        TerminalSchemeCombo.Items.Clear();
+        foreach (var s in term.AvailableColorSchemes)
+        {
+            var item = new ComboBoxItem { Content = s, Tag = s };
+            TerminalSchemeCombo.Items.Add(item);
+            if (string.Equals(term.CurrentScheme, s, StringComparison.OrdinalIgnoreCase))
+            {
+                TerminalSchemeCombo.SelectedItem = item;
+            }
+        }
+        if (TerminalSchemeCombo.SelectedItem is null && TerminalSchemeCombo.Items.Count > 0)
+        {
+            TerminalSchemeCombo.SelectedIndex = 0;
+        }
+
         var pwsh = await TerminalPowerShellSetupService.GetPowerShellProfileStatusAsync();
         PwshProfilePathText.Text = $"Profile Path: {pwsh.ProfilePath} ({(pwsh.Exists ? "Active" : "Not yet created")})";
         OptCompletions.IsChecked = pwsh.HasDevOpsCompletions;
@@ -708,6 +858,11 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         if (TerminalFontCombo.SelectedItem is ComboBoxItem fItem && fItem.Tag is string fFace)
         {
             success &= await TerminalPowerShellSetupService.SetTerminalFontFaceAsync(fFace);
+        }
+
+        if (TerminalSchemeCombo.SelectedItem is ComboBoxItem sItem && sItem.Tag is string sName)
+        {
+            success &= await TerminalPowerShellSetupService.SetTerminalColorSchemeAsync(sName);
         }
 
         if (success)
@@ -735,6 +890,19 @@ public sealed partial class EnvironmentPage : Page, IRefreshablePage
         else
         {
             ShowNotice("Failed to update PowerShell profile.", InfoBarSeverity.Error);
+        }
+    }
+
+    private void OpenProfileInEditor_Click(object sender, RoutedEventArgs e)
+    {
+        bool opened = TerminalPowerShellSetupService.OpenProfileInEditor();
+        if (opened)
+        {
+            ShowNotice("Opened PowerShell profile in system editor.", InfoBarSeverity.Informational);
+        }
+        else
+        {
+            ShowNotice("Could not open PowerShell profile.", InfoBarSeverity.Warning);
         }
     }
 
