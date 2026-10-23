@@ -88,12 +88,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/doctl.svg",
     "kind": "archive",
-    "version": "1.113.0",
+    "version": "2.0.0",
     "homepage": "https://docs.digitalocean.com/reference/doctl/",
-    "downloadUrl": "https://github.com/digitalocean/doctl/releases/download/v1.113.0/doctl-1.113.0-windows-amd64.zip",
-    "fileName": "doctl-windows-amd64.zip",
+    "downloadUrl": "https://github.com/digitalocean/doctl/releases/download/v2.0.0/doctl-2.0.0-windows-amd64.zip",
+    "fileName": "doctl-2.0.0-windows-amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "2.0.0"
+    ]
   },
   {
     "id": "docker-desktop",
@@ -123,13 +126,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/podman-desktop.svg",
     "kind": "installer",
-    "version": "1.16.2",
+    "version": "1.30.5",
     "homepage": "https://podman-desktop.io/",
-    "downloadUrl": "https://github.com/containers/podman-desktop/releases/download/v1.16.2/podman-desktop-1.16.2-setup.exe",
-    "fileName": "PodmanDesktopSetup.exe",
+    "downloadUrl": "https://github.com/podman-desktop/podman-desktop/releases/download/v1.30.5/podman-desktop-1.30.5-setup-x64.exe",
+    "fileName": "podman-desktop-1.30.5-setup-x64.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "1.30.5",
       "1.16.2",
       "1.15.0",
       "1.14.0"
@@ -143,13 +147,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/kubectl.svg",
     "kind": "binary",
-    "version": "1.31.0",
+    "version": "1.37.1",
     "homepage": "https://kubernetes.io/docs/reference/kubectl/",
-    "downloadUrl": "https://dl.k8s.io/release/v1.31.0/bin/windows/amd64/kubectl.exe",
+    "downloadUrl": "https://dl.k8s.io/release/v1.37.1/bin/windows/amd64/kubectl.exe",
     "fileName": "kubectl.exe",
-    "sha256": "",
+    "sha256": "14b93c4916a6f37a06fbc1f46b0a1d2404c4f9741be09f00d6caf8af3b05f1d3",
     "launchArgs": "",
     "previousVersions": [
+      "1.37.1",
       "1.31.0",
       "1.30.4",
       "1.29.8",
@@ -165,13 +170,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/helm.svg",
     "kind": "archive",
-    "version": "3.16.1",
+    "version": "4.3.1",
     "homepage": "https://helm.sh/",
-    "downloadUrl": "https://get.helm.sh/helm-v3.16.1-windows-amd64.zip",
+    "downloadUrl": "https://get.helm.sh/helm-v4.3.1-windows-amd64.zip",
     "fileName": "helm-windows-amd64.zip",
-    "sha256": "",
+    "sha256": "fcfd7b796dcf0f225abc40b5636a3b01f55f3de2fb1dfb18475df94e62c14112",
     "launchArgs": "",
     "previousVersions": [
+      "4.3.1",
       "3.16.1",
       "3.15.4",
       "3.14.4",
@@ -186,13 +192,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/k9s.svg",
     "kind": "archive",
-    "version": "0.32.5",
+    "version": "0.51.0",
     "homepage": "https://k9scli.io/",
-    "downloadUrl": "https://github.com/derailed/k9s/releases/latest/download/k9s_Windows_amd64.zip",
+    "downloadUrl": "https://github.com/derailed/k9s/releases/download/v0.51.0/k9s_Windows_amd64.zip",
     "fileName": "k9s_Windows_amd64.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "0.51.0",
       "0.32.5",
       "0.32.4",
       "0.31.9",
@@ -248,13 +255,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/argocd.svg",
     "kind": "binary",
-    "version": "2.12.3",
+    "version": "3.5.6",
     "homepage": "https://argo-cd.readthedocs.io/",
-    "downloadUrl": "https://github.com/argoproj/argo-cd/releases/latest/download/argocd-windows-amd64.exe",
-    "fileName": "argocd.exe",
+    "downloadUrl": "https://github.com/argoproj/argo-cd/releases/download/v3.5.6/argocd-windows-amd64.exe",
+    "fileName": "argocd-windows-amd64.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "3.5.6",
       "2.12.3",
       "2.11.7",
       "2.10.15"
@@ -268,13 +276,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/eksctl.svg",
     "kind": "archive",
-    "version": "0.190.0",
+    "version": "0.231.0",
     "homepage": "https://eksctl.io/",
-    "downloadUrl": "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_Windows_amd64.zip",
+    "downloadUrl": "https://github.com/eksctl-io/eksctl/releases/download/v0.231.0/eksctl_Windows_amd64.zip",
     "fileName": "eksctl_Windows_amd64.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "0.231.0",
       "0.190.0",
       "0.185.0",
       "0.180.0"
@@ -308,12 +317,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/flux.svg",
     "kind": "archive",
-    "version": "2.3.0",
+    "version": "2.9.6",
     "homepage": "https://fluxcd.io/",
-    "downloadUrl": "https://github.com/fluxcd/flux2/releases/download/v2.3.0/flux_2.3.0_windows_amd64.zip",
-    "fileName": "flux_windows_amd64.zip",
+    "downloadUrl": "https://github.com/fluxcd/flux2/releases/download/v2.9.6/flux_2.9.6_windows_amd64.zip",
+    "fileName": "flux_2.9.6_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "2.9.6"
+    ]
   },
   {
     "id": "istioctl",
@@ -323,12 +335,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/istioctl.svg",
     "kind": "archive",
-    "version": "1.23.2",
+    "version": "1.31.3",
     "homepage": "https://istio.io/",
-    "downloadUrl": "https://github.com/istio/istio/releases/download/1.23.2/istioctl-1.23.2-win.zip",
+    "downloadUrl": "https://github.com/istio/istio/releases/download/1.31.3/istioctl-1.31.3-win.zip",
     "fileName": "istioctl-win.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.31.3"
+    ]
   },
   {
     "id": "terraform",
@@ -338,19 +353,19 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/terraform.svg",
     "kind": "archive",
-    "version": "1.9.5",
+    "version": "1.17.0",
     "homepage": "https://www.terraform.io/",
-    "downloadUrl": "https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_windows_amd64.zip",
+    "downloadUrl": "https://releases.hashicorp.com/terraform/1.17.0/terraform_1.17.0_windows_amd64.zip",
     "fileName": "terraform_windows_amd64.zip",
-    "sha256": "",
+    "sha256": "2948dd7f77dec0f562ec29000103e0441d915be5e5f1a02c1ce23681951cfb19",
     "launchArgs": "",
     "previousVersions": [
+      "1.17.0",
       "1.9.5",
       "1.9.4",
       "1.9.0",
       "1.8.5",
-      "1.8.0",
-      "1.7.5"
+      "1.8.0"
     ]
   },
   {
@@ -361,13 +376,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/opentofu.svg",
     "kind": "archive",
-    "version": "1.8.3",
+    "version": "1.13.2",
     "homepage": "https://opentofu.org/",
-    "downloadUrl": "https://github.com/opentofu/opentofu/releases/download/v1.8.3/tofu_1.8.3_windows_amd64.zip",
-    "fileName": "tofu_windows_amd64.zip",
+    "downloadUrl": "https://github.com/opentofu/opentofu/releases/download/v1.13.2/tofu_1.13.2_windows_amd64.zip",
+    "fileName": "tofu_1.13.2_windows_amd64.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "1.13.2",
       "1.8.3",
       "1.8.2",
       "1.8.0",
@@ -402,13 +418,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/terragrunt.svg",
     "kind": "binary",
-    "version": "0.67.6",
+    "version": "1.2.0",
     "homepage": "https://terragrunt.gruntwork.io/",
-    "downloadUrl": "https://github.com/gruntwork-io/terragrunt/releases/latest/download/terragrunt_windows_amd64.exe",
-    "fileName": "terragrunt.exe",
+    "downloadUrl": "https://github.com/gruntwork-io/terragrunt/releases/download/v1.2.0/terragrunt_windows_amd64.exe",
+    "fileName": "terragrunt_windows_amd64.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "1.2.0",
       "0.67.6",
       "0.65.0",
       "0.60.0"
@@ -422,13 +439,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/tflint.svg",
     "kind": "archive",
-    "version": "0.53.0",
+    "version": "0.65.0",
     "homepage": "https://github.com/terraform-linters/tflint",
-    "downloadUrl": "https://github.com/terraform-linters/tflint/releases/latest/download/tflint_windows_amd64.zip",
+    "downloadUrl": "https://github.com/terraform-linters/tflint/releases/download/v0.65.0/tflint_windows_amd64.zip",
     "fileName": "tflint_windows_amd64.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "0.65.0",
       "0.53.0",
       "0.52.0",
       "0.50.0"
@@ -442,12 +460,16 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/packer.svg",
     "kind": "archive",
-    "version": "1.11.2",
+    "version": "1.16.2",
     "homepage": "https://www.packer.io/",
-    "downloadUrl": "https://releases.hashicorp.com/packer/1.11.2/packer_1.11.2_windows_amd64.zip",
+    "downloadUrl": "https://releases.hashicorp.com/packer/1.16.2/packer_1.16.2_windows_amd64.zip",
     "fileName": "packer_windows_amd64.zip",
-    "sha256": "",
-    "launchArgs": ""
+    "sha256": "1b3984ae7f5954cc3ae416b527ae5c5a747ea7bb7977366038609199be4a2710",
+    "launchArgs": "",
+    "previousVersions": [
+      "1.16.2",
+      "1.11.2"
+    ]
   },
   {
     "id": "vault",
@@ -457,13 +479,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/vault.svg",
     "kind": "archive",
-    "version": "1.18.5",
+    "version": "2.2.1",
     "homepage": "https://www.vaultproject.io/",
-    "downloadUrl": "https://releases.hashicorp.com/vault/1.18.5/vault_1.18.5_windows_amd64.zip",
+    "downloadUrl": "https://releases.hashicorp.com/vault/2.2.1/vault_2.2.1_windows_amd64.zip",
     "fileName": "vault_windows_amd64.zip",
-    "sha256": "",
+    "sha256": "ec0544b354adf70e11db5247b9fa5e7046f70bf0c654944e0095780b5f056342",
     "launchArgs": "",
     "previousVersions": [
+      "2.2.1",
       "1.18.5",
       "1.17.0",
       "1.16.0"
@@ -477,13 +500,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/consul.svg",
     "kind": "archive",
-    "version": "1.19.2",
+    "version": "2.1.0",
     "homepage": "https://www.consul.io/",
-    "downloadUrl": "https://releases.hashicorp.com/consul/1.19.2/consul_1.19.2_windows_amd64.zip",
+    "downloadUrl": "https://releases.hashicorp.com/consul/2.1.0/consul_2.1.0_windows_amd64.zip",
     "fileName": "consul_windows_amd64.zip",
-    "sha256": "",
+    "sha256": "10d28650868eff28502e541a1df5dc388e6da79f611bd6b6177871c9d02576db",
     "launchArgs": "",
     "previousVersions": [
+      "2.1.0",
       "1.19.2",
       "1.18.0",
       "1.17.0"
@@ -497,13 +521,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/nomad.svg",
     "kind": "archive",
-    "version": "1.8.4",
+    "version": "2.0.7",
     "homepage": "https://www.nomadproject.io/",
-    "downloadUrl": "https://releases.hashicorp.com/nomad/1.8.4/nomad_1.8.4_windows_amd64.zip",
+    "downloadUrl": "https://releases.hashicorp.com/nomad/2.0.7/nomad_2.0.7_windows_amd64.zip",
     "fileName": "nomad_windows_amd64.zip",
-    "sha256": "",
+    "sha256": "15bd49bd834ace9ce27bfad8e69461978f3f5b483a2e92ae71a8c310d3503e68",
     "launchArgs": "",
     "previousVersions": [
+      "2.0.7",
       "1.8.4",
       "1.8.0",
       "1.7.0"
@@ -517,12 +542,16 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/vagrant.svg",
     "kind": "installer",
-    "version": "2.4.1",
+    "version": "2.4.9",
     "homepage": "https://www.vagrantup.com/",
-    "downloadUrl": "https://releases.hashicorp.com/vagrant/2.4.1/vagrant_2.4.1_windows_amd64.msi",
+    "downloadUrl": "https://releases.hashicorp.com/vagrant/2.4.9/vagrant_2.4.9_windows_amd64.msi",
     "fileName": "vagrant_windows_amd64.msi",
-    "sha256": "",
-    "launchArgs": ""
+    "sha256": "3bdd967927705872a70c7c98e0576afd5acd9dd73b527695f4d9dd75dd26cbe3",
+    "launchArgs": "",
+    "previousVersions": [
+      "2.4.9",
+      "2.4.1"
+    ]
   },
   {
     "id": "ansible",
@@ -547,13 +576,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/git.svg",
     "kind": "installer",
-    "version": "2.46.0",
+    "version": "2.56.0.windows.3",
     "homepage": "https://git-scm.com/",
-    "downloadUrl": "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe",
-    "fileName": "Git-Setup-64-bit.exe",
+    "downloadUrl": "https://github.com/git-for-windows/git/releases/download/v2.56.0.windows.3/Git-2.56.0.3-64-bit.exe",
+    "fileName": "Git-2.56.0.3-64-bit.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "2.56.0.windows.3",
       "2.46.0",
       "2.45.2",
       "2.44.0"
@@ -567,13 +597,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/github-cli.svg",
     "kind": "installer",
-    "version": "2.54.0",
+    "version": "2.103.0",
     "homepage": "https://cli.github.com/",
-    "downloadUrl": "https://github.com/cli/cli/releases/download/v2.54.0/gh_2.54.0_windows_amd64.msi",
-    "fileName": "gh_windows_amd64.msi",
+    "downloadUrl": "https://github.com/cli/cli/releases/download/v2.103.0/gh_2.103.0_windows_amd64.msi",
+    "fileName": "gh_2.103.0_windows_amd64.msi",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "2.103.0",
       "2.54.0",
       "2.53.0",
       "2.50.0"
@@ -607,13 +638,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/act.svg",
     "kind": "archive",
-    "version": "0.2.68",
+    "version": "0.2.89",
     "homepage": "https://github.com/nektos/act",
-    "downloadUrl": "https://github.com/nektos/act/releases/latest/download/act_Windows_x86_64.zip",
+    "downloadUrl": "https://github.com/nektos/act/releases/download/v0.2.89/act_Windows_x86_64.zip",
     "fileName": "act_Windows_x86_64.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "0.2.89",
       "0.2.68",
       "0.2.65",
       "0.2.60"
@@ -627,12 +659,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/prometheus.svg",
     "kind": "archive",
-    "version": "2.54.1",
+    "version": "3.15.1",
     "homepage": "https://prometheus.io/",
-    "downloadUrl": "https://github.com/prometheus/prometheus/releases/download/v2.54.1/prometheus-2.54.1.windows-amd64.zip",
-    "fileName": "prometheus-windows-amd64.zip",
+    "downloadUrl": "https://github.com/prometheus/prometheus/releases/download/v3.15.1/prometheus-3.15.1.windows-amd64.zip",
+    "fileName": "prometheus-3.15.1.windows-amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "3.15.1"
+    ]
   },
   {
     "id": "grafana",
@@ -657,12 +692,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/k6.svg",
     "kind": "archive",
-    "version": "0.53.0",
+    "version": "2.3.0",
     "homepage": "https://k6.io/",
-    "downloadUrl": "https://github.com/grafana/k6/releases/download/v0.53.0/k6-v0.53.0-windows-amd64.zip",
-    "fileName": "k6-windows-amd64.zip",
+    "downloadUrl": "https://github.com/grafana/k6/releases/download/v2.3.0/k6-v2.3.0-windows-amd64.zip",
+    "fileName": "k6-v2.3.0-windows-amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "2.3.0"
+    ]
   },
   {
     "id": "trivy",
@@ -672,13 +710,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/trivy.svg",
     "kind": "archive",
-    "version": "0.72.0",
+    "version": "0.76.1",
     "homepage": "https://trivy.dev/",
-    "downloadUrl": "https://github.com/aquasecurity/trivy/releases/download/v0.72.0/trivy_0.72.0_windows-64bit.zip",
-    "fileName": "trivy_windows-64bit.zip",
+    "downloadUrl": "https://github.com/aquasecurity/trivy/releases/download/v0.76.1/trivy_0.76.1_windows-64bit.zip",
+    "fileName": "trivy_0.76.1_windows-64bit.zip",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "0.76.1",
       "0.72.0",
       "0.55.0",
       "0.50.0"
@@ -692,12 +731,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/sops.svg",
     "kind": "binary",
-    "version": "3.9.0",
+    "version": "3.13.3",
     "homepage": "https://github.com/getsops/sops",
-    "downloadUrl": "https://github.com/getsops/sops/releases/download/v3.9.0/sops-v3.9.0.exe",
-    "fileName": "sops.exe",
+    "downloadUrl": "https://github.com/getsops/sops/releases/download/v3.13.3/sops-v3.13.3.amd64.exe",
+    "fileName": "sops-v3.13.3.amd64.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "3.13.3"
+    ]
   },
   {
     "id": "gitleaks",
@@ -707,12 +749,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/gitleaks.svg",
     "kind": "archive",
-    "version": "8.18.4",
+    "version": "8.30.1",
     "homepage": "https://github.com/gitleaks/gitleaks",
-    "downloadUrl": "https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_windows_x64.zip",
-    "fileName": "gitleaks_windows_x64.zip",
+    "downloadUrl": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_windows_x64.zip",
+    "fileName": "gitleaks_8.30.1_windows_x64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "8.30.1"
+    ]
   },
   {
     "id": "vscode",
@@ -742,12 +787,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/windows-terminal.svg",
     "kind": "installer",
-    "version": "1.24.11911.0",
+    "version": "1.25.2733.0",
     "homepage": "https://learn.microsoft.com/windows/terminal/",
-    "downloadUrl": "https://github.com/microsoft/terminal/releases/download/v1.24.11911.0/Microsoft.WindowsTerminal_1.24.11911.0_8wekyb3d8bbwe.msixbundle",
-    "fileName": "WindowsTerminal.msixbundle",
+    "downloadUrl": "https://github.com/microsoft/terminal/releases/download/v1.25.2733.0/Microsoft.WindowsTerminal_1.25.2733.0_x64.zip",
+    "fileName": "Microsoft.WindowsTerminal_1.25.2733.0_x64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.25.2733.0"
+    ]
   },
   {
     "id": "putty",
@@ -777,13 +825,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/jq.svg",
     "kind": "binary",
-    "version": "1.7.1",
+    "version": "1.8.2",
     "homepage": "https://jqlang.github.io/jq/",
-    "downloadUrl": "https://github.com/jqlang/jq/releases/latest/download/jq-windows-amd64.exe",
-    "fileName": "jq.exe",
+    "downloadUrl": "https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-win64.exe",
+    "fileName": "jq-win64.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "1.8.2",
       "1.7.1",
       "1.7.0",
       "1.6.0"
@@ -797,13 +846,14 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/yq.svg",
     "kind": "binary",
-    "version": "4.44.3",
+    "version": "4.54.1",
     "homepage": "https://github.com/mikefarah/yq",
-    "downloadUrl": "https://github.com/mikefarah/yq/releases/latest/download/yq_windows_amd64.exe",
-    "fileName": "yq.exe",
+    "downloadUrl": "https://github.com/mikefarah/yq/releases/download/v4.54.1/yq_windows_amd64.exe",
+    "fileName": "yq_windows_amd64.exe",
     "sha256": "",
     "launchArgs": "",
     "previousVersions": [
+      "4.54.1",
       "4.44.3",
       "4.43.1",
       "4.40.5"
@@ -837,12 +887,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/lazygit.svg",
     "kind": "archive",
-    "version": "0.44.1",
+    "version": "0.66.2",
     "homepage": "https://github.com/jesseduffield/lazygit",
-    "downloadUrl": "https://github.com/jesseduffield/lazygit/releases/download/v0.44.1/lazygit_0.44.1_Windows_x86_64.zip",
-    "fileName": "lazygit_Windows_x86_64.zip",
+    "downloadUrl": "https://github.com/jesseduffield/lazygit/releases/download/v0.66.2/lazygit_0.66.2_windows_x86_64.zip",
+    "fileName": "lazygit_0.66.2_windows_x86_64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.66.2"
+    ]
   },
   {
     "id": "lazydocker",
@@ -852,12 +905,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/lazydocker.svg",
     "kind": "archive",
-    "version": "0.23.3",
+    "version": "0.25.2",
     "homepage": "https://github.com/jesseduffield/lazydocker",
-    "downloadUrl": "https://github.com/jesseduffield/lazydocker/releases/download/v0.23.3/lazydocker_0.23.3_Windows_x86_64.zip",
-    "fileName": "lazydocker_Windows_x86_64.zip",
+    "downloadUrl": "https://github.com/jesseduffield/lazydocker/releases/download/v0.25.2/lazydocker_0.25.2_Windows_x86_64.zip",
+    "fileName": "lazydocker_0.25.2_Windows_x86_64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.25.2"
+    ]
   },
   {
     "id": "dive",
@@ -867,12 +923,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/dive.svg",
     "kind": "archive",
-    "version": "0.12.0",
+    "version": "0.13.1",
     "homepage": "https://github.com/wagoodman/dive",
-    "downloadUrl": "https://github.com/wagoodman/dive/releases/download/v0.12.0/dive_0.12.0_windows_amd64.zip",
-    "fileName": "dive_windows_amd64.zip",
+    "downloadUrl": "https://github.com/wagoodman/dive/releases/download/v0.13.1/dive_0.13.1_windows_amd64.zip",
+    "fileName": "dive_0.13.1_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.13.1"
+    ]
   },
   {
     "id": "cosign",
@@ -882,12 +941,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/cosign.svg",
     "kind": "binary",
-    "version": "3.1.3",
+    "version": "3.1.4",
     "homepage": "https://github.com/sigstore/cosign",
-    "downloadUrl": "https://github.com/sigstore/cosign/releases/download/v3.1.3/cosign-windows-amd64.exe",
+    "downloadUrl": "https://github.com/sigstore/cosign/releases/download/v3.1.4/cosign-windows-amd64.exe",
     "fileName": "cosign-windows-amd64.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "3.1.4"
+    ]
   },
   {
     "id": "syft",
@@ -897,12 +959,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/syft.svg",
     "kind": "archive",
-    "version": "1.52.0",
+    "version": "1.55.0",
     "homepage": "https://github.com/anchore/syft",
-    "downloadUrl": "https://github.com/anchore/syft/releases/download/v1.52.0/syft_1.52.0_windows_amd64.zip",
-    "fileName": "syft_1.52.0_windows_amd64.zip",
+    "downloadUrl": "https://github.com/anchore/syft/releases/download/v1.55.0/syft_1.55.0_windows_amd64.zip",
+    "fileName": "syft_1.55.0_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.55.0"
+    ]
   },
   {
     "id": "grype",
@@ -912,12 +977,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/grype.svg",
     "kind": "archive",
-    "version": "0.119.0",
+    "version": "0.121.0",
     "homepage": "https://github.com/anchore/grype",
-    "downloadUrl": "https://github.com/anchore/grype/releases/download/v0.119.0/grype_0.119.0_windows_amd64.zip",
-    "fileName": "grype_0.119.0_windows_amd64.zip",
+    "downloadUrl": "https://github.com/anchore/grype/releases/download/v0.121.0/grype_0.121.0_windows_amd64.zip",
+    "fileName": "grype_0.121.0_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.121.0"
+    ]
   },
   {
     "id": "stern",
@@ -927,12 +995,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/stern.svg",
     "kind": "archive",
-    "version": "1.34.0",
+    "version": "1.35.0",
     "homepage": "https://github.com/stern/stern",
-    "downloadUrl": "https://github.com/stern/stern/releases/download/v1.34.0/stern_1.34.0_windows_amd64.zip",
-    "fileName": "stern_1.34.0_windows_amd64.zip",
+    "downloadUrl": "https://github.com/stern/stern/releases/download/v1.35.0/stern_1.35.0_windows_amd64.zip",
+    "fileName": "stern_1.35.0_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.35.0"
+    ]
   },
   {
     "id": "cilium-cli",
@@ -942,12 +1013,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/cilium-cli.svg",
     "kind": "archive",
-    "version": "0.20.0",
+    "version": "0.20.1",
     "homepage": "https://cilium.io/",
-    "downloadUrl": "https://github.com/cilium/cilium-cli/releases/download/v0.20.0/cilium-windows-amd64.zip",
+    "downloadUrl": "https://github.com/cilium/cilium-cli/releases/download/v0.20.1/cilium-windows-amd64.zip",
     "fileName": "cilium-windows-amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.20.1"
+    ]
   },
   {
     "id": "dagger",
@@ -957,12 +1031,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/dagger.svg",
     "kind": "archive",
-    "version": "0.21.9",
+    "version": "0.21.11",
     "homepage": "https://dagger.io/",
-    "downloadUrl": "https://github.com/dagger/dagger/releases/download/v0.21.9/dagger_v0.21.9_windows_amd64.zip",
-    "fileName": "dagger_v0.21.9_windows_amd64.zip",
+    "downloadUrl": "https://github.com/dagger/dagger/releases/download/v0.21.11/dagger_v0.21.11_windows_amd64.zip",
+    "fileName": "dagger_v0.21.11_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.21.11"
+    ]
   },
   {
     "id": "task",
@@ -972,12 +1049,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/task.svg",
     "kind": "archive",
-    "version": "3.53.1",
+    "version": "3.54.0",
     "homepage": "https://taskfile.dev/",
-    "downloadUrl": "https://github.com/go-task/task/releases/download/v3.53.1/task_windows_amd64.zip",
+    "downloadUrl": "https://github.com/go-task/task/releases/download/v3.54.0/task_windows_amd64.zip",
     "fileName": "task_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "3.54.0"
+    ]
   },
   {
     "id": "infracost",
@@ -987,12 +1067,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/infracost.svg",
     "kind": "archive",
-    "version": "0.10.45",
+    "version": "0.10.47",
     "homepage": "https://www.infracost.io/",
-    "downloadUrl": "https://github.com/infracost/infracost/releases/download/v0.10.45/infracost-windows-amd64.zip",
+    "downloadUrl": "https://github.com/infracost/infracost/releases/download/v0.10.47/infracost-windows-amd64.zip",
     "fileName": "infracost-windows-amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.10.47"
+    ]
   },
   {
     "id": "vector",
@@ -1002,12 +1085,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/vector.svg",
     "kind": "installer",
-    "version": "0.58.0",
+    "version": "0.60.0",
     "homepage": "https://vector.dev/",
-    "downloadUrl": "https://github.com/vectordotdev/vector/releases/download/v0.58.0/vector-0.58.0-x64.msi",
-    "fileName": "vector-0.58.0-x64.msi",
+    "downloadUrl": "https://github.com/vectordotdev/vector/releases/download/v0.60.0/vector-0.60.0-x64.msi",
+    "fileName": "vector-0.60.0-x64.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.60.0"
+    ]
   },
   {
     "id": "logcli",
@@ -1017,12 +1103,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/logcli.svg",
     "kind": "archive",
-    "version": "3.7.8",
+    "version": "3.7.9",
     "homepage": "https://grafana.com/oss/loki/",
-    "downloadUrl": "https://github.com/grafana/loki/releases/download/v3.7.8/logcli-windows-amd64.exe.zip",
+    "downloadUrl": "https://github.com/grafana/loki/releases/download/v3.7.9/logcli-windows-amd64.exe.zip",
     "fileName": "logcli-windows-amd64.exe.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "3.7.9"
+    ]
   },
   {
     "id": "just",
@@ -1032,12 +1121,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/just.svg",
     "kind": "archive",
-    "version": "1.58.0",
+    "version": "1.59.0",
     "homepage": "https://github.com/casey/just",
-    "downloadUrl": "https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-pc-windows-msvc.zip",
-    "fileName": "just-1.58.0-x86_64-pc-windows-msvc.zip",
+    "downloadUrl": "https://github.com/casey/just/releases/download/1.59.0/just-1.59.0-x86_64-pc-windows-msvc.zip",
+    "fileName": "just-1.59.0-x86_64-pc-windows-msvc.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.59.0"
+    ]
   },
   {
     "id": "starship",
@@ -1047,12 +1139,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/starship.svg",
     "kind": "installer",
-    "version": "1.26.0",
+    "version": "1.27.0",
     "homepage": "https://starship.rs/",
-    "downloadUrl": "https://github.com/starship/starship/releases/download/v1.26.0/starship-x86_64-pc-windows-msvc.msi",
+    "downloadUrl": "https://github.com/starship/starship/releases/download/v1.27.0/starship-x86_64-pc-windows-msvc.msi",
     "fileName": "starship-x86_64-pc-windows-msvc.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.27.0"
+    ]
   },
   {
     "id": "fzf",
@@ -1062,12 +1157,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/fzf.svg",
     "kind": "archive",
-    "version": "0.74.4",
+    "version": "0.74.5",
     "homepage": "https://github.com/junegunn/fzf",
-    "downloadUrl": "https://github.com/junegunn/fzf/releases/download/v0.74.4/fzf-0.74.4-windows_amd64.zip",
-    "fileName": "fzf-0.74.4-windows_amd64.zip",
+    "downloadUrl": "https://github.com/junegunn/fzf/releases/download/v0.74.5/fzf-0.74.5-windows_amd64.zip",
+    "fileName": "fzf-0.74.5-windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.74.5"
+    ]
   },
   {
     "id": "ripgrep",
@@ -1107,12 +1205,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/neovim.svg",
     "kind": "installer",
-    "version": "0.12.5",
+    "version": "0.12.6",
     "homepage": "https://neovim.io/",
-    "downloadUrl": "https://github.com/neovim/neovim/releases/download/v0.12.5/nvim-win64.msi",
+    "downloadUrl": "https://github.com/neovim/neovim/releases/download/v0.12.6/nvim-win64.msi",
     "fileName": "nvim-win64.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.12.6"
+    ]
   },
   {
     "id": "notepad-plus-plus",
@@ -1122,12 +1223,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/notepad-plus-plus.svg",
     "kind": "installer",
-    "version": "8.9.8",
+    "version": "8.9.8.1",
     "homepage": "https://notepad-plus-plus.org/",
-    "downloadUrl": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.8/npp.8.9.8.Installer.x64.exe",
-    "fileName": "npp.8.9.8.Installer.x64.exe",
+    "downloadUrl": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.8.1/npp.8.9.8.1.Installer.x64.exe",
+    "fileName": "npp.8.9.8.1.Installer.x64.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "8.9.8.1"
+    ]
   },
   {
     "id": "intellij-idea-community",
@@ -1137,12 +1241,18 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/intellij-idea-community.svg",
     "kind": "installer",
-    "version": "2025.3",
+    "version": "2026.2.3",
     "homepage": "https://www.jetbrains.com/idea/",
-    "downloadUrl": "https://download.jetbrains.com/idea/idea-2025.3.exe",
-    "fileName": "idea-2025.3.exe",
-    "sha256": "",
-    "launchArgs": ""
+    "downloadUrl": "https://download.jetbrains.com/idea/idea-2026.2.3.exe",
+    "fileName": "idea-2026.2.3.exe",
+    "sha256": "cd6398bafe6202674676dcff0b0c7791cd55dbe7e3ce0a4e996cc68f6dc80f9a",
+    "launchArgs": "",
+    "previousVersions": [
+      "2026.2.3",
+      "2026.2.2",
+      "2026.2.1",
+      "2025.3"
+    ]
   },
   {
     "id": "pycharm-community",
@@ -1152,12 +1262,18 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/pycharm-community.svg",
     "kind": "installer",
-    "version": "2025.3",
+    "version": "2026.2.3",
     "homepage": "https://www.jetbrains.com/pycharm/",
-    "downloadUrl": "https://download.jetbrains.com/python/pycharm-2025.3.exe",
-    "fileName": "pycharm-2025.3.exe",
-    "sha256": "",
-    "launchArgs": ""
+    "downloadUrl": "https://download.jetbrains.com/python/pycharm-2026.2.3.exe",
+    "fileName": "pycharm-2026.2.3.exe",
+    "sha256": "f47b0e48ce06a903b94245bbe8a312f2196205a12264ee47b0cf1595a1443362",
+    "launchArgs": "",
+    "previousVersions": [
+      "2026.2.3",
+      "2026.2.2",
+      "2026.2.1",
+      "2025.3"
+    ]
   },
   {
     "id": "visual-studio-community",
@@ -1197,12 +1313,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/rancher-desktop.svg",
     "kind": "installer",
-    "version": "1.16.0",
+    "version": "1.24.0",
     "homepage": "https://rancherdesktop.io/",
-    "downloadUrl": "https://github.com/rancher-sandbox/rancher-desktop/releases/download/v1.16.0/Rancher.Desktop.Setup.1.16.0.msi",
-    "fileName": "RancherDesktopSetup.msi",
+    "downloadUrl": "https://github.com/rancher-sandbox/rancher-desktop/releases/download/v1.24.0/Rancher.Desktop.Setup.1.24.0.msi",
+    "fileName": "Rancher.Desktop.Setup.1.24.0.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.24.0"
+    ]
   },
   {
     "id": "nerdctl",
@@ -1212,12 +1331,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/nerdctl.svg",
     "kind": "archive",
-    "version": "2.0.2",
+    "version": "2.4.1",
     "homepage": "https://github.com/containerd/nerdctl",
-    "downloadUrl": "https://github.com/containerd/nerdctl/releases/download/v2.0.2/nerdctl-2.0.2-windows-amd64.tar.gz",
-    "fileName": "nerdctl-windows-amd64.tar.gz",
+    "downloadUrl": "https://github.com/containerd/nerdctl/releases/download/v2.4.1/nerdctl-2.4.1-windows-amd64.tar.gz",
+    "fileName": "nerdctl-2.4.1-windows-amd64.tar.gz",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "2.4.1"
+    ]
   },
   {
     "id": "ngrok",
@@ -1242,12 +1364,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/cloudflared.svg",
     "kind": "installer",
-    "version": "2024.10.0",
+    "version": "2026.10.3",
     "homepage": "https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/",
-    "downloadUrl": "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.msi",
+    "downloadUrl": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.3/cloudflared-windows-amd64.msi",
     "fileName": "cloudflared-windows-amd64.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "2026.10.3"
+    ]
   },
   {
     "id": "linkerd",
@@ -1257,12 +1382,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/linkerd.svg",
     "kind": "binary",
-    "version": "2.14.10",
+    "version": "26.10.1",
     "homepage": "https://linkerd.io/",
-    "downloadUrl": "https://github.com/linkerd/linkerd2/releases/download/stable-2.14.10/linkerd2-cli-stable-2.14.10-windows.exe",
-    "fileName": "linkerd.exe",
+    "downloadUrl": "https://github.com/linkerd/linkerd2/releases/download/edge-26.10.1/linkerd2-cli-edge-26.10.1-windows.exe",
+    "fileName": "linkerd2-cli-edge-26.10.1-windows.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "26.10.1"
+    ]
   },
   {
     "id": "tkn",
@@ -1272,12 +1400,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/tkn.svg",
     "kind": "archive",
-    "version": "0.38.1",
+    "version": "0.46.2",
     "homepage": "https://tekton.dev/",
-    "downloadUrl": "https://github.com/tektoncd/cli/releases/download/v0.38.1/tkn_0.38.1_Windows_x86_64.zip",
-    "fileName": "tkn_Windows_x86_64.zip",
+    "downloadUrl": "https://github.com/tektoncd/cli/releases/download/v0.46.2/tkn_0.46.2_Windows_x86_64.zip",
+    "fileName": "tkn_0.46.2_Windows_x86_64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.46.2"
+    ]
   },
   {
     "id": "kustomize",
@@ -1287,12 +1418,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/kustomize.svg",
     "kind": "archive",
-    "version": "5.5.0",
+    "version": "5.8.3",
     "homepage": "https://kustomize.io/",
-    "downloadUrl": "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv5.5.0/kustomize_v5.5.0_windows_amd64.tar.gz",
-    "fileName": "kustomize_windows_amd64.tar.gz",
+    "downloadUrl": "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.8.3/kustomize_v5.8.3_windows_amd64.zip",
+    "fileName": "kustomize_v5.8.3_windows_amd64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "5.8.3"
+    ]
   },
   {
     "id": "kubectx",
@@ -1302,12 +1436,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/kubectx.svg",
     "kind": "archive",
-    "version": "0.9.5",
+    "version": "0.11.0",
     "homepage": "https://github.com/ahmetb/kubectx",
-    "downloadUrl": "https://github.com/ahmetb/kubectx/releases/download/v0.9.5/kubectx_v0.9.5_windows_x86_64.zip",
-    "fileName": "kubectx_windows_x86_64.zip",
+    "downloadUrl": "https://github.com/ahmetb/kubectx/releases/download/v0.11.0/kubectx_v0.11.0_windows_x86_64.zip",
+    "fileName": "kubectx_v0.11.0_windows_x86_64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.11.0"
+    ]
   },
   {
     "id": "k3d",
@@ -1317,12 +1454,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/k3d.svg",
     "kind": "binary",
-    "version": "5.7.5",
+    "version": "5.9.0",
     "homepage": "https://k3d.io/",
-    "downloadUrl": "https://github.com/k3d-io/k3d/releases/download/v5.7.5/k3d-windows-amd64.exe",
-    "fileName": "k3d.exe",
+    "downloadUrl": "https://github.com/k3d-io/k3d/releases/download/v5.9.0/k3d-windows-amd64.exe",
+    "fileName": "k3d-windows-amd64.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "5.9.0"
+    ]
   },
   {
     "id": "velero",
@@ -1332,12 +1472,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/velero.svg",
     "kind": "archive",
-    "version": "1.15.0",
+    "version": "1.18.4",
     "homepage": "https://velero.io/",
-    "downloadUrl": "https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-windows-amd64.tar.gz",
-    "fileName": "velero-windows-amd64.tar.gz",
+    "downloadUrl": "https://github.com/velero-io/velero/releases/download/v1.18.4/velero-v1.18.4-windows-amd64.tar.gz",
+    "fileName": "velero-v1.18.4-windows-amd64.tar.gz",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.18.4"
+    ]
   },
   {
     "id": "helmfile",
@@ -1347,12 +1490,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/helmfile.svg",
     "kind": "binary",
-    "version": "0.168.0",
+    "version": "1.8.2",
     "homepage": "https://helmfile.readthedocs.io/",
-    "downloadUrl": "https://github.com/helmfile/helmfile/releases/download/v0.168.0/helmfile_0.168.0_windows_amd64.exe",
-    "fileName": "helmfile.exe",
+    "downloadUrl": "https://github.com/helmfile/helmfile/releases/download/v1.8.2/helmfile_1.8.2_windows_amd64.tar.gz",
+    "fileName": "helmfile_1.8.2_windows_amd64.tar.gz",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.8.2"
+    ]
   },
   {
     "id": "opa",
@@ -1362,12 +1508,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/opa.svg",
     "kind": "binary",
-    "version": "1.0.0",
+    "version": "1.21.3",
     "homepage": "https://www.openpolicyagent.org/",
-    "downloadUrl": "https://github.com/open-policy-agent/opa/releases/download/v1.0.0/opa_windows_amd64.exe",
-    "fileName": "opa.exe",
+    "downloadUrl": "https://github.com/open-policy-agent/opa/releases/download/v1.21.3/opa_windows_amd64.exe",
+    "fileName": "opa_windows_amd64.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.21.3"
+    ]
   },
   {
     "id": "kyverno-cli",
@@ -1377,12 +1526,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/kyverno-cli.svg",
     "kind": "archive",
-    "version": "1.13.2",
+    "version": "1.19.2",
     "homepage": "https://kyverno.io/",
-    "downloadUrl": "https://github.com/kyverno/kyverno/releases/download/v1.13.2/kyverno-cli_v1.13.2_windows_x86_64.zip",
-    "fileName": "kyverno-cli_windows_x86_64.zip",
+    "downloadUrl": "https://github.com/kyverno/kyverno/releases/download/v1.19.2/kyverno-cli_v1.19.2_windows_x86_64.zip",
+    "fileName": "kyverno-cli_v1.19.2_windows_x86_64.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.19.2"
+    ]
   },
   {
     "id": "dbeaver",
@@ -1407,12 +1559,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/aws-sam-cli.svg",
     "kind": "installer",
-    "version": "1.125.0",
+    "version": "1.170.0",
     "homepage": "https://aws.amazon.com/serverless/sam/",
-    "downloadUrl": "https://github.com/aws/aws-sam-cli/releases/latest/download/AWS_SAM_CLI_64_PY3.msi",
+    "downloadUrl": "https://github.com/aws/aws-sam-cli/releases/download/v1.170.0/AWS_SAM_CLI_64_PY3.msi",
     "fileName": "AWS_SAM_CLI_64_PY3.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "1.170.0"
+    ]
   },
   {
     "id": "fd",
@@ -1422,12 +1577,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/fd.svg",
     "kind": "archive",
-    "version": "10.2.0",
+    "version": "10.5.0",
     "homepage": "https://github.com/sharkdp/fd",
-    "downloadUrl": "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-x86_64-pc-windows-msvc.zip",
-    "fileName": "fd-x86_64-pc-windows-msvc.zip",
+    "downloadUrl": "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-pc-windows-gnu.zip",
+    "fileName": "fd-v10.5.0-x86_64-pc-windows-gnu.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "10.5.0"
+    ]
   },
   {
     "id": "delta",
@@ -1437,12 +1595,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/delta.svg",
     "kind": "archive",
-    "version": "0.18.2",
+    "version": "0.20.1",
     "homepage": "https://github.com/dandavison/delta",
-    "downloadUrl": "https://github.com/dandavison/delta/releases/download/0.18.2/delta-0.18.2-x86_64-pc-windows-msvc.zip",
-    "fileName": "delta-x86_64-pc-windows-msvc.zip",
+    "downloadUrl": "https://github.com/dandavison/delta/releases/download/0.20.1/delta-0.20.1-x86_64-pc-windows-msvc.zip",
+    "fileName": "delta-0.20.1-x86_64-pc-windows-msvc.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.20.1"
+    ]
   },
   {
     "id": "eza",
@@ -1452,12 +1613,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/eza.svg",
     "kind": "archive",
-    "version": "0.20.15",
+    "version": "0.23.5",
     "homepage": "https://eza.rocks/",
-    "downloadUrl": "https://github.com/eza-community/eza/releases/download/v0.20.15/eza_x86_64-pc-windows-gnu.zip",
-    "fileName": "eza_x86_64-pc-windows-gnu.zip",
+    "downloadUrl": "https://github.com/eza-community/eza/releases/download/v0.23.5/eza.exe_x86_64-pc-windows-gnu.tar.gz",
+    "fileName": "eza.exe_x86_64-pc-windows-gnu.tar.gz",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.23.5"
+    ]
   },
   {
     "id": "zoxide",
@@ -1467,12 +1631,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/zoxide.svg",
     "kind": "archive",
-    "version": "0.9.6",
+    "version": "0.10.0",
     "homepage": "https://github.com/ajeetdsouza/zoxide",
-    "downloadUrl": "https://github.com/ajeetdsouza/zoxide/releases/download/v0.9.6/zoxide-0.9.6-x86_64-pc-windows-msvc.zip",
-    "fileName": "zoxide-x86_64-pc-windows-msvc.zip",
+    "downloadUrl": "https://github.com/ajeetdsouza/zoxide/releases/download/v0.10.0/zoxide-0.10.0-x86_64-pc-windows-msvc.zip",
+    "fileName": "zoxide-0.10.0-x86_64-pc-windows-msvc.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.10.0"
+    ]
   },
   {
     "id": "insomnia",
@@ -1482,12 +1649,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/insomnia.svg",
     "kind": "installer",
-    "version": "10.1.1",
+    "version": "13.3.1",
     "homepage": "https://insomnia.rest/",
-    "downloadUrl": "https://github.com/Kong/insomnia/releases/download/core%4010.1.1/Insomnia.Setup.10.1.1.exe",
-    "fileName": "InsomniaSetup.exe",
+    "downloadUrl": "https://github.com/Kong/insomnia/releases/download/core%4013.3.1/Insomnia.Core-13.3.1.exe",
+    "fileName": "Insomnia.Core-13.3.1.exe",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "13.3.1"
+    ]
   },
   {
     "id": "alacritty",
@@ -1497,12 +1667,15 @@
     "iconGlyph": "",
     "logoUrl": "ms-appx:///Assets/logos/alacritty.svg",
     "kind": "installer",
-    "version": "0.14.0",
+    "version": "0.17.0",
     "homepage": "https://alacritty.org/",
-    "downloadUrl": "https://github.com/alacritty/alacritty/releases/download/v0.14.0/Alacritty-v0.14.0-installer.msi",
-    "fileName": "Alacritty-installer.msi",
+    "downloadUrl": "https://github.com/alacritty/alacritty/releases/download/v0.17.0/Alacritty-v0.17.0-installer.msi",
+    "fileName": "Alacritty-v0.17.0-installer.msi",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "0.17.0"
+    ]
   },
   {
     "id": "wezterm",
@@ -1514,9 +1687,12 @@
     "kind": "archive",
     "version": "20240203-110809-5046fc22",
     "homepage": "https://wezfurlong.org/wezterm/",
-    "downloadUrl": "https://github.com/wez/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-windows-20240203-110809-5046fc22.zip",
-    "fileName": "WezTerm-windows.zip",
+    "downloadUrl": "https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-windows-20240203-110809-5046fc22.zip",
+    "fileName": "WezTerm-windows-20240203-110809-5046fc22.zip",
     "sha256": "",
-    "launchArgs": ""
+    "launchArgs": "",
+    "previousVersions": [
+      "20240203-110809-5046fc22"
+    ]
   }
 ]
