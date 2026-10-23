@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
 
 namespace DevOpsToolsInstaller.Services;
 
@@ -56,13 +57,35 @@ public sealed class GcpConnectionStatus
     public string StatusBadge => IsLoggedIn ? "Logged in" : "Not logged in";
 }
 
-public sealed class KubeContextInfo
+public sealed class KubeContextInfo : System.ComponentModel.INotifyPropertyChanged
 {
+    private bool _isActive;
     public string Name { get; set; } = string.Empty;
     public string Cluster { get; set; } = string.Empty;
     public string User { get; set; } = string.Empty;
     public string Namespace { get; set; } = "default";
-    public bool IsActive { get; set; }
+
+    public bool IsActive
+    {
+        get => _isActive;
+        set
+        {
+            if (_isActive != value)
+            {
+                _isActive = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(IsActive)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(ActiveVisibility)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(CanSwitch)));
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(SwitchButtonText)));
+            }
+        }
+    }
+
+    public Visibility ActiveVisibility => IsActive ? Visibility.Visible : Visibility.Collapsed;
+    public bool CanSwitch => !IsActive;
+    public string SwitchButtonText => IsActive ? "Active" : "Switch Context";
+
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 }
 
 public sealed class KubeConnectionStatus
@@ -423,27 +446,39 @@ public static class CloudConnectionsService
 
                 if (inContextsList)
                 {
-                    if (trimmed.StartsWith("- name:"))
+                    bool isNewContextLine = line.StartsWith("- ") || (line.StartsWith("  - ") && !line.StartsWith("    "));
+                    if (isNewContextLine)
                     {
-                        if (currentEntry != null) contexts.Add(currentEntry);
-                        currentEntry = new KubeContextInfo
+                        if (currentEntry != null && !string.IsNullOrWhiteSpace(currentEntry.Name))
                         {
-                            Name = trimmed[7..].Trim().Trim('\'', '"')
-                        };
+                            contexts.Add(currentEntry);
+                        }
+                        currentEntry = new KubeContextInfo();
+                        var afterDash = trimmed[2..].Trim();
+                        if (afterDash.StartsWith("name:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            currentEntry.Name = afterDash[5..].Trim().Trim('\'', '"');
+                        }
                     }
                     else if (currentEntry != null)
                     {
-                        if (trimmed.StartsWith("cluster:"))
+                        // Ignore sub-blocks like extensions
+                        if (trimmed.StartsWith("name:", StringComparison.OrdinalIgnoreCase) && (line.StartsWith("  name:") || line.StartsWith("name:") || line.StartsWith(" - name:")))
+                            currentEntry.Name = trimmed[5..].Trim().Trim('\'', '"');
+                        else if (trimmed.StartsWith("cluster:", StringComparison.OrdinalIgnoreCase))
                             currentEntry.Cluster = trimmed[8..].Trim().Trim('\'', '"');
-                        else if (trimmed.StartsWith("user:"))
+                        else if (trimmed.StartsWith("user:", StringComparison.OrdinalIgnoreCase))
                             currentEntry.User = trimmed[5..].Trim().Trim('\'', '"');
-                        else if (trimmed.StartsWith("namespace:"))
+                        else if (trimmed.StartsWith("namespace:", StringComparison.OrdinalIgnoreCase))
                             currentEntry.Namespace = trimmed[10..].Trim().Trim('\'', '"');
                     }
                 }
             }
 
-            if (currentEntry != null) contexts.Add(currentEntry);
+            if (currentEntry != null && !string.IsNullOrWhiteSpace(currentEntry.Name))
+            {
+                contexts.Add(currentEntry);
+            }
 
             status.ActiveContextName = currentContext;
             foreach (var ctx in contexts)

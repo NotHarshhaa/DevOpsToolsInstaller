@@ -42,7 +42,8 @@ public static class VersionSwitcherDialog
         root.Children.Add(introText);
 
         // Shadowing inspection
-        var shadowingReport = VersionSwitcherService.InspectCliShadowing(tool.Name, tool.FileName);
+        var exeName = VersionSwitcherService.GetExecutableName(tool);
+        var shadowingReport = VersionSwitcherService.InspectCliShadowing(tool.Name, exeName);
         if (shadowingReport.IsShadowed)
         {
             var shadowBar = new InfoBar

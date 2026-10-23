@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -62,6 +64,25 @@ public static class VersionSwitcherService
     public static string VersionsFolder => VersionsBaseFolder;
 
     /// <summary>
+    /// Resolves the actual executable file name (e.g. terraform.exe, kubectl.exe) for a tool.
+    /// </summary>
+    public static string GetExecutableName(ToolDefinition tool)
+    {
+        var (exe, _) = CliHealthService.GetProbeCommand(tool);
+        if (!string.IsNullOrWhiteSpace(exe))
+        {
+            return exe;
+        }
+
+        if (tool.FileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        {
+            return tool.FileName;
+        }
+
+        return $"{tool.Id}.exe";
+    }
+
+    /// <summary>
     /// Gets the folder where side-by-side binaries for a tool (and optionally a specific version) are stored.
     /// </summary>
     public static string GetVersionDir(string toolId, string? version = null)
@@ -90,7 +111,8 @@ public static class VersionSwitcherService
         {
             var baseDir = Path.Combine(VersionsBaseFolder, tool.Id.ToLowerInvariant());
             var activeVer = GetActiveVersion(tool);
-            var binPath = Path.Combine(ArtifactService.BinFolder, tool.FileName);
+            var exeName = GetExecutableName(tool);
+            var binPath = Path.Combine(ArtifactService.BinFolder, exeName);
             string? activeHash = File.Exists(binPath) ? ComputeHash(binPath) : null;
 
             if (Directory.Exists(baseDir))
@@ -98,8 +120,17 @@ public static class VersionSwitcherService
                 foreach (var verDir in Directory.GetDirectories(baseDir))
                 {
                     var verName = Path.GetFileName(verDir);
-                    var candidateExe = Path.Combine(verDir, tool.FileName);
-                    if (File.Exists(candidateExe))
+                    var candidateExe = Path.Combine(verDir, exeName);
+                    if (!File.Exists(candidateExe))
+                    {
+                        candidateExe = Path.Combine(verDir, tool.FileName);
+                    }
+                    if (!File.Exists(candidateExe) || candidateExe.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        candidateExe = Directory.GetFiles(verDir, "*.exe", SearchOption.AllDirectories).FirstOrDefault() ?? candidateExe;
+                    }
+
+                    if (File.Exists(candidateExe) && candidateExe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                     {
                         var fi = new FileInfo(candidateExe);
                         var candHash = ComputeHash(candidateExe);
@@ -173,15 +204,75 @@ public static class VersionSwitcherService
 
     /// <summary>
     /// Records a newly downloaded or installed version into the side-by-side storage.
+    /// Handles archives (.zip/.tar) by extracting and persisting the inner executable.
     /// </summary>
     public static string StoreVersion(ToolDefinition tool, string version, string sourceFilePath)
     {
         var cleanVer = ProjectManifestService.NormalizeVersion(version);
         var destDir = GetVersionDir(tool.Id, cleanVer);
-        var destFile = Path.Combine(destDir, tool.FileName);
+        var exeName = GetExecutableName(tool);
+        var destFile = Path.Combine(destDir, exeName);
 
         try
         {
+            var ext = Path.GetExtension(sourceFilePath).ToLowerInvariant();
+            if (ext == ".zip")
+            {
+                var tempExtract = Path.Combine(destDir, "_extract_" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(tempExtract);
+                try
+                {
+                    ZipFile.ExtractToDirectory(sourceFilePath, tempExtract, overwriteFiles: true);
+                    var exes = Directory.GetFiles(tempExtract, "*.exe", SearchOption.AllDirectories);
+                    var match = exes.FirstOrDefault(e => Path.GetFileName(e).Equals(exeName, StringComparison.OrdinalIgnoreCase))
+                                ?? exes.FirstOrDefault();
+                    if (match != null)
+                    {
+                        File.Copy(match, destFile, overwrite: true);
+                        ActivityLogService.Info(tool.Name, $"Extracted and stored side-by-side version v{cleanVer} at {destFile}");
+                        return destFile;
+                    }
+                }
+                finally
+                {
+                    try { Directory.Delete(tempExtract, recursive: true); } catch { }
+                }
+            }
+            else if (sourceFilePath.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) ||
+                     sourceFilePath.EndsWith(".tar.bz2", StringComparison.OrdinalIgnoreCase) ||
+                     sourceFilePath.EndsWith(".tar.xz", StringComparison.OrdinalIgnoreCase) ||
+                     sourceFilePath.EndsWith(".tar.zst", StringComparison.OrdinalIgnoreCase) ||
+                     ext is ".tgz" or ".tbz2" or ".txz" or ".tar")
+            {
+                var tempExtract = Path.Combine(destDir, "_extract_" + Guid.NewGuid().ToString("N"));
+                Directory.CreateDirectory(tempExtract);
+                try
+                {
+                    using var proc = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "tar.exe",
+                        Arguments = $"-xf \"{sourceFilePath}\" -C \"{tempExtract}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    });
+                    proc?.WaitForExit(30000);
+
+                    var exes = Directory.GetFiles(tempExtract, "*.exe", SearchOption.AllDirectories);
+                    var match = exes.FirstOrDefault(e => Path.GetFileName(e).Equals(exeName, StringComparison.OrdinalIgnoreCase))
+                                ?? exes.FirstOrDefault();
+                    if (match != null)
+                    {
+                        File.Copy(match, destFile, overwrite: true);
+                        ActivityLogService.Info(tool.Name, $"Extracted and stored side-by-side version v{cleanVer} at {destFile}");
+                        return destFile;
+                    }
+                }
+                finally
+                {
+                    try { Directory.Delete(tempExtract, recursive: true); } catch { }
+                }
+            }
+
             File.Copy(sourceFilePath, destFile, overwrite: true);
             ActivityLogService.Info(tool.Name, $"Stored side-by-side version v{cleanVer} at {destFile}");
             return destFile;
@@ -204,7 +295,17 @@ public static class VersionSwitcherService
     {
         var cleanVer = ProjectManifestService.NormalizeVersion(targetVersion);
         var verDir = GetVersionDir(tool.Id, cleanVer);
-        var versionExe = Path.Combine(verDir, tool.FileName);
+        var exeName = GetExecutableName(tool);
+        var versionExe = Path.Combine(verDir, exeName);
+
+        if (!File.Exists(versionExe))
+        {
+            var fallback = Directory.GetFiles(verDir, "*.exe", SearchOption.AllDirectories).FirstOrDefault();
+            if (fallback != null)
+            {
+                versionExe = fallback;
+            }
+        }
 
         // If not already in side-by-side storage, download and store it!
         if (!File.Exists(versionExe))
@@ -238,8 +339,13 @@ public static class VersionSwitcherService
             }
         }
 
+        if (!File.Exists(versionExe) || !versionExe.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+        {
+            return (false, $"Target version v{cleanVer} binary not found for {tool.Name}.");
+        }
+
         // Copy into Tools\bin
-        var binPath = Path.Combine(ArtifactService.BinFolder, tool.FileName);
+        var binPath = Path.Combine(ArtifactService.BinFolder, exeName);
         try
         {
             // Back up current version in side-by-side store if not already there
@@ -247,7 +353,7 @@ public static class VersionSwitcherService
             if (File.Exists(binPath) && !string.IsNullOrWhiteSpace(currentVer))
             {
                 var curNorm = ProjectManifestService.NormalizeVersion(currentVer);
-                var curBackup = Path.Combine(GetVersionDir(tool.Id, curNorm), tool.FileName);
+                var curBackup = Path.Combine(GetVersionDir(tool.Id, curNorm), exeName);
                 if (!File.Exists(curBackup))
                 {
                     try { File.Copy(binPath, curBackup, overwrite: true); } catch { }

@@ -128,7 +128,7 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <FontIcon Grid.Column="0" Glyph="&#xE73E;" FontSize="14"
-                                                          Visibility="{x:Bind IsActive, Mode=OneTime}"
+                                                          Visibility="{x:Bind ActiveVisibility, Mode=OneWay}"
                                                           Foreground="{ThemeResource CustomAccentPrimaryBrush}"
                                                           VerticalAlignment="Center" />
                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -139,7 +139,8 @@
                                                     </TextBlock>
                                                 </StackPanel>
                                                 <Button Grid.Column="2"
-                                                        Content="Switch Context"
+                                                        Content="{x:Bind SwitchButtonText, Mode=OneWay}"
+                                                        IsEnabled="{x:Bind CanSwitch, Mode=OneWay}"
                                                         Tag="{x:Bind Name}"
                                                         Click="SwitchContext_Click"
                                                         FontSize="11" Padding="10,4" CornerRadius="4"

@@ -104,9 +104,10 @@ public sealed partial class CloudDashboardPage : Page, IRefreshablePage
 
     private void FilterContexts(string? query)
     {
+        KubeContextsList.ItemsSource = null;
         if (string.IsNullOrWhiteSpace(query))
         {
-            KubeContextsList.ItemsSource = _allContexts;
+            KubeContextsList.ItemsSource = _allContexts.ToList();
         }
         else
         {

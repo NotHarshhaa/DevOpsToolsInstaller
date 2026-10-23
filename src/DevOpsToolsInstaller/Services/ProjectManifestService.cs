@@ -220,8 +220,9 @@ public static class ProjectManifestService
             return NormalizeVersion(history[0]);
         }
 
-        var binPath = Path.Combine(ArtifactService.BinFolder, tool.FileName);
-        if (File.Exists(binPath))
+        var exeName = VersionSwitcherService.GetExecutableName(tool);
+        var binPath = Path.Combine(ArtifactService.BinFolder, exeName);
+        if (File.Exists(binPath) || File.Exists(Path.Combine(ArtifactService.BinFolder, tool.FileName)))
         {
             // Present on disk but the app has no version record (installed
             // manually or by another tool) — unknown rather than missing.
@@ -256,7 +257,7 @@ public static class ProjectManifestService
             var required = NormalizeVersion(entry.Version);
             var pinned = !IsUnpinned(required) && !required.Equals("latest", StringComparison.OrdinalIgnoreCase);
             var onDisk = UninstallService.IsInstalled(tool, dlFolder);
-            var current = TryGetInstalledVersion(tool);
+            var current = VersionSwitcherService.GetActiveVersion(tool) ?? TryGetInstalledVersion(tool);
 
             ManifestToolState state;
             string detail;
@@ -418,6 +419,11 @@ public static class ProjectManifestService
         {
             path = Path.Combine(path, ManifestFileName);
         }
+        var parentDir = Path.GetDirectoryName(Path.GetFullPath(path));
+        if (!string.IsNullOrEmpty(parentDir))
+        {
+            Directory.CreateDirectory(parentDir);
+        }
         File.WriteAllText(path, JsonSerializer.Serialize(manifest, WriteOptions));
         ActivityLogService.Success("Project manifest", $"Wrote {path} ({manifest.Tools.Count} tools).");
     }
@@ -434,12 +440,15 @@ public static class ProjectManifestService
 
         foreach (var tool in catalog)
         {
-            if (!UninstallService.IsInstalled(tool, dlFolder) && !File.Exists(Path.Combine(ArtifactService.BinFolder, tool.FileName)))
+            var exeName = VersionSwitcherService.GetExecutableName(tool);
+            bool inBin = !string.IsNullOrEmpty(exeName) && File.Exists(Path.Combine(ArtifactService.BinFolder, exeName));
+
+            if (!UninstallService.IsInstalled(tool, dlFolder) && !inBin && !File.Exists(Path.Combine(ArtifactService.BinFolder, tool.FileName)))
             {
                 continue;
             }
 
-            var version = TryGetInstalledVersion(tool);
+            var version = VersionSwitcherService.GetActiveVersion(tool) ?? TryGetInstalledVersion(tool);
             manifest.Tools.Add(new ProjectManifestTool
             {
                 Id = tool.Id,
@@ -479,7 +488,8 @@ public static class ProjectManifestService
                 lockEntry.DownloadUrl = tool.DownloadUrl;
                 lockEntry.FileName = tool.FileName;
 
-                var binFile = Path.Combine(ArtifactService.BinFolder, tool.FileName);
+                var exeName = VersionSwitcherService.GetExecutableName(tool);
+                var binFile = Path.Combine(ArtifactService.BinFolder, exeName);
                 var dlFile = Path.Combine(dlFolder, tool.FileName);
 
                 if (File.Exists(binFile))
@@ -502,9 +512,9 @@ public static class ProjectManifestService
             lockObj.Tools.Add(lockEntry);
         }
 
-        var lockPath = Path.Combine(
-            Directory.Exists(manifestPath) ? manifestPath : Path.GetDirectoryName(Path.GetFullPath(manifestPath))!,
-            LockFileName);
+        var dir = Directory.Exists(manifestPath) ? manifestPath : Path.GetDirectoryName(Path.GetFullPath(manifestPath))!;
+        Directory.CreateDirectory(dir);
+        var lockPath = Path.Combine(dir, LockFileName);
         File.WriteAllText(lockPath, JsonSerializer.Serialize(lockObj, WriteOptions));
         ActivityLogService.Success("Project manifest", $"Wrote {lockPath} ({lockObj.Tools.Count} hashed tools).");
         return lockPath;
