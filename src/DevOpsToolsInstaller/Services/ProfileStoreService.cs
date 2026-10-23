@@ -25,6 +25,9 @@ public sealed class WorkstationProfile
 
     public List<string> ToolIds { get; set; } = new();
 
+    /// <summary>Optional developer configurations (.gitconfig, PowerShell profile, Windows Terminal, VS Code extensions, SSH config).</summary>
+    public WorkstationConfigBundle? Configs { get; set; }
+
     [JsonIgnore] public int ToolCount => ToolIds.Count;
     [JsonIgnore] public string CreatedLabel => UpdatedAt.ToString("yyyy-MM-dd HH:mm");
     [JsonIgnore]

@@ -27,6 +27,9 @@ public sealed class WorkstationSnapshot
     public string UserPath { get; set; } = string.Empty;
     public List<SnapshotEntry> Entries { get; set; } = new();
 
+    /// <summary>Optional developer configurations (.gitconfig, PowerShell, Windows Terminal, VS Code, SSH config).</summary>
+    public WorkstationConfigBundle? Configs { get; set; }
+
     [JsonIgnore] public string CreatedLabel => CreatedAt.ToString("yyyy-MM-dd HH:mm");
     [JsonIgnore] public int ToolCount => Entries.Count;
     [JsonIgnore] public string Subtitle => $"{ToolCount} tool(s) · {CreatedLabel} · {MachineName}";

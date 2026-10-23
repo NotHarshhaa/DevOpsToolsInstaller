@@ -169,6 +169,23 @@
                                             <TextBlock Text="Build a stack" FontWeight="SemiBold" FontSize="13" />
                                         </StackPanel>
                                     </Button>
+                                    <Button x:Name="HeroProjectManifestButton"
+                                            Click="ProjectManifest_Click"
+                                            Padding="16,9">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE8B7;" FontSize="13" />
+                                            <TextBlock Text="Project manifest" FontWeight="SemiBold" FontSize="13" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button x:Name="HeroCloudButton"
+                                            Click="CloudDashboard_Click"
+                                            Padding="16,9">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE753;" FontSize="13" />
+                                            <TextBlock Text="Cloud &amp; Contexts" FontWeight="SemiBold" FontSize="13" />
+                                        </StackPanel>
+                                    </Button>
                                 </StackPanel>
 
                                 <!-- Next best action: one concrete thing to do right now, so the

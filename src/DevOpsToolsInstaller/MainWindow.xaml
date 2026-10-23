@@ -211,6 +211,12 @@
                         <FontIcon Glyph="&#xE9D9;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Cloud &amp; Contexts" Tag="Cloud"
+                                              ToolTipService.ToolTip="AWS, Azure, GCP logins and active kubectl contexts">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE753;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Profiles &amp; History" Tag="Profiles"
                                               ToolTipService.ToolTip="Profiles, snapshots, install history and sync">
                     <controls:NavigationViewItem.Icon>

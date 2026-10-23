@@ -775,6 +775,46 @@
                                     </tk:SettingsCard.Description>
                                 </tk:SettingsCard>
 
+                                <tk:SettingsCard Description="Automated background periodic checks for installed tools against latest catalog releases. Respects pinned and ignored versions.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Background tool update checks" />
+                                    </tk:SettingsCard.Header>
+                                    <ToggleSwitch x:Name="ToolAutoUpdateToggle" IsOn="True"
+                                                  Toggled="ToolAutoUpdateToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Background tool update checks" />
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Display Windows toast notifications with release notes when tool updates are discovered.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Toast alerts with release notes preview" />
+                                    </tk:SettingsCard.Header>
+                                    <ToggleSwitch x:Name="ToolUpdateToastToggle" IsOn="True"
+                                                  Toggled="ToolUpdateToastToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Toast alerts with release notes preview" />
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Schedule automated maintenance windows (e.g. 2:00 AM - 5:00 AM) to install updates quietly.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Maintenance window" />
+                                    </tk:SettingsCard.Header>
+                                    <ToggleSwitch x:Name="MaintenanceWindowToggle" IsOn="False"
+                                                  Toggled="MaintenanceWindowToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Maintenance window toggle" />
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Silently download and install approved updates during the active maintenance window.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Auto-install during maintenance window" />
+                                    </tk:SettingsCard.Header>
+                                    <ToggleSwitch x:Name="AutoInstallDuringMaintenanceToggle" IsOn="False"
+                                                  Toggled="AutoInstallDuringMaintenanceToggle_Toggled"
+                                                  OnContent="" OffContent=""
+                                                  AutomationProperties.Name="Auto-install during maintenance window" />
+                                </tk:SettingsCard>
+
                                 <tk:SettingsCard Description="Query GitHub Releases on application launch to ensure tools and security patches remain current.">
                                     <tk:SettingsCard.Header>
                                         <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Automatically check for updates on startup" />

@@ -123,6 +123,9 @@ public static class UpdatePreferenceService
     // ── Ignored releases ─────────────────────────────────────────────────
 
     /// <summary>The release the user dismissed for this tool, or null.</summary>
+    public static bool IsIgnored(string toolId, string version) =>
+        VersionsMatch(GetIgnoredVersion(toolId), version);
+
     public static string? GetIgnoredVersion(string toolId)
     {
         lock (Gate)

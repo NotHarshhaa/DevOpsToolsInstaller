@@ -93,6 +93,7 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
                 1 => "Snapshots",
                 2 => "History",
                 3 => "Sync",
+                4 => "Migration",
                 _ => "Profiles"
             };
         }
@@ -101,6 +102,8 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         SnapshotsContainer.Visibility = tag == "Snapshots" ? Visibility.Visible : Visibility.Collapsed;
         HistoryContainer.Visibility = tag == "History" ? Visibility.Visible : Visibility.Collapsed;
         SyncContainer.Visibility = tag == "Sync" ? Visibility.Visible : Visibility.Collapsed;
+        if (MigrationContainer != null)
+            MigrationContainer.Visibility = tag == "Migration" ? Visibility.Visible : Visibility.Collapsed;
     }
 
     // ── Profiles ─────────────────────────────────────────────────────────
@@ -811,5 +814,130 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
                 }
             }
         };
+    }
+    // ── New-PC Migration ─────────────────────────────────────────────────
+
+    private NewPcMigrationBundle? _selectedMigrationBundle;
+
+    private async void ExportMigration_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw == null) return;
+        await mw.EnsureCatalogLoadedAsync();
+
+        try
+        {
+            ExportMigrationBtn.IsEnabled = false;
+            NoticeInfoBar.IsOpen = true;
+            NoticeInfoBar.Severity = InfoBarSeverity.Informational;
+            NoticeInfoBar.Title = "Exporting Migration Package...";
+            NoticeInfoBar.Message = "Capturing developer configurations and installed tools...";
+
+            var bundle = await NewPcMigrationService.CreateBundleAsync(
+                mw.Tools,
+                "New Laptop Setup",
+                MigrateGitCheck.IsChecked == true,
+                MigratePwshCheck.IsChecked == true,
+                MigrateTerminalCheck.IsChecked == true,
+                MigrateVsCodeCheck.IsChecked == true,
+                MigrateSshCheck.IsChecked == true);
+
+            var defaultFileName = $"workstation-migration-{DateTime.Now:yyyyMMdd-HHmm}.json";
+            var saveFolder = DownloadService.DefaultDownloadsFolder;
+            var destPath = Path.Combine(saveFolder, defaultFileName);
+
+            NewPcMigrationService.SaveBundle(destPath, bundle);
+
+            NoticeInfoBar.Severity = InfoBarSeverity.Success;
+            NoticeInfoBar.Title = "Migration Package Ready";
+            NoticeInfoBar.Message = $"Saved to {destPath} ({bundle.ToolCount} tools, {bundle.Configs.ConfigItemCount} configs, {bundle.Configs.VsCodeExtensions.Count} VS Code extensions). Copy this file to your new laptop.";
+        }
+        catch (Exception ex)
+        {
+            NoticeInfoBar.Severity = InfoBarSeverity.Error;
+            NoticeInfoBar.Title = "Export Failed";
+            NoticeInfoBar.Message = ex.Message;
+        }
+        finally
+        {
+            ExportMigrationBtn.IsEnabled = true;
+        }
+    }
+
+    private async void BrowseMigration_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Downloads;
+            picker.FileTypeFilter.Add(".json");
+
+            var file = await picker.PickSingleFileAsync();
+            if (file != null)
+            {
+                var (bundle, err) = NewPcMigrationService.LoadBundle(file.Path);
+                if (bundle == null)
+                {
+                    MigrationPreviewText.Text = $"Error reading package: {err}";
+                    ApplyMigrationBtn.IsEnabled = false;
+                    return;
+                }
+
+                _selectedMigrationBundle = bundle;
+                MigrationPreviewText.Text = $"Package: {bundle.Name}\nSource Machine: {bundle.SourceMachine} (User: {bundle.SourceUser})\nCreated: {bundle.CreatedLabel}\nTools: {bundle.ToolCount} tool(s)\nConfigs: {bundle.Configs.ConfigItemCount} config(s), {bundle.Configs.VsCodeExtensions.Count} VS Code extension(s)";
+                ApplyMigrationBtn.IsEnabled = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            MigrationPreviewText.Text = $"Failed to open file: {ex.Message}";
+        }
+    }
+
+    private async void ApplyMigration_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedMigrationBundle == null) return;
+        var mw = App.MainWindowInstance;
+        if (mw == null) return;
+        await mw.EnsureCatalogLoadedAsync();
+
+        ApplyMigrationBtn.IsEnabled = false;
+        BrowseMigrationBtn.IsEnabled = false;
+        MigrationProgress.Visibility = Visibility.Visible;
+        MigrationProgressStatus.Visibility = Visibility.Visible;
+
+        var options = new MigrationRestoreOptions
+        {
+            RestoreTools = true,
+            RestoreGitConfig = _selectedMigrationBundle.Configs.HasGitConfig,
+            RestorePowerShellProfile = _selectedMigrationBundle.Configs.HasPowerShellProfile,
+            RestoreWindowsTerminal = _selectedMigrationBundle.Configs.HasWindowsTerminal,
+            RestoreVsCodeExtensions = _selectedMigrationBundle.Configs.HasVsCodeExtensions,
+            RestoreSshConfig = _selectedMigrationBundle.Configs.HasSshConfig
+        };
+
+        var prog = new Progress<double>(pct =>
+        {
+            MigrationProgress.Value = pct;
+        });
+
+        var res = await NewPcMigrationService.ApplyBundleAsync(
+            _selectedMigrationBundle,
+            mw.Tools,
+            options,
+            prog,
+            msg => MigrationProgressStatus.Text = msg);
+
+        MigrationProgress.Visibility = Visibility.Collapsed;
+        MigrationProgressStatus.Visibility = Visibility.Collapsed;
+        BrowseMigrationBtn.IsEnabled = true;
+        ApplyMigrationBtn.IsEnabled = true;
+
+        NoticeInfoBar.IsOpen = true;
+        NoticeInfoBar.Severity = res.Success ? InfoBarSeverity.Success : InfoBarSeverity.Warning;
+        NoticeInfoBar.Title = "Migration Restore Complete";
+        NoticeInfoBar.Message = $"{res.ToolsInstalled} tools installed, {res.ConfigsRestored} configs restored, {res.ExtensionsInstalled} VS Code extensions added.";
     }
 }

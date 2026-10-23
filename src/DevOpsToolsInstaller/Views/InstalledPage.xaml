@@ -100,6 +100,20 @@
                         </AppBarButton.Icon>
                     </AppBarButton>
 
+                    <AppBarButton Label="Switch version" Click="ToolbarSwitchVersion_Click"
+                                  ToolTipService.ToolTip="Switch CLI versions per project or select active side-by-side versions">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8D7;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
+                    <AppBarButton Label="Project Manifest" Click="ProjectManifest_Click"
+                                  ToolTipService.ToolTip="Open a repo's devtools.json and install what it needs">
+                        <AppBarButton.Icon>
+                            <FontIcon Glyph="&#xE8B7;" />
+                        </AppBarButton.Icon>
+                    </AppBarButton>
+
                     <AppBarButton Label="Open Tools folder" Click="OpenToolsFolder_Click"
                                   ToolTipService.ToolTip="Open the installed tools root folder in Windows Explorer">
                         <AppBarButton.Icon>
@@ -459,6 +473,12 @@
                                                 <FontIcon Glyph="&#xE712;" FontSize="14" />
                                                 <Button.Flyout>
                                                     <MenuFlyout>
+                                                        <MenuFlyoutItem Text="Side-by-side versions &amp; switcher"
+                                                                        Click="SwitchVersion_Click">
+                                                            <MenuFlyoutItem.Icon>
+                                                                <FontIcon Glyph="&#xE8D7;" />
+                                                            </MenuFlyoutItem.Icon>
+                                                        </MenuFlyoutItem>
                                                         <MenuFlyoutItem Text="Check updates"
                                                                         Click="CheckSingleToolUpdate_Click">
                                                             <MenuFlyoutItem.Icon>

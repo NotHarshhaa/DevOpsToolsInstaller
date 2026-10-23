@@ -471,6 +471,7 @@ public sealed partial class MainWindow : Window
         "Downloads" => typeof(DownloadsPage),
         "Installed" => typeof(InstalledPage),
         "Doctor"    => typeof(DoctorPage),
+        "Cloud"     => typeof(CloudDashboardPage),
         "Profiles"  => typeof(ProfilesPage),
         "CatalogEditor" => typeof(CatalogEditorPage),
         "Settings"  => typeof(SettingsPage),

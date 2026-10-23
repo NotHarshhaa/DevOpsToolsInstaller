@@ -142,6 +142,48 @@ public static class SettingsService
     /// <summary>Off-peak schedule end hour (0-23, 24-hour format). Default is 7 (7 AM).</summary>
     public static int ScheduleEndHour { get; set; } = 7;
 
+    /// <summary>Automated background periodic update checks for installed tools.</summary>
+    public static bool AutoUpdateCheckEnabled { get; set; } = true;
+
+    /// <summary>Interval in hours between background update checks (4, 8, 12, 24).</summary>
+    public static int UpdateCheckIntervalHours { get; set; } = 12;
+
+    /// <summary>Dedicated maintenance window for tool updates.</summary>
+    public static bool MaintenanceWindowEnabled { get; set; } = false;
+
+    /// <summary>Maintenance window start hour (0-23). Default is 2 (2 AM).</summary>
+    public static int MaintenanceStartHour { get; set; } = 2;
+
+    /// <summary>Maintenance window end hour (0-23). Default is 5 (5 AM).</summary>
+    public static int MaintenanceEndHour { get; set; } = 5;
+
+    /// <summary>Automatically install approved updates during the maintenance window without prompting.</summary>
+    public static bool AutoInstallDuringMaintenance { get; set; } = false;
+
+    /// <summary>Show Windows toast notifications with release notes when updates are detected.</summary>
+    public static bool ShowUpdateToastWithReleaseNotes { get; set; } = true;
+
+    public static bool IsWithinMaintenanceWindow()
+    {
+        if (!MaintenanceWindowEnabled) return true;
+        var nowHour = DateTime.Now.Hour;
+        if (MaintenanceStartHour <= MaintenanceEndHour)
+        {
+            return nowHour >= MaintenanceStartHour && nowHour < MaintenanceEndHour;
+        }
+        else
+        {
+            return nowHour >= MaintenanceStartHour || nowHour < MaintenanceEndHour;
+        }
+    }
+
+    public static string GetMaintenanceWindowDescription()
+    {
+        var startAmPm = DateTime.Today.AddHours(MaintenanceStartHour).ToString("h:mm tt");
+        var endAmPm = DateTime.Today.AddHours(MaintenanceEndHour).ToString("h:mm tt");
+        return $"{startAmPm} - {endAmPm}";
+    }
+
     /// <summary>Automatically retry failed downloads after network drops or transient errors.</summary>
     public static bool AutoRetryFailedDownloads { get; set; } = true;
 
@@ -324,6 +366,21 @@ public static class SettingsService
                     ScheduleEndHour = sEndProp.GetInt32();
                 }
 
+                if (doc.RootElement.TryGetProperty("AutoUpdateCheckEnabled", out var autoUpProp))
+                    AutoUpdateCheckEnabled = autoUpProp.GetBoolean();
+                if (doc.RootElement.TryGetProperty("UpdateCheckIntervalHours", out var uciProp))
+                    UpdateCheckIntervalHours = uciProp.GetInt32();
+                if (doc.RootElement.TryGetProperty("MaintenanceWindowEnabled", out var mwProp))
+                    MaintenanceWindowEnabled = mwProp.GetBoolean();
+                if (doc.RootElement.TryGetProperty("MaintenanceStartHour", out var msProp))
+                    MaintenanceStartHour = msProp.GetInt32();
+                if (doc.RootElement.TryGetProperty("MaintenanceEndHour", out var meProp))
+                    MaintenanceEndHour = meProp.GetInt32();
+                if (doc.RootElement.TryGetProperty("AutoInstallDuringMaintenance", out var aimProp))
+                    AutoInstallDuringMaintenance = aimProp.GetBoolean();
+                if (doc.RootElement.TryGetProperty("ShowUpdateToastWithReleaseNotes", out var sutProp))
+                    ShowUpdateToastWithReleaseNotes = sutProp.GetBoolean();
+
                 if (doc.RootElement.TryGetProperty("AutoRetryFailedDownloads", out var retryProp))
                 {
                     AutoRetryFailedDownloads = retryProp.GetBoolean();
@@ -407,6 +464,13 @@ public static class SettingsService
                 DownloadScheduleEnabled = DownloadScheduleEnabled,
                 ScheduleStartHour = ScheduleStartHour,
                 ScheduleEndHour = ScheduleEndHour,
+                AutoUpdateCheckEnabled = AutoUpdateCheckEnabled,
+                UpdateCheckIntervalHours = UpdateCheckIntervalHours,
+                MaintenanceWindowEnabled = MaintenanceWindowEnabled,
+                MaintenanceStartHour = MaintenanceStartHour,
+                MaintenanceEndHour = MaintenanceEndHour,
+                AutoInstallDuringMaintenance = AutoInstallDuringMaintenance,
+                ShowUpdateToastWithReleaseNotes = ShowUpdateToastWithReleaseNotes,
                 AutoRetryFailedDownloads = AutoRetryFailedDownloads,
                 AutoRetryIntervalMinutes = AutoRetryIntervalMinutes,
                 LogDrawerHeight = LogDrawerHeight,

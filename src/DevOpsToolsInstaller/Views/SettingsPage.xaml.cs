@@ -41,6 +41,10 @@ public sealed partial class SettingsPage : Page
         UpdateCompletionStatus();
         UpdateLastCheckedDisplay();
         AutoUpdateToggle.IsOn = SettingsService.CheckForUpdatesOnStartup;
+        ToolAutoUpdateToggle.IsOn = SettingsService.AutoUpdateCheckEnabled;
+        ToolUpdateToastToggle.IsOn = SettingsService.ShowUpdateToastWithReleaseNotes;
+        MaintenanceWindowToggle.IsOn = SettingsService.MaintenanceWindowEnabled;
+        AutoInstallDuringMaintenanceToggle.IsOn = SettingsService.AutoInstallDuringMaintenance;
         NotificationsToggle.IsOn = SettingsService.EnableNotifications;
         CloseToTrayToggle.IsOn = SettingsService.CloseToTray;
         OnboardingToggle.IsOn = SettingsService.ShowOnboardingTips || !SettingsService.OnboardingCompleted;
@@ -1372,5 +1376,29 @@ public sealed partial class SettingsPage : Page
             default:
                 return content.ToString() ?? string.Empty;
         }
+    }
+    private void ToolAutoUpdateToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.AutoUpdateCheckEnabled = ToolAutoUpdateToggle.IsOn;
+        SettingsService.SaveSettings();
+        UpdateAutomationService.Instance.RefreshTimerSchedule();
+    }
+
+    private void ToolUpdateToastToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.ShowUpdateToastWithReleaseNotes = ToolUpdateToastToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void MaintenanceWindowToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.MaintenanceWindowEnabled = MaintenanceWindowToggle.IsOn;
+        SettingsService.SaveSettings();
+    }
+
+    private void AutoInstallDuringMaintenanceToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        SettingsService.AutoInstallDuringMaintenance = AutoInstallDuringMaintenanceToggle.IsOn;
+        SettingsService.SaveSettings();
     }
 }

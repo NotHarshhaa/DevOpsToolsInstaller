@@ -644,4 +644,16 @@ public sealed partial class HomePage : Page, IRefreshablePage
             App.MainWindowInstance?.NavigateToCatalogWithSearch(query);
         }
     }
+    private async void ProjectManifest_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw == null) return;
+        await mw.EnsureCatalogLoadedAsync();
+        await DevOpsToolsInstaller.Controls.ProjectManifestDialog.ShowAsync(XamlRoot, mw.Tools);
+    }
+
+    private void CloudDashboard_Click(object sender, RoutedEventArgs e)
+    {
+        App.MainWindowInstance?.NavigateTo("Cloud");
+    }
 }

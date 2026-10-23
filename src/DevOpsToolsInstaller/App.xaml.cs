@@ -43,7 +43,9 @@ public partial class App : Application
         var cliArgs = Environment.GetCommandLineArgs().Skip(1).ToArray();
         if (Services.CliHost.IsCliRequest(cliArgs))
         {
-            _ = RunCliAsync(cliArgs);
+            var exitCode = Task.Run(async () => await Services.CliHost.RunAsync(cliArgs)).GetAwaiter().GetResult();
+            Environment.ExitCode = exitCode;
+            Exit();
             return;
         }
 

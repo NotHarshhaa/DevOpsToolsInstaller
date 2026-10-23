@@ -35,7 +35,11 @@ public static class CliHost
         "--path-doctor", "--check-path", "--fix-path",
         "--history", "--snapshot", "--restore-snapshot",
         "--profiles", "--capture-profile", "--apply-profile", "--sync-profiles",
-        "--downloads-folder", "--run-hooks", "--list", "--status", "--version", "--help", "-h"
+        "--downloads-folder", "--run-hooks", "--list", "--status", "--version", "--help", "-h",
+        "--manifest", "--install-manifest", "--check", "--check-manifest", "--export-manifest", "--lock-manifest",
+        "--versions", "--switch", "--use", "--detect-project",
+        "--export-migration", "--apply-migration",
+        "--check-updates", "--cloud-status", "--kube-context"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -59,6 +63,15 @@ public static class CliHost
         {
             try { AttachConsole(ATTACH_PARENT_PROCESS); } catch { }
         }
+
+        try
+        {
+            var stdOut = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
+            Console.SetOut(stdOut);
+            var stdErr = new StreamWriter(Console.OpenStandardError()) { AutoFlush = true };
+            Console.SetError(stdErr);
+        }
+        catch { }
 
         try
         {
@@ -277,6 +290,71 @@ public static class CliHost
             else if (arg.Equals("--fix-path", StringComparison.OrdinalIgnoreCase))
             {
                 return RunFixPath();
+            }
+            else if (arg.Equals("--check", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--check-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                string manifestPath = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : ".";
+                return RunManifestCheck(manifestPath, tools);
+            }
+            else if (arg.Equals("--manifest", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--install-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                string manifestPath = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : ".";
+                return await RunInstallManifestAsync(manifestPath, tools);
+            }
+            else if (arg.Equals("--export-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                string destPath = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "devtools.json";
+                return RunExportManifest(destPath, tools);
+            }
+            else if (arg.Equals("--lock-manifest", StringComparison.OrdinalIgnoreCase))
+            {
+                string manifestPath = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "devtools.json";
+                return RunLockManifest(manifestPath, tools);
+            }
+            else if (arg.Equals("--versions", StringComparison.OrdinalIgnoreCase))
+            {
+                string? toolFilter = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
+                return RunListVersions(toolFilter, tools);
+            }
+            else if (arg.Equals("--switch", StringComparison.OrdinalIgnoreCase) ||
+                     arg.Equals("--use", StringComparison.OrdinalIgnoreCase))
+            {
+                if (i + 2 < args.Count)
+                {
+                    var toolId = args[++i];
+                    var ver = args[++i];
+                    return await RunSwitchVersionAsync(toolId, ver, tools);
+                }
+                WriteLine("error: --switch requires <toolId> <version> (e.g. --switch kubectl 1.29.2)");
+                return 1;
+            }
+            else if (arg.Equals("--detect-project", StringComparison.OrdinalIgnoreCase))
+            {
+                string folder = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : ".";
+                return await RunDetectProjectAsync(folder, tools);
+            }
+            else if (arg.Equals("--export-migration", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await RunExportMigrationAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--apply-migration", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await RunApplyMigrationAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--check-updates", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunCheckUpdatesAsync();
+            }
+            else if (arg.Equals("--cloud-status", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunCloudStatusAsync();
+            }
+            else if (arg.Equals("--kube-context", StringComparison.OrdinalIgnoreCase))
+            {
+                string? targetContext = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
+                return RunKubeContext(targetContext);
             }
         }
 
@@ -1094,6 +1172,305 @@ public static class CliHost
         return null;
     }
 
+    private static int RunManifestCheck(string manifestPath, IReadOnlyList<ToolDefinition> tools)
+    {
+        var res = ProjectManifestService.Check(manifestPath, tools);
+        foreach (var line in res.Lines)
+        {
+            WriteLine(line);
+        }
+        return res.ExitCode;
+    }
+
+    private static async Task<int> RunInstallManifestAsync(string manifestPath, IReadOnlyList<ToolDefinition> tools)
+    {
+        var (manifest, err) = ProjectManifestService.Load(manifestPath);
+        if (manifest == null)
+        {
+            WriteLine($"error: {err}");
+            return 1;
+        }
+
+        WriteLine($"Project manifest: {manifest.Project ?? "devtools.json"} ({manifest.Tools.Count} tools specified)");
+        var plan = ProjectManifestService.BuildPlan(manifest, tools, manifestPath);
+        WriteLine($"Plan: {plan.InstallCount} to install/align, {plan.SatisfiedCount} already satisfied.");
+
+        if (plan.UnknownIds.Count > 0)
+        {
+            WriteLine($"[warn] Unknown tool IDs in manifest: {string.Join(", ", plan.UnknownIds)}");
+        }
+
+        foreach (var item in plan.Items)
+        {
+            var stateStr = item.State switch
+            {
+                ManifestToolState.Satisfied => "[OK  ]",
+                ManifestToolState.Missing => "[MISS]",
+                ManifestToolState.VersionMismatch => "[MISMATCH]",
+                _ => "[INFO]"
+            };
+            WriteLine($"  {stateStr} {item.Tool.Name,-20} {item.Detail}");
+        }
+
+        if (plan.InstallCount == 0)
+        {
+            WriteLine("All manifest tools are already satisfied.");
+            return 0;
+        }
+
+        WriteLine();
+        WriteLine("Installing required tools...");
+        var result = await ProjectManifestService.ApplyAsync(plan, downloadOnly: false, onLog: msg => WriteLine($"  {msg}"));
+
+        // Write/update lockfile
+        ProjectManifestService.WriteLock(manifestPath, manifest, tools);
+
+        WriteLine();
+        WriteLine($"Done: {result.Installed} installed, {result.Failed} failed.");
+        return result.AllOK ? 0 : 1;
+    }
+
+    private static int RunExportManifest(string destPath, IReadOnlyList<ToolDefinition> tools)
+    {
+        try
+        {
+            var manifest = ProjectManifestService.ExportManifest(tools);
+            ProjectManifestService.WriteManifest(destPath, manifest);
+            ProjectManifestService.WriteLock(destPath, manifest, tools);
+            WriteLine($"[OK] Exported project manifest to {destPath} and generated devtools.lock.json ({manifest.Tools.Count} tools).");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"[ERR] Failed to export manifest: {ex.Message}");
+            return 1;
+        }
+    }
+
+    private static int RunLockManifest(string manifestPath, IReadOnlyList<ToolDefinition> tools)
+    {
+        var (manifest, err) = ProjectManifestService.Load(manifestPath);
+        if (manifest == null)
+        {
+            WriteLine($"error: {err}");
+            return 1;
+        }
+        var lockPath = ProjectManifestService.WriteLock(manifestPath, manifest, tools);
+        WriteLine($"[OK] Generated lockfile: {lockPath}");
+        return 0;
+    }
+
+    private static int RunListVersions(string? toolFilter, IReadOnlyList<ToolDefinition> tools)
+    {
+        var targets = string.IsNullOrWhiteSpace(toolFilter)
+            ? tools
+            : tools.Where(t => t.Id.Equals(toolFilter, StringComparison.OrdinalIgnoreCase) ||
+                               t.Name.Equals(toolFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        if (targets.Count == 0)
+        {
+            WriteLine($"Tool '{toolFilter}' not found in catalog.");
+            return 1;
+        }
+
+        int foundTotal = 0;
+        foreach (var tool in targets)
+        {
+            var versions = VersionSwitcherService.GetInstalledVersions(tool);
+            if (versions.Count > 0)
+            {
+                foundTotal++;
+                WriteLine($"{tool.Name} ({tool.Id}):");
+                foreach (var v in versions)
+                {
+                    var activeTag = v.IsActive ? " [ACTIVE]" : "         ";
+                    WriteLine($"  {activeTag} v{v.Version,-12} ({v.FileSizeFormatted}, {v.InstalledAt:yyyy-MM-dd})");
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(toolFilter))
+            {
+                WriteLine($"{tool.Name} has no side-by-side versions stored yet.");
+            }
+        }
+
+        if (foundTotal == 0 && string.IsNullOrWhiteSpace(toolFilter))
+        {
+            WriteLine("No side-by-side versions recorded yet. Use '--switch <tool> <version>' to install and activate specific versions.");
+        }
+
+        return 0;
+    }
+
+    private static async Task<int> RunSwitchVersionAsync(string toolId, string version, IReadOnlyList<ToolDefinition> tools)
+    {
+        var tool = tools.FirstOrDefault(t => t.Id.Equals(toolId, StringComparison.OrdinalIgnoreCase));
+        if (tool == null)
+        {
+            WriteLine($"error: unknown tool id '{toolId}'.");
+            return 1;
+        }
+
+        WriteLine($"Switching {tool.Name} to version v{version}...");
+        var (ok, msg) = await VersionSwitcherService.SwitchActiveVersionAsync(tool, version, tools);
+        WriteLine(ok ? $"[OK] {msg}" : $"[ERR] {msg}");
+        return ok ? 0 : 1;
+    }
+
+    private static async Task<int> RunDetectProjectAsync(string folder, IReadOnlyList<ToolDefinition> tools)
+    {
+        WriteLine($"Scanning directory '{Path.GetFullPath(folder)}' for project version files...");
+        var res = await VersionSwitcherService.DetectAndSwitchProjectVersionsAsync(folder, tools);
+        if (res.Results.Count == 0)
+        {
+            WriteLine("No project version files detected (.terraform-version, .kubectl-version, .tool-versions, devtools.json).");
+            return 0;
+        }
+
+        foreach (var r in res.Results)
+        {
+            var tag = r.Switched ? "[OK  ]" : "[SKIP]";
+            WriteLine($"  {tag} {r.ToolId} -> v{r.Version}: {r.Message}");
+        }
+        return 0;
+    }
+
+    private static async Task<int> RunExportMigrationAsync(string filePath, IReadOnlyList<ToolDefinition> tools)
+    {
+        WriteLine("Capturing workstation developer tools and configurations (.gitconfig, PowerShell, Windows Terminal, VS Code, SSH config)...");
+        var bundle = await NewPcMigrationService.CreateBundleAsync(tools);
+        NewPcMigrationService.SaveBundle(filePath, bundle);
+        WriteLine($"[OK] Migration package saved to: {filePath}");
+        WriteLine($"     Included: {bundle.ToolCount} tool(s), {bundle.Configs.ConfigItemCount} developer configs, {bundle.Configs.VsCodeExtensions.Count} VS Code extensions.");
+        return 0;
+    }
+
+    private static async Task<int> RunApplyMigrationAsync(string filePath, IReadOnlyList<ToolDefinition> tools)
+    {
+        var (bundle, err) = NewPcMigrationService.LoadBundle(filePath);
+        if (bundle == null)
+        {
+            WriteLine($"error: {err}");
+            return 1;
+        }
+
+        WriteLine($"Applying migration from '{bundle.Name}' (Source: {bundle.SourceMachine}, User: {bundle.SourceUser})...");
+        var options = new MigrationRestoreOptions();
+        var res = await NewPcMigrationService.ApplyBundleAsync(bundle, tools, options, onLog: msg => WriteLine($"  {msg}"));
+
+        WriteLine();
+        WriteLine($"Migration applied: {res.ToolsInstalled} tools installed, {res.ConfigsRestored} configs restored, {res.ExtensionsInstalled} VS Code extensions installed.");
+        return res.Success ? 0 : 1;
+    }
+
+    private static async Task<int> RunCheckUpdatesAsync()
+    {
+        WriteLine("Checking installed tools for updates...");
+        var updates = await UpdateAutomationService.Instance.CheckNowAsync();
+        if (updates.Count == 0)
+        {
+            WriteLine("All installed tools are up-to-date.");
+            return 0;
+        }
+
+        WriteLine($"Found {updates.Count} available update(s):");
+        foreach (var u in updates)
+        {
+            var status = u.IsPinned ? "[PINNED]" : u.IsIgnored ? "[IGNORED]" : "[UPDATE]";
+            WriteLine($"  {status,-9} {u.Tool.Name,-20} v{u.InstalledVersion} -> v{u.AvailableVersion}");
+            if (!string.IsNullOrWhiteSpace(u.ReleaseNotesPreview))
+            {
+                WriteLine($"             Note: {u.ReleaseNotesPreview}");
+            }
+        }
+        return 0;
+    }
+
+    private static async Task<int> RunCloudStatusAsync()
+    {
+        WriteLine("Reading local cloud & Kubernetes configurations (local state only)...");
+        var state = await CloudConnectionsService.ScanAllAsync();
+
+        WriteLine();
+        WriteLine("── Kubernetes (kubectl) ──────────────────────────");
+        if (state.Kube.HasKubeConfig)
+        {
+            WriteLine($"  Active Context  : {state.Kube.ActiveContextName}");
+            WriteLine($"  Active Cluster  : {state.Kube.ActiveCluster}");
+            WriteLine($"  Namespace       : {state.Kube.ActiveNamespace}");
+            WriteLine($"  Total Contexts  : {state.Kube.Contexts.Count}");
+        }
+        else
+        {
+            WriteLine("  No kubeconfig found at ~/.kube/config");
+        }
+
+        WriteLine();
+        WriteLine("── AWS (Amazon Web Services) ─────────────────────");
+        WriteLine($"  Status          : {state.Aws.StatusBadge}");
+        WriteLine($"  Active Profile  : {state.Aws.ActiveProfile}");
+        if (!string.IsNullOrWhiteSpace(state.Aws.Region))
+            WriteLine($"  Default Region  : {state.Aws.Region}");
+        if (!string.IsNullOrWhiteSpace(state.Aws.AccountSummary))
+            WriteLine($"  Account / SSO   : {state.Aws.AccountSummary}");
+        WriteLine($"  Saved Profiles  : {string.Join(", ", state.Aws.Profiles.Select(p => p.Name))}");
+
+        WriteLine();
+        WriteLine("── Microsoft Azure ───────────────────────────────");
+        WriteLine($"  Status          : {state.Azure.StatusBadge}");
+        if (state.Azure.IsLoggedIn)
+        {
+            WriteLine($"  Account         : {state.Azure.UserAccount}");
+            WriteLine($"  Subscription    : {state.Azure.SubscriptionName} ({state.Azure.SubscriptionId})");
+            WriteLine($"  Tenant ID       : {state.Azure.TenantId}");
+        }
+
+        WriteLine();
+        WriteLine("── Google Cloud (GCP) ────────────────────────────");
+        WriteLine($"  Status          : {state.Gcp.StatusBadge}");
+        if (state.Gcp.IsLoggedIn)
+        {
+            WriteLine($"  Account         : {state.Gcp.AccountEmail}");
+            WriteLine($"  Project ID      : {state.Gcp.ProjectId}");
+            if (!string.IsNullOrWhiteSpace(state.Gcp.DefaultZone))
+                WriteLine($"  Default Zone    : {state.Gcp.DefaultZone}");
+        }
+
+        return 0;
+    }
+
+    private static int RunKubeContext(string? targetContext)
+    {
+        var kube = CloudConnectionsService.GetKubeStatus();
+        if (!kube.HasKubeConfig)
+        {
+            WriteLine("No kubeconfig found at ~/.kube/config.");
+            return 1;
+        }
+
+        if (string.IsNullOrWhiteSpace(targetContext))
+        {
+            WriteLine($"Active Context: {kube.ActiveContextName}");
+            WriteLine("Available Contexts:");
+            foreach (var ctx in kube.Contexts)
+            {
+                var marker = ctx.IsActive ? "* " : "  ";
+                WriteLine($"  {marker}{ctx.Name,-25} (cluster: {ctx.Cluster}, ns: {ctx.Namespace})");
+            }
+            return 0;
+        }
+
+        var match = kube.Contexts.FirstOrDefault(c => c.Name.Equals(targetContext, StringComparison.OrdinalIgnoreCase));
+        if (match == null)
+        {
+            WriteLine($"error: context '{targetContext}' not found in ~/.kube/config.");
+            return 1;
+        }
+
+        bool ok = CloudConnectionsService.SwitchKubeContext(match.Name);
+        WriteLine(ok ? $"Switched active context to '{match.Name}'." : "Failed to switch context.");
+        return ok ? 0 : 1;
+    }
+
     private static void PrintUsage()
     {
         WriteLine($"DevOps Tools Installer v{AppUpdaterService.CurrentVersion} (headless mode)");
@@ -1123,6 +1500,17 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --capture-profile <name>     Save a profile from the installed toolset");
         WriteLine("  DevOpsToolsInstaller.exe --apply-profile <name|id>    Install every tool in a named profile");
         WriteLine("  DevOpsToolsInstaller.exe --sync-profiles              Merge profiles/snapshots with the sync folder");
+        WriteLine("  DevOpsToolsInstaller.exe --manifest [file]            Install what a project needs from devtools.json");
+        WriteLine("  DevOpsToolsInstaller.exe --check [file]               CI check: verify drift against devtools.lock.json");
+        WriteLine("  DevOpsToolsInstaller.exe --export-manifest [file]     Export current tools as devtools.json & lockfile");
+        WriteLine("  DevOpsToolsInstaller.exe --versions [toolId]          List side-by-side installed CLI versions");
+        WriteLine("  DevOpsToolsInstaller.exe --switch <tool> <version>    Switch active version (like tfenv/nvm)");
+        WriteLine("  DevOpsToolsInstaller.exe --detect-project [dir]       Auto-switch active tools from project version files");
+        WriteLine("  DevOpsToolsInstaller.exe --export-migration <file>    Export New-PC package (tools + .gitconfig, etc.)");
+        WriteLine("  DevOpsToolsInstaller.exe --apply-migration <file>     Restore New-PC package on this machine");
+        WriteLine("  DevOpsToolsInstaller.exe --check-updates              Check for tool updates with notes");
+        WriteLine("  DevOpsToolsInstaller.exe --cloud-status               Local cloud login & kubectl context status");
+        WriteLine("  DevOpsToolsInstaller.exe --kube-context [name]        List or switch kubectl context (kubectx)");
         WriteLine("  DevOpsToolsInstaller.exe --run-hooks                  Allow user-authored pre/post-install hooks");
         WriteLine("  DevOpsToolsInstaller.exe --downloads-folder <path>    Redirect downloads (e.g. a USB drive)");
         WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");

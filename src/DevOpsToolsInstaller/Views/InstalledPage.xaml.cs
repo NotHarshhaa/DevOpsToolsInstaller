@@ -1511,4 +1511,31 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
     {
         App.MainWindowInstance?.NavigateTo("Catalog");
     }
+    private async void SwitchVersion_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement fe && fe.DataContext is ToolDefinition tool)
+        {
+            var catalog = App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+            await DevOpsToolsInstaller.Controls.VersionSwitcherDialog.ShowAsync(XamlRoot, tool, catalog);
+            ApplyFilter();
+        }
+    }
+
+    private async void ToolbarSwitchVersion_Click(object sender, RoutedEventArgs e)
+    {
+        var catalog = App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+        var selectedTool = _allInstalledTools.FirstOrDefault(t => t.IsSelected) ?? _allInstalledTools.FirstOrDefault();
+        if (selectedTool != null)
+        {
+            await DevOpsToolsInstaller.Controls.VersionSwitcherDialog.ShowAsync(XamlRoot, selectedTool, catalog);
+            ApplyFilter();
+        }
+    }
+
+    private async void ProjectManifest_Click(object sender, RoutedEventArgs e)
+    {
+        var catalog = App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+        await DevOpsToolsInstaller.Controls.ProjectManifestDialog.ShowAsync(XamlRoot, catalog);
+        ApplyFilter();
+    }
 }
