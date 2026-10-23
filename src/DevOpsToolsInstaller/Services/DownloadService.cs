@@ -63,8 +63,11 @@ public sealed class DownloadService
         // Security: refuse to fetch executables over plain-text HTTP — an
         // attacker on the network could otherwise swap the binary mid-flight
         // even when the catalog itself is fetched over HTTPS.
+        // Exception: Corporate-approved internal feed tools or local loopback sources.
         if (!Uri.TryCreate(tool.DownloadUrl, UriKind.Absolute, out var downloadUri) ||
-            downloadUri.Scheme != Uri.UriSchemeHttps)
+            (downloadUri.Scheme != Uri.UriSchemeHttps &&
+             downloadUri.Scheme != Uri.UriSchemeFile &&
+             !(downloadUri.Scheme == Uri.UriSchemeHttp && (downloadUri.IsLoopback || tool.IsCorporateApproved))))
         {
             var msg = $"Blocked download: '{tool.DownloadUrl}' is not HTTPS.";
             ActivityLogService.Error(tool.Name, msg);

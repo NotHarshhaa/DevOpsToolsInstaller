@@ -274,8 +274,12 @@ if ($LASTEXITCODE -eq 0) {
 
         if (policy.AllowedCatalogSources.Count > 0)
         {
-            var sources = string.Join("\",\"", policy.AllowedCatalogSources);
             sb.AppendLine($"\"AllowedCatalogSources\"=hex(7):{StringToMultiSzHex(policy.AllowedCatalogSources)}");
+        }
+
+        if (policy.AllowedBackends.Count > 0)
+        {
+            sb.AppendLine($"\"AllowedBackends\"=hex(7):{StringToMultiSzHex(policy.AllowedBackends)}");
         }
 
         return sb.ToString();
@@ -284,7 +288,7 @@ if ($LASTEXITCODE -eq 0) {
     private static string StringToMultiSzHex(List<string> strings)
     {
         var bytes = new List<byte>();
-        foreach (var s in strings)
+        foreach (var s in strings.Where(x => !string.IsNullOrWhiteSpace(x)))
         {
             bytes.AddRange(System.Text.Encoding.Unicode.GetBytes(s));
             bytes.Add(0);

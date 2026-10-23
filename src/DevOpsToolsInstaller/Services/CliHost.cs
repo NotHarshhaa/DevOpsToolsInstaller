@@ -370,6 +370,11 @@ public static class CliHost
             }
             else if (arg.Equals("--add-feed", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
+                if (EnterprisePolicyService.AreSettingsLocked)
+                {
+                    WriteLine("error: subscribing to private feeds is locked by enterprise IT policy.");
+                    return 1;
+                }
                 var feedName = args[++i];
                 var feedUrl = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : feedName;
                 if (feedUrl == feedName) feedName = "";
@@ -397,14 +402,15 @@ public static class CliHost
             {
                 return RunCheckPolicy();
             }
-            else if (arg.Equals("--export-policy-template", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            else if (arg.Equals("--export-policy-template", StringComparison.OrdinalIgnoreCase))
             {
-                return RunExportPolicyTemplate(args[++i]);
+                var dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "DevOpsTools-EnterprisePolicy.reg";
+                return RunExportPolicyTemplate(dest);
             }
-            else if (arg.Equals("--export-intune-script", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            else if (arg.Equals("--export-intune-script", StringComparison.OrdinalIgnoreCase))
             {
-                var bundleId = args[++i];
-                var dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "deploy-intune.ps1";
+                string? bundleId = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
+                string dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "deploy-intune.ps1";
                 return await RunExportIntuneScriptAsync(bundleId, dest);
             }
         }
@@ -1711,13 +1717,17 @@ public static class CliHost
         }
     }
 
-    private static async Task<int> RunExportIntuneScriptAsync(string bundleId, string path)
+    private static async Task<int> RunExportIntuneScriptAsync(string? bundleId, string path)
     {
         try
         {
-            var catalog = new CatalogService();
-            var bundles = await catalog.LoadBundlesAsync();
-            var bundle = bundles.FirstOrDefault(b => b.Id.Equals(bundleId, StringComparison.OrdinalIgnoreCase));
+            ToolBundle? bundle = null;
+            if (!string.IsNullOrWhiteSpace(bundleId))
+            {
+                var catalog = new CatalogService();
+                var bundles = await catalog.LoadBundlesAsync();
+                bundle = bundles.FirstOrDefault(b => b.Id.Equals(bundleId, StringComparison.OrdinalIgnoreCase));
+            }
             var script = EnterprisePolicyService.GenerateIntuneScript(bundle);
             await File.WriteAllTextAsync(path, script);
             WriteLine($"Exported Microsoft Intune deployment script to '{path}'.");

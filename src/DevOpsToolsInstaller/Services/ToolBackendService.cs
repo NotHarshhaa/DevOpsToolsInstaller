@@ -46,7 +46,7 @@ public static class ToolBackendService
             ["opentofu"] = ("OpenTofu.tofu", "opentofu", "opentofu"),
             ["docker-desktop"] = ("Docker.DockerDesktop", "docker", "docker-desktop"),
             ["podman-desktop"] = ("RedHat.Podman-Desktop", "podman-desktop", "podman-desktop"),
-            ["k9s"] = ("Der推er.k9s", "k9s", "k9s"),
+            ["k9s"] = ("Derailed.k9s", "k9s", "k9s"),
             ["argocd"] = ("Argo.ArgoCD", "argocd", "argocd-cli"),
             ["flux"] = ("FluxCD.Flux", "flux", "flux"),
             ["istioctl"] = ("Istio.istioctl", "istioctl", "istioctl"),

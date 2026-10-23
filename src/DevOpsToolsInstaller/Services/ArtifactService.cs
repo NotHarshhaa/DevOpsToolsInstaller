@@ -263,6 +263,21 @@ public static class ArtifactService
 
     private static ArtifactActionResult InstallBinary(ToolDefinition tool, string sourcePath)
     {
+        if (EnterprisePolicyService.IsUnsignedBlocked || SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned)
+        {
+            var signature = AuthenticodeService.VerifyFile(sourcePath);
+            if (!signature.IsValid)
+            {
+                var reason = EnterprisePolicyService.IsUnsignedBlocked
+                    ? "corporate IT policy enforces blocking all unsigned binaries."
+                    : "signature policy is set to block binaries without a verified trusted signature.";
+                ActivityLogService.Error(tool.Name, $"Blocked by signature policy: {signature.StatusBadge}");
+                return new ArtifactActionResult(
+                    false,
+                    $"{tool.Name} cannot be installed because {reason} Status: {signature.StatusBadge}.");
+            }
+        }
+
         var bin = BinFolder;
         var destPath = Path.Combine(bin, tool.FileName);
         File.Copy(sourcePath, destPath, overwrite: true);

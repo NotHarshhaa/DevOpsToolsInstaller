@@ -1492,11 +1492,19 @@ public sealed partial class SettingsPage : Page
                 var delBtn = new Button { Padding = new Thickness(6, 4, 6, 4) };
                 delBtn.Content = new FontIcon { Glyph = "\uE74D", FontSize = 11 };
                 ToolTipService.SetToolTip(delBtn, "Unsubscribe from feed");
-                delBtn.Click += (s, e) =>
+                delBtn.Click += async (s, e) =>
                 {
                     PrivateFeedService.RemoveFeed(feed.Id);
                     ShowNotice($"Unsubscribed from '{feed.Name}'.", InfoBarSeverity.Informational);
                     BindFeedsSection();
+
+                    var mw = App.MainWindowInstance;
+                    if (mw is not null)
+                    {
+                        var tools = await mw.CatalogSvc.LoadCatalogAsync();
+                        mw.Tools.Clear();
+                        foreach (var t in tools) mw.Tools.Add(t);
+                    }
                 };
                 actions.Children.Add(delBtn);
             }
@@ -1511,6 +1519,12 @@ public sealed partial class SettingsPage : Page
 
     private async void AddFeed_Click(object sender, RoutedEventArgs e)
     {
+        if (EnterprisePolicyService.AreSettingsLocked)
+        {
+            ShowNotice("Adding private feeds is disabled by enterprise IT policy.", InfoBarSeverity.Error);
+            return;
+        }
+
         var url = FeedUrlInput.Text.Trim();
         var name = FeedNameInput.Text.Trim();
         if (string.IsNullOrWhiteSpace(url))
@@ -1573,6 +1587,13 @@ public sealed partial class SettingsPage : Page
             PolicyStatusText.Text = $"Managed by {EnterprisePolicyService.Current.OrganizationName}";
             PolicyStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
             PolicyStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"];
+
+            if (EnterprisePolicyService.AreSettingsLocked)
+            {
+                FeedUrlInput.IsEnabled = false;
+                FeedNameInput.IsEnabled = false;
+                DefaultBackendCombo.IsEnabled = false;
+            }
         }
         else
         {

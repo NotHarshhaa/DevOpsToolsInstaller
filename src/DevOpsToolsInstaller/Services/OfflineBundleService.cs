@@ -131,10 +131,15 @@ public static class OfflineBundleService
 
                 var targetInstallerPath = Path.Combine(installersDir, tool.FileName);
 
-                // Check if already in user's downloads folder
-                var cachedPath = Path.Combine(DownloadService.DefaultDownloadsFolder, tool.FileName);
-                bool validCache = false;
+                // Check if already in user's downloads folder or custom download directory
+                var preferredFolder = SettingsService.DownloadsFolder;
+                var cachedPath = Path.Combine(preferredFolder, tool.FileName);
+                if (!File.Exists(cachedPath))
+                {
+                    cachedPath = Path.Combine(DownloadService.DefaultDownloadsFolder, tool.FileName);
+                }
 
+                bool validCache = false;
                 if (File.Exists(cachedPath))
                 {
                     if (string.IsNullOrEmpty(tool.Sha256) || VerifySha256(cachedPath, tool.Sha256))
@@ -297,12 +302,18 @@ foreach ($tool in $Manifest.tools) {
             }
             default { # "installer"
                 Write-Host "  Launching installer: $($tool.fileName)..." -ForegroundColor Cyan
-                $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-                $pinfo.FileName = $filePath
-                if ($tool.launchArgs) { $pinfo.Arguments = $tool.launchArgs }
-                $pinfo.UseShellExecute = $true
-                $p = [System.Diagnostics.Process]::Start($pinfo)
-                $p.WaitForExit()
+                if ($filePath -match '\.msi$') {
+                    $msiArgs = "/i `"$filePath`" /qn /norestart"
+                    if ($tool.launchArgs) { $msiArgs += " $($tool.launchArgs)" }
+                    $p = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiArgs -Wait -PassThru
+                } else {
+                    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
+                    $pinfo.FileName = $filePath
+                    if ($tool.launchArgs) { $pinfo.Arguments = $tool.launchArgs }
+                    $pinfo.UseShellExecute = $true
+                    $p = [System.Diagnostics.Process]::Start($pinfo)
+                    $p.WaitForExit()
+                }
                 if ($p.ExitCode -eq 0 -or $p.ExitCode -eq 3010) {
                     Write-Host "  Installer completed successfully (Code: $($p.ExitCode))." -ForegroundColor Green
                     $Succeeded++

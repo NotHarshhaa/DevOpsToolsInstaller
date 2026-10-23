@@ -115,13 +115,14 @@ public static class PrivateFeedService
         return newFeed;
     }
 
-    public static bool RemoveFeed(string idOrUrl)
+    public static bool RemoveFeed(string identifier)
     {
-        if (string.IsNullOrWhiteSpace(idOrUrl)) return false;
+        if (string.IsNullOrWhiteSpace(identifier)) return false;
         var feeds = LoadFeeds();
         var target = feeds.FirstOrDefault(f =>
-            string.Equals(f.Id, idOrUrl, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(f.Url, idOrUrl, StringComparison.OrdinalIgnoreCase));
+            string.Equals(f.Id, identifier, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(f.Name, identifier, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(f.Url, identifier, StringComparison.OrdinalIgnoreCase));
 
         if (target is null) return false;
         if (target.IsPolicyEnforced)
@@ -173,8 +174,8 @@ public static class PrivateFeedService
                 throw new FileNotFoundException($"Catalog feed source file or network path '{src}' was not found.");
             }
 
-            var tools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
-            if (tools is null || tools.Count == 0)
+            var tools = ParseFeedJson(json);
+            if (tools.Count == 0)
             {
                 throw new FormatException("Feed returned an empty or invalid catalog list.");
             }
@@ -241,8 +242,8 @@ public static class PrivateFeedService
             try
             {
                 var json = File.ReadAllText(cachePath);
-                var tools = JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions);
-                if (tools is not null)
+                var tools = ParseFeedJson(json);
+                if (tools.Count > 0)
                 {
                     foreach (var t in tools)
                     {
@@ -282,13 +283,20 @@ public static class PrivateFeedService
                 if (index >= 0)
                 {
                     ft.FeedName = ft.FeedName ?? "Company Approved";
+                    // Preserve running detection and installed status
+                    ft.IsInstalled = existing.IsInstalled;
+                    ft.DetectedVersion = existing.DetectedVersion;
+                    ft.Status = existing.Status;
+                    ft.Progress = existing.Progress;
+                    ft.SelectedBackend = existing.SelectedBackend;
+
                     merged[index] = ft;
                     baseMap[ft.Id] = ft;
                 }
             }
             else
             {
-                // Internal or proprietary proprietary tool
+                // Internal or proprietary tool
                 ft.FeedName = ft.FeedName ?? "Company Approved";
                 merged.Add(ft);
                 baseMap[ft.Id] = ft;
@@ -296,6 +304,33 @@ public static class PrivateFeedService
         }
 
         return merged;
+    }
+
+    private static List<ToolDefinition> ParseFeedJson(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            if (root.ValueKind == JsonValueKind.Array)
+            {
+                return JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions) ?? new List<ToolDefinition>();
+            }
+
+            if (root.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in new[] { "tools", "items", "catalog", "definitions" })
+                {
+                    if (root.TryGetProperty(prop, out var listEl) && listEl.ValueKind == JsonValueKind.Array)
+                    {
+                        return JsonSerializer.Deserialize<List<ToolDefinition>>(listEl.GetRawText(), JsonOptions) ?? new List<ToolDefinition>();
+                    }
+                }
+            }
+        }
+        catch { }
+
+        return JsonSerializer.Deserialize<List<ToolDefinition>>(json, JsonOptions) ?? new List<ToolDefinition>();
     }
 
     private static string GetFeedCachePath(string feedId) =>

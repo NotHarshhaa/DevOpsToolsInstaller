@@ -16,7 +16,8 @@ public static class ToolActions
     {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
-        if (tool.IsDownloadedOrInstalled || tool.Status == ToolStatus.Downloading) return;
+        if (tool.IsInstalled || tool.Status == ToolStatus.Downloading) return;
+        if (tool.Status == ToolStatus.Downloaded && !installAfter) return;
 
         if (!mw.DownloadQueue.Contains(tool))
         {
@@ -45,8 +46,28 @@ public static class ToolActions
                 {
                     tool.Status = ToolStatus.Downloading;
                     var bRes = await ToolBackendService.InstallWithBackendAsync(tool, tool.SelectedBackend, dlFolder);
-                    tool.Status = bRes.Success ? ToolStatus.Downloaded : ToolStatus.Failed;
-                    tool.Progress = bRes.Success ? 100 : 0;
+                    if (bRes.Success)
+                    {
+                        tool.IsInstalled = true;
+                        tool.DetectedVersion = tool.SelectedVersion;
+                        tool.Status = ToolStatus.Downloaded;
+                        tool.Progress = 100;
+
+                        _ = Task.Run(async () =>
+                        {
+                            var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 3);
+                            if (probe.Success && !string.IsNullOrWhiteSpace(probe.DetectedVersion))
+                            {
+                                tool.DetectedVersion = probe.DetectedVersion;
+                            }
+                        });
+                    }
+                    else
+                    {
+                        tool.Status = ToolStatus.Failed;
+                        tool.Progress = 0;
+                    }
+
                     ToastService.Show(
                         $"{tool.Name} ({tool.SelectedBackend.ShortName()})",
                         bRes.Message,
