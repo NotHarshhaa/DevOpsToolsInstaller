@@ -296,6 +296,26 @@
                         </tk:SettingsExpander.Items>
                     </tk:SettingsExpander>
 
+                    <tk:SettingsExpander x:Name="LiveReleasesExpander"
+                                               Header="Recent releases (live)"
+                                               Description="The newest releases published on the vendor's GitHub repository — pick one to pin and install it exactly as shipped.">
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE8EC;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                            <ProgressRing x:Name="LiveReleasesRing" Width="18" Height="18" IsActive="False" Visibility="Collapsed" />
+                            <TextBlock x:Name="LiveReleasesStatusText" VerticalAlignment="Center"
+                                       Style="{StaticResource CaptionTextBlockStyle}"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        </StackPanel>
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard x:Name="LiveReleasesEmptyCard"
+                                                   Header="No releases fetched yet"
+                                                   Description="Open this section while online to fetch the vendor's five newest GitHub releases."
+                                                   IsClickEnabled="False" />
+                        </tk:SettingsExpander.Items>
+                    </tk:SettingsExpander>
+
                     <tk:SettingsExpander x:Name="HooksExpander"
                                                Header="Pre/post-install hooks"
                                                Description="Run your own shell commands before and after installing this tool. Requires hooks to be enabled in Settings; every command is written to the activity and audit log before it runs.">

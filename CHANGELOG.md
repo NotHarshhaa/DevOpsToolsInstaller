@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_Nothing pending yet — the next batch of changes will land here._
+### Added
+- **In-app notification center (title-bar bell)**: a bounded 100-event feed of notable happenings — downloads finished/failing, updates found, workstation warnings — with an unread-count badge, "clear all", and kind-colored entries. Every toast is now mirrored into the center (call sites pass a severity), so the event history survives even with notifications off / window minimized (`Services/NotificationCenterService.cs`).
+- **Active-download pill in the title bar**: a compact pill (progress ring + `tool 42% · 3.1 MB/s`) that appears while anything is downloading or is queued for off-peak, aggregates multiple active transfers, and jumping to the Downloads page takes one click — visible on every page.
+- **GitHub-style activity heatmap on Home**: a 15-week × 7-weekday grid built from the local install history (no network), accent-tinted by how busy each day was, with per-day tooltips and a summary line ("busiest day …"). Theme-aware (dark/light) and revealed with the rest of the trends.
+- **Metric tiles now animate**: installed / updates / downloading counters count up on dashboard load (respects the Windows "reduce animations" setting), and each tile gained a 14-day mini-bar strip sharing the heatmap's data feed.
+- **Live releases timeline in the tool detail page**: the five newest vendor GitHub releases under "Recent releases (live)" with publish dates and pre-release markers — each entry installs exactly that shipped asset (`SetVersionWithAsset`), pinned current versions show a checkmark. Sharably cached with the version picker (10-minute repo cache) so both views always agree.
+- **Catalog polish**: new "Updates first" sort mode, and card context menus (both densities) gained Install Now / Download Only / Open Homepage actions next to the existing specifications/version/copy/favorite entries.
 
 ## [3.1.2] - 2026-10-23
 

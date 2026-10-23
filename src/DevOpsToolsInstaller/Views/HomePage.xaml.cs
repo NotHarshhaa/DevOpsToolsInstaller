@@ -30,7 +30,12 @@ public sealed partial class HomePage : Page, IRefreshablePage
         HeroVersionChipText.Text = $"v{AppUpdaterService.CurrentVersion} • WinUI 3";
 
         Loaded += HomePage_Loaded;
-        ActualThemeChanged += (s, e) => RenderActivityTrends();
+        ActualThemeChanged += (s, e) =>
+        {
+            RenderActivityTrends();
+            RenderActivityHeatmap();
+            RenderMetricMiniBars();
+        };
     }
 
     // ── Local activity sparklines (installs / updates per day) ──
@@ -105,11 +110,168 @@ public sealed partial class HomePage : Page, IRefreshablePage
         await ViewModel.LoadDashboardAsync(mw);
         SeeAllStacksText.Text = $"See all {ViewModel.Stacks.Count}";
         RenderActivityTrends();
+        RenderActivityHeatmap();
+        RenderMetricMiniBars();
+        AnimateMetricNumbers();
     }
 
     private async void RetryScan_Click(object sender, RoutedEventArgs e)
     {
         HomePage_Loaded(this, new Microsoft.UI.Xaml.RoutedEventArgs());
+    }
+
+    // ── Activity heatmap (15 weeks × 7 weekdays) ─────────────────────────
+    //
+    // GitHub-style contribution grid built from the persisted install
+    // history: one column per week, one row per weekday, accent-tinted by
+    // how busy the day was. Pure XAML composition — no charting library
+    // needed, so it stays razor-sharp with DirectWrite text everywhere.
+
+    private void RenderActivityHeatmap()
+    {
+        var heat = ViewModel.HeatActivity;
+        HeatmapGrid.Children.Clear();
+
+        bool any = heat.Any(d => d.Total > 0);
+        HeatmapEmptyText.Visibility = any ? Visibility.Collapsed : Visibility.Visible;
+        if (!any)
+        {
+            return;
+        }
+
+        var emptyFill = new Microsoft.UI.Xaml.Media.SolidColorBrush(ActualTheme == ElementTheme.Dark
+            ? Windows.UI.Color.FromArgb(0x1F, 0xFF, 0xFF, 0xFF)
+            : Windows.UI.Color.FromArgb(0x12, 0x00, 0x00, 0x00));
+
+        for (int i = 0; i < heat.Count; i++)
+        {
+            var day = heat[i];
+            int row = ((int)day.Date.DayOfWeek + 6) % 7; // Mon = 0 … Sun = 6
+            int col = i / 7;
+            if (col >= 15) break;
+
+            var cell = new Border
+            {
+                CornerRadius = new Microsoft.UI.Xaml.CornerRadius(3),
+                Margin = new Microsoft.UI.Xaml.Thickness(1),
+                Opacity = day.Total == 0 ? 1d : HeatLevelOpacity(day.Total),
+            };
+
+            cell.Background = day.Total == 0
+                ? emptyFill
+                : new Microsoft.UI.Xaml.Media.SolidColorBrush(HeatAccentColor(day.Total));
+
+            Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(
+                cell, $"{day.Total} event{(day.Total == 1 ? "" : "s")} · {day.Date:ddd, MMM d}");
+
+            Microsoft.UI.Xaml.Controls.Grid.SetRow(cell, row);
+            Microsoft.UI.Xaml.Controls.Grid.SetColumn(cell, col);
+            HeatmapGrid.Children.Add(cell);
+        }
+    }
+
+    private static Windows.UI.Color HeatAccentColor(int total)
+    {
+        var accent = ((Microsoft.UI.Xaml.Media.SolidColorBrush)Application.Current.Resources["CustomAccentPrimaryBrush"]).Color;
+        byte alpha = total switch
+        {
+            <= 2 => 0x59,   // 0.35
+            <= 4 => 0x8C,   // 0.55
+            <= 7 => 0xC7,   // 0.78
+            _ => 0xFF,
+        };
+        return Windows.UI.Color.FromArgb(alpha, accent.R, accent.G, accent.B);
+    }
+
+    private static double HeatLevelOpacity(int total) => 1d;
+
+    // ── Metric-tile mini bars (last 14 days) ─────────────────────────────
+
+    private void RenderMetricMiniBars()
+    {
+        var heat = ViewModel.HeatActivity;
+        var last14 = heat.Count > 0
+            ? heat.Skip(Math.Max(0, heat.Count - 14)).ToList()
+            : new List<DailyInstallActivity>();
+
+        RenderBars(MetricInstalledBars, last14, d => d.Installs);
+        RenderBars(MetricUpdatesBars, last14, d => d.Updates);
+        RenderBars(MetricDownloadsBars, last14, d => d.Total);
+    }
+
+    private void RenderBars(StackPanel host, IReadOnlyList<DailyInstallActivity> days, Func<DailyInstallActivity, int> value)
+    {
+        host.Children.Clear();
+        if (days.Count == 0 || days.All(d => value(d) == 0))
+        {
+            return;
+        }
+
+        int max = Math.Max(1, days.Max(value));
+        var accent = ((Microsoft.UI.Xaml.Media.SolidColorBrush)Application.Current.Resources["CustomAccentPrimaryBrush"]).Color;
+
+        foreach (var day in days)
+        {
+            double t = value(day) / (double)max;
+            double height = 3 + (23 * t); // 3 … 26 px inside the 26-tall slot
+            var bar = new Border
+            {
+                Width = 4,
+                Height = height,
+                CornerRadius = new Microsoft.UI.Xaml.CornerRadius(2),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                    Windows.UI.Color.FromArgb(0xB3, accent.R, accent.G, accent.B)),
+            };
+            Microsoft.UI.Xaml.Controls.ToolTipService.SetToolTip(bar, $"{value(day)} · {day.Date:MMM d}");
+            host.Children.Add(bar);
+        }
+    }
+
+    // ── Count-up animation for the metric tiles ──────────────────────────
+
+    private async void AnimateMetricNumbers()
+    {
+        // Respect the Windows "reduce animations" accessibility setting.
+        if (!AnimationSettingsHelper.AnimationsEnabled)
+        {
+            return;
+        }
+
+        try
+        {
+            await CountUpAsync(MetricInstalledNumber, ViewModel.InstalledCount, "InstalledCount");
+            await CountUpAsync(MetricUpdatesNumberCaution, ViewModel.UpdateCount, "UpdateCount");
+            await CountUpAsync(MetricUpdatesNumberPlain, ViewModel.UpdateCount, "UpdateCount");
+            await CountUpAsync(MetricDownloadsNumber, ViewModel.ActiveDownloadsCount, "ActiveDownloadsCount");
+        }
+        catch
+        {
+            // Animation is pure polish — never let it break the dashboard.
+        }
+    }
+
+    private static async System.Threading.Tasks.Task CountUpAsync(TextBlock target, int finalValue, string bindingPath)
+    {
+        if (finalValue <= 0)
+        {
+            return; // 0 counts itself.
+        }
+
+        const int steps = 12;
+        for (int step = 1; step <= steps; step++)
+        {
+            double t = step / (double)steps;
+            double eased = 1 - Math.Pow(1 - t, 2); // ease-out quadratic
+            target.Text = Math.Max(1, (int)Math.Round(finalValue * Math.Min(1, eased))).ToString();
+            await System.Threading.Tasks.Task.Delay(22);
+        }
+
+        target.Text = finalValue.ToString();
+
+        // Re-attach the original OneWay binding so the counter keeps updating
+        // live after the intro animation (programmatic Text writes detach it).
+        target.SetBinding(TextBlock.TextProperty, new Microsoft.UI.Xaml.Data.Binding { Path = new Microsoft.UI.Xaml.PropertyPath(bindingPath) });
     }
 
     void IRefreshablePage.RefreshView() => HomePage_Loaded(this, new Microsoft.UI.Xaml.RoutedEventArgs());

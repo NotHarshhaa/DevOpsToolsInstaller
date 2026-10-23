@@ -360,9 +360,18 @@
                                         <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
                                         <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
-                                    <TextBlock Grid.Row="1" Text="{Binding InstalledCount}"
-                                               Style="{StaticResource MetricNumberStyle}"
-                                               VerticalAlignment="Center" />
+                                    <Grid Grid.Row="1" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding InstalledCount}"
+                                                   x:Name="MetricInstalledNumber"
+                                                   Style="{StaticResource MetricNumberStyle}"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center" />
+                                        <StackPanel x:Name="MetricInstalledBars"
+                                                    Orientation="Horizontal" Spacing="2"
+                                                    VerticalAlignment="Bottom"
+                                                    HorizontalAlignment="Right"
+                                                    Height="26" />
+                                    </Grid>
                                     <TextBlock Grid.Row="2" Text="Installed tools"
                                                Style="{StaticResource MetricLabelStyle}" />
                                     <TextBlock Grid.Row="3" Text="Manage, update or uninstall installed tools"
@@ -396,16 +405,27 @@
                                                   Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
                                         <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
-                                    <TextBlock Grid.Row="1" Text="{Binding UpdateCount}"
-                                               Style="{StaticResource MetricNumberStyle}"
-                                               Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                               VerticalAlignment="Center"
-                                               Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                    <TextBlock Grid.Row="1" Text="{Binding UpdateCount}"
-                                               Style="{StaticResource MetricNumberStyle}"
-                                               Foreground="{ThemeResource TextFillColorPrimaryBrush}"
-                                               VerticalAlignment="Center"
-                                               Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                    <Grid Grid.Row="1" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding UpdateCount}"
+                                                   x:Name="MetricUpdatesNumberCaution"
+                                                   Style="{StaticResource MetricNumberStyle}"
+                                                   HorizontalAlignment="Left"
+                                                   Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{Binding UpdateCount}"
+                                                   x:Name="MetricUpdatesNumberPlain"
+                                                   Style="{StaticResource MetricNumberStyle}"
+                                                   HorizontalAlignment="Left"
+                                                   Foreground="{ThemeResource TextFillColorPrimaryBrush}"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
+                                        <StackPanel x:Name="MetricUpdatesBars"
+                                                    Orientation="Horizontal" Spacing="2"
+                                                    Height="26"
+                                                    VerticalAlignment="Bottom"
+                                                    HorizontalAlignment="Right" />
+                                    </Grid>
                                     <TextBlock Grid.Row="2" Text="Updates available"
                                                Style="{StaticResource MetricLabelStyle}" />
                                     <TextBlock Grid.Row="3" Text="Newer releases are waiting in the catalog"
@@ -437,9 +457,18 @@
                                         <FontIcon Glyph="&#xE896;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
                                         <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
                                     </Grid>
-                                    <TextBlock Grid.Row="1" Text="{Binding ActiveDownloadsCount}"
-                                               Style="{StaticResource MetricNumberStyle}"
-                                               VerticalAlignment="Center" />
+                                    <Grid Grid.Row="1" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding ActiveDownloadsCount}"
+                                                   x:Name="MetricDownloadsNumber"
+                                                   Style="{StaticResource MetricNumberStyle}"
+                                                   HorizontalAlignment="Left"
+                                                   VerticalAlignment="Center" />
+                                        <StackPanel x:Name="MetricDownloadsBars"
+                                                    Orientation="Horizontal" Spacing="2"
+                                                    Height="26"
+                                                    VerticalAlignment="Bottom"
+                                                    HorizontalAlignment="Right" />
+                                    </Grid>
                                     <TextBlock Grid.Row="2" Text="Downloading"
                                                Style="{StaticResource MetricLabelStyle}" />
                                     <TextBlock Grid.Row="3" Text="Live transfer speed and validation progress"
@@ -766,6 +795,7 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
                             <!-- Installs per day -->
@@ -836,6 +866,73 @@
                                                    TextWrapping="Wrap" TextAlignment="Center" />
                                     </Grid>
                                     <TextBlock Text="{Binding TrendRangeText}" FontSize="10"
+                                               Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 15-week activity heatmap (GitHub-style) -->
+                            <Border x:Name="ActivityHeatmapCard" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                                    Style="{StaticResource CardStyle}" Padding="14,12">
+                                <StackPanel Spacing="8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE787;" FontSize="12" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <TextBlock Text="Activity heatmap" Style="{StaticResource BodyStrongTextBlockStyle}" FontSize="12" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                                                    ToolTipService.ToolTip="Lighter means a quieter day; each square is one weekday">
+                                            <TextBlock Text="Less" Style="{StaticResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" Margin="0,0,2,0" />
+                                            <Border Width="10" Height="10" CornerRadius="2" Background="{ThemeResource ControlFillColorDefaultBrush}" />
+                                            <Border Width="10" Height="10" CornerRadius="2" Opacity="0.35" Background="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <Border Width="10" Height="10" CornerRadius="2" Opacity="0.55" Background="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <Border Width="10" Height="10" CornerRadius="2" Opacity="0.78" Background="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <Border Width="10" Height="10" CornerRadius="2" Background="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <TextBlock Text="More" Style="{StaticResource CaptionTextBlockStyle}"
+                                                       Foreground="{ThemeResource TextFillColorTertiaryBrush}" Margin="2,0,0,0" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid x:Name="HeatmapGrid" HorizontalAlignment="Stretch">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                            <RowDefinition Height="13" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock x:Name="HeatmapEmptyText"
+                                                   Text="No recorded activity yet — installs and updates show up here as colored weekdays."
+                                                   Style="{StaticResource CaptionTextBlockStyle}"
+                                                   Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Grid.RowSpan="7" Grid.ColumnSpan="15"
+                                                   TextWrapping="Wrap" TextAlignment="Center" />
+                                    </Grid>
+                                    <TextBlock Text="{Binding ActivityHeatSummary, Mode=OneWay}"
+                                               Style="{StaticResource CaptionTextBlockStyle}"
                                                Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
                                 </StackPanel>
                             </Border>

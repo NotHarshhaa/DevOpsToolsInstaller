@@ -124,6 +124,160 @@ public sealed partial class ToolDetailPage : Page
         }
 
         BindHooks();
+        _ = LoadLiveReleasesAsync();
+    }
+
+    // ── Recent releases timeline (live from the vendor's GitHub) ────────
+    //
+    // Reuses ToolVersionHistoryService (10-minute repo cache) so the version
+    // picker dialog and this timeline always agree with each other.
+
+    private bool _liveReleasesLoaded;
+
+    private async Task LoadLiveReleasesAsync()
+    {
+        if (!ToolVersionHistoryService.CanFetchVersionHistory(Tool.Id, Tool.DownloadUrl))
+        {
+            LiveReleasesRing.Visibility = Visibility.Collapsed;
+            LiveReleasesStatusText.Text = "Only GitHub-released vendors support live timelines — use the version picker instead.";
+            LiveReleasesEmptyCard.Description = "This vendor distributes releases through its own CDN; pick a version via 'Switch version…'.";
+            return;
+        }
+
+        if (_liveReleasesLoaded || LiveReleasesRing.Visibility == Visibility.Visible)
+        {
+            return;
+        }
+
+        LiveReleasesRing.Visibility = Visibility.Visible;
+        LiveReleasesRing.IsActive = true;
+        LiveReleasesStatusText.Text = "Fetching the vendor's five newest releases…";
+
+        try
+        {
+            IReadOnlyList<ToolReleaseVersion>? releases =
+                await ToolVersionHistoryService.GetRecentReleasesAsync(Tool.Id, Tool.DownloadUrl);
+
+            _liveReleasesLoaded = true;
+
+            for (int i = LiveReleasesExpander.Items.Count - 1; i >= 0; i--)
+            {
+                if (LiveReleasesExpander.Items[i] is FrameworkElement { Tag: "liveRelease" })
+                {
+                    LiveReleasesExpander.Items.RemoveAt(i);
+                }
+            }
+
+            if (releases is null || releases.Count == 0)
+            {
+                LiveReleasesRing.Visibility = Visibility.Collapsed;
+                LiveReleasesStatusText.Text = "No public GitHub releases found for this vendor yet.";
+                LiveReleasesEmptyCard.Visibility = Visibility.Visible;
+                return;
+            }
+
+            foreach (var release in releases)
+            {
+                LiveReleasesExpander.Items.Add(BuildReleaseCard(release));
+            }
+
+            LiveReleasesRing.IsActive = false;
+            LiveReleasesRing.Visibility = Visibility.Collapsed;
+            var newest = releases[0];
+            LiveReleasesStatusText.Text =
+                newest.Version == Tool.Version
+                    ? $"{releases.Count} releases · latest is the pinned {newest.Version}"
+                    : $"{releases.Count} releases · latest {newest.Version}";
+            LiveReleasesEmptyCard.Visibility = Visibility.Collapsed;
+        }
+        catch (Exception)
+        {
+            LiveReleasesRing.IsActive = false;
+            LiveReleasesRing.Visibility = Visibility.Collapsed;
+            LiveReleasesStatusText.Text = "Could not reach GitHub releases — the timeline will retry next time you open this page.";
+        }
+    }
+
+    private CommunityToolkit.WinUI.Controls.SettingsCard BuildReleaseCard(ToolReleaseVersion release)
+    {
+        var when = release.PublishedAt?.ToLocalTime() ?? DateTimeOffset.Now;
+        string summary = release.IsPrerelease
+            ? $"Pre-release · {when:MMM d, yyyy}"
+            : $"{when:MMM d, yyyy}";
+
+        if (Tool.Version == release.Version)
+        {
+            summary += " · currently pinned";
+        }
+
+        var card = new CommunityToolkit.WinUI.Controls.SettingsCard
+        {
+            Tag = "liveRelease",
+            Header = $"v{release.Version.TrimStart('v')}",
+            Description = summary,
+            IsClickEnabled = false,
+        };
+
+        bool alreadyUsed = Tool.IsDownloadedOrInstalled && Tool.Version == release.Version;
+
+        if (string.IsNullOrWhiteSpace(release.WindowsAssetUrl) || alreadyUsed)
+        {
+            card.Content = new FontIcon
+            {
+                Glyph = "\uE73E",
+                FontSize = 13,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"],
+                Visibility = alreadyUsed ? Visibility.Visible : Visibility.Collapsed,
+            };
+        }
+        else
+        {
+            var installButton = new Microsoft.UI.Xaml.Controls.Button
+            {
+                Content = new Microsoft.UI.Xaml.Controls.StackPanel
+                {
+                    Orientation = Microsoft.UI.Xaml.Controls.Orientation.Horizontal,
+                    Spacing = 6,
+                    Children =
+                    {
+                        new Microsoft.UI.Xaml.Controls.FontIcon { Glyph = "\uE896", FontSize = 13 },
+                        new Microsoft.UI.Xaml.Controls.TextBlock { Text = "Install", FontSize = 12 },
+                    },
+                },
+                Style = (Microsoft.UI.Xaml.Style)Application.Current.Resources["AccentButtonStyle"],
+                Padding = new Microsoft.UI.Xaml.Thickness(12, 5, 12, 5),
+            };
+
+            installButton.Click += async (_, _) =>
+            {
+                try
+                {
+                    installButton.IsEnabled = false;
+                    var mw = App.MainWindowInstance;
+                    if (mw is null || Tool.IsDownloadedOrInstalled || Tool.Status == ToolStatus.Downloading)
+                    {
+                        installButton.IsEnabled = true;
+                        return;
+                    }
+
+                    string fileName = release.WindowsAssetName ?? Tool.FileName;
+                    Tool.SetVersionWithAsset(release.Version, release.WindowsAssetUrl!, fileName);
+                    NotificationCenterService.Post(
+                        NoteKind.Update,
+                        $"{Tool.Name} pinned to v{release.Version.TrimStart('v')}",
+                        "Installing the release exactly as the vendor shipped it.");
+                    ToolActions.RunInBackground(Tool, installAfter: true);
+                }
+                catch (Exception)
+                {
+                    installButton.IsEnabled = true;
+                }
+            };
+
+            card.Content = installButton;
+        }
+
+        return card;
     }
 
     // ── Pre/post-install hooks (user-authored; opt-in) ──────────────────

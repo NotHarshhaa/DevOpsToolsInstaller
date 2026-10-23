@@ -699,6 +699,15 @@ public sealed partial class HomeViewModel : ObservableObject
             ? $"Last {DailyActivity.Count} days · {DailyActivity[0].Date:MMM d} – {DailyActivity[^1].Date:MMM d}"
             : string.Empty;
 
+        // 15-week range that feeds the activity heatmap on the dashboard.
+        HeatActivity = InstallTrendService.GetDailyActivity(HeatRangeDays);
+        BusyDay = HeatActivity.OrderByDescending(d => d.Total).FirstOrDefault();
+        HeatTotalEvents = HeatActivity.Sum(d => d.Total);
+        bool hasHeat = HeatTotalEvents > 0;
+        ActivityHeatSummary = hasHeat && BusyDay is { } busy
+            ? $"Last {HeatRangeDays} days · {HeatTotalEvents} events ({installs} installs / {updates} updates) · busiest day {busy.Date:ddd, MMM d} with {busy.Total}"
+            : $"No recorded workstation activity in the last {HeatRangeDays} days.";
+
         var recent = InstallHistoryService.Load(60)
             .Where(e => IsActivityAction(e.Action))
             .Take(5)
@@ -712,7 +721,25 @@ public sealed partial class HomeViewModel : ObservableObject
         HasRecentInstalls = RecentInstalls.Count > 0;
 
         OnPropertyChanged(nameof(DailyActivity));
+        OnPropertyChanged(nameof(HeatActivity));
+        OnPropertyChanged(nameof(ActivityHeatSummary));
     }
+
+    /// <summary>Days covered by the Home activity heatmap (15 full weeks).</summary>
+    public const int HeatRangeDays = 105;
+
+    /// <summary>Zero-filled daily activity over the last 105 days, oldest first.</summary>
+    public IReadOnlyList<DailyInstallActivity> HeatActivity { get; private set; } = Array.Empty<DailyInstallActivity>();
+
+    /// <summary>Busiest day in the heat range, or null when there is no activity.</summary>
+    public DailyInstallActivity? BusyDay { get; private set; }
+
+    /// <summary>Total install/update/rollback events in the heat range.</summary>
+    public int HeatTotalEvents { get; private set; }
+
+    /// <summary>Caption under the activity heatmap.</summary>
+    public string ActivityHeatSummary { get => _activityHeatSummary; private set { _activityHeatSummary = value; OnPropertyChanged(nameof(ActivityHeatSummary)); } }
+    private string _activityHeatSummary = string.Empty;
 
     private static bool IsActivityAction(string action) =>
         string.Equals(action, nameof(HistoryAction.Install), StringComparison.OrdinalIgnoreCase) ||

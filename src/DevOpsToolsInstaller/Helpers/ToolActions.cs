@@ -30,7 +30,7 @@ public static class ToolActions
             ActivityLogService.Info(tool.Name, $"Transfer scheduled for off-peak window ({SettingsService.GetScheduleWindowDescription()}).");
             if (SettingsService.EnableNotifications)
             {
-                ToastService.Show($"{tool.Name} Scheduled", $"Download scheduled for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).");
+                ToastService.Show($"{tool.Name} Scheduled", $"Download scheduled for off-peak hours ({SettingsService.GetScheduleWindowDescription()}).", NoteKind.Update);
             }
             return;
         }
@@ -47,15 +47,16 @@ public static class ToolActions
                     var res = ArtifactService.Perform(tool, dlFolder);
                     ToastService.Show(
                         $"{tool.Name} ready",
-                        res.Success ? res.Message : $"{tool.Name} was downloaded but the install step needs attention.");
+                        res.Success ? res.Message : $"{tool.Name} was downloaded but the install step needs attention.",
+                        res.Success ? NoteKind.Success : NoteKind.Warning);
                 }
                 else if (tool.Status == ToolStatus.Downloaded)
                 {
-                    ToastService.Show($"{tool.Name} downloaded", "Ready to install from the Downloads page.");
+                    ToastService.Show($"{tool.Name} downloaded", "Ready to install from the Downloads page.", NoteKind.Success);
                 }
                 else
                 {
-                    ToastService.Show($"{tool.Name} download failed", "Check your connection and try again.");
+                    ToastService.Show($"{tool.Name} download failed", "Check your connection and try again.", NoteKind.Error);
                 }
             }
             catch

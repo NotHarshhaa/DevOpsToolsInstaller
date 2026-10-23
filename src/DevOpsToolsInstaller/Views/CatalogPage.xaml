@@ -44,6 +44,22 @@
                         AutomationProperties.Name="{Binding Name}">
                     <Border.ContextFlyout>
                         <MenuFlyout>
+                            <MenuFlyoutItem Text="Install Now" Click="CompactInstall_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE896;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Download Only" Click="DownloadOnly_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE896;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Open Homepage…" Click="OpenHomepage_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8A7;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
                             <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE946;" />
@@ -266,6 +282,22 @@
                         AutomationProperties.Name="{Binding Name}">
                     <Border.ContextFlyout>
                         <MenuFlyout>
+                            <MenuFlyoutItem Text="Install Now" Click="CompactInstall_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE896;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Download Only" Click="DownloadOnly_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE896;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="Open Homepage…" Click="OpenHomepage_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE8A7;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
                             <MenuFlyoutItem Text="Tool Specifications…" Click="ToolDetails_Click">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE946;" />
@@ -747,6 +779,7 @@
                                     <RadioMenuFlyoutItem Text="By Kind" Tag="kind" GroupName="CatalogSort" Click="Sort_Click" />
                                     <MenuFlyoutSeparator />
                                     <RadioMenuFlyoutItem Text="Downloaded first" Tag="downloaded" GroupName="CatalogSort" Click="Sort_Click" />
+                                    <RadioMenuFlyoutItem Text="Updates first" Tag="updates" GroupName="CatalogSort" Click="Sort_Click" />
                                     <RadioMenuFlyoutItem Text="Favorites first" Tag="favorites" GroupName="CatalogSort" Click="Sort_Click" />
                                 </MenuFlyout>
                             </AppBarButton.Flyout>

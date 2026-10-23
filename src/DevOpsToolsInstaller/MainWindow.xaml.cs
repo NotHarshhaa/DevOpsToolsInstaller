@@ -179,6 +179,11 @@ public sealed partial class MainWindow : Window
 
         InitializeTray();
 
+        // Title-bar download pill + notification center (bell) badge sync.
+        StartDownloadPillTimer();
+        NotificationCenterService.Changed += UpdateNotificationBadge;
+        UpdateNotificationBadge();
+
         // Keep the sidebar selection and the last-visited page in sync with
         // whatever the frame actually shows — including navigations that did
         // not originate from the NavigationView (Home cards, the search box,
@@ -926,7 +931,8 @@ public sealed partial class MainWindow : Window
 
             ToastService.Show(
                 "Workstation check found issues",
-                $"{issues} item{(issues == 1 ? "" : "s")} need attention. Health score {report.HealthScore}/100 — open Doctor for details.");
+                $"{issues} item{(issues == 1 ? "" : "s")} need attention. Health score {report.HealthScore}/100 — open Doctor for details.",
+                NoteKind.Warning);
         }
         catch
         {
@@ -979,7 +985,8 @@ public sealed partial class MainWindow : Window
                             (count > 3 ? $" and {count - 3} more" : "");
                 ToastService.Show(
                     $"{count} tool update{(count == 1 ? "" : "s")} available",
-                    names);
+                    names,
+                    NoteKind.Update);
             }
 
             _lastUpdateBadgeCount = count;
@@ -993,6 +1000,104 @@ public sealed partial class MainWindow : Window
     private void UpdateInstalledBadge(int count)
     {
         InstalledNavItem.InfoBadge = count > 0 ? new InfoBadge { Value = count } : null;
+    }
+
+    // ── Title-bar download pill ─────────────────────────────────────────
+    //
+    // A compact, always-visible indicator of in-flight downloads so the user
+    // never has to navigate away from the page they are on to see progress.
+
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _downloadPillTimer;
+
+    private void StartDownloadPillTimer()
+    {
+        _downloadPillTimer = DispatcherQueue.CreateTimer();
+        _downloadPillTimer.Interval = TimeSpan.FromMilliseconds(500);
+        _downloadPillTimer.Tick += (_, _) => UpdateDownloadPill();
+        _downloadPillTimer.Start();
+        UpdateDownloadPill();
+    }
+
+    private void UpdateDownloadPill()
+    {
+        ToolDefinition? active = null;
+        int scheduled = 0;
+        int activeCount = 0;
+        foreach (var t in DownloadQueue)
+        {
+            switch (t.Status)
+            {
+                case ToolStatus.Downloading:
+                    activeCount++;
+                    active ??= t;
+                    break;
+                case ToolStatus.Scheduled:
+                    scheduled++;
+                    break;
+            }
+        }
+
+        if (active is null && scheduled == 0)
+        {
+            if (DownloadPillButton.Visibility != Visibility.Collapsed)
+            {
+                DownloadPillButton.Visibility = Visibility.Collapsed;
+            }
+            return;
+        }
+
+        if (active is not null)
+        {
+            DownloadPillRing.Visibility = Visibility.Visible;
+            DownloadPillText.Text = activeCount > 1
+                ? $"{activeCount} active · {active.Name} {active.ProgressPercent}% · {active.DownloadSpeed}"
+                : $"{active.Name} {active.ProgressPercent}% · {active.DownloadSpeed}";
+            ToolTipService.SetToolTip(DownloadPillButton, $"{active.Name}: {active.ProgressPercent}% — {active.DownloadEta}");
+        }
+        else
+        {
+            DownloadPillRing.Visibility = Visibility.Collapsed;
+            DownloadPillText.Text = $"{scheduled} scheduled for off-peak";
+        }
+
+        DownloadPillButton.Visibility = Visibility.Visible;
+    }
+
+    private void DownloadPill_Click(object sender, RoutedEventArgs e)
+        => NavigateTo("Downloads");
+
+    // ── Title-bar notification center ───────────────────────────────────
+
+    private void NotificationBell_Click(object sender, RoutedEventArgs e)
+    {
+        RefreshNotificationList();
+    }
+
+    private void NotificationFlyout_Opened(object sender, object e)
+    {
+        RefreshNotificationList();
+        NotificationCenterService.MarkAllRead();
+    }
+
+    private void NotificationClear_Click(object sender, RoutedEventArgs e)
+    {
+        NotificationCenterService.Clear();
+        RefreshNotificationList();
+    }
+
+    private void RefreshNotificationList()
+    {
+        var snapshot = NotificationCenterService.Snapshot;
+        NotificationList.ItemsSource = snapshot;
+        NotificationEmptyText.Visibility = snapshot.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        NotificationClearButton.IsEnabled = snapshot.Count > 0;
+    }
+
+    private void UpdateNotificationBadge()
+    {
+        int unread = NotificationCenterService.UnreadCount;
+        NotificationUnreadBadge.Value = Math.Min(unread, 99);
+        NotificationUnreadBadge.Visibility = unread > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>

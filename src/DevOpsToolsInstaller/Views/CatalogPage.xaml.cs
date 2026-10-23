@@ -574,6 +574,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             "za" => filtered.OrderByDescending(t => t.Name),
             "kind" => filtered.OrderBy(t => t.KindLabel).ThenBy(t => t.Name),
             "downloaded" => filtered.OrderByDescending(t => t.IsDownloadedOrInstalled).ThenBy(t => t.Name),
+            "updates" => filtered.OrderByDescending(t => t.HasUpdate).ThenBy(t => t.Category).ThenBy(t => t.Name),
             "favorites" => filtered.OrderByDescending(t => t.IsFavorite).ThenBy(t => t.Category).ThenBy(t => t.Name),
             _ => filtered.OrderBy(t => t.Category).ThenBy(t => t.Name), // "category" (default)
         };

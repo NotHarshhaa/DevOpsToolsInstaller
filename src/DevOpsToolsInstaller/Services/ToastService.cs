@@ -34,11 +34,14 @@ public static class ToastService
     }
 
     /// <summary>
-    /// Shows a toast with a bold title and a supporting message. Safe to call
-    /// from any thread; never throws.
+    /// Shows a toast with a bold title and a supporting message, and mirrors
+    /// the event into the in-app notification center (title-bar bell).
+    /// Safe to call from any thread; never throws.
     /// </summary>
-    public static void Show(string title, string message)
+    public static void Show(string title, string message, NoteKind kind = NoteKind.Info)
     {
+        NotificationCenterService.Post(kind, title, message);
+
         if (!IsEnabled) return;
 
         try
