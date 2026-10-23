@@ -41,14 +41,25 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | 🪟 **Truly native Windows 11** | Mica Alt backdrop, Fluent `CommandBar` toolbars, your **own system accent color**, `InfoBadge` update counters, Segoe Fluent Icons — no custom theme hacks. |
 | 📦 **90 official tools, 12 curated stacks** | Direct-from-vendor artifacts with role-based presets (Kubernetes, DevSecOps, Cloud, IaC, Observability, Terminal). |
 | 🧱 **Custom Stack Builder** | 2-column composer: drag tool cards into "My Stack", reorder, inspect live download size estimates, save presets, and export/import `.json`. |
+| 📋 **Project Manifest & CI Lockfile** | Team reproducible toolsets via `devtools.json` & `devtools.lock.json` — 1-click bootstrap or CI drift check (`--check`). |
+| 🔀 **Side-by-Side Versions & Switcher** | Keep multiple CLI versions (e.g. `kubectl 1.29` & `1.31`, `terraform 1.8` & `1.9`) installed together and switch per-project (like `tfenv` or `nvm`). |
+| 💻 **New-PC Workstation Migration** | Back up and restore toolsets and configs (`.gitconfig`, PowerShell profile, Windows Terminal settings, VS Code extensions, SSH config). |
+| ☁️ **Cloud & Contexts Dashboard** | Monitor local AWS, Azure, and GCP login states, and switch active Kubernetes contexts in 1 click (like `kubectx`). |
+| 🏢 **Teams & Enterprise Feeds** | Subscribe to private company tool catalogs with corporate approval badges, and enforce enterprise IT security policies. |
+| 📦 **Air-Gapped Offline Bundles** | Export complete stacks to a USB drive with self-contained installer scripts (`install-offline.ps1` & `.cmd`) and Intune deployment scripts. |
+| 🔄 **Optional Backends** | Choose `winget`, `Scoop`, or `Chocolatey` per-tool or globally while keeping direct vendor downloads as the default zero-bloat standard. |
+| 🐧 **WSL Awareness & Prerequisite Fixes** | Detect installed WSL distros, probe tools inside Linux, and 1-click enable WSL2 and Virtual Machine Platform. |
+| 🧭 **Visual PATH & Environment Manager** | Reorder PATH search precedence, clean dead and duplicate paths, set environment variables with live `WM_SETTINGCHANGE` broadcast. |
+| 🔑 **Git & SSH Setup Wizard** | Configure Git identity and Credential Manager, generate modern Ed25519 SSH keys, copy public keys, and enable the Windows `ssh-agent`. |
+| 💻 **Terminal & PowerShell Setup** | Windows Terminal profile and font customizer (Nerd Fonts), 1-click CLI tab completions, and curated DevOps aliases (`k`, `tf`, `d`, `dc`). |
 | 🗂️ **Profiles, snapshots & rollback** | Capture named workstation profiles, diff and restore snapshots, review install history, and roll a tool back to a previous version — plus opt-in per-tool pre/post-install hooks. |
 | 🩺 **Workstation Doctor** | 5-point environment diagnostics (PATH duplicates/conflicts, multi-version CLIs, missing prerequisites, stale versions) with 1-click confirmed fixes and markdown report export. |
 | 📋 **Global Live Log Drawer (`Ctrl+\``)** | Collapsible, resizable, virtualized drawer available across every page with live download, SHA-256, and signature verification events. |
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
 | 🛡️ **Security-first pipeline** | HTTPS-only fetches → SHA-256 verification → Authenticode `WinVerifyTrust` with a configurable **Warn / Block** policy → Mark-of-the-Web tagging → on-disk audit log → **cryptographically signed catalog** (fail-closed). |
-| 🖥️ **Headless CLI mode** | `DevOpsToolsInstaller.exe --install kubectl,terraform` for scripts, machine provisioning, and CI — with proper exit codes. |
+| 🖥️ **Headless CLI mode** | Comprehensive CLI surface for scripts, machine provisioning, and CI pipelines with proper exit codes. |
 | 🌐 **Corporate proxy support** | Point downloads, catalog updates, and update checks at your own proxy (Settings → Network) — handy behind corporate firewalls. |
-| 📌 **System tray + update scheduler** | Close-to-tray with quick actions, background tool-update scans every 30 minutes, toast notifications with a Settings toggle. |
+| 📌 **System tray + update scheduler** | Close-to-tray with quick actions, background tool-update scans, maintenance windows, and toast notifications with release notes. |
 | 🔍 **Zero trust, zero telemetry** | No analytics, no phone-home, no background services. Everything it does is logged locally and inspectable. |
 
 ---
@@ -62,6 +73,20 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [Headless CLI Mode](#headless-cli-mode)
 - [Tool Categories (90 Tools)](#tool-categories-90-tools)
 - [Curated Stacks & Custom Stack Builder](#curated-stacks--custom-stack-builder)
+- [Project Manifest & CI Lockfile (devtools.json)](#project-manifest--ci-lockfile-devtoolsjson)
+- [Side-by-Side Versions & Switcher](#side-by-side-versions--switcher)
+- [New-PC Workstation Migration](#new-pc-workstation-migration)
+- [Cloud Connections & Kubernetes Contexts](#cloud-connections--kubernetes-contexts)
+- [Teams & Enterprise Features](#teams--enterprise-features)
+  - [Private Catalog Feeds](#private-catalog-feeds)
+  - [Offline Air-Gapped Bundles & USB Export](#offline-air-gapped-bundles--usb-export)
+  - [Enterprise IT Policy Engine & Intune Deployment](#enterprise-it-policy-engine--intune-deployment)
+  - [Optional Package Manager Backends (winget, Scoop, Chocolatey)](#optional-package-manager-backends-winget-scoop-chocolatey)
+- [Environment Setup & Workstation Hygiene](#environment-setup--workstation-hygiene)
+  - [WSL Awareness & Virtualization Prerequisite Fixes](#wsl-awareness--virtualization-prerequisite-fixes)
+  - [Visual PATH & Environment Variable Manager](#visual-path--environment-variable-manager)
+  - [Git & SSH Setup Wizard](#git--ssh-setup-wizard)
+  - [Windows Terminal & PowerShell Productivity](#windows-terminal--powershell-productivity)
 - [Workstation Doctor & Environment Diagnostics](#workstation-doctor--environment-diagnostics)
 - [Global Collapsible Log Drawer (Ctrl+`)](#global-collapsible-log-drawer-ctrl)
 - [Keyboard Shortcuts, Empty States & Responsive Layout](#keyboard-shortcuts-empty-states--responsive-layout)
@@ -162,6 +187,15 @@ The application uses the Windows 11 **Mica Alt** translucent canvas, **your syst
     - Tools installed in `%LOCALAPPDATA%\...\Tools\bin` that are missing from your PATH.
   - Asynchronous non-blocking scanning with live status badges (`Passed`, `Warnings`, `Failed`).
   - Interactive **Fix** actions that always prompt for confirmation before modifying environment settings, plus a **Copy Report** button for markdown diagnostics.
+- **☁️ Cloud & Kubernetes Contexts (`CloudDashboardPage`)**:
+  - Live local login inspection for **AWS** (credentials file, SSO session, caller identity), **Azure CLI** (`az account show`), and **Google Cloud CLI** (`gcloud auth list`).
+  - **One-click Cloud Login**: launches interactive CLI login workflows (`aws configure / sso`, `az login`, `gcloud auth login`) directly from the app.
+  - **Kubernetes Context Switcher**: reads local `~/.kube/config`, displays the active cluster and namespace, lists all available contexts with server URLs, and switches contexts instantaneously with zero terminal typing (like `kubectx`).
+- **🌿 Workstation Environment Setup (`EnvironmentPage`)** — a 4-tab workstation configuration workspace:
+  - **🐧 WSL & Virtualization**: Detects all installed WSL distributions (e.g. Ubuntu, Debian) and default status; probes DevOps CLI availability inside Linux; and checks Windows Virtual Machine Platform with 1-click elevated PowerShell remediation.
+  - **🧭 PATH & Environment Variables**: Visual PATH manager with up/down reordering, dead path detection, duplicate cleaning, and user variable creation with instantaneous system-wide `WM_SETTINGCHANGE` broadcast.
+  - **🔑 Git & SSH Wizard**: Inspects global `user.name`, `user.email`, and Git Credential Manager; generates modern cryptographic **Ed25519** SSH keys; displays and copies public keys; and enables/starts the native Windows `ssh-agent` service.
+  - **💻 Terminal & PowerShell**: Customizes Windows Terminal profiles and Nerd Fonts (e.g., Cascadia Code NF, JetBrains Mono NF); generates CLI autocompletion snippets into `$PROFILE`; and injects curated DevOps aliases (`k`, `tf`, `d`, `dc`).
 - **📋 Collapsible Live Log Drawer (Universal, `Ctrl+\``)**:
   - Slide-up bottom drawer accessible across every page via button toggle or global <kbd>Ctrl</kbd>+<kbd>`</kbd> shortcut.
   - Resizable height (persisted in user preferences) with high-performance list virtualization for thousands of lines.
@@ -173,19 +207,26 @@ The application uses the Windows 11 **Mica Alt** translucent canvas, **your syst
   - Complete inventory with a native **InfoBadge update counter** on the navigation item.
   - **CLI Health Probing**: Executes binaries (`--version` / `-v`) to measure latency (ms) and verify runtime health.
   - **One-click tool updates** that download **and** run the vendor installer.
+  - **Side-by-Side Version Switcher**: Inspect installed versions of multi-version CLIs (e.g., Terraform, kubectl) and switch active versions per project or globally.
+  - **Project Manifest Integration**: Automatically scans open workspace folders for `.terraform-version`, `.nvmrc`, or `devtools.json` and prompts or switches active CLI versions.
   - **Shell Autocompletion Generator**: Generates autocompletion scripts for PowerShell and Bash with 1-click insertion into `$PROFILE`.
   - **Safe Uninstallation**: Invokes vendor uninstallers via Windows Registry detection or cleanly removes extracted files.
 - **⚙️ Settings (`SettingsPage`)**:
   - Theme customization (Light, Dark, or System Default) using **your Windows accent color**.
   - **Security section**: installer signature policy (Warn / Block unsigned), always-on protections summary, and one-click access to the audit log folder.
+  - **Enterprise IT Policy**: Status card showing compliance with `policy.json` (signature enforcement, allowed feed URLs, blocked tools); includes one-click export for Intune PowerShell deployment scripts.
+  - **Private Catalog Feeds**: Subscribe to corporate repository URLs (e.g., `https://raw.githubusercontent.com/company/tools/main/catalog.json`) with corporate approval badges and automatic catalog merging.
+  - **Alternative Backends**: Select between direct vendor downloads (default), `winget`, `Scoop`, or `Chocolatey` for specific tools or globally.
+  - **Update Automation & Maintenance Windows**: Background tool-update scanning interval (1 hr, 6 hrs, 24 hrs), toast alerts with changelog notes, version pinning/ignoring, and off-peak maintenance installation windows.
   - **Toast Notifications & Close-to-Tray toggles**.
   - **Hooks & Automation**: opt-in toggle for user-authored pre/post-install shell commands. Nothing runs unless it is enabled here, every command is written to the activity & audit log before it executes, and commands support placeholders such as `{tool}`, `{toolId}`, `{version}`, `{file}`, `{toolsBin}`, and `{toolsRoot}`.
   - One-click **"Add to PATH"** with real-time PATH inspection.
   - Disk cache monitor and cleanup; desktop and Start Menu shortcut creation.
   - Manual **"Check for Updates"** triggering the GitHub update service.
-- **🗂️ Profiles & History (`ProfilesPage`)** — a Segmented workspace with four sections:
+- **🗂️ Profiles & History (`ProfilesPage`)** — a Segmented workspace with five sections:
   - **Profiles**: capture the currently installed toolset (or the current catalog selection) as a named profile; **Apply** it to the catalog filter, **Install** every tool it contains in one click, and **Import/Export** profiles as portable JSON.
   - **Snapshots**: point-in-time restore points recording installed tools, their versions, and User PATH — with a **Diff** view (missing / version-changed / added) and one-click **Restore** of missing tools.
+  - **New-PC Workstation Migration**: Bundle tools and developer workstation configs (`.gitconfig`, PowerShell `$PROFILE`, Windows Terminal `settings.json`, VS Code extension list, and `~/.ssh/config` — never private keys) into a single portable migration package to configure a new laptop in under 5 minutes.
   - **History**: a persistent log of every install, update, uninstall, and rollback, plus a guided **Roll back a tool…** flow that re-downloads and reinstalls a previously recorded version.
   - **Sync**: opt-in merge of profiles, snapshots, hooks, and custom tools across machines through a OneDrive / Dropbox / network folder — no account, no server, zero telemetry.
 - **🛠️ Custom Tools (`CatalogEditorPage`)**: author and validate your own catalog entries (id, kind, download URL, SHA-256, logo, launch args), import/export a custom `catalog.json` feed, and merge them into the live catalog so they behave exactly like shipped tools.
@@ -215,16 +256,26 @@ PS> DevOpsToolsInstaller.exe --install kubectl,terraform,helm
 [ok  ] kubectl: copied to Tools\bin. It's on your PATH and ready to use.
 ...
 
-PS> DevOpsToolsInstaller.exe --install-bundle k8s-starter
-Done. 5 installed, 0 already present, 0 failed.
+PS> DevOpsToolsInstaller.exe --manifest ./devtools.json
+[manifest] Installing project dependencies: kubectl (v1.31.0), terraform (v1.9.5)
+[ok] Active version switched: terraform -> 1.9.5
 
-PS> DevOpsToolsInstaller.exe --uninstall kubectl,terraform
-[ok  ] kubectl: removed Tools\bin\kubectl.exe and extracted files.
-Done. 2 uninstalled, 0 not present, 0 failed.
+PS> DevOpsToolsInstaller.exe --check ./devtools.lock.json
+[ci] Verifying installed tools against lockfile...
+[ok] kubectl: installed v1.31.0 matches lockfile (sha256 verified)
+[ok] terraform: installed v1.9.5 matches lockfile (sha256 verified)
+CI Drift Check Passed. Exit 0.
+
+PS> DevOpsToolsInstaller.exe --cloud-status
+[cloud] AWS: Logged in (Account: 123456789012, User: dev-harsh)
+[cloud] Azure: Logged in (Subscription: Production-EastUS)
+[cloud] GCP: Active account (dev@company.com, Project: platform-prod)
+[kube] Active Context: eks-prod-cluster (Namespace: default)
 ```
 
 | Command | Description |
 | :--- | :--- |
+| **Catalog & Installation** | |
 | `--list` | List every tool in the catalog (id, name, category). |
 | `--status` | Show which catalog tools are installed, with detected versions. |
 | `--install <id,id,...>` | Download and install specific tools (skips already-installed). |
@@ -233,24 +284,62 @@ Done. 2 uninstalled, 0 not present, 0 failed.
 | `--uninstall <id,id,...>` | Uninstall specific tools (removes artifacts, launches vendor uninstallers). |
 | `--download-only <id,id,...>` | Download artifacts without installing (offline caching). |
 | `--download-only-bundle <bundleId>` | Pre-download a curated stack for offline machines. |
-| `--export-profile <file>` | Export installed tools to a JSON profile. |
+| `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
+| `--run-hooks` | Allow pre/post-install hooks to run during this CLI session (off by default). |
+| **Project Manifest & CI Drift** | |
+| `--manifest [file]` | Install required project tools & exact versions defined in `devtools.json`. |
+| `--check [file]` | CI drift check: verifies installed tools match `devtools.lock.json` (fails with exit code 1 on mismatch). |
+| `--export-manifest [file]` | Export current workstation tools into a reproducible `devtools.json` & lockfile. |
+| **Side-by-Side Version Switcher** | |
+| `--versions [toolId]` | List all installed versions of a multi-version CLI (e.g. Terraform, kubectl). |
+| `--switch <tool> <version>` | Atomically switch the active CLI symlink/shim on PATH (like `tfenv` or `nvm`). |
+| `--detect-project [dir]` | Scan directory for `.terraform-version`, `.nvmrc`, etc., and switch active CLI versions. |
+| **New-PC Migration & Profiles** | |
+| `--export-migration <file>` | Export complete New-PC package (installed tools + `.gitconfig`, PowerShell profile, Terminal, VS Code extensions, SSH config). |
+| `--apply-migration <file>` | Restore migration package on a fresh laptop in under 5 minutes. |
+| `--profiles` | List saved workstation profiles. |
+| `--capture-profile <name>` | Save the currently installed toolset as a named profile. |
+| `--apply-profile <name\|id>` | Select and install every tool in a profile. |
+| `--sync-profiles` | Merge profiles, snapshots, hooks, and custom tools with the configured sync folder. |
+| `--export-profile <file>` | Export installed tools to a lightweight JSON profile. |
 | `--import-profile <file>` | Install tools from a JSON profile (skips already-installed). |
 | `--import-winget <file>` | Migrate packages from a `winget export` JSON (best-effort id mapping). |
 | `--import-choco <file>` | Migrate packages from chocolatey `list` output. |
-| `--report <file>` | Write a markdown workstation report — installed tools, versions, pending updates, security settings. |
-| `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
-| `--generate-devcontainer <zip/dir>` | Generate a VS Code `.devcontainer/devcontainer.json` and `Dockerfile` matching workstation tools. |
+| **Cloud & Kubernetes Contexts** | |
+| `--cloud-status` | Display local authentication status for AWS, Azure, GCP, and active Kubernetes context. |
+| `--kube-context [name]` | List available Kubernetes contexts or switch active context (like `kubectx`). |
+| **Teams & Enterprise** | |
+| `--list-feeds` | Display active private catalog feeds and their corporate approval status. |
+| `--add-feed <name> <url>` | Subscribe to an enterprise internal catalog feed URL. |
+| `--sync-feeds` | Force refresh and re-merge all private feed catalogs. |
+| `--export-offline-bundle <bundleId> [dir]` | Bundle installers, SHA-256 manifests, and bootstrap script for air-gapped / USB transfer. |
+| `--install-offline-bundle <dir>` | Install tools from an offline air-gapped bundle directory. |
+| `--check-policy` | Audit workstation configuration against corporate `policy.json`. |
+| `--export-policy-template <file>` | Generate an enterprise IT policy template JSON. |
+| `--export-intune-script <file>` | Export an enterprise Microsoft Intune / Group Policy PowerShell remediation script. |
+| `--backends` | List supported package manager backends (vendor, winget, scoop, choco) and availability. |
+| `--backend <toolId> <backend>` | Set the preferred backend for a tool (e.g., `--backend terraform winget`). |
+| **Environment & Workstation Hygiene** | |
+| `--wsl` | Check WSL2, Hyper-V, and Virtual Machine Platform health. |
+| `--wsl-tools` | Probe DevOps tool availability across installed WSL Linux distros. |
+| `--wsl-fix` | Output elevated PowerShell script to enable required virtualization prerequisites. |
+| `--env` | Display User PATH directory ordering, broken paths, and environment variables. |
+| `--set-env <name> <val>` | Set a User environment variable with immediate `WM_SETTINGCHANGE` broadcast. |
+| `--del-env <name>` | Remove a User environment variable. |
+| `--git-status` | Inspect global Git config (`user.name`, `user.email`), GCM, SSH keys, and `ssh-agent`. |
+| `--setup-git <name> <email>` | Configure global Git identity and Git Credential Manager. |
+| `--generate-ssh-key [email]` | Generate a modern, secure Ed25519 SSH keypair (`~/.ssh/id_ed25519`). |
+| `--setup-powershell` | Inject fast DevOps CLI autocompletions and productivity aliases into `$PROFILE`. |
+| **Doctor, Snapshots & Automation** | |
 | `--path-doctor` | Inspect User PATH for duplicate entries, non-existent directories, and missing tools folder. |
 | `--fix-path` | Automatically clean and deduplicate User PATH with timestamped backup. |
+| `--report <file>` | Write a markdown workstation report — installed tools, versions, pending updates, security settings. |
 | `--history [toolId]` | Print the install/update/uninstall/rollback history (optionally filtered to one tool). |
 | `--snapshot <name>` | Capture a workstation snapshot (installed tools, versions, User PATH) as a restore point. |
 | `--restore-snapshot <name>` | Install the tools missing relative to a saved snapshot. |
-| `--profiles` | List saved workstation profiles. |
-| `--capture-profile <name>` | Save the currently installed toolset as a named profile. |
-| `--apply-profile <name\|id>` | Select every tool in a profile. |
-| `--sync-profiles` | Merge profiles, snapshots, hooks, and custom tools with the configured sync folder. |
-| `--run-hooks` | Allow pre/post-install hooks to run during this CLI session (off by default). |
-| `--downloads-folder <path>` | Redirect downloads (e.g. a USB drive) for this run. |
+| `--check-updates` | Check for tool updates and print release notes. |
+| `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
+| `--generate-devcontainer <zip/dir>` | Generate a VS Code `.devcontainer/devcontainer.json` and `Dockerfile` matching workstation tools. |
 | `--version` | Print the application version. |
 | `--help` | Show usage. |
 
@@ -341,6 +430,237 @@ Build, share, and deploy tailored workstation configurations using the integrate
    - Click **Install This Stack** to automatically resolve uninstalled tools, enqueue them into the download pipeline, respect off-peak schedules, and navigate directly to the Downloads page with live progress.
 6. **Full Keyboard Accessibility**:
    - Use the **"+ Add"** button on any catalog card for 100% keyboard-only stack assembly.
+
+---
+
+## Project Manifest & CI Lockfile (devtools.json)
+
+Transform DevOpsToolsInstaller from a personal installer into a unified team standardization platform. Store a lightweight `devtools.json` manifest in any repository root to declare the exact tools and versions required by the project, alongside a cryptographically pinned `devtools.lock.json` lockfile.
+
+### 📋 How It Works
+
+```
+Repository Root
+ ├── devtools.json         <- Declares required tools & semantic version constraints
+ ├── devtools.lock.json    <- Pinned exact versions, SHA-256 checksums, and artifact sources
+ └── .github/workflows/
+      └── ci.yml           <- Verifies tool versions before build/test runs
+```
+
+#### Sample `devtools.json`
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/NotHarshhaa/DevOpsToolsInstaller/main/schema/devtools.schema.json",
+  "name": "platform-infrastructure",
+  "description": "Cloud platform provisioning & Kubernetes management toolchain",
+  "tools": {
+    "kubectl": "1.31.0",
+    "helm": "^3.15.0",
+    "terraform": "1.9.5",
+    "k9s": "latest",
+    "trivy": "latest"
+  }
+}
+```
+
+#### Sample `devtools.lock.json`
+```json
+{
+  "lockfileVersion": 1,
+  "generated": "2026-10-23T12:00:00Z",
+  "tools": {
+    "kubectl": {
+      "version": "1.31.0",
+      "sha256": "4b5d6f...",
+      "source": "https://dl.k8s.io/release/v1.31.0/bin/windows/amd64/kubectl.exe"
+    },
+    "terraform": {
+      "version": "1.9.5",
+      "sha256": "3a92b1...",
+      "source": "https://releases.hashicorp.com/terraform/1.9.5/terraform_1.9.5_windows_amd64.zip"
+    }
+  }
+}
+```
+
+### ⚡ One-Click Developer Onboarding
+When a developer opens a project containing `devtools.json`, the app automatically surfaces an **"Install what this project needs"** prompt. In a single click:
+1. Missing tools are batch-downloaded and verified against the lockfile hashes.
+2. Tools with side-by-side versions are automatically switched to match the declared project version.
+3. The developer is fully onboarded and ready to run infrastructure pipelines in minutes.
+
+### 🛡️ CI Toolchain Drift Check
+Prevent *"works on my machine"* drift across team members and CI agents. Add a simple check step in your GitHub Actions or Azure Pipelines workflow:
+
+```yaml
+- name: Verify DevOps Toolchain Drift
+  run: |
+    .\DevOpsToolsInstaller.exe --check devtools.lock.json
+```
+If any tool is missing, outdated, or altered, the command prints the exact drift details and exits with code `1`, failing the job before broken infrastructure changes can reach production.
+
+---
+
+## Side-by-Side Versions & Switcher
+
+DevOps engineers frequently juggle multiple clusters and infrastructure environments requiring different CLI versions — such as `kubectl` 1.29 for legacy clusters and 1.31 for modern environments, or Terraform 1.5.7 (pre-BSL) and 1.9.5.
+
+DevOpsToolsInstaller solves this natively without external shims or third-party package manager bloat:
+
+- **Isolated Version Storage**: Each installed version is preserved in `%LOCALAPPDATA%\DevOpsToolsInstaller\Tools\versions\<tool>\<version>\`.
+- **Atomic Version Switching**: An active symlink or shim in `Tools\bin` points to your chosen active release. Switching versions is instantaneous and atomic.
+- **Works like `tfenv` and `nvm`**: Switch active versions on demand via GUI or terminal:
+  ```powershell
+  # List all installed versions
+  DevOpsToolsInstaller.exe --versions terraform
+
+  # Switch active version immediately
+  DevOpsToolsInstaller.exe --switch terraform 1.9.5
+  ```
+- **Automatic Project Detection**: When navigating into a folder containing `.terraform-version`, `.nvmrc`, `.kubectl-version`, or `devtools.json`, the CLI and UI auto-detect the required version and offer 1-click activation.
+
+---
+
+## New-PC Workstation Migration
+
+*"Set up my new laptop"* is a headline DevOps use case. Beyond installing binaries, modern developer workflows depend heavily on personalized configurations and terminal environments.
+
+DevOpsToolsInstaller captures your complete developer workstation state into an encrypted, portable migration bundle (`.dtimigrate`):
+
+| Component | What Is Migrated | Security Handling |
+| :--- | :--- | :--- |
+| **Installed Tools & Versions** | Full inventory of cataloged tools, custom tools, and installed versions. | Exact SHA-256 validation on restore. |
+| **Git Configuration** | Global `.gitconfig` (user identity, aliases, diff tools, credential helpers). | Preserves global formatting. |
+| **PowerShell Environment** | PowerShell `$PROFILE` (custom prompts, utility functions, module imports). | Restores to `$PROFILE` with automatic backup. |
+| **Windows Terminal Settings** | `settings.json` (color schemes, custom profiles, Nerd Font bindings, acrylic). | Applied cleanly across Terminal installations. |
+| **VS Code Extensions** | Comprehensive extension identifier list (`publisher.extension`). | Re-installed automatically via `code --install-extension`. |
+| **SSH Client Config** | Host aliases, ProxyJump configurations, identity file directives (`~/.ssh/config`). | **Zero Private Keys:** Private keys (`id_rsa`, `id_ed25519`) are strictly ignored and never exported. |
+
+### Export & Restore Workflow
+```powershell
+# On your existing workstation:
+DevOpsToolsInstaller.exe --export-migration my-workstation.dtimigrate
+
+# On your brand-new laptop:
+DevOpsToolsInstaller.exe --apply-migration my-workstation.dtimigrate
+```
+The entire restore process takes under 5 minutes and creates timestamped backups (`*.bak`) of any pre-existing local configuration files before updating them.
+
+---
+
+## Cloud Connections & Kubernetes Contexts
+
+DevOps engineers shouldn't have to toggle between three vendor CLIs and complex terminal commands just to find out where their machine is logged in.
+
+The **Cloud Connections Dashboard** (`CloudDashboardPage`) provides a unified, real-time command center:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ ☁️ Cloud & Kubernetes Contexts                                          │
+├───────────────────┬────────────────────┬──────────────────┬────────────┤
+│ 🟧 AWS CLI        │ 🟦 Azure CLI       │ 🟥 Google Cloud  │ ☸️ Kubectl │
+│ Logged In         │ Logged In          │ Active Account   │ Context:   │
+│ Account: 1234...  │ Sub: Prod-EastUS   │ dev@company.com  │ eks-prod   │
+│ Role: DevOpsAdmin │ Tenant: 7b8c...    │ Proj: infra-prod │ (Default)  │
+│ [Open SSO / Conf] │ [Run 'az login']   │ [Run 'gcloud..'] │ [Switch ▾] │
+└───────────────────┴────────────────────┴──────────────────┴────────────┘
+```
+
+- **Local State Inspection Only**: Reads local files and CLI state (`~/.aws/credentials`, `~/.aws/config`, `az account show`, `gcloud auth list`, `~/.kube/config`). Zero credentials leave your workstation.
+- **One-Click Cloud Login**: Launch interactive vendor login flows (`aws configure / sso`, `az login`, `gcloud auth login`) directly from the UI.
+- **Instant Kubernetes Context Switcher (kubectx)**:
+  - Scans all configured clusters and contexts in `~/.kube/config`.
+  - Displays the active cluster, active namespace, and cluster API endpoint.
+  - Switch contexts with a single click or CLI command:
+    ```powershell
+    DevOpsToolsInstaller.exe --kube-context eks-production-east
+    ```
+
+---
+
+## Teams & Enterprise Features
+
+Equip enterprise IT and platform engineering teams with governance, offline air-gapped readiness, and flexible package management.
+
+### Private Catalog Feeds
+Subscribe to internal company repository URLs hosting proprietary tools, internal CLI plugins, or organization-approved configurations:
+- Add remote or intranet feed URLs (e.g., `https://git.company.internal/devtools/catalog.json`).
+- Shipped tools display standard catalog badges; tools distributed via private corporate feeds display a **Corporate Feed** verification badge.
+- CLI commands: `--list-feeds`, `--add-feed <name> <url>`, `--sync-feeds`.
+
+### Offline Air-Gapped Bundles & USB Export
+Provision machines in air-gapped environments, secure SCIF facilities, or data center jumpboxes without internet access:
+- Export any curated stack or custom toolset to a portable directory or USB drive:
+  ```powershell
+  DevOpsToolsInstaller.exe --export-offline-bundle k8s-starter D:\AirGapTools
+  ```
+- Generates an offline package containing:
+  - Verified installer and archive binaries.
+  - Cryptographic SHA-256 verification manifest (`bundle-manifest.json`).
+  - Self-contained bootstrap script (`install-offline.ps1`) for standalone execution without pre-installing the application.
+- Restore on the offline machine:
+  ```powershell
+  DevOpsToolsInstaller.exe --install-offline-bundle D:\AirGapTools
+  ```
+
+### Enterprise IT Policy Engine & Intune Deployment
+Centrally govern developer machine configurations and enforce compliance via enterprise policy (`policy.json`):
+- **Signature Enforcement**: Force `BlockUnsigned` to disallow unverified vendor installers.
+- **Feed Whitelisting**: Restrict custom catalog sources strictly to enterprise domain names.
+- **Tool Blacklisting**: Prevent installation of prohibited binaries.
+- **Microsoft Intune & Group Policy Export**: Generate one-click PowerShell deployment scripts configured for Intune Proactive Remediations:
+  ```powershell
+  DevOpsToolsInstaller.exe --export-intune-script ./Deploy-DevOpsPolicy.ps1
+  ```
+
+### Optional Package Manager Backends (winget, Scoop, Chocolatey)
+While direct vendor downloads remain the default for maximum speed, security, and zero bloat, enterprise developers can opt into alternative package managers:
+- Choose your preferred installation backend per-tool or globally:
+  - **Vendor (Default)**: Direct HTTPS vendor download with SHA-256 and Authenticode validation.
+  - **WinGet**: Native Windows Package Manager.
+  - **Scoop**: Portable developer shim installer.
+  - **Chocolatey**: Classic Windows package manager.
+- Inspect and configure backends via CLI:
+  ```powershell
+  DevOpsToolsInstaller.exe --backends
+  DevOpsToolsInstaller.exe --backend terraform winget
+  ```
+
+---
+
+## Environment Setup & Workstation Hygiene
+
+A clean workstation requires more than just downloaded binaries. The **Environment Setup** workspace (`EnvironmentPage`) provides dedicated tools for foundational developer hygiene:
+
+### WSL Awareness & Virtualization Prerequisite Fixes
+- **Distro Discovery**: Detects all installed WSL distributions (Ubuntu, Debian, openSUSE, Kali Linux) and highlights your default distro.
+- **Cross-Environment Tool Probing**: Verifies whether DevOps CLIs (`docker`, `kubectl`, `git`, `terraform`) are installed inside your Linux distros.
+- **1-Click Virtualization Remediation**: Diagnoses whether WSL2, Virtual Machine Platform, or Hyper-V are missing, and generates an elevated PowerShell fix script to activate required Windows features.
+
+### Visual PATH & Environment Variable Manager
+Diagnose and repair PATH issues without digging through the legacy Windows Control Panel:
+- **Visual Precedence Reordering**: Move directories up or down to adjust CLI execution priority.
+- **Dead & Duplicate Cleanup**: Automatically highlights deleted directories and redundant entries for 1-click removal.
+- **Instant System-Wide Broadcast**: Applying changes broadcasts a native Win32 `WM_SETTINGCHANGE` message (`HWND_BROADCAST`), updating newly opened terminals without requiring a system reboot.
+- **CLI Commands**: `--env`, `--set-env <name> <val>`, `--del-env <name>`.
+
+### Git & SSH Setup Wizard
+Accelerate new developer Git configuration:
+- **Git Identity Inspection**: Verifies `user.name`, `user.email`, and Git Credential Manager status.
+- **Modern Ed25519 Key Generator**: Creates secure, high-performance Ed25519 SSH keypairs (`~/.ssh/id_ed25519`) with customizable comment metadata.
+- **1-Click Public Key Copy**: Copies your public key to clipboard ready for GitHub, GitLab, or Bitbucket.
+- **Windows `ssh-agent` Activation**: Configures and starts the native Windows OpenSSH Authentication Agent service (`ssh-agent`) and loads your newly generated key.
+
+### Windows Terminal & PowerShell Productivity
+Maximize developer terminal ergonomics:
+- **Terminal Profile Configuration**: Customize default shell, starting directory, and color scheme.
+- **Nerd Font Selector**: Inspect and select installed Nerd Fonts (Cascadia Code NF, JetBrains Mono NF, MesloLGS NF) for rich Starship and terminal glyph rendering.
+- **Shell Autocompletions**: One-click append CLI completion scripts for `kubectl`, `helm`, `terraform`, `docker`, and `gh` directly to `$PROFILE`.
+- **Curated DevOps Aliases**: Inject battle-tested CLI shortcuts into PowerShell:
+  - `k` ➔ `kubectl`
+  - `tf` ➔ `terraform`
+  - `d` ➔ `docker`
+  - `dc` ➔ `docker compose`
 
 ---
 
