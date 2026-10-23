@@ -65,7 +65,7 @@
             </VisualStateManager.VisualStateGroups>
 
             <ScrollViewer Padding="0,0,32,24">
-                <StackPanel Spacing="24">
+                <StackPanel Spacing="16">
                     <StackPanel.ChildrenTransitions>
                         <TransitionCollection>
                             <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />

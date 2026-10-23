@@ -19,7 +19,7 @@
             </Grid.RowDefinitions>
 
             <!-- Sticky top: header, summary chips and notices stay put while results scroll. -->
-            <StackPanel Grid.Row="0" Spacing="16" Margin="0,0,0,16">
+            <StackPanel Grid.Row="0" Spacing="16">
                 <!-- ══════════════════════════════════ -->
                 <!--  HEADER                            -->
                 <!-- ══════════════════════════════════ -->

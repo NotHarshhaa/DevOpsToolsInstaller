@@ -7,17 +7,25 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls">
 
     <appControls:PageContainer>
-        <ScrollViewer Padding="0,0,32,24">
-            <StackPanel Spacing="24">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Sticky header: stays put while the long page scrolls. -->
+            <appControls:PageHeader Grid.Row="0"
+                                    Margin="0,0,32,16"
+                                    Title="About DevOps Tools Installer"
+                                    Subtitle="Purpose-built for DevOps engineers, cloud architects, and developers on Windows." />
+
+            <ScrollViewer Grid.Row="1" Padding="0,0,32,24">
+            <StackPanel Spacing="16">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-
-                <!-- Header -->
-                <appControls:PageHeader Title="About DevOps Tools Installer"
-                                        Subtitle="Purpose-built for DevOps engineers, cloud architects, and developers on Windows." />
 
                 <!-- Update Feedback InfoBar -->
                 <controls:InfoBar
@@ -519,5 +527,6 @@
 
             </StackPanel>
         </ScrollViewer>
+        </Grid>
     </appControls:PageContainer>
 </Page>

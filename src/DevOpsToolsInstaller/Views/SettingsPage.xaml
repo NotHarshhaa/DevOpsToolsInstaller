@@ -23,17 +23,25 @@
     </Page.Resources>
 
     <appControls:PageContainer>
-        <ScrollViewer Padding="0,0,32,24">
-            <StackPanel Spacing="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Sticky header: stays put while the settings list scrolls. -->
+            <appControls:PageHeader Grid.Row="0"
+                                    Margin="0,0,32,16"
+                                    Title="Settings &amp; Configuration"
+                                    Subtitle="Appearance, security, notifications, network, PATH integration, storage and updates." />
+
+            <ScrollViewer Grid.Row="1" Padding="0,0,32,24">
+            <StackPanel Spacing="16">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition IsStaggeringEnabled="True" FromVerticalOffset="20" />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-
-                <!-- Header -->
-                <appControls:PageHeader Title="Settings &amp; Configuration"
-                                        Subtitle="Appearance, security, notifications, network, PATH integration, storage and updates." />
 
                 <!-- Search: filters the sections and cards below by title or description. -->
                 <AutoSuggestBox x:Name="SettingsSearchBox"
@@ -890,6 +898,7 @@
 
                 </StackPanel>
             </StackPanel>
-        </ScrollViewer>
+            </ScrollViewer>
+        </Grid>
     </appControls:PageContainer>
 </Page>

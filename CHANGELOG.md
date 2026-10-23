@@ -17,6 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Live releases timeline in the tool detail page**: the five newest vendor GitHub releases under "Recent releases (live)" with publish dates and pre-release markers — each entry installs exactly that shipped asset (`SetVersionWithAsset`), pinned current versions show a checkmark. Sharably cached with the version picker (10-minute repo cache) so both views always agree.
 - **Catalog polish**: new "Updates first" sort mode, and card context menus (both densities) gained Install Now / Download Only / Open Homepage actions next to the existing specifications/version/copy/favorite entries.
 
+### Changed
+- **Layout polish across every page**: one vertical rhythm everywhere (16 px between page sections, 12 px inside cards/toolbars), the Downloads board now stretches to the full window width like Catalog and Installed, long scroll pages (Settings, About) gained sticky page headers that stay put while the list scrolls beneath them, and redundant per-page bottom margins were removed so spacing is owned by the shared `PageContainer` shell.
+
 ## [3.1.2] - 2026-10-23
 
 ### Fixed

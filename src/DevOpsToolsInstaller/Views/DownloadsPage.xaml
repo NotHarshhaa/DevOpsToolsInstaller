@@ -9,8 +9,8 @@
     xmlns:tk="using:CommunityToolkit.WinUI.Controls"
     xmlns:lvc="using:LiveChartsCore.SkiaSharpView.WinUI">
 
-    <appControls:PageContainer>
-        <Grid RowSpacing="14">
+    <appControls:PageContainer FullWidth="True">
+        <Grid RowSpacing="12">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
