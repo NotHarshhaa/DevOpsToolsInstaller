@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 _Nothing pending yet — the next batch of changes will land here._
 
+## [3.1.2] - 2026-10-23
+
+### Fixed
+- **Blurry text in Microsoft Store installs**: Store (MSIX) builds shipped a DPI-unaware executable — the Win32 `app.manifest` declaring `PerMonitorV2` DPI awareness was only embedded into unpackaged builds, because a stale comment claimed `Package.appxmanifest` superseded it. Packaged exes are now rendered at the monitor's native scale and DirectWrite renders text at full resolution — the whole-app blur on 125 %/150 % display scaling is gone.
+
 ## [3.1.1] - 2026-10-21
 
 ### Added

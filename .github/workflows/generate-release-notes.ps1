@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v3.1.1",
+    [string]$Tag = "v3.1.2",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -38,11 +38,15 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Release
 
 Welcome to the **__TAG__** release of **DevOps Tools Installer**!
-This release introduces **Live Version History (install any of the last 5 releases)**, **Microsoft Store Update Support**, **Working Download ETAs**, a **Live Signed Catalog**, and a **Rebuilt Website with the Full Tool Catalog**.
+This release fixes **blurry text in Store installs** and continues the **Live Version History (install any of the last 5 releases)**, **Microsoft Store Update Support**, a **Live Signed Catalog**, and the **Rebuilt Website with the Full Tool Catalog**.
 
 ---
 
 ### ✨ What's New & Highlights in __TAG__
+
+#### 🔍 Crystal-Clear Text on Every Display (DPI fix)
+- **Native-Scale Rendering in Store Installs**: Microsoft Store (MSIX) packages previously shipped a DPI-unaware executable, so Windows bitmap-stretched the entire window — making every line of text and every control soft and fuzzy on 125 %/150 % display scaling. The Win32 manifest declaring **PerMonitorV2** awareness is now embedded into every build, packaged and unpackaged alike.
+- **Full-Resolution DirectWrite Everywhere**: all sections — catalog cards, settings, doctor, downloads, titles, badges — now render text on the pixel grid at the monitor's native scale.
 
 #### 🕘 Live Version History — Install Older Releases
 - **Last 5 GitHub Releases, Live**: the per-tool version picker now queries the vendor's GitHub Releases API and lists the five most recent releases with publish date and pre-release markers.

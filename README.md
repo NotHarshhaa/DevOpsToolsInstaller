@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v3.1.1-blue?logo=github" /></a>
+  <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v3.1.2-blue?logo=github" /></a>
   <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG"><img alt="Microsoft Store" src="https://img.shields.io/badge/Microsoft_Store-Get_it_here-0078D6?logo=windows&logoColor=white" /></a>
   <img alt="Build" src="https://github.com/NotHarshhaa/DevOpsToolsInstaller/actions/workflows/release.yml/badge.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows" />
