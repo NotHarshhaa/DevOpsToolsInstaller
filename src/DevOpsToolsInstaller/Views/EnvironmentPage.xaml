@@ -1,0 +1,428 @@
+<Page
+    x:Class="DevOpsToolsInstaller.Views.EnvironmentPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:appControls="using:DevOpsToolsInstaller.Controls"
+    xmlns:services="using:DevOpsToolsInstaller.Services">
+
+    <appControls:PageContainer>
+        <Grid RowSpacing="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- HEADER -->
+            <appControls:PageHeader Grid.Row="0"
+                                    Title="Environment &amp; Setup"
+                                    Subtitle="WSL distro awareness, visual PATH and environment variable management, Git and SSH keys, and Windows Terminal + PowerShell setup.">
+                <appControls:PageHeader.ActionsContent>
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <Button x:Name="RefreshAllButton" Click="RefreshAll_Click"
+                                AutomationProperties.Name="Refresh environment status">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                <TextBlock Text="Refresh" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </appControls:PageHeader.ActionsContent>
+            </appControls:PageHeader>
+
+            <!-- NOTICE / INFOBAR -->
+            <controls:InfoBar x:Name="PageNotice" Grid.Row="1" IsOpen="False" IsClosable="True" Margin="0,0,32,0" />
+
+            <!-- PIVOT SECTIONS -->
+            <controls:Pivot Grid.Row="2" Margin="0,0,32,16">
+
+                <!-- ══════════════════════════════════════════════════════════
+                     TAB 1: WSL & VIRTUALIZATION
+                     ══════════════════════════════════════════════════════════ -->
+                <controls:PivotItem Header="WSL &amp; Virtualization">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,12,0,24">
+                        <StackPanel Spacing="16">
+
+                            <!-- Prerequisites & Health Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE7F4;" FontSize="20" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                            <StackPanel>
+                                                <TextBlock Text="WSL2 &amp; Virtualization Platform Health" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                                <TextBlock x:Name="WslHealthSummaryText" Text="Checking WSL prerequisites..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" x:Name="FixWslPrereqsButton" Click="FixWslPrereqs_Click" Style="{StaticResource AccentButtonStyle}">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE90F;" FontSize="12" />
+                                                <TextBlock Text="Run Prerequisites Fix" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Status Grid -->
+                                    <Grid RowSpacing="8" ColumnSpacing="16" Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Background="{ThemeResource ControlFillColorDefaultBrush}" Padding="12" CornerRadius="6">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="WSL Engine" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock x:Name="WslEngineStatusText" Text="Detecting..." Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="1" Background="{ThemeResource ControlFillColorDefaultBrush}" Padding="12" CornerRadius="6">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Virtual Machine Platform" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock x:Name="VmpStatusText" Text="Detecting..." Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="2" Background="{ThemeResource ControlFillColorDefaultBrush}" Padding="12" CornerRadius="6">
+                                            <StackPanel Spacing="4">
+                                                <TextBlock Text="Default Version" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock x:Name="WslDefaultVersionText" Text="WSL 2" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+
+                                    <TextBlock x:Name="WslRecommendationsText" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Installed Distros Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Installed Linux Distributions" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <StackPanel x:Name="DistrosContainer" Spacing="8">
+                                        <TextBlock Text="Scanning installed WSL distributions..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Tools Inside WSL Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="DevOps Tools Availability inside WSL" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                            <TextBlock Text="Verify Docker, kubectl, helm, terraform, git, and k9s in your default Linux distribution." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Click="ProbeWslTools_Click">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE72C;" FontSize="11" />
+                                                <TextBlock Text="Check Tools" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                    <StackPanel x:Name="WslToolsContainer" Spacing="8" Margin="0,6,0,0">
+                                        <TextBlock Text="Click 'Check Tools' to probe tool availability inside WSL." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </controls:PivotItem>
+
+                <!-- ══════════════════════════════════════════════════════════
+                     TAB 2: PATH & ENVIRONMENT VARIABLES
+                     ══════════════════════════════════════════════════════════ -->
+                <controls:PivotItem Header="PATH &amp; Environment Variables">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,12,0,24">
+                        <StackPanel Spacing="16">
+
+                            <!-- User PATH Manager -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="User PATH Order &amp; Integrity" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                            <TextBlock Text="Manage search priority, reorder directories, remove dead paths, and eliminate CLI shadowing." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                                            <Button Click="EnsureBinOnPath_Click">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE71B;" FontSize="11" />
+                                                    <TextBlock Text="Pin Tools\bin First" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Click="CleanPath_Click" Style="{StaticResource AccentButtonStyle}">
+                                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                                    <FontIcon Glyph="&#xE74D;" FontSize="11" />
+                                                    <TextBlock Text="Clean Dead &amp; Duplicates" />
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Add Path Bar -->
+                                    <Grid ColumnSpacing="8" Margin="0,6,0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewPathInput" PlaceholderText="Enter directory path (e.g. C:\tools or %USERPROFILE%\bin)" />
+                                        <Button Grid.Column="1" Click="BrowsePathFolder_Click" ToolTipService.ToolTip="Browse folder">
+                                            <FontIcon Glyph="&#xED25;" FontSize="12" />
+                                        </Button>
+                                        <Button Grid.Column="2" Click="AddPathEntry_Click" Style="{StaticResource AccentButtonStyle}">
+                                            <TextBlock Text="Add to PATH" />
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- PATH items list -->
+                                    <StackPanel x:Name="PathItemsContainer" Spacing="6" Margin="0,6,0,0">
+                                        <TextBlock Text="Loading PATH entries..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DevOps Quick Presets -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <TextBlock Text="Quick DevOps Variable Presets" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock Text="1-click standard DevOps environment variable presets for Docker, Kubernetes, AWS, and Terraform." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    <StackPanel x:Name="PresetsContainer" Spacing="8" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Custom Environment Variables -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="User Environment Variables" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                            <TextBlock Text="Custom variables broadcasted live across your workstation without requiring a logoff." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Add Variable Form -->
+                                    <Grid ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="200" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewVarNameInput" PlaceholderText="Variable Name" />
+                                        <TextBox Grid.Column="1" x:Name="NewVarValueInput" PlaceholderText="Variable Value" />
+                                        <Button Grid.Column="2" Click="AddVariable_Click" Style="{StaticResource AccentButtonStyle}">
+                                            <TextBlock Text="Set Variable" />
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- Variables list -->
+                                    <StackPanel x:Name="VariablesContainer" Spacing="6" Margin="0,6,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </controls:PivotItem>
+
+                <!-- ══════════════════════════════════════════════════════════
+                     TAB 3: GIT & SSH WIZARD
+                     ══════════════════════════════════════════════════════════ -->
+                <controls:PivotItem Header="Git &amp; SSH Wizard">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,12,0,24">
+                        <StackPanel Spacing="16">
+
+                            <!-- Git Configuration Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="Global Git Workstation Setup" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock Text="Configure author identity, default branch, line-ending hygiene, and Git Credential Manager." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                    <Grid RowSpacing="12" ColumnSpacing="16">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBox Grid.Row="0" Grid.Column="0" x:Name="GitNameInput" Header="Full Name (user.name)" PlaceholderText="e.g. John Doe" />
+                                        <TextBox Grid.Row="0" Grid.Column="1" x:Name="GitEmailInput" Header="Email (user.email)" PlaceholderText="e.g. john@company.com" />
+
+                                        <TextBox Grid.Row="1" Grid.Column="0" x:Name="GitBranchInput" Header="Default Branch (init.defaultBranch)" PlaceholderText="main" />
+                                        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="GitAutoCrlfCombo" Header="Line Endings (core.autocrlf)" HorizontalAlignment="Stretch">
+                                            <ComboBoxItem Content="input (Recommended for DevOps / Linux compatibility)" Tag="input" IsSelected="True" />
+                                            <ComboBoxItem Content="true (Windows checkout CRLF, commit LF)" Tag="true" />
+                                            <ComboBoxItem Content="false (As-is, no transformation)" Tag="false" />
+                                        </ComboBox>
+
+                                        <ComboBox Grid.Row="2" Grid.Column="0" x:Name="GitCredCombo" Header="Credential Helper" HorizontalAlignment="Stretch">
+                                            <ComboBoxItem Content="manager (Git Credential Manager - Recommended)" Tag="manager" IsSelected="True" />
+                                            <ComboBoxItem Content="store (Plaintext file)" Tag="store" />
+                                            <ComboBoxItem Content="cache (In-memory cache)" Tag="cache" />
+                                        </ComboBox>
+                                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="GitEditorInput" Header="Default Editor (core.editor)" PlaceholderText="code --wait" />
+                                    </Grid>
+
+                                    <Button Click="SaveGitConfig_Click" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE74E;" FontSize="11" />
+                                            <TextBlock Text="Save Git Configuration" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- SSH Key Management Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="SSH Keys (~/.ssh)" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock Text="Inspect existing SSH authentication keys or generate modern Ed25519 keys for GitHub, GitLab, and Azure DevOps." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                    <!-- Existing keys -->
+                                    <StackPanel x:Name="SshKeysContainer" Spacing="8" Margin="0,4,0,0">
+                                        <TextBlock Text="Scanning ~/.ssh for keys..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+
+                                    <!-- Generate key -->
+                                    <Border Background="{ThemeResource ControlFillColorDefaultBrush}" Padding="14" CornerRadius="6" Margin="0,8,0,0">
+                                        <StackPanel Spacing="10">
+                                            <TextBlock Text="Generate New SSH Key Pair" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                            <Grid ColumnSpacing="12" RowSpacing="8">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="180" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <ComboBox Grid.Row="0" Grid.Column="0" x:Name="KeyAlgoCombo" Header="Algorithm" HorizontalAlignment="Stretch">
+                                                    <ComboBoxItem Content="Ed25519 (Recommended)" Tag="ed25519" IsSelected="True" />
+                                                    <ComboBoxItem Content="RSA 4096-bit" Tag="rsa" />
+                                                </ComboBox>
+                                                <TextBox Grid.Row="0" Grid.Column="1" x:Name="KeyEmailInput" Header="Comment / Email" PlaceholderText="user@company.com" />
+                                                <Button Grid.Row="0" Grid.Column="2" Click="GenerateKey_Click" Style="{StaticResource AccentButtonStyle}" VerticalAlignment="Bottom">
+                                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                                        <FontIcon Glyph="&#xE8D7;" FontSize="11" />
+                                                        <TextBlock Text="Generate Key" />
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="KeyPassphraseInput" Header="Optional Passphrase" PlaceholderText="Leave empty for passwordless" />
+                                            </Grid>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- OpenSSH Agent Card -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="Windows OpenSSH Authentication Agent (ssh-agent)" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                        <TextBlock x:Name="SshAgentStatusText" Text="Detecting ssh-agent service status..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                    <Button Grid.Column="1" x:Name="EnableSshAgentButton" Click="EnableSshAgent_Click">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE768;" FontSize="11" />
+                                            <TextBlock Text="Enable &amp; Start Agent" />
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </controls:PivotItem>
+
+                <!-- ══════════════════════════════════════════════════════════
+                     TAB 4: TERMINAL & POWERSHELL
+                     ══════════════════════════════════════════════════════════ -->
+                <controls:PivotItem Header="Terminal &amp; PowerShell">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,12,0,24">
+                        <StackPanel Spacing="16">
+
+                            <!-- Windows Terminal Settings -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="Windows Terminal Configuration" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock Text="Manage default shell profile, developer/Nerd font, and high-contrast DevOps color schemes." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                    <Grid RowSpacing="12" ColumnSpacing="16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <ComboBox Grid.Column="0" x:Name="TerminalProfileCombo" Header="Default Profile" HorizontalAlignment="Stretch" />
+                                        <ComboBox Grid.Column="1" x:Name="TerminalFontCombo" Header="Font Face (Nerd Font for Starship/Oh-My-Posh)" HorizontalAlignment="Stretch" />
+                                    </Grid>
+
+                                    <Button Click="SaveTerminalSettings_Click" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE74E;" FontSize="11" />
+                                            <TextBlock Text="Apply Terminal Settings" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- PowerShell Profile Enhancements -->
+                            <Border Style="{StaticResource CardStyle}">
+                                <StackPanel Spacing="14">
+                                    <TextBlock Text="PowerShell Profile &amp; DevOps Productivity ($PROFILE)" Style="{StaticResource SubtitleTextBlockStyle}" />
+                                    <TextBlock x:Name="PwshProfilePathText" Text="Profile: Detecting..." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+                                    <StackPanel Spacing="10" Margin="0,4,0,0">
+                                        <CheckBox x:Name="OptCompletions" IsChecked="True"
+                                                  Content="DevOps CLI Tab Completions (kubectl, helm, terraform, gh, docker, k9s, etc.)" />
+                                        <CheckBox x:Name="OptAliases" IsChecked="True"
+                                                  Content="Curated DevOps Aliases (k=kubectl, tf=terraform, d=docker, dc=docker compose, g=git, kns=kubens, ktx=kubectx, ll=ls -la)" />
+                                        <CheckBox x:Name="OptStarship" IsChecked="True"
+                                                  Content="Starship Prompt Integration (auto-initializes Starship if installed)" />
+                                    </StackPanel>
+
+                                    <Button Click="ApplyPowerShellSetup_Click" Style="{StaticResource AccentButtonStyle}" HorizontalAlignment="Left" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE768;" FontSize="11" />
+                                            <TextBlock Text="Apply Recommended PowerShell Setup" />
+                                        </StackPanel>
+                                    </Button>
+                                    <TextBlock Text="Note: An automated backup (.bak) of your existing profile is created before writing changes." Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </controls:PivotItem>
+
+            </controls:Pivot>
+        </Grid>
+    </appControls:PageContainer>
+</Page>

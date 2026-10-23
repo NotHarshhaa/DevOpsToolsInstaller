@@ -202,6 +202,7 @@ public sealed partial class MainWindow : Window
                 nameof(DoctorPage) => "Doctor",
                 nameof(CloudDashboardPage) => "Cloud",
                 nameof(ProfilesPage) => "Profiles",
+                nameof(EnvironmentPage) => "Environment",
                 nameof(CatalogEditorPage) => "CatalogEditor",
                 nameof(SettingsPage) => "Settings",
                 nameof(AboutPage) => "About",
@@ -474,6 +475,7 @@ public sealed partial class MainWindow : Window
         "Doctor"    => typeof(DoctorPage),
         "Cloud"     => typeof(CloudDashboardPage),
         "Profiles"  => typeof(ProfilesPage),
+        "Environment" => typeof(EnvironmentPage),
         "CatalogEditor" => typeof(CatalogEditorPage),
         "Settings"  => typeof(SettingsPage),
         "About"     => typeof(AboutPage),
@@ -813,6 +815,7 @@ public sealed partial class MainWindow : Window
             new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
             new("Go to Cloud & Contexts", "\uE753", () => NavigateTo("Cloud")),
             new("Go to Profiles & History", "\uE77B", () => NavigateTo("Profiles")),
+            new("Go to Environment & Setup (WSL, PATH, Git, Terminal)", "\uE756", () => NavigateTo("Environment")),
             new("Edit Custom Tools", "\uE70F", () => NavigateTo("CatalogEditor")),
             new("Refresh current page (F5)", "\uE72C", () =>
             {

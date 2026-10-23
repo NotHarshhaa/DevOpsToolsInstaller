@@ -43,7 +43,11 @@ public static class CliHost
         "--list-feeds", "--add-feed", "--remove-feed", "--sync-feeds",
         "--export-offline-bundle", "--install-offline-bundle",
         "--check-policy", "--apply-policy", "--export-policy-template", "--export-intune-script",
-        "--backends", "--backend"
+        "--backends", "--backend",
+        "--wsl", "--wsl-fix", "--wsl-tools",
+        "--env", "--set-env", "--del-env",
+        "--git-status", "--setup-git", "--generate-ssh-key",
+        "--setup-powershell"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -412,6 +416,47 @@ public static class CliHost
                 string? bundleId = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
                 string dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "deploy-intune.ps1";
                 return await RunExportIntuneScriptAsync(bundleId, dest);
+            }
+            else if (arg.Equals("--wsl", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunWslAsync(checkTools: false);
+            }
+            else if (arg.Equals("--wsl-tools", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunWslAsync(checkTools: true);
+            }
+            else if (arg.Equals("--wsl-fix", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunWslFix();
+            }
+            else if (arg.Equals("--env", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunEnv();
+            }
+            else if (arg.Equals("--set-env", StringComparison.OrdinalIgnoreCase) && i + 2 < args.Count)
+            {
+                return RunSetEnv(args[++i], args[++i]);
+            }
+            else if (arg.Equals("--del-env", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return RunDelEnv(args[++i]);
+            }
+            else if (arg.Equals("--git-status", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunGitStatusAsync();
+            }
+            else if (arg.Equals("--setup-git", StringComparison.OrdinalIgnoreCase) && i + 2 < args.Count)
+            {
+                return await RunSetupGitAsync(args[++i], args[++i]);
+            }
+            else if (arg.Equals("--generate-ssh-key", StringComparison.OrdinalIgnoreCase))
+            {
+                string? email = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
+                return await RunGenerateSshKeyAsync(email);
+            }
+            else if (arg.Equals("--setup-powershell", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunSetupPowerShellAsync();
             }
         }
 
@@ -1740,6 +1785,169 @@ public static class CliHost
         }
     }
 
+    private static async Task<int> RunWslAsync(bool checkTools)
+    {
+        WriteLine("WSL & Virtualization Health Check:");
+        var prereqs = await WslService.CheckPrerequisitesAsync();
+        WriteLine($"  WSL Installed             : {prereqs.IsWslInstalled} ({(prereqs.WslVersion ?? "N/A")})");
+        WriteLine($"  Virtual Machine Platform : {prereqs.IsVirtualMachinePlatformEnabled}");
+        WriteLine($"  WSL Optional Feature     : {prereqs.IsWslFeatureEnabled}");
+        WriteLine($"  Summary                  : {prereqs.Summary}");
+        WriteLine();
+
+        var distros = await WslService.ListDistrosAsync();
+        WriteLine($"Installed Linux Distributions ({distros.Count}):");
+        if (distros.Count == 0)
+        {
+            WriteLine("  No distributions found. Install one with: wsl --install -d Ubuntu");
+        }
+        else
+        {
+            foreach (var d in distros)
+            {
+                WriteLine($"  {(d.IsDefault ? "[*]" : "[ ]")} {d.Name.PadRight(24)} State: {d.State.PadRight(10)} WSL {d.Version}");
+            }
+        }
+
+        if (checkTools && distros.Count > 0)
+        {
+            var target = distros.FirstOrDefault(d => d.IsDefault)?.Name ?? distros[0].Name;
+            WriteLine();
+            WriteLine($"Tools Availability inside '{target}':");
+            var tools = await WslService.CheckToolsInsideDistroAsync(target);
+            foreach (var t in tools)
+            {
+                var status = t.IsInstalledInWsl ? $"Installed (v{t.WslVersion ?? "unknown"}) -> {t.WslPath}" : "Not installed";
+                WriteLine($"  {t.Name.PadRight(16)}: {status}");
+            }
+        }
+
+        return 0;
+    }
+
+    private static int RunWslFix()
+    {
+        WriteLine("WSL2 & Virtual Machine Platform Prerequisite Fix Script:");
+        WriteLine(WslService.GeneratePrerequisiteFixScript());
+        return 0;
+    }
+
+    private static int RunEnv()
+    {
+        WriteLine("User PATH Directories (ordered by search priority):");
+        var paths = EnvironmentVariableService.GetPathEntries(EnvironmentVariableTarget.User);
+        for (int i = 0; i < paths.Count; i++)
+        {
+            var p = paths[i];
+            var flag = !p.Exists ? "[MISSING] " : (p.IsDuplicate ? "[DUP]     " : (p.IsDevOpsBin ? "[BIN]     " : "          "));
+            WriteLine($"  {flag} #{i + 1:D2} {p.Path}");
+        }
+
+        WriteLine();
+        WriteLine("User Environment Variables:");
+        var vars = EnvironmentVariableService.GetVariables(EnvironmentVariableTarget.User);
+        foreach (var v in vars)
+        {
+            WriteLine($"  {v.Name.PadRight(28)} = {v.Value}");
+        }
+
+        return 0;
+    }
+
+    private static int RunSetEnv(string name, string value)
+    {
+        if (EnvironmentVariableService.SetVariable(name, value, EnvironmentVariableTarget.User))
+        {
+            WriteLine($"Set User environment variable '{name}={value}' and broadcasted live change.");
+            return 0;
+        }
+        WriteLine($"error: failed to set environment variable '{name}'.");
+        return 1;
+    }
+
+    private static int RunDelEnv(string name)
+    {
+        if (EnvironmentVariableService.SetVariable(name, null, EnvironmentVariableTarget.User))
+        {
+            WriteLine($"Deleted User environment variable '{name}'.");
+            return 0;
+        }
+        WriteLine($"error: failed to delete environment variable '{name}'.");
+        return 1;
+    }
+
+    private static async Task<int> RunGitStatusAsync()
+    {
+        WriteLine("Global Git Configuration:");
+        var cfg = await GitSshSetupService.GetGitConfigAsync();
+        WriteLine($"  user.name          : {cfg.UserName ?? "(not set)"}");
+        WriteLine($"  user.email         : {cfg.UserEmail ?? "(not set)"}");
+        WriteLine($"  init.defaultBranch : {cfg.DefaultBranch}");
+        WriteLine($"  core.autocrlf      : {cfg.AutoCrlf}");
+        WriteLine($"  credential.helper  : {cfg.CredentialHelper}");
+
+        WriteLine();
+        WriteLine("Existing SSH Keys (~/.ssh):");
+        var keys = GitSshSetupService.GetExistingSshKeys();
+        if (keys.Count == 0)
+        {
+            WriteLine("  No SSH key pairs found in ~/.ssh.");
+        }
+        else
+        {
+            foreach (var k in keys)
+            {
+                WriteLine($"  • {k.Name} ({k.Algorithm}) - Fingerprint: {k.FingerprintShort} - Comment: {k.Comment ?? "none"}");
+            }
+        }
+
+        bool agentRunning = await GitSshSetupService.IsSshAgentRunningAsync();
+        WriteLine();
+        WriteLine($"Windows OpenSSH Agent Service: {(agentRunning ? "Running" : "Stopped/Disabled")}");
+        return 0;
+    }
+
+    private static async Task<int> RunSetupGitAsync(string name, string email)
+    {
+        var cfg = new GitConfigSettings(name, email, "main", "input", "false", "manager", "code --wait", false);
+        if (await GitSshSetupService.SaveGitConfigAsync(cfg))
+        {
+            WriteLine($"Saved global Git configuration: {name} <{email}>, default branch: main, autocrlf: input.");
+            return 0;
+        }
+        WriteLine("error: failed to configure Git.");
+        return 1;
+    }
+
+    private static async Task<int> RunGenerateSshKeyAsync(string? email)
+    {
+        WriteLine($"Generating modern Ed25519 SSH key...");
+        var res = await GitSshSetupService.GenerateSshKeyAsync("ed25519", email);
+        if (res.Success)
+        {
+            WriteLine(res.Message);
+            WriteLine($"Public Key Content ({res.PublicKeyPath}):");
+            WriteLine(res.PublicKeyContent);
+            return 0;
+        }
+        WriteLine($"error: {res.Message}");
+        return 1;
+    }
+
+    private static async Task<int> RunSetupPowerShellAsync()
+    {
+        WriteLine("Applying recommended DevOps completions and aliases to PowerShell profile...");
+        if (await TerminalPowerShellSetupService.ApplyPowerShellSetupAsync(enableCompletions: true, enableAliases: true, enableStarship: true))
+        {
+            var status = await TerminalPowerShellSetupService.GetPowerShellProfileStatusAsync();
+            WriteLine($"Successfully configured PowerShell profile at '{status.ProfilePath}'.");
+            WriteLine("Aliases: k=kubectl, tf=terraform, d=docker, dc='docker compose', g=git, kns=kubens, ktx=kubectx");
+            return 0;
+        }
+        WriteLine("error: failed to update PowerShell profile.");
+        return 1;
+    }
+
     private static void PrintUsage()
     {
         WriteLine($"DevOps Tools Installer v{AppUpdaterService.CurrentVersion} (headless mode)");
@@ -1782,6 +1990,15 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --kube-context [name]        List or switch kubectl context (kubectx)");
         WriteLine("  DevOpsToolsInstaller.exe --run-hooks                  Allow user-authored pre/post-install hooks");
         WriteLine("  DevOpsToolsInstaller.exe --downloads-folder <path>    Redirect downloads (e.g. a USB drive)");
+        WriteLine("  DevOpsToolsInstaller.exe --wsl                        Check WSL2 & Virtualization health");
+        WriteLine("  DevOpsToolsInstaller.exe --wsl-tools                  Probe DevOps tools availability inside WSL");
+        WriteLine("  DevOpsToolsInstaller.exe --wsl-fix                    Output script to enable Virtual Machine Platform");
+        WriteLine("  DevOpsToolsInstaller.exe --env                        Display User PATH order and environment variables");
+        WriteLine("  DevOpsToolsInstaller.exe --set-env <name> <val>       Set a User environment variable with live broadcast");
+        WriteLine("  DevOpsToolsInstaller.exe --git-status                 Inspect Git config, SSH keys, and ssh-agent status");
+        WriteLine("  DevOpsToolsInstaller.exe --setup-git <name> <email>   Configure global Git user identity");
+        WriteLine("  DevOpsToolsInstaller.exe --generate-ssh-key [email]   Generate modern Ed25519 SSH key");
+        WriteLine("  DevOpsToolsInstaller.exe --setup-powershell           Inject DevOps CLI completions and aliases into $PROFILE");
         WriteLine("  DevOpsToolsInstaller.exe --version                    Print the application version");
         WriteLine("  DevOpsToolsInstaller.exe --help                       Show this help");
         WriteLine();

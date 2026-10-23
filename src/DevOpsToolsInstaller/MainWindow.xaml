@@ -223,6 +223,12 @@
                         <FontIcon Glyph="&#xE77B;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
+                <controls:NavigationViewItem Content="Environment &amp; Setup" Tag="Environment"
+                                              ToolTipService.ToolTip="WSL awareness, PATH &amp; environment variables, Git &amp; SSH keys, Terminal &amp; PowerShell setup">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE756;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
                 <controls:NavigationViewItem Content="Downloads" Tag="Downloads"
                                               ToolTipService.ToolTip="Active and queued downloads">
                     <controls:NavigationViewItem.Icon>
