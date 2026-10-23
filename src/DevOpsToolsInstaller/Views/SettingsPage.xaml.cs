@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Controls;
 using CommunityToolkit.WinUI.Controls;
 using DevOpsToolsInstaller.Controls;
 using DevOpsToolsInstaller.Helpers;
+using DevOpsToolsInstaller.Models;
 using DevOpsToolsInstaller.Services;
 
 namespace DevOpsToolsInstaller.Views;
@@ -136,6 +137,10 @@ public sealed partial class SettingsPage : Page
 
         // Custom catalog source
         CustomCatalogSourceBox.Text = SettingsService.CustomCatalogSource;
+
+        BindFeedsSection();
+        BindEnterprisePolicySection();
+        BindBackendsSection();
 
         RefreshSummaries();
         ApplySettingsFilter(string.Empty);
@@ -1400,5 +1405,272 @@ public sealed partial class SettingsPage : Page
     {
         SettingsService.AutoInstallDuringMaintenance = AutoInstallDuringMaintenanceToggle.IsOn;
         SettingsService.SaveSettings();
+    }
+
+    // ── Corporate & Private Feeds ─────────────────────────────────────
+
+    private void BindFeedsSection()
+    {
+        FeedsContainer.Children.Clear();
+        var feeds = PrivateFeedService.LoadFeeds();
+
+        if (feeds.Count == 0)
+        {
+            FeedsContainer.Children.Add(new TextBlock
+            {
+                Text = "No private catalog feeds subscribed yet.",
+                FontSize = 12,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            });
+            return;
+        }
+
+        foreach (var feed in feeds)
+        {
+            var card = new Border
+            {
+                Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardBackgroundFillColorSecondaryBrush"],
+                BorderBrush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(12, 8, 12, 8)
+            };
+
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            var info = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
+            var title = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 };
+            title.Children.Add(new FontIcon { Glyph = "\uE8A5", FontSize = 12 });
+            title.Children.Add(new TextBlock { Text = feed.Name, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, FontSize = 13 });
+
+            if (feed.IsPolicyEnforced)
+            {
+                var lockBadge = new Border
+                {
+                    Padding = new Thickness(4, 1, 4, 1),
+                    CornerRadius = new CornerRadius(3),
+                    Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"]
+                };
+                lockBadge.Child = new TextBlock
+                {
+                    Text = "IT Enforced",
+                    FontSize = 10,
+                    Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"]
+                };
+                title.Children.Add(lockBadge);
+            }
+
+            info.Children.Add(title);
+            info.Children.Add(new TextBlock
+            {
+                Text = $"{feed.Url} • {feed.StatusText}",
+                FontSize = 11,
+                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+            });
+
+            Grid.SetColumn(info, 0);
+            grid.Children.Add(info);
+
+            var actions = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6, VerticalAlignment = VerticalAlignment.Center };
+
+            var syncBtn = new Button { Padding = new Thickness(6, 4, 6, 4) };
+            syncBtn.Content = new FontIcon { Glyph = "\uE72C", FontSize = 11 };
+            ToolTipService.SetToolTip(syncBtn, "Sync this feed now");
+            syncBtn.Click += async (s, e) =>
+            {
+                ShowNotice($"Syncing '{feed.Name}'...", InfoBarSeverity.Informational);
+                var res = await PrivateFeedService.SyncFeedAsync(feed);
+                ShowNotice(res.Message, res.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+                BindFeedsSection();
+            };
+            actions.Children.Add(syncBtn);
+
+            if (!feed.IsPolicyEnforced)
+            {
+                var delBtn = new Button { Padding = new Thickness(6, 4, 6, 4) };
+                delBtn.Content = new FontIcon { Glyph = "\uE74D", FontSize = 11 };
+                ToolTipService.SetToolTip(delBtn, "Unsubscribe from feed");
+                delBtn.Click += (s, e) =>
+                {
+                    PrivateFeedService.RemoveFeed(feed.Id);
+                    ShowNotice($"Unsubscribed from '{feed.Name}'.", InfoBarSeverity.Informational);
+                    BindFeedsSection();
+                };
+                actions.Children.Add(delBtn);
+            }
+
+            Grid.SetColumn(actions, 1);
+            grid.Children.Add(actions);
+
+            card.Child = grid;
+            FeedsContainer.Children.Add(card);
+        }
+    }
+
+    private async void AddFeed_Click(object sender, RoutedEventArgs e)
+    {
+        var url = FeedUrlInput.Text.Trim();
+        var name = FeedNameInput.Text.Trim();
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            ShowNotice("Please enter a valid feed URL or path.", InfoBarSeverity.Warning);
+            return;
+        }
+
+        try
+        {
+            ShowNotice($"Subscribing to '{url}'...", InfoBarSeverity.Informational);
+            var feed = await PrivateFeedService.AddOrUpdateFeedAsync(name, url);
+            FeedUrlInput.Text = "";
+            FeedNameInput.Text = "";
+            BindFeedsSection();
+
+            var mw = App.MainWindowInstance;
+            if (mw is not null)
+            {
+                var tools = await mw.CatalogSvc.LoadCatalogAsync();
+                mw.Tools.Clear();
+                foreach (var t in tools) mw.Tools.Add(t);
+            }
+
+            ShowNotice($"Subscribed to feed '{feed.Name}' ({feed.ToolCount} tools synced).", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to subscribe to feed: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async void SyncAllFeeds_Click(object sender, RoutedEventArgs e)
+    {
+        ShowNotice("Syncing all private catalog feeds...", InfoBarSeverity.Informational);
+        var results = await PrivateFeedService.SyncAllFeedsAsync();
+        var successCount = results.Count(r => r.Success);
+        var failCount = results.Count - successCount;
+
+        BindFeedsSection();
+
+        var mw = App.MainWindowInstance;
+        if (mw is not null)
+        {
+            var tools = await mw.CatalogSvc.LoadCatalogAsync();
+            mw.Tools.Clear();
+            foreach (var t in tools) mw.Tools.Add(t);
+        }
+
+        ShowNotice($"Feed sync complete: {successCount} succeeded, {failCount} failed. {mw?.Tools.Count} tools active.",
+            failCount == 0 ? InfoBarSeverity.Success : InfoBarSeverity.Warning);
+    }
+
+    // ── Enterprise Policy & IT Deployment ──────────────────────────────
+
+    private void BindEnterprisePolicySection()
+    {
+        if (EnterprisePolicyService.IsPolicyActive)
+        {
+            PolicyStatusText.Text = $"Managed by {EnterprisePolicyService.Current.OrganizationName}";
+            PolicyStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+            PolicyStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextOnAccentFillColorPrimaryBrush"];
+        }
+        else
+        {
+            PolicyStatusText.Text = "Standard (Unmanaged)";
+            PolicyStatusBadge.Background = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["ControlFillColorDefaultBrush"];
+            PolicyStatusText.Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"];
+        }
+    }
+
+    private async void ExportIntuneScript_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("PowerShell Script", new List<string> { ".ps1" });
+            picker.SuggestedFileName = "deploy-intune.ps1";
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file is null) return;
+
+            var script = EnterprisePolicyService.GenerateIntuneScript();
+            await Windows.Storage.FileIO.WriteTextAsync(file, script);
+            ShowNotice($"Microsoft Intune script exported successfully to '{file.Path}'.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to export Intune script: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async void ExportPolicyTemplate_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("Registry Policy Script", new List<string> { ".reg" });
+            picker.SuggestedFileName = "install-policy.reg";
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file is null) return;
+
+            var reg = EnterprisePolicyService.GenerateRegistryPolicyScript(EnterprisePolicyService.Current);
+            await Windows.Storage.FileIO.WriteTextAsync(file, reg);
+            ShowNotice($"Registry policy template exported successfully to '{file.Path}'.", InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to export policy template: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    // ── Package Manager Backends ───────────────────────────────────────
+
+    private void BindBackendsSection()
+    {
+        WingetDetectText.Text = ToolBackendService.IsWingetAvailable ? "winget: Available" : "winget: Missing";
+        ScoopDetectText.Text = ToolBackendService.IsScoopAvailable ? "Scoop: Available" : "Scoop: Missing";
+        ChocoDetectText.Text = ToolBackendService.IsChocolateyAvailable ? "Chocolatey: Available" : "Chocolatey: Missing";
+
+        SettingsWingetItem.IsEnabled = ToolBackendService.IsWingetAvailable;
+        SettingsScoopItem.IsEnabled = ToolBackendService.IsScoopAvailable;
+        SettingsChocoItem.IsEnabled = ToolBackendService.IsChocolateyAvailable;
+
+        var pref = SettingsService.DefaultBackend;
+        DefaultBackendCombo.SelectedIndex = pref switch
+        {
+            ToolBackend.Winget when ToolBackendService.IsWingetAvailable => 1,
+            ToolBackend.Scoop when ToolBackendService.IsScoopAvailable => 2,
+            ToolBackend.Chocolatey when ToolBackendService.IsChocolateyAvailable => 3,
+            _ => 0
+        };
+
+        BackendSummaryText.Text = $"Default: {pref.DisplayName()}";
+    }
+
+    private void DefaultBackendCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (DefaultBackendCombo.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            var backend = ToolBackendExtensions.Parse(tag);
+            SettingsService.DefaultBackend = backend;
+            SettingsService.SaveSettings();
+            BackendSummaryText.Text = $"Default: {backend.DisplayName()}";
+            ShowNotice($"Default installation backend set to {backend.DisplayName()}.", InfoBarSeverity.Success);
+        }
     }
 }

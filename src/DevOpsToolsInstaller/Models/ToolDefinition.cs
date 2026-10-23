@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using LiveChartsCore;
@@ -97,6 +97,21 @@ public sealed class ToolDefinition : INotifyPropertyChanged
     /// </summary>
     [JsonPropertyName("logoUrl")]
     public string LogoUrl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional package manager backend IDs (e.g. winget, scoop, choco).
+    /// </summary>
+    [JsonPropertyName("backends")]
+    public System.Collections.Generic.Dictionary<string, string>? Backends { get; set; }
+
+    [JsonIgnore]
+    public string? FeedName { get; set; }
+
+    [JsonIgnore]
+    public bool IsCorporateApproved => !string.IsNullOrEmpty(FeedName);
+
+    [JsonIgnore]
+    public ToolBackend SelectedBackend { get; set; } = ToolBackend.Direct;
 
     // ── Runtime-only state (not from JSON) ───────────────────────────────
 

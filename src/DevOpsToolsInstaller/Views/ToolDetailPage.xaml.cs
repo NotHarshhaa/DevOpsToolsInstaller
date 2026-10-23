@@ -125,6 +125,19 @@ public sealed partial class ToolDetailPage : Page
 
         BindHooks();
         _ = LoadLiveReleasesAsync();
+
+        // Corporate feed badge
+        if (Tool.IsCorporateApproved)
+        {
+            HeroCorporateBadge.Visibility = Visibility.Visible;
+            HeroCorporateText.Text = $"Approved · {Tool.FeedName}";
+        }
+        else
+        {
+            HeroCorporateBadge.Visibility = Visibility.Collapsed;
+        }
+
+        BindBackendOptions();
     }
 
     // ── Recent releases timeline (live from the vendor's GitHub) ────────
@@ -507,6 +520,77 @@ public sealed partial class ToolDetailPage : Page
     }
 
     // ── Actions (self-contained; progress lands on the Downloads page) ──
+
+    private void BindBackendOptions()
+    {
+        WingetComboItem.IsEnabled = ToolBackendService.IsWingetAvailable;
+        WingetComboItem.Content = ToolBackendService.IsWingetAvailable
+            ? $"winget ({ToolBackendService.GetPackageId(Tool, ToolBackend.Winget)})"
+            : "winget (Not installed)";
+        BackendWingetItem.IsEnabled = ToolBackendService.IsWingetAvailable;
+
+        ScoopComboItem.IsEnabled = ToolBackendService.IsScoopAvailable;
+        ScoopComboItem.Content = ToolBackendService.IsScoopAvailable
+            ? $"Scoop ({ToolBackendService.GetPackageId(Tool, ToolBackend.Scoop)})"
+            : "Scoop (Not installed)";
+        BackendScoopItem.IsEnabled = ToolBackendService.IsScoopAvailable;
+
+        ChocoComboItem.IsEnabled = ToolBackendService.IsChocolateyAvailable;
+        ChocoComboItem.Content = ToolBackendService.IsChocolateyAvailable
+            ? $"Chocolatey ({ToolBackendService.GetPackageId(Tool, ToolBackend.Chocolatey)})"
+            : "Chocolatey (Not installed)";
+        BackendChocoItem.IsEnabled = ToolBackendService.IsChocolateyAvailable;
+
+        var selected = Tool.SelectedBackend != ToolBackend.Direct ? Tool.SelectedBackend : SettingsService.DefaultBackend;
+        Tool.SelectedBackend = selected;
+
+        BackendCombo.SelectedIndex = selected switch
+        {
+            ToolBackend.Winget when ToolBackendService.IsWingetAvailable => 1,
+            ToolBackend.Scoop when ToolBackendService.IsScoopAvailable => 2,
+            ToolBackend.Chocolatey when ToolBackendService.IsChocolateyAvailable => 3,
+            _ => 0
+        };
+
+        UpdateInstallButtonText();
+    }
+
+    private void UpdateInstallButtonText()
+    {
+        HeroInstallButtonText.Text = Tool.SelectedBackend == ToolBackend.Direct
+            ? "Install"
+            : $"Install ({Tool.SelectedBackend.ShortName()})";
+    }
+
+    private void BackendCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BackendCombo.SelectedItem is ComboBoxItem item && item.Tag is string tag)
+        {
+            Tool.SelectedBackend = ToolBackendExtensions.Parse(tag);
+            UpdateInstallButtonText();
+        }
+    }
+
+    private void InstallViaWinget_Click(object sender, RoutedEventArgs e)
+    {
+        Tool.SelectedBackend = ToolBackend.Winget;
+        UpdateInstallButtonText();
+        RunTool(installAfter: true);
+    }
+
+    private void InstallViaScoop_Click(object sender, RoutedEventArgs e)
+    {
+        Tool.SelectedBackend = ToolBackend.Scoop;
+        UpdateInstallButtonText();
+        RunTool(installAfter: true);
+    }
+
+    private void InstallViaChoco_Click(object sender, RoutedEventArgs e)
+    {
+        Tool.SelectedBackend = ToolBackend.Chocolatey;
+        UpdateInstallButtonText();
+        RunTool(installAfter: true);
+    }
 
     private void Install_Click(Microsoft.UI.Xaml.Controls.SplitButton sender, Microsoft.UI.Xaml.Controls.SplitButtonClickEventArgs args) => RunTool(installAfter: true);
 

@@ -46,7 +46,9 @@ public sealed class CatalogService
     public async Task<List<ToolDefinition>> LoadCatalogAsync(CancellationToken ct = default)
     {
         var tools = await LoadBaseCatalogAsync(ct);
-        return CustomCatalogService.Merge(tools);
+        var customMerged = CustomCatalogService.Merge(tools);
+        var feedMerged = PrivateFeedService.MergeFeedTools(customMerged);
+        return feedMerged;
     }
 
     private async Task<List<ToolDefinition>> LoadBaseCatalogAsync(CancellationToken ct)

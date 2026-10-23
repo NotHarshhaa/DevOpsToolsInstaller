@@ -1055,6 +1055,107 @@ public sealed partial class StacksPage : Page, IRefreshablePage
             $"'{bundle.Name}' saved with {bundle.Tools.Count} tool(s). It is now available under presets and quick stacks.");
     }
 
+    private async void DetailExportOffline_Click(object sender, RoutedEventArgs e)
+    {
+        if (_detailCard?.Bundle is null) return;
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+        var bundle = _detailCard.Bundle;
+
+        try
+        {
+            var folderPicker = new Windows.Storage.Pickers.FolderPicker();
+            folderPicker.FileTypeFilter.Add("*");
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
+
+            var folder = await folderPicker.PickSingleFolderAsync();
+            if (folder is null) return;
+
+            ShowInfoBar(InfoBarSeverity.Informational, "Exporting Offline Bundle",
+                $"Downloading and packaging all tools in '{bundle.Name}' to '{folder.Path}'...");
+
+            var selectedIds = _detailTools.Where(i => i.IsSelected).Select(i => i.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            if (selectedIds.Count == 0)
+            {
+                selectedIds = bundle.Tools.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }
+            var toolsToExport = mw.Tools.Where(t => selectedIds.Contains(t.Id)).ToList();
+
+            var res = await OfflineBundleService.ExportOfflineToolsAsync(
+                toolsToExport,
+                bundle.Id,
+                bundle.Name,
+                bundle.Description,
+                folder.Path,
+                statusCallback: s => ActivityLogService.Info("Offline", s));
+
+            if (res.Success)
+            {
+                ShowInfoBar(InfoBarSeverity.Success, "Offline Bundle Ready",
+                    $"Successfully exported {res.ToolsExported} tool(s) to '{res.DestinationPath}'. Ready for air-gapped deployment.");
+                ToastService.Show("Offline Bundle Ready", $"Exported {bundle.Name} to {res.DestinationPath}", NoteKind.Success);
+            }
+            else
+            {
+                ShowInfoBar(InfoBarSeverity.Error, "Offline Export Failed", res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowInfoBar(InfoBarSeverity.Error, "Offline Export Error", ex.Message);
+        }
+    }
+
+    private async void ExportBuilderOffline_Click(object sender, RoutedEventArgs e)
+    {
+        if (BuilderViewModel.StackTools.Count == 0)
+        {
+            ShowInfoBar(InfoBarSeverity.Warning, "Cannot Export Empty Stack", "Add at least one tool to the stack before exporting.");
+            return;
+        }
+
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            var folderPicker = new Windows.Storage.Pickers.FolderPicker();
+            folderPicker.FileTypeFilter.Add("*");
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(folderPicker, hwnd);
+
+            var folder = await folderPicker.PickSingleFolderAsync();
+            if (folder is null) return;
+
+            ShowInfoBar(InfoBarSeverity.Informational, "Exporting Custom Offline Bundle",
+                $"Downloading and packaging custom stack '{BuilderViewModel.StackName}' to '{folder.Path}'...");
+
+            var res = await OfflineBundleService.ExportOfflineToolsAsync(
+                BuilderViewModel.StackTools.ToList(),
+                "custom-stack",
+                BuilderViewModel.StackName,
+                BuilderViewModel.StackDescription,
+                folder.Path,
+                statusCallback: s => ActivityLogService.Info("Offline", s));
+
+            if (res.Success)
+            {
+                ShowInfoBar(InfoBarSeverity.Success, "Offline Bundle Ready",
+                    $"Successfully exported {res.ToolsExported} tool(s) to '{res.DestinationPath}'.");
+                ToastService.Show("Offline Bundle Ready", $"Exported custom stack to {res.DestinationPath}", NoteKind.Success);
+            }
+            else
+            {
+                ShowInfoBar(InfoBarSeverity.Error, "Offline Export Failed", res.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowInfoBar(InfoBarSeverity.Error, "Offline Export Error", ex.Message);
+        }
+    }
+
     private async void ExportCustomStack_Click(object sender, RoutedEventArgs e)
     {
         if (BuilderViewModel.StackTools.Count == 0)

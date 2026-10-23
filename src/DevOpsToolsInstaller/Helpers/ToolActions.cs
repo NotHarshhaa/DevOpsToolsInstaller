@@ -40,6 +40,20 @@ public static class ToolActions
             try
             {
                 var dlFolder = DownloadService.DefaultDownloadsFolder;
+
+                if (tool.SelectedBackend != ToolBackend.Direct && installAfter)
+                {
+                    tool.Status = ToolStatus.Downloading;
+                    var bRes = await ToolBackendService.InstallWithBackendAsync(tool, tool.SelectedBackend, dlFolder);
+                    tool.Status = bRes.Success ? ToolStatus.Downloaded : ToolStatus.Failed;
+                    tool.Progress = bRes.Success ? 100 : 0;
+                    ToastService.Show(
+                        $"{tool.Name} ({tool.SelectedBackend.ShortName()})",
+                        bRes.Message,
+                        bRes.Success ? NoteKind.Success : NoteKind.Error);
+                    return;
+                }
+
                 await mw.DownloadSvc.DownloadBatchAsync(new[] { tool }, dlFolder, maxConcurrency: 1);
 
                 if (tool.Status == ToolStatus.Downloaded && installAfter)

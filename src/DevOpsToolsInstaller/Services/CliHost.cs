@@ -39,7 +39,11 @@ public static class CliHost
         "--manifest", "--install-manifest", "--check", "--check-manifest", "--export-manifest", "--lock-manifest",
         "--versions", "--switch", "--use", "--detect-project",
         "--export-migration", "--apply-migration",
-        "--check-updates", "--cloud-status", "--kube-context"
+        "--check-updates", "--cloud-status", "--kube-context",
+        "--list-feeds", "--add-feed", "--remove-feed", "--sync-feeds",
+        "--export-offline-bundle", "--install-offline-bundle",
+        "--check-policy", "--apply-policy", "--export-policy-template", "--export-intune-script",
+        "--backends", "--backend"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -356,6 +360,53 @@ public static class CliHost
                 string? targetContext = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : null;
                 return RunKubeContext(targetContext);
             }
+            else if (arg.Equals("--backends", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunBackends();
+            }
+            else if (arg.Equals("--list-feeds", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunListFeeds();
+            }
+            else if (arg.Equals("--add-feed", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                var feedName = args[++i];
+                var feedUrl = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : feedName;
+                if (feedUrl == feedName) feedName = "";
+                return await RunAddFeedAsync(feedName, feedUrl);
+            }
+            else if (arg.Equals("--remove-feed", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return RunRemoveFeed(args[++i]);
+            }
+            else if (arg.Equals("--sync-feeds", StringComparison.OrdinalIgnoreCase))
+            {
+                return await RunSyncFeedsAsync();
+            }
+            else if (arg.Equals("--export-offline-bundle", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                var bundleId = args[++i];
+                var dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : Path.Combine(".", $"bundle_{bundleId}");
+                return await RunExportOfflineBundleAsync(bundleId, dest, tools);
+            }
+            else if (arg.Equals("--install-offline-bundle", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await RunInstallOfflineBundleAsync(args[++i]);
+            }
+            else if (arg.Equals("--check-policy", StringComparison.OrdinalIgnoreCase))
+            {
+                return RunCheckPolicy();
+            }
+            else if (arg.Equals("--export-policy-template", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return RunExportPolicyTemplate(args[++i]);
+            }
+            else if (arg.Equals("--export-intune-script", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                var bundleId = args[++i];
+                var dest = (i + 1 < args.Count && !args[i + 1].StartsWith("--")) ? args[++i] : "deploy-intune.ps1";
+                return await RunExportIntuneScriptAsync(bundleId, dest);
+            }
         }
 
         if (requestedTools.Count == 0 && errors.Count == 0)
@@ -365,12 +416,44 @@ public static class CliHost
         }
 
         var dlFolder = DownloadService.DefaultDownloadsFolder;
+        var backendArg = GetOptionValue(args, "--backend");
+        var backend = !string.IsNullOrEmpty(backendArg) ? ToolBackendExtensions.Parse(backendArg) : SettingsService.DefaultBackend;
+        if (backend != ToolBackend.Direct)
+        {
+            WriteLine($"Using alternative backend: {backend.DisplayName()}");
+        }
+
         int installedCount = 0;
         int skippedCount = 0;
         int failedCount = 0;
 
         foreach (var tool in requestedTools)
         {
+            if (backend != ToolBackend.Direct)
+            {
+                try
+                {
+                    WriteLine($"[{backend.ShortName().ToLowerInvariant()}] {tool.Name} ({ToolBackendService.GetPackageId(tool, backend)})");
+                    var res = await ToolBackendService.InstallWithBackendAsync(tool, backend, dlFolder, msg => WriteLine($"       {msg}"));
+                    if (res.Success)
+                    {
+                        installedCount++;
+                        WriteLine($"[ok  ] {tool.Name}: {res.Message}");
+                    }
+                    else
+                    {
+                        failedCount++;
+                        WriteLine($"[fail] {tool.Name}: {res.Message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    failedCount++;
+                    WriteLine($"[fail] {tool.Name}: {ex.Message}");
+                }
+                continue;
+            }
+
             if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
             {
                 skippedCount++;
@@ -1469,6 +1552,182 @@ public static class CliHost
         bool ok = CloudConnectionsService.SwitchKubeContext(match.Name);
         WriteLine(ok ? $"Switched active context to '{match.Name}'." : "Failed to switch context.");
         return ok ? 0 : 1;
+    }
+
+    private static int RunBackends()
+    {
+        WriteLine("Installation Backends & Package Managers:");
+        WriteLine("  [x] Direct Vendor Download (Default, zero package-manager bloat)");
+        WriteLine($"  [{(ToolBackendService.IsWingetAvailable ? "x" : " ")}] winget (Windows Package Manager) : {(ToolBackendService.IsWingetAvailable ? "Available" : "Not installed")}");
+        WriteLine($"  [{(ToolBackendService.IsScoopAvailable ? "x" : " ")}] Scoop                            : {(ToolBackendService.IsScoopAvailable ? "Available" : "Not installed")}");
+        WriteLine($"  [{(ToolBackendService.IsChocolateyAvailable ? "x" : " ")}] Chocolatey                       : {(ToolBackendService.IsChocolateyAvailable ? "Available" : "Not installed")}");
+        WriteLine();
+        WriteLine($"Current Default Preference: {SettingsService.DefaultBackend.DisplayName()}");
+        return 0;
+    }
+
+    private static int RunListFeeds()
+    {
+        var feeds = PrivateFeedService.LoadFeeds();
+        WriteLine($"Private & Corporate Feeds ({feeds.Count}):");
+        if (feeds.Count == 0)
+        {
+            WriteLine("  No private catalog feeds subscribed. Add one with --add-feed <name> <url>.");
+            return 0;
+        }
+
+        foreach (var f in feeds)
+        {
+            var en = f.IsEnabled ? "Enabled" : "Disabled";
+            var pol = f.IsPolicyEnforced ? " [IT-Enforced]" : "";
+            WriteLine($"  • {f.Name,-25} ({en}{pol})");
+            WriteLine($"    URL    : {f.Url}");
+            WriteLine($"    Status : {f.StatusText}");
+        }
+        return 0;
+    }
+
+    private static async Task<int> RunAddFeedAsync(string name, string url)
+    {
+        try
+        {
+            WriteLine($"Subscribing to feed: {url}...");
+            var feed = await PrivateFeedService.AddOrUpdateFeedAsync(name, url);
+            WriteLine($"Successfully subscribed to '{feed.Name}' ({feed.ToolCount} tools loaded).");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: failed to subscribe: {ex.Message}");
+            return 1;
+        }
+    }
+
+    private static int RunRemoveFeed(string idOrUrl)
+    {
+        bool ok = PrivateFeedService.RemoveFeed(idOrUrl);
+        WriteLine(ok ? $"Unsubscribed from feed '{idOrUrl}'." : $"Feed '{idOrUrl}' not found or locked by policy.");
+        return ok ? 0 : 1;
+    }
+
+    private static async Task<int> RunSyncFeedsAsync()
+    {
+        WriteLine("Syncing private catalog feeds...");
+        var results = await PrivateFeedService.SyncAllFeedsAsync();
+        foreach (var r in results)
+        {
+            var status = r.Success ? "OK" : "FAIL";
+            WriteLine($"  [{status,-4}] {r.Feed.Name,-20} : {r.Message}");
+        }
+        return results.Any(r => !r.Success) ? 1 : 0;
+    }
+
+    private static async Task<int> RunExportOfflineBundleAsync(string bundleId, string dest, List<ToolDefinition> allTools)
+    {
+        var catalog = new CatalogService();
+        var bundles = await catalog.LoadBundlesAsync();
+        var bundle = bundles.FirstOrDefault(b => b.Id.Equals(bundleId, StringComparison.OrdinalIgnoreCase));
+        if (bundle is null)
+        {
+            WriteLine($"error: bundle '{bundleId}' not found. Available: {string.Join(", ", bundles.Select(b => b.Id))}");
+            return 1;
+        }
+
+        WriteLine($"Packaging offline bundle '{bundle.Name}' to '{dest}'...");
+        var res = await OfflineBundleService.ExportOfflineBundleAsync(
+            bundle, allTools, dest,
+            statusCallback: s => WriteLine($"  {s}"));
+
+        if (res.Success)
+        {
+            WriteLine($"Successfully exported {res.ToolsExported} tools to '{res.DestinationPath}'.");
+            WriteLine("Offline package contains installers, bundle-manifest.json, install-offline.ps1, and install-offline.cmd.");
+            return 0;
+        }
+        else
+        {
+            WriteLine($"error: offline packaging failed: {res.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task<int> RunInstallOfflineBundleAsync(string bundleDir)
+    {
+        var manifestPath = Path.Combine(bundleDir, "bundle-manifest.json");
+        if (!File.Exists(manifestPath))
+        {
+            WriteLine($"error: bundle-manifest.json not found in '{bundleDir}'.");
+            return 1;
+        }
+
+        WriteLine($"Executing offline installation from '{bundleDir}'...");
+        var ps1 = Path.Combine(bundleDir, "install-offline.ps1");
+        if (File.Exists(ps1))
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{ps1}\"",
+                UseShellExecute = false
+            };
+            using var p = Process.Start(psi);
+            if (p != null)
+            {
+                await p.WaitForExitAsync();
+                return p.ExitCode;
+            }
+        }
+
+        return 1;
+    }
+
+    private static int RunCheckPolicy()
+    {
+        WriteLine("Enterprise Policy Posture:");
+        WriteLine($"  Status                    : {(EnterprisePolicyService.IsPolicyActive ? $"Active (Managed by {EnterprisePolicyService.Current.OrganizationName})" : "Unmanaged (Standard)")}");
+        WriteLine($"  Block Unsigned Installers : {EnterprisePolicyService.IsUnsignedBlocked}");
+        WriteLine($"  Enforce SHA-256 Check     : {EnterprisePolicyService.IsShaVerificationEnforced}");
+        WriteLine($"  Lock Settings             : {EnterprisePolicyService.AreSettingsLocked}");
+        WriteLine($"  Disable Custom Tools      : {EnterprisePolicyService.AreCustomToolsDisabled}");
+        WriteLine($"  Allowed Catalog Sources   : {(EnterprisePolicyService.Current.AllowedCatalogSources.Count > 0 ? string.Join(", ", EnterprisePolicyService.Current.AllowedCatalogSources) : "All (Unrestricted)")}");
+        WriteLine($"  Allowed Backends          : {string.Join(", ", EnterprisePolicyService.Current.AllowedBackends)}");
+        return 0;
+    }
+
+    private static int RunExportPolicyTemplate(string path)
+    {
+        try
+        {
+            var policy = EnterprisePolicyService.Current;
+            var reg = EnterprisePolicyService.GenerateRegistryPolicyScript(policy);
+            File.WriteAllText(path, reg);
+            WriteLine($"Exported Group Policy registry template to '{path}'.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: failed to export policy template: {ex.Message}");
+            return 1;
+        }
+    }
+
+    private static async Task<int> RunExportIntuneScriptAsync(string bundleId, string path)
+    {
+        try
+        {
+            var catalog = new CatalogService();
+            var bundles = await catalog.LoadBundlesAsync();
+            var bundle = bundles.FirstOrDefault(b => b.Id.Equals(bundleId, StringComparison.OrdinalIgnoreCase));
+            var script = EnterprisePolicyService.GenerateIntuneScript(bundle);
+            await File.WriteAllTextAsync(path, script);
+            WriteLine($"Exported Microsoft Intune deployment script to '{path}'.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: failed to export Intune script: {ex.Message}");
+            return 1;
+        }
     }
 
     private static void PrintUsage()

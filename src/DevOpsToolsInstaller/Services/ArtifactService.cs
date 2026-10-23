@@ -111,14 +111,16 @@ public static class ArtifactService
         var signature = AuthenticodeService.VerifyFile(filePath);
         var isTrustworthy = signature.IsValid;
 
-        if (!isTrustworthy && SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned)
+        if (!isTrustworthy && (SettingsService.SignaturePolicy == SignaturePolicy.BlockUnsigned || EnterprisePolicyService.IsUnsignedBlocked))
         {
+            var reason = EnterprisePolicyService.IsUnsignedBlocked
+                ? "corporate IT policy enforces blocking all unsigned installers."
+                : "signature policy is set to block installers without a verified trusted signature. You can change this in Settings > Security.";
+
             ActivityLogService.Error(tool.Name, $"Blocked by signature policy: {signature.StatusBadge}");
             return new ArtifactActionResult(
                 false,
-                $"{tool.Name} was NOT launched: signature policy is set to block installers " +
-                $"without a verified trusted signature ({signature.StatusBadge}). " +
-                "You can change this in Settings > Security.");
+                $"{tool.Name} was NOT launched: {reason} ({signature.StatusBadge})");
         }
 
         if (!isTrustworthy)

@@ -71,6 +71,22 @@ public sealed class DownloadService
             throw new InvalidOperationException(msg);
         }
 
+        // Enterprise Policy: Check allowed catalog and download sources
+        if (!EnterprisePolicyService.IsUrlAllowed(tool.DownloadUrl))
+        {
+            var msg = $"Blocked by corporate IT policy: download URL '{tool.DownloadUrl}' is not in the allowed sources list.";
+            ActivityLogService.Error(tool.Name, msg);
+            throw new InvalidOperationException(msg);
+        }
+
+        // Enterprise Policy: Enforce SHA-256 verification
+        if (EnterprisePolicyService.IsShaVerificationEnforced && string.IsNullOrEmpty(tool.Sha256))
+        {
+            var msg = $"Blocked by corporate IT policy: '{tool.Name}' does not declare a vendor SHA-256 digest.";
+            ActivityLogService.Error(tool.Name, msg);
+            throw new InvalidOperationException(msg);
+        }
+
         var destPath = Path.Combine(destinationFolder, tool.FileName);
         var partialPath = destPath + ".partial";
         var metaPath = partialPath + ".meta";

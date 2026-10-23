@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using DevOpsToolsInstaller.Models;
 
 namespace DevOpsToolsInstaller.Services;
 
@@ -207,6 +208,9 @@ public static class SettingsService
 
     /// <summary>Run a background workstation health re-check when the app starts.</summary>
     public static bool DoctorRecheckOnStartup { get; set; } = false;
+
+    /// <summary>Default installation backend: Direct vendor download (default, zero bloat), or winget/scoop/choco.</summary>
+    public static Models.ToolBackend DefaultBackend { get; set; } = Models.ToolBackend.Direct;
 
     public static bool IsWithinScheduleWindow()
     {
@@ -421,6 +425,11 @@ public static class SettingsService
                 {
                     DoctorRecheckOnStartup = drRecheckProp.GetBoolean();
                 }
+
+                if (doc.RootElement.TryGetProperty("DefaultBackend", out var beProp))
+                {
+                    DefaultBackend = Models.ToolBackendExtensions.Parse(beProp.GetString());
+                }
             }
         }
         catch
@@ -478,7 +487,8 @@ public static class SettingsService
                 LogDrawerAutoScroll = LogDrawerAutoScroll,
                 LogDrawerLevelFilter = LogDrawerLevelFilter,
                 DoctorRedactReport = DoctorRedactReport,
-                DoctorRecheckOnStartup = DoctorRecheckOnStartup
+                DoctorRecheckOnStartup = DoctorRecheckOnStartup,
+                DefaultBackend = DefaultBackend.ShortName()
             };
             var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(SettingsFilePath, json);

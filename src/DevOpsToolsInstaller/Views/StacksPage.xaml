@@ -246,6 +246,17 @@
                                         </StackPanel>
                                     </Button>
 
+                                    <Button x:Name="DetailExportOfflineButton"
+                                            HorizontalAlignment="Stretch"
+                                            Click="DetailExportOffline_Click"
+                                            ToolTipService.ToolTip="Download all tools in this stack into a self-contained offline folder or USB for air-gapped computers"
+                                            AutomationProperties.Name="Export offline air-gap bundle">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE88E;" FontSize="13" />
+                                            <TextBlock Text="Export Offline Bundle (USB)" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+
                                     <Grid ColumnSpacing="8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
@@ -858,6 +869,18 @@
                                             <StackPanel Orientation="Horizontal" Spacing="6">
                                                 <FontIcon Glyph="&#xEDE1;" FontSize="12" />
                                                 <TextBlock Text="Export (.json)" FontSize="12" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Export Offline Air-Gap Bundle -->
+                                        <Button Click="ExportBuilderOffline_Click"
+                                                IsEnabled="{x:Bind BuilderViewModel.CanInstall, Mode=OneWay}"
+                                                Padding="12,8" CornerRadius="6"
+                                                ToolTipService.ToolTip="Download this stack to a folder or USB for air-gapped computers"
+                                                AutomationProperties.Name="Export offline air-gap bundle">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE88E;" FontSize="12" />
+                                                <TextBlock Text="Offline Bundle (USB)" FontSize="12" />
                                             </StackPanel>
                                         </Button>
 

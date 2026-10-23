@@ -884,6 +884,148 @@
                         </Border>
                     </StackPanel>
 
+                    <!-- ══════════ PRIVATE CATALOG FEEDS ══════════ -->
+                    <StackPanel x:Name="FeedsSection" Spacing="8" Tag="Private catalog feeds">
+                        <tk:SettingsExpander x:Name="FeedsExpander"
+                                             IsExpanded="True"
+                                             Description="Subscribe to company or team catalog feeds (HTTPS URLs or network shares) with approved tools and locked versions.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Private catalog feeds" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <Button Click="SyncAllFeeds_Click" AutomationProperties.Name="Sync all catalog feeds">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE72C;" FontSize="12" />
+                                        <TextBlock Text="Sync Feeds" />
+                                    </StackPanel>
+                                </Button>
+                            </tk:SettingsExpander.Content>
+
+                            <tk:SettingsExpander.Items>
+                                <!-- Add Feed Card -->
+                                <tk:SettingsCard Description="Add a company URL (e.g. https://corp.internal/catalog.json) or local network share path.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Subscribe to new catalog feed" />
+                                    </tk:SettingsCard.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBox x:Name="FeedNameInput" Width="140" PlaceholderText="Feed Name" AutomationProperties.Name="Feed Name" />
+                                        <TextBox x:Name="FeedUrlInput" Width="260" PlaceholderText="https://.../catalog.json" AutomationProperties.Name="Feed URL" />
+                                        <Button Style="{StaticResource AccentButtonStyle}" Click="AddFeed_Click" AutomationProperties.Name="Subscribe to feed">
+                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                <FontIcon Glyph="&#xE710;" FontSize="12" />
+                                                <TextBlock Text="Subscribe" />
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </tk:SettingsCard>
+
+                                <!-- Feeds List Container -->
+                                <tk:SettingsCard x:Name="FeedsListCard" Description="Active and policy-enforced subscriptions. Approved tools in feeds overlay the standard catalog.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Active subscriptions" />
+                                    </tk:SettingsCard.Header>
+                                    <StackPanel x:Name="FeedsContainer" Spacing="8" Width="440" HorizontalAlignment="Right" />
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+
+                    <!-- ══════════ ENTERPRISE POLICY & IT DEPLOYMENT ══════════ -->
+                    <StackPanel x:Name="EnterprisePolicySection" Spacing="8" Tag="Enterprise policy &amp; IT deployment">
+                        <tk:SettingsExpander x:Name="EnterprisePolicyExpander"
+                                             Description="Lock installer settings across corporate laptops, restrict download sources, and export packages for Microsoft Intune or Group Policy.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Enterprise policy &amp; IT deployment" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE72E;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <Border x:Name="PolicyStatusBadge" Style="{StaticResource BadgeStyle}" Padding="8,4">
+                                    <TextBlock x:Name="PolicyStatusText" Text="Standard (Unmanaged)" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                </Border>
+                            </tk:SettingsExpander.Content>
+
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Description="Generate a ready-to-deploy Microsoft Intune Win32 PowerShell script for deploying corporate tool stacks.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Microsoft Intune deployment script" />
+                                    </tk:SettingsCard.Header>
+                                    <Button Click="ExportIntuneScript_Click" AutomationProperties.Name="Export Intune script">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xEDE1;" FontSize="12" />
+                                            <TextBlock Text="Export deploy-intune.ps1" />
+                                        </StackPanel>
+                                    </Button>
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Export a Group Policy Registry script (.reg) to lock settings (block unsigned installers, restrict sources) on company machines.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Group Policy / Registry template" />
+                                    </tk:SettingsCard.Header>
+                                    <Button Click="ExportPolicyTemplate_Click" AutomationProperties.Name="Export policy registry template">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE72E;" FontSize="12" />
+                                            <TextBlock Text="Export install-policy.reg" />
+                                        </StackPanel>
+                                    </Button>
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+
+                    <!-- ══════════ PACKAGE MANAGER BACKENDS ══════════ -->
+                    <StackPanel x:Name="BackendsSection" Spacing="8" Tag="Package manager backends">
+                        <tk:SettingsExpander x:Name="BackendsExpander"
+                                             Description="Alternative tool sources (winget, Scoop, Chocolatey). Direct vendor download is the default to maintain zero package-manager bloat.">
+                            <tk:SettingsExpander.Header>
+                                <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Package manager backends" />
+                            </tk:SettingsExpander.Header>
+                            <tk:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE7B8;" />
+                            </tk:SettingsExpander.HeaderIcon>
+                            <tk:SettingsExpander.Content>
+                                <TextBlock x:Name="BackendSummaryText" Style="{StaticResource CardValueTextStyle}" Text="Default: Direct Vendor" />
+                            </tk:SettingsExpander.Content>
+
+                            <tk:SettingsExpander.Items>
+                                <tk:SettingsCard Description="Default backend used when 1-clicking install. Direct vendor download keeps your system free of package manager dependencies.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Default installation backend" />
+                                    </tk:SettingsCard.Header>
+                                    <ComboBox x:Name="DefaultBackendCombo" SelectionChanged="DefaultBackendCombo_SelectionChanged" Width="260"
+                                              AutomationProperties.Name="Select default installation backend">
+                                        <ComboBoxItem Content="Direct Vendor Download (Default)" Tag="Direct" />
+                                        <ComboBoxItem x:Name="SettingsWingetItem" Content="winget (Windows Package Manager)" Tag="Winget" />
+                                        <ComboBoxItem x:Name="SettingsScoopItem" Content="Scoop" Tag="Scoop" />
+                                        <ComboBoxItem x:Name="SettingsChocoItem" Content="Chocolatey" Tag="Chocolatey" />
+                                    </ComboBox>
+                                </tk:SettingsCard>
+
+                                <tk:SettingsCard Description="Detected package managers currently available on this PC's PATH.">
+                                    <tk:SettingsCard.Header>
+                                        <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="System detection" />
+                                    </tk:SettingsCard.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <Border x:Name="WingetDetectBadge" Style="{StaticResource BadgeStyle}" Padding="8,4">
+                                            <TextBlock x:Name="WingetDetectText" Text="winget: Checking…" FontSize="11" />
+                                        </Border>
+                                        <Border x:Name="ScoopDetectBadge" Style="{StaticResource BadgeStyle}" Padding="8,4">
+                                            <TextBlock x:Name="ScoopDetectText" Text="Scoop: Checking…" FontSize="11" />
+                                        </Border>
+                                        <Border x:Name="ChocoDetectBadge" Style="{StaticResource BadgeStyle}" Padding="8,4">
+                                            <TextBlock x:Name="ChocoDetectText" Text="Chocolatey: Checking…" FontSize="11" />
+                                        </Border>
+                                    </StackPanel>
+                                </tk:SettingsCard>
+                            </tk:SettingsExpander.Items>
+                        </tk:SettingsExpander>
+                    </StackPanel>
+
                     <!-- ══════════ ABOUT & MAINTAINER SPOTLIGHT ══════════ -->
                     <tk:SettingsExpander x:Name="AboutExpander"
                                          Description="A native, high-performance catalog installer for DevOps and cloud engineers on Windows. Direct vendor artifacts, SHA-256 verification, and automatic PATH integration.">

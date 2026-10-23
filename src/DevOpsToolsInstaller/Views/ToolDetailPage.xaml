@@ -109,6 +109,12 @@
                             <Border Style="{StaticResource BadgeStyle}">
                                 <TextBlock x:Name="HeroVersion" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
+                            <Border x:Name="HeroCorporateBadge" Style="{StaticResource BadgeStyle}" Background="{ThemeResource AccentFillColorDefaultBrush}" Visibility="Collapsed">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <FontIcon Glyph="&#xE72E;" FontSize="10" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                    <TextBlock x:Name="HeroCorporateText" Text="Company Approved" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </StackPanel>
 
@@ -120,7 +126,7 @@
                                      AutomationProperties.Name="Install tool">
                             <StackPanel Orientation="Horizontal" Spacing="6" Margin="2,0,6,0">
                                 <FontIcon Glyph="&#xE896;" FontSize="13" />
-                                <TextBlock Text="Install" FontWeight="SemiBold" FontSize="13" />
+                                <TextBlock x:Name="HeroInstallButtonText" Text="Install" FontWeight="SemiBold" FontSize="13" />
                             </StackPanel>
                             <SplitButton.Flyout>
                                 <MenuFlyout>
@@ -132,6 +138,22 @@
                                     <MenuFlyoutItem Text="Download only (skip install)" Click="DownloadOnly_Click">
                                         <MenuFlyoutItem.Icon>
                                             <FontIcon Glyph="&#xE896;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutSeparator />
+                                    <MenuFlyoutItem x:Name="BackendWingetItem" Text="Install via winget" Click="InstallViaWinget_Click">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE7B8;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem x:Name="BackendScoopItem" Text="Install via Scoop" Click="InstallViaScoop_Click">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE7B8;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                    <MenuFlyoutItem x:Name="BackendChocoItem" Text="Install via Chocolatey" Click="InstallViaChoco_Click">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE7B8;" />
                                         </MenuFlyoutItem.Icon>
                                     </MenuFlyoutItem>
                                     <MenuFlyoutSeparator />
@@ -167,6 +189,21 @@
                                        Style="{StaticResource BodyTextBlockStyle}"
                                        Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
                         </tk:SettingsCard.Description>
+                    </tk:SettingsCard>
+
+                    <tk:SettingsCard x:Name="BackendCard"
+                                     Header="Installation backend source"
+                                     Description="Choose direct vendor download (default, zero package-manager bloat) or an alternative package manager.">
+                        <tk:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7B8;" />
+                        </tk:SettingsCard.HeaderIcon>
+                        <ComboBox x:Name="BackendCombo" SelectionChanged="BackendCombo_SelectionChanged" Width="260"
+                                  AutomationProperties.Name="Select installation backend">
+                            <ComboBoxItem Content="Direct Vendor Download (Default)" Tag="Direct" />
+                            <ComboBoxItem x:Name="WingetComboItem" Content="winget (Windows Package Manager)" Tag="Winget" />
+                            <ComboBoxItem x:Name="ScoopComboItem" Content="Scoop" Tag="Scoop" />
+                            <ComboBoxItem x:Name="ChocoComboItem" Content="Chocolatey" Tag="Chocolatey" />
+                        </ComboBox>
                     </tk:SettingsCard>
 
                     <tk:SettingsCard x:Name="HomepageCard"
