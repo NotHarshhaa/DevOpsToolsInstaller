@@ -52,8 +52,12 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                     <Border Width="36" Height="36" CornerRadius="8" Background="{ThemeResource CustomAccentSubtleBrush}">
-                                        <FontIcon Glyph="&#xE753;" FontSize="18" Foreground="{ThemeResource CustomAccentPrimaryBrush}"
-                                                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Image x:Name="KubeLogoImage" Width="22" Height="22" Stretch="Uniform"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Image.Source>
+                                                <SvgImageSource UriSource="ms-appx:///Assets/logos/kubectl.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
+                                            </Image.Source>
+                                        </Image>
                                     </Border>
                                     <StackPanel>
                                         <TextBlock Text="Kubernetes Contexts (kubectx)" Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -170,9 +174,13 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="30" Height="30" CornerRadius="6" Background="#1AEC7211">
-                                            <TextBlock Text="AWS" FontSize="11" FontWeight="Bold" Foreground="#EC7211"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="#1AEC7211">
+                                            <Image x:Name="AwsLogoImage" Width="20" Height="20" Stretch="Uniform"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image.Source>
+                                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/awscli.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
+                                                </Image.Source>
+                                            </Image>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="AWS CLI" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -217,9 +225,13 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="30" Height="30" CornerRadius="6" Background="#1A0078D4">
-                                            <TextBlock Text="AZ" FontSize="11" FontWeight="Bold" Foreground="#0078D4"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="#1A0078D4">
+                                            <Image x:Name="AzureLogoImage" Width="20" Height="20" Stretch="Uniform"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image.Source>
+                                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/azure-cli.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
+                                                </Image.Source>
+                                            </Image>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="Azure CLI" Style="{StaticResource BodyStrongTextBlockStyle}" />
@@ -265,9 +277,13 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <Border Width="30" Height="30" CornerRadius="6" Background="#1A4285F4">
-                                            <TextBlock Text="GCP" FontSize="11" FontWeight="Bold" Foreground="#4285F4"
-                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        <Border Width="32" Height="32" CornerRadius="6" Background="#1A4285F4">
+                                            <Image x:Name="GcpLogoImage" Width="20" Height="20" Stretch="Uniform"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Image.Source>
+                                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/gcloud-cli.svg" RasterizePixelWidth="48" RasterizePixelHeight="48" />
+                                                </Image.Source>
+                                            </Image>
                                         </Border>
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Text="Google Cloud SDK" Style="{StaticResource BodyStrongTextBlockStyle}" />

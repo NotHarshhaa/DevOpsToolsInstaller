@@ -17,6 +17,21 @@ public sealed partial class CloudDashboardPage : Page, IRefreshablePage
     public CloudDashboardPage()
     {
         InitializeComponent();
+        try
+        {
+            var kImg = ToolLogoService.GetLogo("kubectl");
+            if (kImg != null) KubeLogoImage.Source = kImg;
+
+            var aImg = ToolLogoService.GetLogo("awscli");
+            if (aImg != null) AwsLogoImage.Source = aImg;
+
+            var azImg = ToolLogoService.GetLogo("azure-cli");
+            if (azImg != null) AzureLogoImage.Source = azImg;
+
+            var gImg = ToolLogoService.GetLogo("gcloud-cli");
+            if (gImg != null) GcpLogoImage.Source = gImg;
+        }
+        catch { }
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
