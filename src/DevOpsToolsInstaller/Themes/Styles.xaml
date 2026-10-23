@@ -16,6 +16,7 @@
             <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="{ThemeResource SystemAccentColorLight1}" />
             <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="{ThemeResource SystemAccentColorDark1}" />
             <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="CustomAccentSubtleBrush" Color="#250078D4" />
 
             <!-- Neutral Tags & Badges -->
             <SolidColorBrush x:Key="CustomAccentBadgeBackgroundBrush" Color="#2A2A2A" />
@@ -82,6 +83,7 @@
             <SolidColorBrush x:Key="CustomAccentHoverBrush" Color="{ThemeResource SystemAccentColorDark1}" />
             <SolidColorBrush x:Key="CustomAccentPressedBrush" Color="{ThemeResource SystemAccentColorDark2}" />
             <SolidColorBrush x:Key="CustomAccentForegroundBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="CustomAccentSubtleBrush" Color="#250078D4" />
 
             <!-- Neutral Tags & Badges -->
             <SolidColorBrush x:Key="CustomAccentBadgeBackgroundBrush" Color="#F0F0F0" />
@@ -149,6 +151,7 @@
                 <GradientStop Offset="1" Color="#00000000" />
             </LinearGradientBrush>
             <SolidColorBrush x:Key="CustomAccentDividerBrush" Color="{ThemeResource SystemColorButtonTextColor}" />
+            <SolidColorBrush x:Key="CustomAccentSubtleBrush" Color="{ThemeResource SystemColorHighlightColor}" Opacity="0.2" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

@@ -100,14 +100,14 @@
                             <Grid x:Name="HeroArtwork" Grid.Column="1" IsHitTestVisible="False">
                                 <Image Source="ms-appx:///Assets/HeroBanner.jpg"
                                        Stretch="UniformToFill"
-                                       Opacity="0.45"
+                                       Opacity="0.85"
                                        HorizontalAlignment="Right"
                                        VerticalAlignment="Center" />
                                 <Rectangle>
                                     <Rectangle.Fill>
                                         <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
                                             <GradientStop Color="{ThemeResource SolidBackgroundFillColorBase}" Offset="0.0" />
-                                            <GradientStop Color="#401A1A1A" Offset="0.4" />
+                                            <GradientStop Color="Transparent" Offset="0.45" />
                                             <GradientStop Color="Transparent" Offset="1.0" />
                                         </LinearGradientBrush>
                                     </Rectangle.Fill>

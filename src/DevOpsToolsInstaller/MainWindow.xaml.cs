@@ -200,6 +200,7 @@ public sealed partial class MainWindow : Window
                 nameof(DownloadsPage) => "Downloads",
                 nameof(InstalledPage) => "Installed",
                 nameof(DoctorPage) => "Doctor",
+                nameof(CloudDashboardPage) => "Cloud",
                 nameof(ProfilesPage) => "Profiles",
                 nameof(CatalogEditorPage) => "CatalogEditor",
                 nameof(SettingsPage) => "Settings",
@@ -810,6 +811,7 @@ public sealed partial class MainWindow : Window
             new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
             new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
             new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
+            new("Go to Cloud & Contexts", "\uE753", () => NavigateTo("Cloud")),
             new("Go to Profiles & History", "\uE77B", () => NavigateTo("Profiles")),
             new("Edit Custom Tools", "\uE70F", () => NavigateTo("CatalogEditor")),
             new("Refresh current page (F5)", "\uE72C", () =>
