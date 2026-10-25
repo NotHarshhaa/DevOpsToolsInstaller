@@ -1352,6 +1352,68 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         }
     }
 
+    private async void ExportSbom_Click(object sender, RoutedEventArgs e)
+    {
+        var format = (sender as FrameworkElement)?.Tag?.ToString() == "spdx"
+            ? SbomFormat.Spdx
+            : SbomFormat.CycloneDx;
+        var formatLabel = format == SbomFormat.Spdx ? "SPDX 2.3" : "CycloneDX 1.5";
+
+        try
+        {
+            var sbomPath = SbomService.DefaultSbomPath(format);
+            var catalogTools = _allInstalledTools.Count > 0
+                ? _allInstalledTools
+                : App.MainWindowInstance?.Tools.ToList() ?? new List<ToolDefinition>();
+            var count = await SbomService.WriteSbomAsync(catalogTools, sbomPath, format);
+
+            var openButton = new HyperlinkButton { Content = "Open containing folder" };
+            openButton.Click += (_, _) =>
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{sbomPath}\"",
+                    UseShellExecute = true
+                });
+            };
+
+            var dialog = new ContentDialog
+            {
+                XamlRoot = Content.XamlRoot,
+                Title = "SBOM exported",
+                Content = new StackPanel
+                {
+                    Spacing = 8,
+                    MinWidth = 380,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = $"{formatLabel} SBOM for {count} installed tool(s) written to:",
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        new TextBox
+                        {
+                            Text = sbomPath,
+                            IsReadOnly = true,
+                            TextWrapping = TextWrapping.Wrap
+                        },
+                        openButton
+                    }
+                },
+                CloseButtonText = "Close",
+                DefaultButton = ContentDialogButton.Close
+            };
+
+            await dialog.ShowAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"SBOM export failed: {ex.Message}";
+        }
+    }
+
     private async void ExportProfile_Click(object sender, RoutedEventArgs e)
     {
         try

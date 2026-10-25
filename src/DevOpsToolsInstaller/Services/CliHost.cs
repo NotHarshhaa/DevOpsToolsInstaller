@@ -20,6 +20,7 @@ namespace DevOpsToolsInstaller.Services;
 ///   DevOpsToolsInstaller.exe --generate-script bootstrap.ps1
 ///   DevOpsToolsInstaller.exe --import-winget winget-export.json
 ///   DevOpsToolsInstaller.exe --report workstation.md
+///   DevOpsToolsInstaller.exe --sbom sbom.cdx.json
 ///
 /// The process exits with code 0 on success, 1 when any requested tool failed.
 /// </summary>
@@ -32,6 +33,7 @@ public static class CliHost
         "--export-profile", "--import-profile",
         "--import-winget", "--import-choco",
         "--generate-script", "--generate-devcontainer", "--report",
+        "--sbom", "--sbom-format",
         "--path-doctor", "--check-path", "--fix-path",
         "--history", "--snapshot", "--restore-snapshot",
         "--profiles", "--capture-profile", "--apply-profile", "--sync-profiles",
@@ -266,6 +268,10 @@ public static class CliHost
             else if (arg.Equals("--report", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
                 return await ExportReportAsync(args[++i], tools);
+            }
+            else if (arg.Equals("--sbom", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
+            {
+                return await ExportSbomAsync(args[++i], tools, args);
             }
             else if (arg.Equals("--generate-script", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Count)
             {
@@ -1152,6 +1158,39 @@ public static class CliHost
         catch (Exception ex)
         {
             WriteLine($"error: could not write report: {ex.Message}");
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// Handles the --sbom command: writes the installed toolset as a
+    /// standards-compliant SBOM for compliance and vulnerability-management
+    /// pipelines. Defaults to CycloneDX; --sbom-format selects SPDX.
+    /// </summary>
+    private static async Task<int> ExportSbomAsync(string path, List<ToolDefinition> tools, IReadOnlyList<string> args)
+    {
+        var formatRaw = (GetOptionValue(args, "--sbom-format") ?? "cyclonedx").Trim().ToLowerInvariant();
+        var format = formatRaw switch
+        {
+            "cyclonedx" or "cdx" or "cyclonedx-1.5" => SbomFormat.CycloneDx,
+            "spdx" or "spdx-2.3" => SbomFormat.Spdx,
+            _ => (SbomFormat?)null
+        };
+        if (format is null)
+        {
+            WriteLine($"error: unknown --sbom-format '{formatRaw}' (expected: cyclonedx, spdx)");
+            return 1;
+        }
+
+        try
+        {
+            var count = await SbomService.WriteSbomAsync(tools, path, format.Value);
+            WriteLine($"SBOM for {count} installed tool(s) written to {Path.GetFullPath(path)}");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            WriteLine($"error: could not write SBOM: {ex.Message}");
             return 1;
         }
     }
@@ -2085,6 +2124,7 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --import-winget <file>       Migrate packages from a winget export JSON");
         WriteLine("  DevOpsToolsInstaller.exe --import-choco <file>        Migrate packages from chocolatey list output");
         WriteLine("  DevOpsToolsInstaller.exe --report <file>              Write a markdown workstation report (for audits)");
+        WriteLine("  DevOpsToolsInstaller.exe --sbom <file>                Export installed tools as an SBOM (add --sbom-format spdx)");
         WriteLine("  DevOpsToolsInstaller.exe --generate-script <file>     Generate a standalone PowerShell bootstrap script");
         WriteLine("  DevOpsToolsInstaller.exe --generate-devcontainer <zip/dir> Generate VS Code DevContainer & Dockerfile");
         WriteLine("  DevOpsToolsInstaller.exe --path-doctor                Diagnose User PATH duplicates and broken paths");

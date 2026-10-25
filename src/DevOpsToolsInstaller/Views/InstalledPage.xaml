@@ -132,6 +132,18 @@
                                         <FontIcon Glyph="&#xE9F9;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Export SBOM — CycloneDX (JSON)" Tag="cyclonedx" Click="ExportSbom_Click"
+                                                ToolTipService.ToolTip="Compliance-ready Software Bill of Materials for every installed tool (CycloneDX 1.5)">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE9F5;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Export SBOM — SPDX (JSON)" Tag="spdx" Click="ExportSbom_Click"
+                                                ToolTipService.ToolTip="Compliance-ready Software Bill of Materials for every installed tool (SPDX 2.3)">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE9F5;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="Export Selection Profile (JSON)…" Click="ExportProfile_Click">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE8B7;" />

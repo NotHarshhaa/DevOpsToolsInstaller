@@ -54,6 +54,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | 💻 **Terminal & PowerShell Setup** | Windows Terminal profile and font customizer (Nerd Fonts), 1-click CLI tab completions, and curated DevOps aliases (`k`, `tf`, `d`, `dc`). |
 | 🗂️ **Profiles, snapshots & rollback** | Capture named workstation profiles, diff and restore snapshots, review install history, and roll a tool back to a previous version — plus opt-in per-tool pre/post-install hooks. |
 | 🩺 **Workstation Doctor** | 5-point environment diagnostics (PATH duplicates/conflicts, multi-version CLIs, missing prerequisites, stale versions) with 1-click confirmed fixes and markdown report export. |
+| 🧾 **SBOM & Compliance Export** | Export every installed tool as a **CycloneDX 1.5** or **SPDX 2.3** Software Bill of Materials — versions, vendor download URLs, SHA-256 artifact hashes, declared licenses — from the UI or headless CLI. |
 | 📋 **Global Live Log Drawer (`Ctrl+\``)** | Collapsible, resizable, virtualized drawer available across every page with live download, SHA-256, and signature verification events. |
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
 | ♻️ **Storage & download cache manager** | Disk-usage breakdown of everything the app owns (download cache, extracted tools, audit logs), one-click safe cleanup with in-flight-transfer protection, and an opt-in startup auto-clean for stale artifacts. |
@@ -336,6 +337,7 @@ PS> DevOpsToolsInstaller.exe --cloud-status
 | `--path-doctor` | Inspect User PATH for duplicate entries, non-existent directories, and missing tools folder. |
 | `--fix-path` | Automatically clean and deduplicate User PATH with timestamped backup. |
 | `--report <file>` | Write a markdown workstation report — installed tools, versions, pending updates, security settings. |
+| `--sbom <file>` | Export installed tools as a standards-compliant SBOM (CycloneDX 1.5 by default; `--sbom-format spdx` for SPDX 2.3). |
 | `--history [toolId]` | Print the install/update/uninstall/rollback history (optionally filtered to one tool). |
 | `--snapshot <name>` | Capture a workstation snapshot (installed tools, versions, User PATH) as a restore point. |
 | `--restore-snapshot <name>` | Install the tools missing relative to a saved snapshot. |
@@ -782,6 +784,14 @@ Navigate to the **Installed** tab to manage and verify your local workstation en
 - Generates native completion scripts for **PowerShell** and **Bash** for tools like `kubectl`, `helm`, `gh`, `docker`, `terraform`, `podman`, and more.
 - Provides a one-click **"Add to PowerShell Profile"** button that automatically appends the completion snippet to `$PROFILE` without manual editing.
 
+### 🧾 SBOM & Compliance Export
+Export your entire installed toolset as a **Software Bill of Materials** — the artifact compliance, procurement, and vulnerability-management teams ask for (e.g. for US EO 14028-style supply-chain requirements):
+
+- **Two standards**: **CycloneDX 1.5** (`*.cdx.json`, the de-facto pipeline standard) and **SPDX 2.3** (`*.spdx.json`), via the **Installed → Export** menu.
+- Every component carries the **detected (or catalog) version**, a `pkg:generic` **purl**, the vendor **download URL**, the catalog's **SHA-256 artifact hash**, the tool homepage, its category, and the **declared SPDX license** when the catalog (or your custom tool) provides one.
+- **Headless & CI-friendly**: `DevOpsToolsInstaller.exe --sbom sbom.cdx.json` (add `--sbom-format spdx`) — commit it, diff it, or feed it to Grype/Syft/dependency-track.
+- Generated **fully offline** from the last scan (no processes are launched, nothing leaves the machine) and includes the generating app version plus machine metadata.
+
 ---
 
 ## Adding `Tools\bin` to Your PATH
@@ -910,6 +920,7 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 - [x] Cloud-synced workstation profiles across machines
 - [x] Per-tool pre/post-install scripts (user-reviewed, never silent)
 - [x] In-app catalog editor with signature workflow
+- [x] SBOM & compliance export (CycloneDX 1.5 / SPDX 2.3)
 
 > The Unreleased section of the [CHANGELOG](CHANGELOG.md) tracks what has already landed.
 
