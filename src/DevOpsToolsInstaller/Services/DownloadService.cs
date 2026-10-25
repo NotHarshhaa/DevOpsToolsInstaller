@@ -9,6 +9,27 @@ public sealed class DownloadService
     private static readonly HttpClient Http;
     private static readonly ConcurrentDictionary<string, Lazy<Task>> ActiveDownloads = new();
 
+    // Destination file path per tool id for every transfer that is currently
+    // executing (including hash re-checks of already-downloaded files). The
+    // storage manager consults this set so a cleanup never deletes a file
+    // that is mid-download or mid-verification.
+    private static readonly ConcurrentDictionary<string, string> ActiveDestinationFiles = new();
+
+    /// <summary>
+    /// Checks whether any transfer is currently writing to (or verifying) the
+    /// file at <paramref name="filePath"/>. Cleanup features must skip such files.
+    /// </summary>
+    public static bool IsFileTransferActive(string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath)) return false;
+        foreach (var active in ActiveDestinationFiles.Values)
+        {
+            if (string.Equals(active, filePath, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
+    }
+
     static DownloadService()
     {
         Http = new HttpClient(HttpConfigService.CreateHandler())
@@ -52,9 +73,29 @@ public sealed class DownloadService
         }
     }
 
+    private static async Task ExecuteDownloadAsync(
+        ToolDefinition tool,
+        string destinationFolder,
+        IProgress<double>? progress,
+        CancellationToken ct)
+    {
+        // Register the destination file as in-flight for the whole transfer
+        // (download, verification, and the skip-path hash check) so cache
+        // cleanup can never race a running transfer.
+        ActiveDestinationFiles[tool.Id] = Path.Combine(destinationFolder, tool.FileName);
+        try
+        {
+            await ExecuteDownloadCoreAsync(tool, destinationFolder, progress, ct);
+        }
+        finally
+        {
+            ActiveDestinationFiles.TryRemove(tool.Id, out _);
+        }
+    }
+
     private const int MaxDownloadAttempts = 3;
 
-    private static async Task ExecuteDownloadAsync(
+    private static async Task ExecuteDownloadCoreAsync(
         ToolDefinition tool,
         string destinationFolder,
         IProgress<double>? progress,
@@ -540,28 +581,5 @@ public sealed class DownloadService
         CleanupPartial(destPath);
         CleanupPartial(destPath + ".partial");
         CleanupPartial(destPath + ".partial.meta");
-    }
-
-    /// <summary>
-    /// Deletes all files in the downloads folder.
-    /// </summary>
-    public static long ClearDownloads(string folder)
-    {
-        if (!Directory.Exists(folder)) return 0;
-
-        long freed = 0;
-        foreach (var file in Directory.GetFiles(folder))
-        {
-            try
-            {
-                freed += new FileInfo(file).Length;
-                File.Delete(file);
-            }
-            catch
-            {
-                /* skip locked files */
-            }
-        }
-        return freed;
     }
 }

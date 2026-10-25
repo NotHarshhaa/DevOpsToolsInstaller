@@ -452,7 +452,7 @@
 
                     <!-- ══════════ OFF-PEAK SCHEDULING ══════════ -->
                     <tk:SettingsExpander x:Name="SchedulerExpander"
-                                         Description="Schedule artifact downloads to run during off-peak hours (e.g. overnight) and configure auto-retry rules.">
+                                         Description="Schedule artifact downloads to run during off-peak hours (e.g. overnight) and configure auto-retry rules and download cache cleanup.">
                         <tk:SettingsExpander.Header>
                             <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Off-peak scheduling" />
                         </tk:SettingsExpander.Header>
@@ -507,6 +507,20 @@
                                     <ComboBoxItem Content="10 minutes" Tag="10" />
                                     <ComboBoxItem Content="15 minutes" Tag="15" />
                                     <ComboBoxItem Content="30 minutes" Tag="30" />
+                                </ComboBox>
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard Description="Automatically delete downloaded installer files older than this age when the app starts. Installed tools are never affected — a deleted artifact is simply re-downloaded if you ever need it again.">
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Auto-clean download cache" />
+                                </tk:SettingsCard.Header>
+                                <ComboBox x:Name="AutoCleanComboBox" Width="170"
+                                          SelectionChanged="AutoClean_SelectionChanged"
+                                          AutomationProperties.Name="Auto-clean download cache age">
+                                    <ComboBoxItem Content="Off" Tag="0" />
+                                    <ComboBoxItem Content="After 7 days" Tag="7" />
+                                    <ComboBoxItem Content="After 30 days" Tag="30" />
+                                    <ComboBoxItem Content="After 90 days" Tag="90" />
                                 </ComboBox>
                             </tk:SettingsCard>
                         </tk:SettingsExpander.Items>
@@ -683,13 +697,23 @@
                                     <TextBlock x:Name="StorageText" Style="{StaticResource CaptionTextBlockStyle}"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
                                 </tk:SettingsCard.Description>
-                                <Button x:Name="ClearButton" Click="ClearDownloads_Click"
-                                        AutomationProperties.Name="Clear download cache">
-                                    <StackPanel Orientation="Horizontal" Spacing="8">
-                                        <FontIcon Glyph="&#xE74D;" FontSize="13" />
-                                        <TextBlock Text="Clear cache" />
-                                    </StackPanel>
-                                </Button>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button x:Name="ClearButton" Click="ClearDownloads_Click"
+                                            AutomationProperties.Name="Clear download cache">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                                            <TextBlock Text="Clear cache" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Click="ManageStorage_Click"
+                                            ToolTipService.ToolTip="Disk usage breakdown and selective cleanup"
+                                            AutomationProperties.Name="Manage storage and download cache">
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <FontIcon Glyph="&#xE7B3;" FontSize="13" />
+                                            <TextBlock Text="Manage storage" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
                             </tk:SettingsCard>
 
                             <tk:SettingsCard Description="Pin DevOps Tools Installer with its official icon to your Windows Desktop and Start Menu.">

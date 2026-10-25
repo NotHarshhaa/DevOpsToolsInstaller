@@ -47,7 +47,8 @@ public static class CliHost
         "--wsl", "--wsl-fix", "--wsl-tools",
         "--env", "--set-env", "--del-env",
         "--git-status", "--setup-git", "--generate-ssh-key",
-        "--setup-powershell"
+        "--setup-powershell",
+        "--storage", "--clean-downloads"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -109,6 +110,23 @@ public static class CliHost
         if (args.Contains("--status", StringComparer.OrdinalIgnoreCase))
         {
             return await PrintStatusAsync();
+        }
+
+        // Storage report & cache cleanup — neither needs the catalog, so they
+        // are handled before the (heavier) catalog load below.
+        if (args.Contains("--storage", StringComparer.OrdinalIgnoreCase))
+        {
+            return PrintStorageReport();
+        }
+
+        if (args.Contains("--clean-downloads", StringComparer.OrdinalIgnoreCase))
+        {
+            var scope = GetOptionValue(args, "--clean-downloads");
+            if (string.IsNullOrWhiteSpace(scope) || scope.StartsWith("--"))
+            {
+                scope = "partial"; // safest default: only interrupted resume state
+            }
+            return RunCleanDownloads(scope);
         }
 
         if (args.Contains("--version", StringComparer.OrdinalIgnoreCase) ||
@@ -611,6 +629,97 @@ public static class CliHost
 
         WriteLine();
         WriteLine($"{installed} of {tools.Count} catalog tools installed.");
+        return 0;
+    }
+
+    /// <summary>
+    /// Handles --storage: prints a disk-usage report of the folders the app
+    /// owns (download cache, extracted tools, audit logs) plus what a cleanup
+    /// could reclaim.
+    /// </summary>
+    private static int PrintStorageReport()
+    {
+        var scan = StorageManagerService.Scan();
+
+        WriteLine($"DevOps Tools Installer v{AppUpdaterService.CurrentVersion} — storage report");
+        WriteLine();
+        WriteLine($"  Downloads folder : {scan.DownloadsFolder}");
+        WriteLine($"    artifacts      : {scan.ArtifactCount} file(s), {StorageManagerService.FormatBytes(scan.ArtifactsBytes)}");
+        if (scan.OldestArtifactUtc.HasValue)
+        {
+            WriteLine($"      oldest       : {scan.OldestArtifactUtc.Value.ToLocalTime():yyyy-MM-dd}");
+        }
+        WriteLine($"    interrupted    : {scan.PartialCount} file(s), {StorageManagerService.FormatBytes(scan.PartialBytes)}");
+        WriteLine($"  Tools folder     : {StorageManagerService.FormatBytes(scan.ToolsBytes)}");
+        WriteLine($"                    {scan.ToolsFolder}");
+        WriteLine($"  Audit logs       : {StorageManagerService.FormatBytes(scan.LogsBytes)}");
+        WriteLine($"                    {scan.LogsFolder}");
+        WriteLine();
+        WriteLine($"  Total            : {StorageManagerService.FormatBytes(scan.TotalBytes)} ({StorageManagerService.FormatBytes(scan.ReclaimableBytes)} reclaimable)");
+        WriteLine();
+        WriteLine("Cleanup: --clean-downloads [partial|old|all]   (never touches in-flight transfers or installed tools)");
+        return 0;
+    }
+
+    /// <summary>
+    /// Handles --clean-downloads [partial|old|all]: safely removes re-downloadable
+    /// files from the download cache. 'partial' removes interrupted-transfer
+    /// resume state, 'old' removes artifacts older than 30 days, 'all' removes
+    /// the whole cache. In-flight transfers are always skipped.
+    /// </summary>
+    private static int RunCleanDownloads(string scope)
+    {
+        scope = scope.Trim().TrimStart('-', '/').ToLowerInvariant();
+
+        int deleted;
+        long freed;
+        int skipped;
+        string description;
+
+        switch (scope)
+        {
+            case "partial":
+            case "partials":
+            case "resume":
+            {
+                var result = StorageManagerService.CleanResumeState();
+                deleted = result.DeletedFiles;
+                freed = result.FreedBytes;
+                skipped = result.SkippedActive;
+                description = "interrupted transfer state";
+                break;
+            }
+            case "old":
+            case "older":
+            case "stale":
+            {
+                var result = StorageManagerService.CleanCompletedArtifacts(olderThanDays: 30);
+                deleted = result.DeletedFiles;
+                freed = result.FreedBytes;
+                skipped = result.SkippedActive;
+                description = "artifacts older than 30 days";
+                break;
+            }
+            case "all":
+            {
+                var artifacts = StorageManagerService.CleanCompletedArtifacts(olderThanDays: 0);
+                var partials = StorageManagerService.CleanResumeState();
+                deleted = artifacts.DeletedFiles + partials.DeletedFiles;
+                freed = artifacts.FreedBytes + partials.FreedBytes;
+                skipped = artifacts.SkippedActive + partials.SkippedActive;
+                description = "downloaded artifacts";
+                break;
+            }
+            default:
+                WriteLine($"error: unknown --clean-downloads scope '{scope}' (expected partial, old, or all).");
+                return 1;
+        }
+
+        WriteLine($"Removed {deleted} {description} file(s) — reclaimed {StorageManagerService.FormatBytes(freed)}.");
+        if (skipped > 0)
+        {
+            WriteLine($"({skipped} in-flight transfer(s) were skipped.)");
+        }
         return 0;
     }
 
@@ -1996,6 +2105,8 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --export-migration <file>    Export New-PC package (tools + .gitconfig, etc.)");
         WriteLine("  DevOpsToolsInstaller.exe --apply-migration <file>     Restore New-PC package on this machine");
         WriteLine("  DevOpsToolsInstaller.exe --check-updates              Check for tool updates with notes");
+        WriteLine("  DevOpsToolsInstaller.exe --storage                    Disk usage report (cache, tools, logs)");
+        WriteLine("  DevOpsToolsInstaller.exe --clean-downloads [scope]    Clean cache: partial (default), old, all");
         WriteLine("  DevOpsToolsInstaller.exe --cloud-status               Local cloud login & kubectl context status");
         WriteLine("  DevOpsToolsInstaller.exe --kube-context [name]        List or switch kubectl context (kubectx)");
         WriteLine("  DevOpsToolsInstaller.exe --run-hooks                  Allow user-authored pre/post-install hooks");

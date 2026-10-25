@@ -135,6 +135,13 @@ public sealed partial class SettingsPage : Page
             AutoRetryIntervalComboBox.SelectedIndex = 1;
         }
 
+        // Download cache auto-clean
+        SelectComboItemByTag(AutoCleanComboBox, SettingsService.AutoCleanDownloadsAfterDays.ToString());
+        if (AutoCleanComboBox.SelectedItem is null)
+        {
+            AutoCleanComboBox.SelectedIndex = 0;
+        }
+
         // Custom catalog source
         CustomCatalogSourceBox.Text = SettingsService.CustomCatalogSource;
 
@@ -381,6 +388,23 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    private void AutoClean_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AutoCleanComboBox.SelectedItem is ComboBoxItem item &&
+            item.Tag is string tag &&
+            int.TryParse(tag, out var days) &&
+            SettingsService.AutoCleanDownloadsAfterDays != days)
+        {
+            SettingsService.AutoCleanDownloadsAfterDays = days;
+            SettingsService.SaveSettings();
+            ShowNotice(
+                days > 0
+                    ? $"Download cache will be cleaned automatically — artifacts older than {days} day(s) are removed at startup."
+                    : "Download cache auto-cleanup disabled.",
+                InfoBarSeverity.Success);
+        }
+    }
+
     private void UpdatePathDoctorSummary()
     {
         var doc = PathDoctorService.Diagnose();
@@ -603,28 +627,34 @@ public sealed partial class SettingsPage : Page
 
     private void UpdateStorageInfo(string folder)
     {
-        if (!System.IO.Directory.Exists(folder))
+        var scan = StorageManagerService.Scan(folder);
+
+        if (scan.ArtifactCount == 0 && scan.PartialCount == 0)
         {
             StorageText.Text = "No files downloaded yet.";
             StorageSummaryText.Text = "No downloads yet";
             return;
         }
 
-        var files = System.IO.Directory.GetFiles(folder);
-        long totalBytes = 0;
-        foreach (var f in files)
+        var text = $"{scan.ArtifactCount} artifact(s) • {StorageManagerService.FormatBytes(scan.ArtifactsBytes)}";
+        if (scan.PartialCount > 0)
         {
-            try { totalBytes += new System.IO.FileInfo(f).Length; } catch { }
+            text += $", plus {scan.PartialCount} interrupted transfer(s) • {StorageManagerService.FormatBytes(scan.PartialBytes)}";
         }
-
-        var sizeMB = totalBytes / (1024.0 * 1024.0);
-        StorageText.Text = $"{files.Length} file(s), {sizeMB:F1} MB total";
-        StorageSummaryText.Text = $"{files.Length} file(s) · {sizeMB:F1} MB";
+        text += $" — {StorageManagerService.FormatBytes(scan.ReclaimableBytes)} reclaimable";
+        StorageText.Text = text;
+        StorageSummaryText.Text = $"{scan.ArtifactCount + scan.PartialCount} file(s) · {StorageManagerService.FormatBytes(scan.DownloadsBytes)}";
     }
 
     private void OpenFolder_Click(object sender, RoutedEventArgs e)
     {
         LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder);
+    }
+
+    private async void ManageStorage_Click(object sender, RoutedEventArgs e)
+    {
+        await DevOpsToolsInstaller.Controls.StorageManagerDialog.ShowAsync(XamlRoot);
+        UpdateStorageInfo(DownloadService.DefaultDownloadsFolder);
     }
 
     private void OpenToolsFolder_Click(object sender, RoutedEventArgs e)
@@ -637,7 +667,7 @@ public sealed partial class SettingsPage : Page
         var dialog = new ContentDialog
         {
             Title = "Clear Downloads",
-            Content = "Delete all downloaded installer files? You can re-download them anytime.",
+            Content = "Delete all downloaded installer files? You can re-download them anytime. Transfers currently in flight are skipped.",
             PrimaryButtonText = "Delete All",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close,
@@ -648,21 +678,36 @@ public sealed partial class SettingsPage : Page
         if (result == ContentDialogResult.Primary)
         {
             var folder = DownloadService.DefaultDownloadsFolder;
-            var freed = DownloadService.ClearDownloads(folder);
-            var freedMB = freed / (1024.0 * 1024.0);
-            StorageText.Text = $"Cleared {freedMB:F1} MB";
+            var artifacts = StorageManagerService.CleanCompletedArtifacts(olderThanDays: 0, downloadsFolder: folder);
+            var partials = StorageManagerService.CleanResumeState(folder);
+            var freed = artifacts.FreedBytes + partials.FreedBytes;
+            StorageText.Text = $"Cleared {StorageManagerService.FormatBytes(freed)} ({artifacts.DeletedFiles + partials.DeletedFiles} file(s))";
 
-            // Reset tool statuses
+            // Reset tool statuses — only for tools whose cached file is really gone.
             var mw = App.MainWindowInstance;
             if (mw is not null)
             {
                 foreach (var tool in mw.Tools)
                 {
-                    tool.Status = Models.ToolStatus.NotDownloaded;
-                    tool.Progress = 0;
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(folder, tool.FileName)))
+                    {
+                        tool.Status = Models.ToolStatus.NotDownloaded;
+                        tool.Progress = 0;
+                    }
                 }
-                mw.DownloadQueue.Clear();
+
+                for (int i = mw.DownloadQueue.Count - 1; i >= 0; i--)
+                {
+                    var queued = mw.DownloadQueue[i];
+                    if (!System.IO.File.Exists(System.IO.Path.Combine(folder, queued.FileName)) &&
+                        queued.Status != Models.ToolStatus.Downloading)
+                    {
+                        mw.DownloadQueue.RemoveAt(i);
+                    }
+                }
             }
+
+            UpdateStorageInfo(folder);
         }
     }
 
@@ -1165,10 +1210,12 @@ public sealed partial class SettingsPage : Page
                 SettingsService.ScheduleEndHour = 7;
                 SettingsService.AutoRetryFailedDownloads = true;
                 SettingsService.AutoRetryIntervalMinutes = 10;
+                SettingsService.AutoCleanDownloadsAfterDays = 0;
                 ScheduleToggle.IsOn = false;
                 PopulateScheduleHourComboBoxes();
                 AutoRetryToggle.IsOn = true;
                 SelectComboItemByTag(AutoRetryIntervalComboBox, "10");
+                SelectComboItemByTag(AutoCleanComboBox, "0");
                 label = "Off-peak scheduling";
                 break;
 

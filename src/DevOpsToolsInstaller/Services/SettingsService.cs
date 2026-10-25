@@ -191,6 +191,13 @@ public static class SettingsService
     /// <summary>Interval in minutes between automatic download retries.</summary>
     public static int AutoRetryIntervalMinutes { get; set; } = 10;
 
+    /// <summary>
+    /// Automatically delete completed download artifacts older than this many
+    /// days when the app starts (Settings → Storage). 0 disables auto-cleanup.
+    /// Never removes files belonging to an in-flight transfer.
+    /// </summary>
+    public static int AutoCleanDownloadsAfterDays { get; set; } = 0;
+
     /// <summary>Collapsible bottom log drawer height in pixels (default 260).</summary>
     public static double LogDrawerHeight { get; set; } = 260.0;
 
@@ -395,6 +402,11 @@ public static class SettingsService
                     AutoRetryIntervalMinutes = rIntProp.GetInt32();
                 }
 
+                if (doc.RootElement.TryGetProperty("AutoCleanDownloadsAfterDays", out var autoCleanProp))
+                {
+                    AutoCleanDownloadsAfterDays = Math.Clamp(autoCleanProp.GetInt32(), 0, 365);
+                }
+
                 if (doc.RootElement.TryGetProperty("LogDrawerHeight", out var ldHProp))
                 {
                     LogDrawerHeight = Math.Clamp(ldHProp.GetDouble(), 120.0, 700.0);
@@ -482,6 +494,7 @@ public static class SettingsService
                 ShowUpdateToastWithReleaseNotes = ShowUpdateToastWithReleaseNotes,
                 AutoRetryFailedDownloads = AutoRetryFailedDownloads,
                 AutoRetryIntervalMinutes = AutoRetryIntervalMinutes,
+                AutoCleanDownloadsAfterDays = AutoCleanDownloadsAfterDays,
                 LogDrawerHeight = LogDrawerHeight,
                 LogDrawerIsOpen = LogDrawerIsOpen,
                 LogDrawerAutoScroll = LogDrawerAutoScroll,

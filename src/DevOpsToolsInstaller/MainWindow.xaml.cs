@@ -823,6 +823,11 @@ public sealed partial class MainWindow : Window
             }),
             new("Open downloads folder", "\uE838", () =>
                 LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder)),
+            new("Manage storage & download cache", "\uE7B3", () =>
+            {
+                if (ContentFrame.XamlRoot is not null)
+                    _ = DevOpsToolsInstaller.Controls.StorageManagerDialog.ShowAsync(ContentFrame.XamlRoot);
+            }),
             new("Capture workstation snapshot", "\uE7C3", () => NavigateTo("Profiles")),
             new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
             new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
@@ -915,6 +920,7 @@ public sealed partial class MainWindow : Window
 
         _ = RunInitialBadgeCheckAsync();
         _ = RunScheduledDoctorRecheckAsync();
+        _ = RunDownloadCacheAutoCleanAsync();
     }
 
     /// <summary>
@@ -957,6 +963,38 @@ public sealed partial class MainWindow : Window
         catch
         {
             // Best effort.
+        }
+    }
+
+    /// <summary>
+    /// Optional on-start download-cache maintenance (Settings → Storage):
+    /// deletes completed artifacts older than the configured number of days.
+    /// Runs quietly in the background; in-flight transfers and installed
+    /// tools are never touched.
+    /// </summary>
+    private async Task RunDownloadCacheAutoCleanAsync()
+    {
+        var days = SettingsService.AutoCleanDownloadsAfterDays;
+        if (days <= 0) return;
+
+        try
+        {
+            // Let startup settle so the cleanup never competes with the
+            // catalog load or transfers that resume right away.
+            await Task.Delay(TimeSpan.FromSeconds(20));
+
+            var result = await Task.Run(() => StorageManagerService.RunStartupCleanup(days));
+            if (result.FreedBytes > 0)
+            {
+                ToastService.Show(
+                    "Download cache cleaned",
+                    $"Removed {result.DeletedFiles} artifact(s) older than {days} day(s) — reclaimed {StorageManagerService.FormatBytes(result.FreedBytes)}.",
+                    NoteKind.Success);
+            }
+        }
+        catch
+        {
+            // Best effort: cleanup must never disrupt startup.
         }
     }
 

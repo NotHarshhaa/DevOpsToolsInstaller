@@ -56,6 +56,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | 🩺 **Workstation Doctor** | 5-point environment diagnostics (PATH duplicates/conflicts, multi-version CLIs, missing prerequisites, stale versions) with 1-click confirmed fixes and markdown report export. |
 | 📋 **Global Live Log Drawer (`Ctrl+\``)** | Collapsible, resizable, virtualized drawer available across every page with live download, SHA-256, and signature verification events. |
 | ⏯️ **Resumable download engine** | Interrupted transfers (dropped Wi-Fi, cancelled batches) continue via HTTP `Range` from a `.partial` file — large installers like Docker Desktop never restart from zero. |
+| ♻️ **Storage & download cache manager** | Disk-usage breakdown of everything the app owns (download cache, extracted tools, audit logs), one-click safe cleanup with in-flight-transfer protection, and an opt-in startup auto-clean for stale artifacts. |
 | 🛡️ **Security-first pipeline** | HTTPS-only fetches → SHA-256 verification → Authenticode `WinVerifyTrust` with a configurable **Warn / Block** policy → Mark-of-the-Web tagging → on-disk audit log → **cryptographically signed catalog** (fail-closed). |
 | 🖥️ **Headless CLI mode** | Comprehensive CLI surface for scripts, machine provisioning, and CI pipelines with proper exit codes. |
 | 🌐 **Corporate proxy support** | Point downloads, catalog updates, and update checks at your own proxy (Settings → Network) — handy behind corporate firewalls. |
@@ -92,6 +93,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [Keyboard Shortcuts, Empty States & Responsive Layout](#keyboard-shortcuts-empty-states--responsive-layout)
 - [What Happens After Download](#what-happens-after-download)
 - [Resumable Download Engine](#resumable-download-engine)
+- [Storage & Download Cache Manager](#storage--download-cache-manager)
 - [Installed Tools, Health Checks & Shell Completions](#installed-tools-health-checks--shell-completions)
 - [Adding `Tools\bin` to Your PATH](#adding-toolsbin-to-your-path)
 - [Security, Integrity & Privacy](#security-integrity--privacy)
@@ -338,6 +340,8 @@ PS> DevOpsToolsInstaller.exe --cloud-status
 | `--snapshot <name>` | Capture a workstation snapshot (installed tools, versions, User PATH) as a restore point. |
 | `--restore-snapshot <name>` | Install the tools missing relative to a saved snapshot. |
 | `--check-updates` | Check for tool updates and print release notes. |
+| `--storage` | Disk-usage report of the app's folders (download cache, tools, audit logs) and what cleanup could reclaim. |
+| `--clean-downloads [scope]` | Safely clean the download cache: `partial` (interrupted resume state, default), `old` (artifacts >30 days), `all`. Never touches in-flight transfers or installed tools. |
 | `--generate-script <file>` | Generate a standalone PowerShell bootstrap script for the current tool set. |
 | `--generate-devcontainer <zip/dir>` | Generate a VS Code `.devcontainer/devcontainer.json` and `Dockerfile` matching workstation tools. |
 | `--version` | Print the application version. |
@@ -753,6 +757,18 @@ Large vendor artifacts (Docker Desktop is ~550 MB) shouldn't restart from zero b
 
 ---
 
+## Storage & Download Cache Manager
+
+Every verified installer the app fetches stays on disk in the download cache — great for re-installs and offline reuse, but a full workstation's worth of artifacts adds up. The **Storage** button on the Downloads page (and *Settings → Storage & shortcuts → Manage storage*) opens a disk-usage dashboard for everything the app owns:
+
+- **Breakdown**: download cache (completed artifacts vs. interrupted `.partial` resume state), the extracted `Tools` folder, and the local audit logs — with a total and a "reclaimable" figure.
+- **Safe cleanup, one click**: delete artifacts older than 30 days, all artifacts, or stale interrupted-transfer state — each action uses a two-click inline confirm. Deleted files are simply re-downloaded from the vendor if ever needed again; **installed tools are never touched**, and files belonging to a transfer that is currently in flight are always skipped.
+- **Opt-in auto-clean** (*Settings → Off-peak scheduling → Auto-clean download cache*): automatically remove artifacts older than 7/30/90 days when the app starts.
+- **Headless**: `--storage` prints the report; `--clean-downloads [partial|old|all]` cleans it from scripts and CI with the same in-flight protection.
+- Every cleanup is written to the activity log and audit trail, and surfaced in the notification center.
+
+---
+
 ## Installed Tools, Health Checks & Shell Completions
 
 Navigate to the **Installed** tab to manage and verify your local workstation environment:
@@ -885,6 +901,7 @@ if ($LASTEXITCODE -ne 0) { throw "Workstation provisioning failed" }
 - [ ] ARM64 MSIX build and Store submission
 - [x] Custom / private catalog sources (bring your own signed tool feeds)
 - [x] Download scheduling and bandwidth throttling
+- [x] Storage & download cache manager (disk usage, safe cleanup, auto-clean)
 - [x] Interactive PATH Environment Doctor & Fixer
 - [x] Workstation Doctor (multi-category environment diagnostics & confirmed fixes)
 - [x] Custom Stack Builder (drag-and-drop, estimated sizes, JSON import/export)

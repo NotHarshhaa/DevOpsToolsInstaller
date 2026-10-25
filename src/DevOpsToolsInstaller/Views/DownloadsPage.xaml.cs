@@ -558,6 +558,11 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder);
     }
 
+    private async void Storage_Click(object sender, RoutedEventArgs e)
+    {
+        await DevOpsToolsInstaller.Controls.StorageManagerDialog.ShowAsync(XamlRoot);
+    }
+
     private void GoToCatalog_Click(object sender, RoutedEventArgs e)
     {
         App.MainWindowInstance?.NavigateTo("Catalog");

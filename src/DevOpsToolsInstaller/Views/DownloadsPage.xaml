@@ -121,6 +121,13 @@
                             </AppBarButton.Icon>
                         </AppBarButton>
 
+                        <AppBarButton x:Name="StorageButton" Label="Storage" Click="Storage_Click"
+                                      ToolTipService.ToolTip="Analyze disk usage and clean the download cache">
+                            <AppBarButton.Icon>
+                                <FontIcon Glyph="&#xE7B3;" />
+                            </AppBarButton.Icon>
+                        </AppBarButton>
+
                         <AppBarButton x:Name="ClearFinishedButton" Label="Clear Finished" Click="ClearFinished_Click"
                                       ToolTipService.ToolTip="Remove installed tools from queue">
                             <AppBarButton.Icon>
