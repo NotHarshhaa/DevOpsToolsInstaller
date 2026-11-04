@@ -6,13 +6,13 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public static class CustomStacksService
 {
-    private static readonly string StorageFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "custom_stacks.json");
+    private static readonly string StorageFilePath = DevOpsToolsInstaller.Helpers.AppPaths.CustomStacksFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

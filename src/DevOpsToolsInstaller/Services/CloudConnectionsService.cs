@@ -511,12 +511,19 @@ public static class CloudConnectionsService
             var lines = File.ReadAllLines(KubeConfigPath);
             bool updated = false;
 
+            // Quote the value when it contains characters that are special in YAML
+            // so context names with spaces stay valid and parse back correctly.
+            static string FormatContextValue(string name) =>
+                name.Any(char.IsWhiteSpace) || name.Contains(':') || name.Contains('#') || name.Contains('"')
+                    ? $"\"{name.Replace("\\", "\\\\").Replace("\"", "\\\"")}\""
+                    : name;
+
             for (int i = 0; i < lines.Length; i++)
             {
                 var trimmed = lines[i].Trim();
                 if (trimmed.StartsWith("current-context:", StringComparison.OrdinalIgnoreCase))
                 {
-                    lines[i] = $"current-context: {targetContextName}";
+                    lines[i] = $"current-context: {FormatContextValue(targetContextName)}";
                     updated = true;
                     break;
                 }
@@ -525,7 +532,7 @@ public static class CloudConnectionsService
             if (!updated)
             {
                 // If current-context line wasn't found, prepend it
-                var newLines = new List<string> { $"current-context: {targetContextName}" };
+                var newLines = new List<string> { $"current-context: {FormatContextValue(targetContextName)}" };
                 newLines.AddRange(lines);
                 lines = newLines.ToArray();
             }

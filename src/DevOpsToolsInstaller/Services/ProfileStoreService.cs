@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -48,9 +50,7 @@ public sealed class WorkstationProfile
 /// </summary>
 public static class ProfileStoreService
 {
-    private static readonly string StorageFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "profiles.json");
+    private static readonly string StorageFilePath = DevOpsToolsInstaller.Helpers.AppPaths.ProfilesFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

@@ -435,8 +435,6 @@ public static class DoctorService
 
     private static void CheckCliBinaryShadowing(List<DoctorCheckResult> results)
     {
-        var rawUserPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User) ?? "";
-        var rawSysPath = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.Machine) ?? "";
         var rawProcPath = Environment.GetEnvironmentVariable("PATH") ?? "";
 
         var orderedDirs = new List<string>();
@@ -524,7 +522,7 @@ public static class DoctorService
         var dlFolder = DownloadService.DefaultDownloadsFolder;
         var outdatedList = new List<string>();
 
-        // Sample installed tools up to 10 common tools to keep check fast
+        // Probe the first 12 installed tools to keep the full-doctor scan fast
         var installedTools = catalogTools
             .Where(t => UninstallService.IsInstalled(t, dlFolder) || t.Status == ToolStatus.Downloaded)
             .Take(12)

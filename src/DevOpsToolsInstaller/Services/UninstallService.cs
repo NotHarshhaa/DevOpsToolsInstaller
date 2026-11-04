@@ -238,7 +238,10 @@ public static class UninstallService
                 var normal = sub.GetValue("UninstallString") as string;
                 var displayVersion = sub.GetValue("DisplayVersion") as string;
 
-                var command = !string.IsNullOrWhiteSpace(quiet) ? quiet : normal;
+                // Prefer the interactive uninstaller so the vendor surfaces its own
+                // UI/UAC — the app never uninstalls silently. QuietUninstallString is
+                // only a fallback when no interactive command exists.
+                var command = !string.IsNullOrWhiteSpace(normal) ? normal : quiet;
                 if (string.IsNullOrWhiteSpace(command)) continue;
 
                 return new InstalledProgram(
@@ -314,7 +317,10 @@ public static class UninstallService
             "github-cli" => displayName.Contains("GitHub CLI", StringComparison.OrdinalIgnoreCase),
             "git" => displayName.StartsWith("Git", StringComparison.OrdinalIgnoreCase)
                   && System.Text.RegularExpressions.Regex.IsMatch(displayName, @"\bGit\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase),
-            "ansible" => displayName.StartsWith("Python 3", StringComparison.OrdinalIgnoreCase),
+            // Ansible on Windows is typically installed via pip inside a Python install,
+            // but a bare "Python 3.x" display name is NOT Ansible — require the name to
+            // actually mention Ansible (or an Ansible-oriented distribution).
+            "ansible" => displayName.Contains("Ansible", StringComparison.OrdinalIgnoreCase),
             _ => false
         };
     }

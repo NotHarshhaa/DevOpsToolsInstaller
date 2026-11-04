@@ -1068,6 +1068,15 @@
                         </Button>
 
                         <Button Padding="12,6" CornerRadius="4"
+                                Click="SelectionCopyMarkdown_Click"
+                                ToolTipService.ToolTip="Copy the selected tools as a Markdown table to the clipboard">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <FontIcon Glyph="&#xE8C8;" FontSize="12" />
+                                <TextBlock Text="Copy as Markdown" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Padding="12,6" CornerRadius="4"
                                 Click="SelectionClear_Click"
                                 ToolTipService.ToolTip="Deselect every tool">
                             <StackPanel Orientation="Horizontal" Spacing="6">

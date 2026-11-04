@@ -50,7 +50,8 @@ public static class CliHost
         "--env", "--set-env", "--del-env",
         "--git-status", "--setup-git", "--generate-ssh-key",
         "--setup-powershell",
-        "--storage", "--clean-downloads"
+        "--storage", "--clean-downloads",
+        "--export-settings", "--import-settings", "--include-secrets"
     };
 
     public static bool IsCliRequest(IReadOnlyList<string> args)
@@ -129,6 +130,17 @@ public static class CliHost
                 scope = "partial"; // safest default: only interrupted resume state
             }
             return RunCleanDownloads(scope);
+        }
+
+        // Settings backup & restore — neither needs the catalog.
+        if (GetOptionValue(args, "--export-settings") is { } exportPath)
+        {
+            return RunExportSettings(exportPath, args.Contains("--include-secrets", StringComparer.OrdinalIgnoreCase));
+        }
+
+        if (GetOptionValue(args, "--import-settings") is { } importPath)
+        {
+            return await RunImportSettingsAsync(importPath, args.Contains("--include-secrets", StringComparer.OrdinalIgnoreCase));
         }
 
         if (args.Contains("--version", StringComparer.OrdinalIgnoreCase) ||
@@ -487,7 +499,7 @@ public static class CliHost
         if (requestedTools.Count == 0 && errors.Count == 0)
         {
             PrintUsage();
-            return errors.Count > 0 ? 1 : 0;
+            return 0;
         }
 
         var dlFolder = DownloadService.DefaultDownloadsFolder;
@@ -612,25 +624,47 @@ public static class CliHost
         WriteLine($"DevOps Tools Installer v{AppUpdaterService.CurrentVersion} — workstation status");
         WriteLine();
 
-        int installed = 0;
-        foreach (var tool in tools.OrderBy(t => t.Category).ThenBy(t => t.Name))
+        // Probe with bounded parallelism — a sequential --version probe of a
+        // 20-tool workstation costs ~40 s in timeouts alone.
+        var ordered = tools.OrderBy(t => t.Category).ThenBy(t => t.Name).ToList();
+        var results = new (bool IsInstalled, string? Version)[ordered.Count];
+        using var probeGate = new SemaphoreSlim(8);
+
+        await Task.WhenAll(ordered.Select(async (tool, index) =>
         {
             bool isInstalled = await Task.Run(() => UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded);
+            string? version = null;
             if (isInstalled)
             {
-                installed++;
-                string? version;
-                if (tool.Kind == ArtifactKind.Installer)
+                await probeGate.WaitAsync();
+                try
                 {
-                    version = await Task.Run(() => UninstallService.GetInstalledVersion(tool));
+                    if (tool.Kind == ArtifactKind.Installer)
+                    {
+                        version = await Task.Run(() => UninstallService.GetInstalledVersion(tool));
+                    }
+                    else
+                    {
+                        var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2);
+                        version = probe.DetectedVersion;
+                    }
                 }
-                else
+                finally
                 {
-                    var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 2);
-                    version = probe.DetectedVersion;
+                    probeGate.Release();
                 }
-                WriteLine($"  [x] {tool.Name.PadRight(28)} {tool.Category.PadRight(28)} {(string.IsNullOrWhiteSpace(version) ? "" : $"v{version}")}");
             }
+            results[index] = (isInstalled, version);
+        }));
+
+        int installed = 0;
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            if (!results[i].IsInstalled) continue;
+            installed++;
+            var tool = ordered[i];
+            var version = results[i].Version;
+            WriteLine($"  [x] {tool.Name.PadRight(28)} {tool.Category.PadRight(28)} {(string.IsNullOrWhiteSpace(version) ? "" : $"v{version}")}");
         }
 
         WriteLine();
@@ -664,6 +698,59 @@ public static class CliHost
         WriteLine($"  Total            : {StorageManagerService.FormatBytes(scan.TotalBytes)} ({StorageManagerService.FormatBytes(scan.ReclaimableBytes)} reclaimable)");
         WriteLine();
         WriteLine("Cleanup: --clean-downloads [partial|old|all]   (never touches in-flight transfers or installed tools)");
+        return 0;
+    }
+
+    /// <summary>
+    /// Handles --export-settings &lt;file&gt; [--include-secrets]: writes the
+    /// settings backup bundle (settings, favorites, update pins, hooks, custom
+    /// stacks/tools). The proxy password is only embedded with --include-secrets.
+    /// </summary>
+    private static int RunExportSettings(string filePath, bool includeSecrets)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            WriteLine("error: --export-settings requires a target file path.");
+            return 1;
+        }
+
+        var (ok, error) = SettingsBackupService.ExportAsync(filePath, includeSecrets).GetAwaiter().GetResult();
+        if (!ok)
+        {
+            WriteLine($"error: settings export failed: {error}");
+            return 1;
+        }
+        WriteLine($"[ok  ] settings bundle exported to '{filePath}' (secrets: {(includeSecrets ? "included" : "excluded")}).");
+        return 0;
+    }
+
+    /// <summary>
+    /// Handles --import-settings &lt;file&gt; [--include-secrets]: validates and
+    /// restores a settings bundle. Returns 1 on any validation or write failure.
+    /// </summary>
+    private static async Task<int> RunImportSettingsAsync(string filePath, bool importSecrets)
+    {
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        {
+            WriteLine($"error: bundle file not found: '{filePath}'.");
+            return 1;
+        }
+
+        if (EnterprisePolicyService.AreSettingsLocked)
+        {
+            WriteLine("error: settings are locked by corporate IT policy — import is not allowed.");
+            return 1;
+        }
+
+        var result = await SettingsBackupService.ImportAsync(filePath, importSecrets);
+        if (!result.Success)
+        {
+            WriteLine($"error: settings import failed: {result.Message}");
+            return 1;
+        }
+
+        WriteLine($"[ok  ] restored {result.RestoredFiles.Count} file(s): {string.Join(", ", result.RestoredFiles)}.");
+        WriteLine(result.Message);
         return 0;
     }
 
@@ -741,13 +828,14 @@ public static class CliHost
         int removedCount = 0;
         int missingCount = 0;
         int failedCount = 0;
+        int unknownCount = 0;
 
         foreach (var rawId in toolIds)
         {
             if (!knownIds.TryGetValue(rawId, out var tool))
             {
-                missingCount++;
-                WriteLine($"[warn] unknown tool id '{rawId}' (use --list to see available ids)");
+                unknownCount++;
+                WriteLine($"[fail] unknown tool id '{rawId}' (use --list to see available ids)");
                 continue;
             }
 
@@ -772,8 +860,10 @@ public static class CliHost
         }
 
         WriteLine(string.Empty);
-        WriteLine($"Done. {removedCount} uninstalled, {missingCount} not present, {failedCount} failed.");
-        return Task.FromResult(failedCount == 0 ? 0 : 1);
+        WriteLine($"Done. {removedCount} uninstalled, {missingCount} not present, {failedCount} failed, {unknownCount} unknown.");
+        // Unknown ids are almost always typos in scripts — surface them in the
+        // exit code so CI does not report success for a no-op run.
+        return Task.FromResult(failedCount == 0 && unknownCount == 0 ? 0 : 1);
     }
 
     /// <summary>
@@ -1448,7 +1538,14 @@ public static class CliHost
         {
             if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
             {
-                return args[i + 1];
+                var value = args[i + 1];
+                // A following flag is not a value: "--downloads-folder --run-hooks"
+                // must not create a folder literally named "--run-hooks".
+                if (value.StartsWith("--", StringComparison.Ordinal))
+                {
+                    return null;
+                }
+                return value;
             }
         }
         return null;
@@ -1867,16 +1964,26 @@ public static class CliHost
             {
                 FileName = "powershell.exe",
                 Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{ps1}\"",
-                UseShellExecute = false
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
             };
             using var p = Process.Start(psi);
             if (p != null)
             {
+                // Surface the vendor script's output so headless runs are not silent.
+                var outTask = p.StandardOutput.ReadToEndAsync();
+                var errTask = p.StandardError.ReadToEndAsync();
                 await p.WaitForExitAsync();
+                var stdout = await outTask;
+                var stderr = await errTask;
+                if (!string.IsNullOrWhiteSpace(stdout)) WriteLine(stdout);
+                if (!string.IsNullOrWhiteSpace(stderr)) WriteLine($"[warn] {stderr.Trim()}");
                 return p.ExitCode;
             }
         }
 
+        WriteLine($"error: install-offline.ps1 not found in '{bundleDir}'. The bundle is incomplete — re-export it.");
         return 1;
     }
 
@@ -2147,6 +2254,8 @@ public static class CliHost
         WriteLine("  DevOpsToolsInstaller.exe --check-updates              Check for tool updates with notes");
         WriteLine("  DevOpsToolsInstaller.exe --storage                    Disk usage report (cache, tools, logs)");
         WriteLine("  DevOpsToolsInstaller.exe --clean-downloads [scope]    Clean cache: partial (default), old, all");
+        WriteLine("  DevOpsToolsInstaller.exe --export-settings <file>     Export settings backup bundle (--include-secrets to embed the proxy password)");
+        WriteLine("  DevOpsToolsInstaller.exe --import-settings <file>     Restore a settings backup bundle");
         WriteLine("  DevOpsToolsInstaller.exe --cloud-status               Local cloud login & kubectl context status");
         WriteLine("  DevOpsToolsInstaller.exe --kube-context [name]        List or switch kubectl context (kubectx)");
         WriteLine("  DevOpsToolsInstaller.exe --run-hooks                  Allow user-authored pre/post-install hooks");

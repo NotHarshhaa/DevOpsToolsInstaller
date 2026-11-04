@@ -164,12 +164,13 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         }
 
         // Background check for installed tools so "Installed" badges appear accurately
+        var toolsSnapshot = mw.Tools.ToList();
         _ = System.Threading.Tasks.Task.Run(() =>
         {
             try
             {
                 var dlFolder = DownloadService.DefaultDownloadsFolder;
-                foreach (var tool in mw.Tools)
+                foreach (var tool in toolsSnapshot)
                 {
                     if (!tool.IsInstalled && UninstallService.IsInstalled(tool, dlFolder))
                     {
@@ -353,6 +354,22 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
         foreach (var tool in mw.Tools) tool.IsSelected = false;
         UpdateSelectionBar();
+    }
+
+    private void SelectionCopyMarkdown_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        var selected = mw.Tools.Where(t => t.IsSelected).ToList();
+        if (selected.Count == 0)
+        {
+            StatusText.Text = "Select at least one tool before copying a Markdown table.";
+            return;
+        }
+
+        CopyToClipboard(Helpers.MarkdownExport.ToolsTable(selected, "DevOps Toolset"));
+        StatusText.Text = $"Copied {selected.Count} tool(s) as a Markdown table to the clipboard.";
     }
 
     private async void SelectionSaveProfile_Click(object sender, RoutedEventArgs e)
@@ -1072,6 +1089,23 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
     private void PaneFullDetails_Click(object sender, RoutedEventArgs e)
     {
         if (_detailTool is null) return;
+
+        // Prepare the cross-page connected animation under the key
+        // ToolDetailPage requests ("toolCard") — a mismatched key means
+        // GetAnimation returns null and the hero entrance never plays.
+        if (AnimationSettingsHelper.AnimationsEnabled)
+        {
+            try
+            {
+                ConnectedAnimationService.GetForCurrentView()
+                    .PrepareToAnimate("toolCard", PaneLogoBorder);
+            }
+            catch
+            {
+                // Animation is a nicety — navigation proceeds regardless.
+            }
+        }
+
         Frame.Navigate(typeof(ToolDetailPage), _detailTool);
     }
 
@@ -1428,6 +1462,14 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         DensityButton.IsEnabled = !busy;
         if (SelectionDownloadButton is not null) SelectionDownloadButton.IsEnabled = !busy;
         if (PaneInstallButton is not null) PaneInstallButton.IsEnabled = !busy;
+        if (!busy)
+        {
+            // Re-derive the selection-bar and pane button states from the current
+            // tool states — unconditionally enabling them can leave a download
+            // button active for a selection that is already downloaded/installed.
+            UpdateSelectionBar();
+            if (_detailTool is not null) RefreshDetailPane();
+        }
         if (status is not null) StatusText.Text = status;
     }
 
@@ -1560,7 +1602,14 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             panel.Children.Add(ghCombo);
             panel.Children.Add(ghStatus);
 
-            _ = LoadGitHubReleasesAsync(tool, ghCombo, ghStatus, ghReleasesByVersion, customBox, UpdatePreview);
+            _ = LoadGitHubReleasesAsync(tool, ghCombo, ghStatus, ghReleasesByVersion, customBox, UpdatePreview)
+                .ContinueWith(t =>
+                {
+                    // A throw here would be an unobserved task exception and the
+                    // combo would sit on "Fetching…" forever.
+                    _ = DispatcherQueue.TryEnqueue(() =>
+                        ghStatus.Text = "Couldn't fetch recent GitHub releases — use the catalog versions or enter a version manually.");
+                }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         panel.Children.Add(new TextBlock { Text = "Custom Version:", FontWeight = Microsoft.UI.Text.FontWeights.SemiBold, Margin = new Thickness(0, 4, 0, 0) });
@@ -1653,6 +1702,15 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
             return;
         }
 
+        // Attach before populating so a user picking an item the instant it
+        // appears still gets the preview/custom-box sync.
+        ghCombo.SelectionChanged += (s, ev) =>
+        {
+            if (ghCombo.SelectedItem is not GitHubReleaseChoice choice) return;
+            customBox.Text = choice.Release.Version;
+            updatePreview(choice.Release.Version);
+        };
+
         foreach (var release in releases)
         {
             if (ghReleasesByVersion.ContainsKey(release.Version)) continue;
@@ -1671,13 +1729,6 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         ghCombo.IsEnabled = true;
         ghCombo.PlaceholderText = "Select a GitHub release…";
         ghStatus.Text = "Fetched live from the vendor's GitHub releases.";
-
-        ghCombo.SelectionChanged += (s, ev) =>
-        {
-            if (ghCombo.SelectedItem is not GitHubReleaseChoice choice) return;
-            customBox.Text = choice.Release.Version;
-            updatePreview(choice.Release.Version);
-        };
     }
 
     // ── Logo fallback ───────────────────────────────────────────────────

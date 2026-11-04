@@ -250,6 +250,11 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
         if (mw is null) return;
 
         var count = ProfileStoreService.Apply(profile, mw.Tools);
+        // Toast instead of only the page InfoBar — the page is navigated away
+        // below, so a notice rendered here is never seen by the user.
+        ToastService.Show(
+            $"Profile '{profile.Name}' Applied",
+            $"Selected {count} tool(s) in the catalog. Review the selection and download.");
         mw.NavigateTo("Catalog");
         ShowNotice($"Applied '{profile.Name}': selected {count} tool(s) in the catalog.", InfoBarSeverity.Success);
     }
@@ -545,13 +550,15 @@ public sealed partial class ProfilesPage : Page, IRefreshablePage
             try
             {
                 DownloadService.DiscardDownloadedArtifact(tool, dlFolder);
-                tool.SetVersion(version);
+                // Model mutations happen on the UI thread — only Status/Progress
+                // marshal internally; SetVersion/IsInstalled do not.
+                dispatcher.TryEnqueue(() => tool.SetVersion(version));
                 await mw.DownloadSvc.DownloadAsync(tool, dlFolder);
 
                 if (tool.Status == ToolStatus.Downloaded)
                 {
                     var res = ArtifactService.Perform(tool, dlFolder);
-                    tool.IsInstalled = res.Success;
+                    dispatcher.TryEnqueue(() => tool.IsInstalled = res.Success);
                     if (res.Success)
                         InstallHistoryService.RecordRollback(tool.Id, tool.Name, version, res.Message);
 

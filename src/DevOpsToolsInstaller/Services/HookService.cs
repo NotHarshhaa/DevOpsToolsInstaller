@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -58,9 +60,7 @@ public sealed record HookRunResult(bool Ran, bool Success, string Message)
 /// </summary>
 public static class HookService
 {
-    private static readonly string StorageFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "hooks.json");
+    private static readonly string StorageFilePath = DevOpsToolsInstaller.Helpers.AppPaths.HooksFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

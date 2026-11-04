@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public enum AppTheme
@@ -44,9 +46,7 @@ public enum SignaturePolicy
 
 public static class SettingsService
 {
-    private static readonly string SettingsFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "settings.json");
+    private static readonly string SettingsFilePath = DevOpsToolsInstaller.Helpers.AppPaths.SettingsFile;
 
     public static AppTheme Theme { get; set; } = AppTheme.Default;
 
@@ -65,9 +65,7 @@ public static class SettingsService
             if (!string.IsNullOrWhiteSpace(_customDownloadsFolder) && Directory.Exists(_customDownloadsFolder))
                 return _customDownloadsFolder;
 
-            var defaultFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DevOpsToolsInstaller", "Downloads");
+            var defaultFolder = Path.Combine(DevOpsToolsInstaller.Helpers.AppPaths.Root, "Downloads");
             Directory.CreateDirectory(defaultFolder);
             return defaultFolder;
         }
@@ -244,209 +242,86 @@ public static class SettingsService
     {
         try
         {
-            if (File.Exists(SettingsFilePath))
+            if (!File.Exists(SettingsFilePath)) return;
+            var json = File.ReadAllText(SettingsFilePath);
+            using var doc = JsonDocument.Parse(json);
+
+            // Each property is isolated: one malformed value (hand-edited or
+            // partially-written settings.json) must not abort the whole load
+            // and silently reset every setting after it back to defaults.
+            void Read(string name, Action<System.Text.Json.JsonElement> apply)
             {
-                var json = File.ReadAllText(SettingsFilePath);
-                using var doc = JsonDocument.Parse(json);
-                if (doc.RootElement.TryGetProperty("Theme", out var themeProp) &&
-                    Enum.TryParse<AppTheme>(themeProp.GetString(), out var theme))
+                try
                 {
-                    Theme = theme;
-                }
-
-                if (doc.RootElement.TryGetProperty("WindowMaterial", out var materialProp) &&
-                    Enum.TryParse<WindowMaterial>(materialProp.GetString(), out var material))
-                {
-                    WindowMaterial = material;
-                }
-
-                if (doc.RootElement.TryGetProperty("DownloadsFolder", out var dlProp))
-                {
-                    var dl = dlProp.GetString();
-                    if (!string.IsNullOrWhiteSpace(dl))
+                    if (doc.RootElement.TryGetProperty(name, out var el))
                     {
-                        DownloadsFolder = dl;
+                        apply(el);
                     }
                 }
-
-                if (doc.RootElement.TryGetProperty("CheckForUpdatesOnStartup", out var autoUpdateProp))
+                catch (Exception ex)
                 {
-                    CheckForUpdatesOnStartup = autoUpdateProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("LastUpdateCheckTime", out var lastCheckProp) &&
-                    DateTime.TryParse(lastCheckProp.GetString(), out var lastCheck))
-                {
-                    LastUpdateCheckTime = lastCheck;
-                }
-
-                if (doc.RootElement.TryGetProperty("EnableNotifications", out var notifProp))
-                {
-                    EnableNotifications = notifProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("CloseToTray", out var trayProp))
-                {
-                    CloseToTray = trayProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("SignaturePolicy", out var sigProp) &&
-                    Enum.TryParse<SignaturePolicy>(sigProp.GetString(), out var policy))
-                {
-                    SignaturePolicy = policy;
-                }
-
-                if (doc.RootElement.TryGetProperty("ProxyEnabled", out var proxyEnabledProp))
-                {
-                    ProxyEnabled = proxyEnabledProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("ProxyUrl", out var proxyUrlProp))
-                {
-                    ProxyUrl = proxyUrlProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("ProxyUsername", out var proxyUserProp))
-                {
-                    ProxyUsername = proxyUserProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("ProxyPassword", out var proxyPassProp))
-                {
-                    ProxyPassword = proxyPassProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("WindowBounds", out var boundsProp))
-                {
-                    WindowBounds = boundsProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("LastPage", out var lastPageProp))
-                {
-                    LastPage = lastPageProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("ShowOnboardingTips", out var onboardingProp))
-                {
-                    ShowOnboardingTips = onboardingProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("OnboardingCompleted", out var onboardingDoneProp))
-                {
-                    OnboardingCompleted = onboardingDoneProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("BandwidthLimitMBps", out var bwProp))
-                {
-                    BandwidthLimitMBps = bwProp.GetInt32();
-                }
-
-                if (doc.RootElement.TryGetProperty("CustomCatalogSource", out var catSrcProp))
-                {
-                    CustomCatalogSource = catSrcProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("HooksEnabled", out var hooksProp))
-                {
-                    HooksEnabled = hooksProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("SyncFolder", out var syncFolderProp))
-                {
-                    SyncFolder = syncFolderProp.GetString() ?? string.Empty;
-                }
-
-                if (doc.RootElement.TryGetProperty("LastSyncTime", out var lastSyncProp) &&
-                    DateTime.TryParse(lastSyncProp.GetString(), out var lastSync))
-                {
-                    LastSyncTime = lastSync;
-                }
-
-                if (doc.RootElement.TryGetProperty("DownloadScheduleEnabled", out var schedProp))
-                {
-                    DownloadScheduleEnabled = schedProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("ScheduleStartHour", out var sStartProp))
-                {
-                    ScheduleStartHour = sStartProp.GetInt32();
-                }
-
-                if (doc.RootElement.TryGetProperty("ScheduleEndHour", out var sEndProp))
-                {
-                    ScheduleEndHour = sEndProp.GetInt32();
-                }
-
-                if (doc.RootElement.TryGetProperty("AutoUpdateCheckEnabled", out var autoUpProp))
-                    AutoUpdateCheckEnabled = autoUpProp.GetBoolean();
-                if (doc.RootElement.TryGetProperty("UpdateCheckIntervalHours", out var uciProp))
-                    UpdateCheckIntervalHours = uciProp.GetInt32();
-                if (doc.RootElement.TryGetProperty("MaintenanceWindowEnabled", out var mwProp))
-                    MaintenanceWindowEnabled = mwProp.GetBoolean();
-                if (doc.RootElement.TryGetProperty("MaintenanceStartHour", out var msProp))
-                    MaintenanceStartHour = msProp.GetInt32();
-                if (doc.RootElement.TryGetProperty("MaintenanceEndHour", out var meProp))
-                    MaintenanceEndHour = meProp.GetInt32();
-                if (doc.RootElement.TryGetProperty("AutoInstallDuringMaintenance", out var aimProp))
-                    AutoInstallDuringMaintenance = aimProp.GetBoolean();
-                if (doc.RootElement.TryGetProperty("ShowUpdateToastWithReleaseNotes", out var sutProp))
-                    ShowUpdateToastWithReleaseNotes = sutProp.GetBoolean();
-
-                if (doc.RootElement.TryGetProperty("AutoRetryFailedDownloads", out var retryProp))
-                {
-                    AutoRetryFailedDownloads = retryProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("AutoRetryIntervalMinutes", out var rIntProp))
-                {
-                    AutoRetryIntervalMinutes = rIntProp.GetInt32();
-                }
-
-                if (doc.RootElement.TryGetProperty("AutoCleanDownloadsAfterDays", out var autoCleanProp))
-                {
-                    AutoCleanDownloadsAfterDays = Math.Clamp(autoCleanProp.GetInt32(), 0, 365);
-                }
-
-                if (doc.RootElement.TryGetProperty("LogDrawerHeight", out var ldHProp))
-                {
-                    LogDrawerHeight = Math.Clamp(ldHProp.GetDouble(), 120.0, 700.0);
-                }
-
-                if (doc.RootElement.TryGetProperty("LogDrawerIsOpen", out var ldOpenProp))
-                {
-                    LogDrawerIsOpen = ldOpenProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("LogDrawerAutoScroll", out var ldScProp))
-                {
-                    LogDrawerAutoScroll = ldScProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("LogDrawerLevelFilter", out var ldFiltProp))
-                {
-                    var filt = ldFiltProp.GetString();
-                    if (!string.IsNullOrWhiteSpace(filt)) LogDrawerLevelFilter = filt;
-                }
-
-                if (doc.RootElement.TryGetProperty("DoctorRedactReport", out var drRedactProp))
-                {
-                    DoctorRedactReport = drRedactProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("DoctorRecheckOnStartup", out var drRecheckProp))
-                {
-                    DoctorRecheckOnStartup = drRecheckProp.GetBoolean();
-                }
-
-                if (doc.RootElement.TryGetProperty("DefaultBackend", out var beProp))
-                {
-                    DefaultBackend = Models.ToolBackendExtensions.Parse(beProp.GetString());
+                    ActivityLogService.Warn("Settings",
+                        $"Setting '{name}' could not be read from settings.json — keeping its current value ({ex.Message}).");
                 }
             }
+
+            Read("Theme", el => { if (Enum.TryParse<AppTheme>(el.GetString(), out var theme)) Theme = theme; });
+            Read("WindowMaterial", el => { if (Enum.TryParse<WindowMaterial>(el.GetString(), out var material)) WindowMaterial = material; });
+            Read("DownloadsFolder", el =>
+            {
+                var dl = el.GetString();
+                if (!string.IsNullOrWhiteSpace(dl))
+                {
+                    DownloadsFolder = dl;
+                }
+            });
+            Read("CheckForUpdatesOnStartup", el => CheckForUpdatesOnStartup = el.GetBoolean());
+            Read("LastUpdateCheckTime", el => { if (DateTime.TryParse(el.GetString(), out var lastCheck)) LastUpdateCheckTime = lastCheck; });
+            Read("EnableNotifications", el => EnableNotifications = el.GetBoolean());
+            Read("CloseToTray", el => CloseToTray = el.GetBoolean());
+            Read("SignaturePolicy", el => { if (Enum.TryParse<SignaturePolicy>(el.GetString(), out var policy)) SignaturePolicy = policy; });
+            Read("ProxyEnabled", el => ProxyEnabled = el.GetBoolean());
+            Read("ProxyUrl", el => ProxyUrl = el.GetString() ?? string.Empty);
+            Read("ProxyUsername", el => ProxyUsername = el.GetString() ?? string.Empty);
+            Read("ProxyPassword", el => ProxyPassword = el.GetString() ?? string.Empty);
+            Read("WindowBounds", el => WindowBounds = el.GetString() ?? string.Empty);
+            Read("LastPage", el => LastPage = el.GetString() ?? string.Empty);
+            Read("ShowOnboardingTips", el => ShowOnboardingTips = el.GetBoolean());
+            Read("OnboardingCompleted", el => OnboardingCompleted = el.GetBoolean());
+            Read("BandwidthLimitMBps", el => BandwidthLimitMBps = el.GetInt32());
+            Read("CustomCatalogSource", el => CustomCatalogSource = el.GetString() ?? string.Empty);
+            Read("HooksEnabled", el => HooksEnabled = el.GetBoolean());
+            Read("SyncFolder", el => SyncFolder = el.GetString() ?? string.Empty);
+            Read("LastSyncTime", el => { if (DateTime.TryParse(el.GetString(), out var lastSync)) LastSyncTime = lastSync; });
+            Read("DownloadScheduleEnabled", el => DownloadScheduleEnabled = el.GetBoolean());
+            Read("ScheduleStartHour", el => ScheduleStartHour = el.GetInt32());
+            Read("ScheduleEndHour", el => ScheduleEndHour = el.GetInt32());
+            Read("AutoUpdateCheckEnabled", el => AutoUpdateCheckEnabled = el.GetBoolean());
+            Read("UpdateCheckIntervalHours", el => UpdateCheckIntervalHours = el.GetInt32());
+            Read("MaintenanceWindowEnabled", el => MaintenanceWindowEnabled = el.GetBoolean());
+            Read("MaintenanceStartHour", el => MaintenanceStartHour = el.GetInt32());
+            Read("MaintenanceEndHour", el => MaintenanceEndHour = el.GetInt32());
+            Read("AutoInstallDuringMaintenance", el => AutoInstallDuringMaintenance = el.GetBoolean());
+            Read("ShowUpdateToastWithReleaseNotes", el => ShowUpdateToastWithReleaseNotes = el.GetBoolean());
+            Read("AutoRetryFailedDownloads", el => AutoRetryFailedDownloads = el.GetBoolean());
+            Read("AutoRetryIntervalMinutes", el => AutoRetryIntervalMinutes = el.GetInt32());
+            Read("AutoCleanDownloadsAfterDays", el => AutoCleanDownloadsAfterDays = Math.Clamp(el.GetInt32(), 0, 365));
+            Read("LogDrawerHeight", el => LogDrawerHeight = Math.Clamp(el.GetDouble(), 120.0, 700.0));
+            Read("LogDrawerIsOpen", el => LogDrawerIsOpen = el.GetBoolean());
+            Read("LogDrawerAutoScroll", el => LogDrawerAutoScroll = el.GetBoolean());
+            Read("LogDrawerLevelFilter", el =>
+            {
+                var filt = el.GetString();
+                if (!string.IsNullOrWhiteSpace(filt)) LogDrawerLevelFilter = filt;
+            });
+            Read("DoctorRedactReport", el => DoctorRedactReport = el.GetBoolean());
+            Read("DoctorRecheckOnStartup", el => DoctorRecheckOnStartup = el.GetBoolean());
+            Read("DefaultBackend", el => DefaultBackend = Models.ToolBackendExtensions.Parse(el.GetString()));
         }
-        catch
+        catch (Exception ex)
         {
-            // Fallback to defaults
+            // Unreadable settings file (locked, invalid JSON, …) — fall back to defaults.
+            ActivityLogService.Warn("Settings", $"settings.json could not be loaded: {ex.Message}");
         }
     }
 

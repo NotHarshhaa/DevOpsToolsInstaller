@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public enum PathIssueSeverity
@@ -62,9 +64,7 @@ public sealed record PathSafeFixPlan(
 
 public static class PathDoctorService
 {
-    private static readonly string BackupDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "Backups", "PATH");
+    private static readonly string BackupDirectory = Path.Combine(DevOpsToolsInstaller.Helpers.AppPaths.Root, "backups", "path");
 
     [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
     private static extern IntPtr SendMessageTimeout(

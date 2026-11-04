@@ -1,6 +1,8 @@
 using System.IO.Compression;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -28,9 +30,7 @@ public static class ArtifactService
     {
         get
         {
-            var folder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "DevOpsToolsInstaller", "Tools");
+            var folder = DevOpsToolsInstaller.Helpers.AppPaths.ToolsFolder;
             Directory.CreateDirectory(folder);
             return folder;
         }
@@ -223,8 +223,17 @@ public static class ArtifactService
 
         using var proc = System.Diagnostics.Process.Start(psi)
             ?? throw new IOException("Failed to start tar.exe for archive extraction.");
-        var stderr = proc.StandardError.ReadToEnd();
-        proc.WaitForExit(120_000);
+
+        // Drain stderr on a worker so a chatty tar.exe cannot deadlock the pipe,
+        // and enforce a real timeout — a blocking ReadToEnd before WaitForExit
+        // would hang forever if tar.exe never exits.
+        var stderrTask = proc.StandardError.ReadToEndAsync();
+        if (!proc.WaitForExit(120_000))
+        {
+            try { proc.Kill(entireProcessTree: true); } catch { /* already gone */ }
+            throw new IOException("tar.exe timed out after 120 seconds while extracting the archive.");
+        }
+        var stderr = stderrTask.GetAwaiter().GetResult();
 
         if (proc.ExitCode != 0)
         {

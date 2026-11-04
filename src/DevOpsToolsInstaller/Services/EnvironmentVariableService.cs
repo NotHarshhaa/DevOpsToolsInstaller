@@ -6,6 +6,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public sealed record PathItem(
@@ -53,9 +55,7 @@ public static class EnvironmentVariableService
     private const uint WM_SETTINGCHANGE = 0x001A;
     private const uint SMTO_ABORTIFHUNG = 0x0002;
 
-    private static string BackupFolder => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "backups", "path");
+    private static string BackupFolder => Path.Combine(DevOpsToolsInstaller.Helpers.AppPaths.Root, "backups", "path");
 
     public static readonly IReadOnlyList<DevOpsPreset> Presets = new List<DevOpsPreset>
     {
@@ -82,9 +82,12 @@ public static class EnvironmentVariableService
         for (int i = 0; i < parts.Length; i++)
         {
             var p = parts[i];
-            bool isDup = !seen.Add(p);
+            // Compare with normalized separators so "C:\x" and "C:\x\" are both
+            // flagged as duplicates — the same rule PathDoctorService applies.
+            var normalized = p.TrimEnd('\\', '/');
+            bool isDup = !seen.Add(normalized);
             bool exists = Directory.Exists(p);
-            bool isBin = string.Equals(p.TrimEnd('\\'), devOpsBin.TrimEnd('\\'), StringComparison.OrdinalIgnoreCase);
+            bool isBin = string.Equals(normalized, devOpsBin.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase);
 
             result.Add(new PathItem(p, i, exists, isDup, isBin));
         }

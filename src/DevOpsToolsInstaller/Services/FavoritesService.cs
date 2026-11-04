@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -8,9 +10,7 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class FavoritesService
 {
-    private static readonly string FavoritesFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "favorites.json");
+    private static readonly string FavoritesFilePath = DevOpsToolsInstaller.Helpers.AppPaths.FavoritesFile;
 
     private static HashSet<string> _favorites = new(StringComparer.OrdinalIgnoreCase);
 

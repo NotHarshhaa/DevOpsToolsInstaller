@@ -741,6 +741,23 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         !string.IsNullOrWhiteSpace(_selectedVersion) &&
         !string.Equals(_selectedVersion, _originalVersion ?? Version, StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Restores the catalog's original version after a temporary
+    /// <see cref="SetVersion"/> override (e.g. a side-by-side version download),
+    /// so subsequent "latest" installs target the pinned catalog artifact again.
+    /// No-op when the version was never overridden.
+    /// </summary>
+    public void ResetVersion()
+    {
+        if (_originalVersion is null) return;
+        SetVersion(_originalVersion);
+        _selectedVersion = null;
+        OnPropertyChanged(nameof(SelectedVersion));
+        OnPropertyChanged(nameof(DisplayVersion));
+        OnPropertyChanged(nameof(DisplayVersionWithV));
+        OnPropertyChanged(nameof(IsPreviousVersionSelected));
+    }
+
     [JsonIgnore]
     public string DisplayVersion =>
         !string.IsNullOrWhiteSpace(SelectedVersion) ? $"v{SelectedVersion}" : "Latest";
@@ -781,7 +798,25 @@ public sealed class ToolDefinition : INotifyPropertyChanged
         Id.Equals("sops", StringComparison.OrdinalIgnoreCase) ||
         Id.Equals("vault", StringComparison.OrdinalIgnoreCase) ||
         Id.Equals("trivy", StringComparison.OrdinalIgnoreCase) ||
-        (Math.Abs(Id.GetHashCode()) % 4 == 1);
+        (Math.Abs(StableIdHash(Id)) % 4 == 1);
+
+    /// <summary>
+    /// Deterministic hash for an id. <see cref="string.GetHashCode"/> is randomized per process,
+    /// so it must not be used for anything that should be stable across launches.
+    /// </summary>
+    private static int StableIdHash(string id)
+    {
+        unchecked
+        {
+            uint hash = 2166136261; // FNV-1a
+            foreach (var c in id)
+            {
+                hash ^= c;
+                hash *= 16777619;
+            }
+            return (int)hash;
+        }
+    }
 
     [JsonIgnore]
     public System.Collections.Generic.List<string> AllAvailableVersions

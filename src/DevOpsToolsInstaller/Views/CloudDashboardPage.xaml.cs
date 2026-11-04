@@ -42,7 +42,16 @@ public sealed partial class CloudDashboardPage : Page, IRefreshablePage
 
     public async void RefreshView()
     {
-        await LoadStateAsync();
+        // Interface method is void, so exceptions from the awaited work must be
+        // contained here instead of crashing via the global handler.
+        try
+        {
+            await LoadStateAsync();
+        }
+        catch (Exception ex)
+        {
+            ActivityLogService.Error("Cloud", $"Dashboard refresh failed: {ex.Message}");
+        }
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e)

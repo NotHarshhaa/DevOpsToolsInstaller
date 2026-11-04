@@ -214,6 +214,16 @@ public sealed class HomePopularToolItemViewModel : ObservableObject
         Tool.PropertyChanged += Tool_PropertyChanged;
     }
 
+    /// <summary>
+    /// Unhooks from the long-lived <see cref="ToolDefinition"/> so rebuilding the
+    /// popular list does not accumulate dead subscriptions (the tools outlive
+    /// the view models for the whole session).
+    /// </summary>
+    public void Detach()
+    {
+        Tool.PropertyChanged -= Tool_PropertyChanged;
+    }
+
     private void Tool_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(ToolDefinition.IsInstalled) ||
@@ -575,29 +585,39 @@ public sealed partial class HomeViewModel : ObservableObject
 
             BindDownloadQueue(mw.DownloadQueue);
 
-            // 1. Scan installed tools
+            // 1. Scan installed tools. The registry/disk probe runs on a worker,
+            // but model mutations are applied back on the UI thread (only
+            // Status/Progress marshal internally — IsInstalled does not), and
+            // the collection is snapshotted first so a concurrent catalog
+            // reload can't invalidate the enumeration.
+            var snapshot = mw.Tools.ToList();
             var dlFolder = DownloadService.DefaultDownloadsFolder;
             var detected = await Task.Run(() =>
             {
-                var list = new List<ToolDefinition>();
-                foreach (var tool in mw.Tools)
+                var list = new List<(ToolDefinition Tool, string? VersionToApply)>();
+                foreach (var tool in snapshot)
                 {
                     if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
                     {
-                        tool.IsInstalled = true;
+                        string? version = null;
                         if (tool.Kind == ArtifactKind.Installer && string.IsNullOrWhiteSpace(tool.DetectedVersion))
                         {
-                            var v = UninstallService.GetInstalledVersion(tool);
-                            if (!string.IsNullOrWhiteSpace(v)) tool.DetectedVersion = v;
+                            version = UninstallService.GetInstalledVersion(tool);
                         }
-                        list.Add(tool);
+                        list.Add((tool, version));
                     }
                 }
                 return list;
             }, ct);
 
+            foreach (var (tool, versionToApply) in detected)
+            {
+                tool.IsInstalled = true;
+                if (!string.IsNullOrWhiteSpace(versionToApply)) tool.DetectedVersion = versionToApply;
+            }
+
             _installedTools.Clear();
-            _installedTools.AddRange(detected);
+            _installedTools.AddRange(detected.Select(d => d.Tool));
             InstalledCount = _installedTools.Count;
             HasInstalledTools = InstalledCount > 0;
 
@@ -914,6 +934,11 @@ public sealed partial class HomeViewModel : ObservableObject
 
         var toolsById = mw.Tools.ToDictionary(t => t.Id, t => t, StringComparer.OrdinalIgnoreCase);
 
+        // Detach before clearing — the old VMs subscribe to tools that live on.
+        foreach (var vm in PopularTools.OfType<HomePopularToolItemViewModel>())
+        {
+            vm.Detach();
+        }
         PopularTools.Clear();
         foreach (var id in targetIds)
         {
@@ -1198,6 +1223,14 @@ public sealed partial class HomeViewModel : ObservableObject
                 succeeded.Count == toolsToUpdate.Count
                     ? "All selected tools were updated successfully."
                     : "Some tools could not be updated — the remaining items stay listed on the Home page.");
+        }
+        catch (Exception ex)
+        {
+            // A batch failure must not escape into the caller's async-void click
+            // handler — surface it and keep the updates listed for a retry.
+            ActivityLogService.Error("Updates", $"Update-all failed: {ex.Message}");
+            ToastService.Show("Update all failed", ex.Message, NoteKind.Error);
+            _ = mw.DispatcherQueue.TryEnqueue(SyncActiveDownloads);
         }
         finally
         {

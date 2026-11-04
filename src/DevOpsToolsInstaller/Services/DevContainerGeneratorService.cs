@@ -16,6 +16,8 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class DevContainerGeneratorService
 {
+    // Keys are catalog tool ids (catalog/catalog.json). Aliases for older
+    // naming are kept so imported devcontainer features still resolve.
     private static readonly Dictionary<string, string> FeatureMap = new(StringComparer.OrdinalIgnoreCase)
     {
         { "kubectl", "ghcr.io/devcontainers/features/kubectl-helm-minikube:1" },
@@ -26,13 +28,17 @@ public static class DevContainerGeneratorService
         { "terraform", "ghcr.io/devcontainers/features/terraform:1" },
         { "terragrunt", "ghcr.io/devcontainers/features/terraform:1" },
         { "tflint", "ghcr.io/devcontainers/features/terraform:1" },
+        { "awscli", "ghcr.io/devcontainers/features/aws-cli:1" },
         { "aws-cli", "ghcr.io/devcontainers/features/aws-cli:1" },
         { "azure-cli", "ghcr.io/devcontainers/features/azure-cli:1" },
+        { "gcloud-cli", "ghcr.io/devcontainers/features/google-cloud-cli:1" },
         { "google-cloud-cli", "ghcr.io/devcontainers/features/google-cloud-cli:1" },
+        { "github-cli", "ghcr.io/devcontainers/features/github-cli:1" },
         { "gh", "ghcr.io/devcontainers/features/github-cli:1" },
         { "git", "ghcr.io/devcontainers/features/git:1" },
         { "powershell", "ghcr.io/devcontainers/features/powershell:1" },
         { "python", "ghcr.io/devcontainers/features/python:3" },
+        { "nodejs", "ghcr.io/devcontainers/features/node:1" },
         { "node", "ghcr.io/devcontainers/features/node:1" },
         { "golang", "ghcr.io/devcontainers/features/go:1" },
         { "rust", "ghcr.io/devcontainers/features/rust:1" }
@@ -48,12 +54,17 @@ public static class DevContainerGeneratorService
         { "docker-cli", "ms-azuretools.vscode-docker" },
         { "docker-desktop", "ms-azuretools.vscode-docker" },
         { "azure-cli", "ms-vscode.azurecli" },
+        { "awscli", "amazonwebservices.aws-toolkit-vscode" },
         { "aws-cli", "amazonwebservices.aws-toolkit-vscode" },
+        { "gcloud-cli", "GoogleCloudTools.cloudcode" },
         { "google-cloud-cli", "GoogleCloudTools.cloudcode" },
+        { "github-cli", "github.vscode-github-actions" },
         { "gh", "github.vscode-github-actions" },
         { "trivy", "trivy.trivy-vscode" },
         { "powershell", "ms-vscode.powershell" },
         { "python", "ms-python.python" },
+        { "nodejs", "dbaeumer.vscode-eslint" },
+        { "node", "dbaeumer.vscode-eslint" },
         { "golang", "golang.go" },
         { "rust", "rust-lang.rust-analyzer" }
     };

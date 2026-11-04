@@ -276,7 +276,10 @@
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <Frame x:Name="ContentFrame" Grid.Row="0" Background="Transparent">
+                    <!-- CacheSize > 0 is required for NavigationCacheMode="Enabled"
+                         pages to actually be cached (the default is 0, which
+                         recreates every page on each navigation). -->
+                    <Frame x:Name="ContentFrame" Grid.Row="0" Background="Transparent" CacheSize="4">
                     <Frame.ContentTransitions>
                         <TransitionCollection>
                             <NavigationThemeTransition>

@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -68,9 +70,7 @@ public static class ActivityLogService
     /// Folder holding the on-disk audit logs:
     /// %LOCALAPPDATA%\DevOpsToolsInstaller\logs
     /// </summary>
-    public static string LogDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "logs");
+    public static string LogDirectory { get; } = DevOpsToolsInstaller.Helpers.AppPaths.LogsFolder;
 
     /// <summary>
     /// Adds a log entry. Thread-safe — marshals to UI thread. Also appended

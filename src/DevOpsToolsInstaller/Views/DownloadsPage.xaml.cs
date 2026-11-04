@@ -37,9 +37,9 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
         Unloaded += (s, e) =>
         {
             TeardownThroughputChart();
+            _searchDebounceTimer?.Stop();
             DownloadSchedulerService.Instance.SchedulerTicked -= OnSchedulerTicked;
         };
-        DownloadSchedulerService.Instance.SchedulerTicked += OnSchedulerTicked;
         LogList.ItemsSource = ActivityLogService.Entries;
     }
 
@@ -116,6 +116,10 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
     {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
+
+        // Subscribed symmetrically with Unloaded so the page keeps refreshing
+        // across cached navigations (subscribe here, unsubscribe in Unloaded).
+        DownloadSchedulerService.Instance.SchedulerTicked += OnSchedulerTicked;
 
         // Show the loading state while the catalog hydrates and the queue is
         // first populated, so the empty state doesn't flash prematurely.
@@ -350,12 +354,30 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
     private static void RefreshInstalledStates(
         List<ToolDefinition> tools, string downloadsFolder)
     {
+        // The registry/disk probe runs on a worker; the model mutations are
+        // marshalled back to the UI thread so bindings never update from a
+        // background thread.
         _ = Task.Run(() =>
         {
-            foreach (var tool in tools)
+            var results = tools.ToDictionary(
+                t => t, t => UninstallService.IsInstalled(t, downloadsFolder));
+
+            var ui = App.MainWindowInstance?.DispatcherQueue;
+            if (ui is null)
             {
-                tool.IsInstalled = UninstallService.IsInstalled(tool, downloadsFolder);
+                foreach (var (tool, installed) in results)
+                {
+                    tool.IsInstalled = installed;
+                }
+                return;
             }
+            ui.TryEnqueue(() =>
+            {
+                foreach (var (tool, installed) in results)
+                {
+                    tool.IsInstalled = installed;
+                }
+            });
         });
     }
 
@@ -364,6 +386,7 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
     {
         _ = Task.Run(() =>
         {
+            var results = new List<(ToolDefinition Tool, AuthenticodeResult Sig)>();
             foreach (var tool in tools)
             {
                 if (tool.Status == ToolStatus.Downloaded)
@@ -371,11 +394,27 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
                     var filePath = Path.Combine(downloadsFolder, tool.FileName);
                     if (File.Exists(filePath))
                     {
-                        var sig = AuthenticodeService.VerifyFile(filePath);
-                        tool.SignatureResult = sig;
+                        results.Add((tool, AuthenticodeService.VerifyFile(filePath)));
                     }
                 }
             }
+
+            var ui = App.MainWindowInstance?.DispatcherQueue;
+            if (ui is null)
+            {
+                foreach (var (tool, sig) in results)
+                {
+                    tool.SignatureResult = sig;
+                }
+                return;
+            }
+            ui.TryEnqueue(() =>
+            {
+                foreach (var (tool, sig) in results)
+                {
+                    tool.SignatureResult = sig;
+                }
+            });
         });
     }
 
@@ -438,36 +477,57 @@ public sealed partial class DownloadsPage : Page, IRefreshablePage
             }
         }
 
-        var result = ArtifactService.Perform(tool, dlFolder);
+        var result = await Task.Run(() => ArtifactService.Perform(tool, dlFolder));
         StatusText.Text = result.Message;
 
         RefreshInstalledStates(new List<ToolDefinition> { tool }, dlFolder);
         UpdateMetrics();
     }
 
+    private bool _isInstallingAll;
+
     private async void InstallAllReady_Click(object sender, RoutedEventArgs e)
     {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
+        if (_isInstallingAll) return; // double-click / re-entrancy guard
+        _isInstallingAll = true;
 
-        var dlFolder = DownloadService.DefaultDownloadsFolder;
-        var readyTools = mw.DownloadQueue.Where(t => t.IsDownloaded && !t.IsInstalled).ToList();
-        if (readyTools.Count == 0) return;
-
-        int processed = 0;
-        foreach (var tool in readyTools)
+        InstallAllReadyButton.IsEnabled = false;
+        try
         {
-            var res = ArtifactService.Perform(tool, dlFolder);
-            if (res.Success)
-            {
-                tool.IsInstalled = true;
-                processed++;
-            }
-        }
+            var dlFolder = DownloadService.DefaultDownloadsFolder;
+            var readyTools = mw.DownloadQueue.Where(t => t.IsDownloaded && !t.IsInstalled).ToList();
+            if (readyTools.Count == 0) return;
 
-        RefreshInstalledStates(readyTools, dlFolder);
-        StatusText.Text = $"Processed {processed}/{readyTools.Count} tools.";
-        UpdateMetrics();
+            int processed = 0;
+            // Extraction and registry scans run off the UI thread; results are
+            // applied on it (IsInstalled only marshals via the Refresh helper).
+            var results = await Task.Run(() =>
+                readyTools.ToDictionary(t => t, t => ArtifactService.Perform(t, dlFolder)));
+
+            foreach (var (tool, res) in results)
+            {
+                if (res.Success)
+                {
+                    tool.IsInstalled = true;
+                    processed++;
+                }
+            }
+
+            RefreshInstalledStates(readyTools, dlFolder);
+            StatusText.Text = $"Processed {processed}/{readyTools.Count} tools.";
+            UpdateMetrics();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = $"Install failed: {ex.Message}";
+        }
+        finally
+        {
+            _isInstallingAll = false;
+            InstallAllReadyButton.IsEnabled = true;
+        }
     }
 
     private void ClearFinished_Click(object sender, RoutedEventArgs e)

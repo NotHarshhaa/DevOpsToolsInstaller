@@ -133,6 +133,23 @@ public static class WslService
                 }
             }
             catch { }
+
+            if (wslVer is null)
+            {
+                // "wsl.exe --status" output is localized on non-English Windows,
+                // so the text probe above can fail. The Lxss registry key exposes
+                // the same default version locale-independently.
+                try
+                {
+                    using var lxss = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                        @"Software\Microsoft\Windows\CurrentVersion\Lxss");
+                    if (lxss?.GetValue("DefaultVersion") is int defaultVersion)
+                    {
+                        wslVer = $"WSL {defaultVersion}";
+                    }
+                }
+                catch { }
+            }
         }
 
         bool vmpEnabled = false;
@@ -271,14 +288,25 @@ public static class WslService
 
         var installCmd = GetInstallCommandForDistro(distroName, toolId);
 
+        // wsl.exe cannot safely carry a nested-quoted bash script on its command
+        // line: the double quotes inside commands (e.g. terraform's signed-by
+        // echo, kubectl's $(curl ...)) would terminate the outer quoted argument
+        // and mangle the script. The payload is therefore base64-encoded and
+        // decoded inside the distro, which is quote-safe by construction.
+        var payloadB64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(installCmd));
+
         try
         {
             if (interactive)
             {
+                var script =
+                    $"echo 'Installing {toolId} in {distroName}...'; " +
+                    $"echo {payloadB64} | base64 -d | bash; " +
+                    "echo; echo 'Done. Press Enter to exit.'; read -r";
                 var psi = new ProcessStartInfo
                 {
                     FileName = "wsl.exe",
-                    Arguments = $"-d \"{distroName}\" bash -ic \"echo 'Installing {toolId} in {distroName}...'; {installCmd}; echo; echo 'Done. Press Enter to exit.'; read -r\"",
+                    Arguments = $"-d \"{distroName}\" bash -ic \"{script}\"",
                     UseShellExecute = true
                 };
                 Process.Start(psi);
@@ -290,7 +318,7 @@ public static class WslService
                 var psi = new ProcessStartInfo
                 {
                     FileName = "wsl.exe",
-                    Arguments = $"-d \"{distroName}\" -- bash -c \"{installCmd}\"",
+                    Arguments = $"-d \"{distroName}\" -- bash -c \"echo {payloadB64} | base64 -d | bash\"",
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -386,15 +414,28 @@ Write-Host "Prerequisites configured successfully. If prompted, please restart y
         var outTask = proc.StandardOutput.BaseStream.CopyToAsync(outMs);
         var errTask = proc.StandardError.BaseStream.CopyToAsync(errMs);
 
-        var completed = await Task.WhenAny(Task.WhenAll(outTask, errTask), Task.Delay(timeoutMs));
-        if (completed != Task.Delay(timeoutMs))
+        // Compare against the same Task.Delay instance — a fresh Task.Delay()
+        // is never reference-equal to the first, which made this timeout
+        // branch unreachable and could hang forever on a stuck wsl.exe.
+        var timeoutTask = Task.Delay(timeoutMs);
+        var completed = await Task.WhenAny(Task.WhenAll(outTask, errTask), timeoutTask);
+        if (completed != timeoutTask)
         {
             await proc.WaitForExitAsync();
             var outBytes = outMs.ToArray();
-            return DecodeProcessOutput(outBytes);
+            var output = DecodeProcessOutput(outBytes);
+            if (string.IsNullOrWhiteSpace(output))
+            {
+                // Surface stderr (e.g. localized wsl.exe errors) when stdout is empty.
+                output = DecodeProcessOutput(errMs.ToArray());
+            }
+            return output;
         }
 
-        try { proc.Kill(); } catch { }
+        try { proc.Kill(entireProcessTree: true); } catch { }
+        // Drain the stream tasks so they never write into the now-disposed
+        // MemoryStreams after this method returns.
+        try { await Task.WhenAll(outTask, errTask); } catch { }
         return string.Empty;
     }
 
@@ -438,7 +479,8 @@ Write-Host "Prerequisites configured successfully. If prompted, please restart y
             return await task;
         }
 
-        try { proc.Kill(); } catch { }
+        try { proc.Kill(entireProcessTree: true); } catch { }
+        try { await task; } catch { }
         return string.Empty;
     }
 

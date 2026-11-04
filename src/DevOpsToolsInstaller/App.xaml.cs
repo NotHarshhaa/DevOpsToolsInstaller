@@ -66,11 +66,4 @@ public partial class App : Application
         // also creates the AUMID registration.
         ToastService.Register();
     }
-
-    private async System.Threading.Tasks.Task RunCliAsync(string[] args)
-    {
-        var exitCode = await Services.CliHost.RunAsync(args);
-        Exit();
-        Environment.ExitCode = exitCode;
-    }
 }

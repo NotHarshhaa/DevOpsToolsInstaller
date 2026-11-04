@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public sealed record SyncResult(bool Success, string Message, int FilesSynced);
@@ -28,9 +30,7 @@ public static class ProfileSyncService
     public static bool IsConfigured
         => !string.IsNullOrWhiteSpace(SettingsService.SyncFolder);
 
-    private static string LocalRoot => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller");
+    private static string LocalRoot => DevOpsToolsInstaller.Helpers.AppPaths.Root;
 
     private static string? SyncRoot
     {
@@ -189,13 +189,32 @@ public static class ProfileSyncService
         return pushed;
     }
 
+    /// <summary>
+    /// Builds an id-keyed map without throwing when the underlying store
+    /// contains duplicate keys (hand-edited JSON, or a race between two
+    /// syncing machines) — the last entry wins. A throwing ToDictionary here
+    /// would abort the entire sync over one duplicate.
+    /// </summary>
+    private static Dictionary<string, T> ToTolerantDictionary<T>(
+        IEnumerable<T> items, Func<T, string> keySelector, StringComparer comparer)
+    {
+        var map = new Dictionary<string, T>(comparer);
+        foreach (var item in items)
+        {
+            var key = keySelector(item);
+            if (string.IsNullOrWhiteSpace(key)) continue;
+            map[key] = item;
+        }
+        return map;
+    }
+
     private static int MergeProfiles(string root)
     {
         var remotePath = Path.Combine(root, "profiles.json");
         if (!File.Exists(remotePath)) return 0;
 
         var local = ProfileStoreService.LoadAll();
-        var byId = local.ToDictionary(p => p.Id, p => p, StringComparer.OrdinalIgnoreCase);
+        var byId = ToTolerantDictionary(local, p => p.Id, StringComparer.OrdinalIgnoreCase);
         int merged = 0;
 
         foreach (var remote in ReadList<WorkstationProfile>(remotePath))
@@ -221,8 +240,7 @@ public static class ProfileSyncService
         var remoteDir = Path.Combine(root, "snapshots");
         if (!Directory.Exists(remoteDir)) return 0;
 
-        var local = SnapshotService.LoadAll()
-            .ToDictionary(s => s.Name, s => s, StringComparer.OrdinalIgnoreCase);
+        var local = ToTolerantDictionary(SnapshotService.LoadAll(), s => s.Name, StringComparer.OrdinalIgnoreCase);
         int merged = 0;
 
         foreach (var snap in ReadSnapshots(remoteDir))
@@ -243,8 +261,7 @@ public static class ProfileSyncService
         var remotePath = Path.Combine(root, "hooks.json");
         if (!File.Exists(remotePath)) return 0;
 
-        var local = HookService.LoadAll()
-            .ToDictionary(h => h.ToolId, h => h, StringComparer.OrdinalIgnoreCase);
+        var local = ToTolerantDictionary(HookService.LoadAll(), h => h.ToolId, StringComparer.OrdinalIgnoreCase);
         int merged = 0;
 
         foreach (var hook in ReadList<ToolHook>(remotePath))
@@ -264,8 +281,7 @@ public static class ProfileSyncService
         var remotePath = Path.Combine(root, "custom_stacks.json");
         if (!File.Exists(remotePath)) return 0;
 
-        var local = CustomStacksService.LoadCustomStacks()
-            .ToDictionary(b => b.Id, b => b, StringComparer.OrdinalIgnoreCase);
+        var local = ToTolerantDictionary(CustomStacksService.LoadCustomStacks(), b => b.Id, StringComparer.OrdinalIgnoreCase);
         int merged = 0;
 
         foreach (var stack in ReadList<ToolBundle>(remotePath))

@@ -32,6 +32,15 @@
                             <tk:SegmentedItem Content="Stack Builder" Tag="Builder" ToolTipService.ToolTip="Create and customize tool stacks" />
                         </tk:Segmented>
 
+                        <Button Click="ImportDevContainer_Click"
+                                CornerRadius="4" Padding="14,7" VerticalAlignment="Center"
+                                ToolTipService.ToolTip="Pick tools from an existing .devcontainer/devcontainer.json">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon Glyph="&#xE8B5;" FontSize="13" />
+                                <TextBlock Text="Import devcontainer" FontSize="12" />
+                            </StackPanel>
+                        </Button>
+
                         <Button Click="BrowseCatalog_Click"
                                 CornerRadius="4" Padding="14,7" VerticalAlignment="Center"
                                 ToolTipService.ToolTip="Explore full tool catalog">
@@ -254,6 +263,16 @@
                                         <StackPanel Orientation="Horizontal" Spacing="6">
                                             <FontIcon Glyph="&#xE88E;" FontSize="13" />
                                             <TextBlock Text="Export Offline Bundle (USB)" FontSize="12" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <Button HorizontalAlignment="Stretch"
+                                            Click="DetailCopyMarkdown_Click"
+                                            ToolTipService.ToolTip="Copy this stack as a Markdown table to the clipboard"
+                                            AutomationProperties.Name="Copy stack as Markdown">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE8C8;" FontSize="13" />
+                                            <TextBlock Text="Copy as Markdown" FontSize="12" />
                                         </StackPanel>
                                     </Button>
 

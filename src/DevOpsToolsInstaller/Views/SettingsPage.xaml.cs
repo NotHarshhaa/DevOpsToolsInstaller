@@ -31,7 +31,26 @@ public sealed partial class SettingsPage : Page
     private bool _filterActive;
     private readonly Dictionary<SettingsExpander, bool> _expandState = new();
 
+    // Programmatic IsOn/SelectedItem assignments in Loaded fire the same
+    // Toggled/SelectionChanged handlers a user click would — saving settings
+    // and popping notices on every page visit. Suppressed while the UI
+    // reflects persisted state.
+    private bool _suppressSettingsEvents;
+
     private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        _suppressSettingsEvents = true;
+        try
+        {
+            LoadSettingsIntoControls();
+        }
+        finally
+        {
+            _suppressSettingsEvents = false;
+        }
+    }
+
+    private void LoadSettingsIntoControls()
     {
         var dlFolder = DownloadService.DefaultDownloadsFolder;
         DownloadPathText.Text = dlFolder;
@@ -204,12 +223,7 @@ public sealed partial class SettingsPage : Page
         {
             ShowNotice("Reloading tool catalog...", InfoBarSeverity.Informational);
             var tools = await mw.CatalogSvc.LoadCatalogAsync();
-            mw.Tools.Clear();
-            foreach (var t in tools)
-            {
-                t.IsFavorite = FavoritesService.IsFavorite(t.Id);
-                mw.Tools.Add(t);
-            }
+            await mw.ReplaceCatalogToolsAsync(tools);
             ShowNotice($"Catalog successfully updated! {mw.Tools.Count} tools loaded.", InfoBarSeverity.Success);
         }
         catch (Exception ex)
@@ -220,6 +234,7 @@ public sealed partial class SettingsPage : Page
 
     private void ProxyToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.ProxyEnabled = ProxyToggle.IsOn;
         ProxyFieldsPanel.Visibility = ProxyToggle.IsOn ? Visibility.Visible : Visibility.Collapsed;
         SettingsService.SaveSettings();
@@ -242,6 +257,7 @@ public sealed partial class SettingsPage : Page
 
     private void SignaturePolicyComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (SignaturePolicyComboBox.SelectedItem is ComboBoxItem selectedItem &&
             selectedItem.Tag is string tag &&
             Enum.TryParse<SignaturePolicy>(tag, out var policy) &&
@@ -348,6 +364,7 @@ public sealed partial class SettingsPage : Page
 
     private void ScheduleToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.DownloadScheduleEnabled = ScheduleToggle.IsOn;
         SettingsService.SaveSettings();
         ShowNotice(
@@ -360,6 +377,7 @@ public sealed partial class SettingsPage : Page
 
     private void ScheduleTime_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (ScheduleStartComboBox.SelectedItem is ComboBoxItem startItem && startItem.Tag is int startHour)
         {
             SettingsService.ScheduleStartHour = startHour;
@@ -373,12 +391,14 @@ public sealed partial class SettingsPage : Page
 
     private void AutoRetryToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.AutoRetryFailedDownloads = AutoRetryToggle.IsOn;
         SettingsService.SaveSettings();
     }
 
     private void AutoRetryInterval_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (AutoRetryIntervalComboBox.SelectedItem is ComboBoxItem item &&
             item.Tag is string tag &&
             int.TryParse(tag, out var mins))
@@ -390,6 +410,7 @@ public sealed partial class SettingsPage : Page
 
     private void AutoClean_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (AutoCleanComboBox.SelectedItem is ComboBoxItem item &&
             item.Tag is string tag &&
             int.TryParse(tag, out var days) &&
@@ -587,6 +608,7 @@ public sealed partial class SettingsPage : Page
 
     private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (ThemeComboBox.SelectedItem is ComboBoxItem selectedItem &&
             selectedItem.Tag is string tag &&
             Enum.TryParse<AppTheme>(tag, out var theme))
@@ -609,6 +631,7 @@ public sealed partial class SettingsPage : Page
 
     private void MaterialComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (MaterialComboBox.SelectedItem is ComboBoxItem selectedItem &&
             selectedItem.Tag is string tag &&
             Enum.TryParse<WindowMaterial>(tag, out var material))
@@ -1015,12 +1038,14 @@ public sealed partial class SettingsPage : Page
 
     private void AutoUpdateToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.CheckForUpdatesOnStartup = AutoUpdateToggle.IsOn;
         SettingsService.SaveSettings();
     }
 
     private void NotificationsToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.EnableNotifications = NotificationsToggle.IsOn;
         SettingsService.SaveSettings();
         RefreshSummaries();
@@ -1028,6 +1053,7 @@ public sealed partial class SettingsPage : Page
 
     private void CloseToTrayToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.CloseToTray = CloseToTrayToggle.IsOn;
         SettingsService.SaveSettings();
         RefreshSummaries();
@@ -1035,16 +1061,25 @@ public sealed partial class SettingsPage : Page
 
     private void OnboardingToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.ShowOnboardingTips = OnboardingToggle.IsOn;
         if (!OnboardingToggle.IsOn)
         {
             SettingsService.OnboardingCompleted = true;
+        }
+        else
+        {
+            // Home/MainWindow gate the tips on !OnboardingCompleted, so turning
+            // the toggle back on must also re-arm the tour or the setting would
+            // never bring the tips back.
+            SettingsService.OnboardingCompleted = false;
         }
         SettingsService.SaveSettings();
     }
 
     private void HooksToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.HooksEnabled = HooksToggle.IsOn;
         SettingsService.SaveSettings();
         UpdateHooksWarning();
@@ -1431,6 +1466,7 @@ public sealed partial class SettingsPage : Page
     }
     private void ToolAutoUpdateToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.AutoUpdateCheckEnabled = ToolAutoUpdateToggle.IsOn;
         SettingsService.SaveSettings();
         UpdateAutomationService.Instance.RefreshTimerSchedule();
@@ -1438,18 +1474,21 @@ public sealed partial class SettingsPage : Page
 
     private void ToolUpdateToastToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.ShowUpdateToastWithReleaseNotes = ToolUpdateToastToggle.IsOn;
         SettingsService.SaveSettings();
     }
 
     private void MaintenanceWindowToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.MaintenanceWindowEnabled = MaintenanceWindowToggle.IsOn;
         SettingsService.SaveSettings();
     }
 
     private void AutoInstallDuringMaintenanceToggle_Toggled(object sender, RoutedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         SettingsService.AutoInstallDuringMaintenance = AutoInstallDuringMaintenanceToggle.IsOn;
         SettingsService.SaveSettings();
     }
@@ -1549,8 +1588,7 @@ public sealed partial class SettingsPage : Page
                     if (mw is not null)
                     {
                         var tools = await mw.CatalogSvc.LoadCatalogAsync();
-                        mw.Tools.Clear();
-                        foreach (var t in tools) mw.Tools.Add(t);
+                        await mw.ReplaceCatalogToolsAsync(tools);
                     }
                 };
                 actions.Children.Add(delBtn);
@@ -1592,8 +1630,7 @@ public sealed partial class SettingsPage : Page
             if (mw is not null)
             {
                 var tools = await mw.CatalogSvc.LoadCatalogAsync();
-                mw.Tools.Clear();
-                foreach (var t in tools) mw.Tools.Add(t);
+                await mw.ReplaceCatalogToolsAsync(tools);
             }
 
             ShowNotice($"Subscribed to feed '{feed.Name}' ({feed.ToolCount} tools synced).", InfoBarSeverity.Success);
@@ -1617,8 +1654,7 @@ public sealed partial class SettingsPage : Page
         if (mw is not null)
         {
             var tools = await mw.CatalogSvc.LoadCatalogAsync();
-            mw.Tools.Clear();
-            foreach (var t in tools) mw.Tools.Add(t);
+            await mw.ReplaceCatalogToolsAsync(tools);
         }
 
         ShowNotice($"Feed sync complete: {successCount} succeeded, {failCount} failed. {mw?.Tools.Count} tools active.",
@@ -1678,6 +1714,90 @@ public sealed partial class SettingsPage : Page
         }
     }
 
+    // ── Settings Backup & Restore ──────────────────────────────────────
+
+    private async void ExportSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        if (EnterprisePolicyService.AreSettingsLocked)
+        {
+            ShowNotice("Settings backup is disabled by corporate IT policy.", InfoBarSeverity.Error);
+            return;
+        }
+
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileSavePicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeChoices.Add("Settings Bundle", new List<string> { ".json" });
+            picker.SuggestedFileName = $"devops-tools-settings-{DateTime.Now:yyyyMMdd}";
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSaveFileAsync();
+            if (file is null) return;
+
+            var includeSecrets = IncludeSecretsCheck?.IsChecked == true;
+            var (ok, error) = await SettingsBackupService.ExportAsync(file.Path, includeSecrets);
+            if (!ok)
+            {
+                ShowNotice($"Failed to export settings: {error}", InfoBarSeverity.Error);
+                return;
+            }
+
+            BackupSummaryText.Text = $"Last export: {DateTime.Now:g}";
+            ShowNotice(
+                includeSecrets
+                    ? $"Settings bundle exported to '{file.Path}'. It contains your proxy password in plain text — store it securely."
+                    : $"Settings bundle exported to '{file.Path}'.",
+                includeSecrets ? InfoBarSeverity.Warning : InfoBarSeverity.Success);
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to export settings: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
+    private async void ImportSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        if (EnterprisePolicyService.AreSettingsLocked)
+        {
+            ShowNotice("Settings restore is disabled by corporate IT policy.", InfoBarSeverity.Error);
+            return;
+        }
+
+        try
+        {
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.DocumentsLibrary;
+            picker.FileTypeFilter.Add(".json");
+            picker.FileTypeFilter.Add("*");
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file is null) return;
+
+            var result = await SettingsBackupService.ImportAsync(file.Path, importSecrets: false);
+            ShowNotice(result.Message, result.Success ? InfoBarSeverity.Success : InfoBarSeverity.Error);
+            if (result.Success)
+            {
+                LoadSettingsIntoControls();
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowNotice($"Failed to restore settings: {ex.Message}", InfoBarSeverity.Error);
+        }
+    }
+
     private async void ExportPolicyTemplate_Click(object sender, RoutedEventArgs e)
     {
         var mw = App.MainWindowInstance;
@@ -1732,6 +1852,7 @@ public sealed partial class SettingsPage : Page
 
     private void DefaultBackendCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
+        if (_suppressSettingsEvents) return;
         if (DefaultBackendCombo.SelectedItem is ComboBoxItem item && item.Tag is string tag)
         {
             var backend = ToolBackendExtensions.Parse(tag);

@@ -755,6 +755,63 @@
                         </tk:SettingsExpander.ItemsFooter>
                     </tk:SettingsExpander>
 
+                    <!-- ══════════ BACKUP & RESTORE ══════════ -->
+                    <tk:SettingsExpander x:Name="BackupExpander"
+                                         Description="Export or restore the full app configuration: settings, favorites, update pins, hooks, custom stacks and custom tools.">
+                        <tk:SettingsExpander.Header>
+                            <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Backup &amp; restore" />
+                        </tk:SettingsExpander.Header>
+                        <tk:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE8E5;" />
+                        </tk:SettingsExpander.HeaderIcon>
+                        <tk:SettingsExpander.Content>
+                            <TextBlock x:Name="BackupSummaryText" Style="{StaticResource CardValueTextStyle}"
+                                       Text="Last export: never" />
+                        </tk:SettingsExpander.Content>
+
+                        <tk:SettingsExpander.Items>
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Export settings bundle" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               Text="Saves a .settings-bundle.json you can keep with your workstation migration files." />
+                                </tk:SettingsCard.Description>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <CheckBox x:Name="IncludeSecretsCheck" Content="Include proxy password"
+                                              ToolTipService.ToolTip="Embeds the proxy password (DPAPI-free plaintext!) in the bundle. Only for files you keep private."
+                                              AutomationProperties.Name="Include proxy password in export" />
+                                    <Button Click="ExportSettings_Click" Style="{StaticResource AccentButtonStyle}"
+                                            AutomationProperties.Name="Export settings bundle">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE898;" FontSize="13" />
+                                            <TextBlock Text="Export…" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </tk:SettingsCard>
+
+                            <tk:SettingsCard>
+                                <tk:SettingsCard.Header>
+                                    <TextBlock Style="{StaticResource CardHeaderTextStyle}" Text="Restore from bundle" />
+                                </tk:SettingsCard.Header>
+                                <tk:SettingsCard.Description>
+                                    <TextBlock Style="{StaticResource CaptionTextBlockStyle}"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap"
+                                               Text="Validates and restores a bundle. A restart applies every section." />
+                                </tk:SettingsCard.Description>
+                                <Button Click="ImportSettings_Click" AutomationProperties.Name="Import settings bundle">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <FontIcon Glyph="&#xE8B5;" FontSize="13" />
+                                        <TextBlock Text="Import…" />
+                                    </StackPanel>
+                                </Button>
+                            </tk:SettingsCard>
+                        </tk:SettingsExpander.Items>
+                    </tk:SettingsExpander>
+
                     <!-- ══════════ UPDATES ══════════ -->
                     <StackPanel x:Name="UpdatesSection" Spacing="8" Tag="Updates">
                         <tk:SettingsExpander x:Name="UpdatesExpander"

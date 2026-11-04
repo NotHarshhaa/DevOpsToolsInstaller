@@ -8,6 +8,8 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public sealed record AppReleaseInfo(
@@ -299,9 +301,7 @@ public static class AppUpdaterService
             throw new InvalidOperationException("No download asset is available for this release.");
         }
 
-        var updateDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DevOpsToolsInstaller", "Updates", release.Version);
+        var updateDir = Path.Combine(DevOpsToolsInstaller.Helpers.AppPaths.UpdatesRoot, release.Version);
 
         Directory.CreateDirectory(updateDir);
 

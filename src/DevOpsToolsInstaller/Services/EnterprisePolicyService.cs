@@ -3,6 +3,8 @@ using System.Text.Json.Serialization;
 using Microsoft.Win32;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -50,9 +52,7 @@ public static class EnterprisePolicyService
         Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
         "DevOpsToolsInstaller", "policy.json");
 
-    private static readonly string UserPolicyPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "policy.json");
+    private static readonly string UserPolicyPath = DevOpsToolsInstaller.Helpers.AppPaths.PolicyFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

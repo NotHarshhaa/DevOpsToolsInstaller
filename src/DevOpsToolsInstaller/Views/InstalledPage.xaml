@@ -132,6 +132,12 @@
                                         <FontIcon Glyph="&#xE9F9;" />
                                     </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
+                                <MenuFlyoutItem Text="Copy Tool List as Markdown" Click="CopyMarkdown_Click"
+                                                ToolTipService.ToolTip="Copy every installed tool as a Markdown table to the clipboard">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8C8;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
                                 <MenuFlyoutItem Text="Export SBOM — CycloneDX (JSON)" Tag="cyclonedx" Click="ExportSbom_Click"
                                                 ToolTipService.ToolTip="Compliance-ready Software Bill of Materials for every installed tool (CycloneDX 1.5)">
                                     <MenuFlyoutItem.Icon>

@@ -58,8 +58,12 @@ public sealed class DownloadService
     {
         // Lazy<Task> guarantees exactly one download starts per tool even when
         // concurrent callers race GetOrAdd (a plain factory can run twice).
+        // The key includes the destination folder so concurrent callers targeting
+        // different folders (e.g. a --downloads-folder override) each get their
+        // own transfer instead of silently awaiting the first caller's.
+        var key = DedupKey(tool, destinationFolder);
         var downloadTask = ActiveDownloads.GetOrAdd(
-            tool.Id,
+            key,
             _ => new Lazy<Task>(() => ExecuteDownloadAsync(tool, destinationFolder, progress, ct),
                 LazyThreadSafetyMode.ExecutionAndPublication));
 
@@ -69,9 +73,12 @@ public sealed class DownloadService
         }
         finally
         {
-            ActiveDownloads.TryRemove(tool.Id, out _);
+            ActiveDownloads.TryRemove(key, out _);
         }
     }
+
+    private static string DedupKey(ToolDefinition tool, string destinationFolder) =>
+        $"{tool.Id}|{destinationFolder}";
 
     private static async Task ExecuteDownloadAsync(
         ToolDefinition tool,
@@ -82,14 +89,15 @@ public sealed class DownloadService
         // Register the destination file as in-flight for the whole transfer
         // (download, verification, and the skip-path hash check) so cache
         // cleanup can never race a running transfer.
-        ActiveDestinationFiles[tool.Id] = Path.Combine(destinationFolder, tool.FileName);
+        var destPath = Path.Combine(destinationFolder, tool.FileName);
+        ActiveDestinationFiles[destPath] = destPath;
         try
         {
             await ExecuteDownloadCoreAsync(tool, destinationFolder, progress, ct);
         }
         finally
         {
-            ActiveDestinationFiles.TryRemove(tool.Id, out _);
+            ActiveDestinationFiles.TryRemove(destPath, out _);
         }
     }
 
@@ -153,8 +161,17 @@ public sealed class DownloadService
                 }
             }
 
-            // 0-byte file or hash mismatch — discard it and re-download
+            // 0-byte file or hash mismatch — discard it and re-download.
             CleanupPartial(destPath);
+            if (File.Exists(destPath))
+            {
+                // The file could not be deleted (locked by another process).
+                // Fail fast now rather than paying for a full transfer that can
+                // only fail again at promotion time.
+                throw new IOException(
+                    $"'{destPath}' is locked by another process and could not be replaced. " +
+                    "Close the file and try again.");
+            }
         }
 
         tool.Status = ToolStatus.Downloading;
@@ -434,9 +451,17 @@ public sealed class DownloadService
     /// <summary>
     /// Network-level faults worth retrying with backoff. User cancellation
     /// (OperationCanceledException) and verification failures are excluded.
+    /// A definitive HTTP status from the server (404, 403, 410, …) is never
+    /// retried — only server-side errors (5xx) and transport-level failures are.
     /// </summary>
     private static bool IsTransient(Exception ex)
-        => ex is HttpRequestException or IOException;
+    {
+        if (ex is HttpRequestException hre && hre.StatusCode is { } status)
+        {
+            return (int)status >= 500;
+        }
+        return ex is HttpRequestException or IOException;
+    }
 
     /// <summary>
     /// Formats a remaining-bytes / speed pair into a compact human-readable ETA.
@@ -506,21 +531,17 @@ public sealed class DownloadService
 
     /// <summary>
     /// Verifies a file's SHA256 against the expected hash.
+    /// Returns false only for an actual hash mismatch — an I/O error while
+    /// reading the file (locked, unreadable) propagates to the caller so a
+    /// healthy artifact is never mistaken for a corrupt one and deleted.
     /// </summary>
     private static async Task<bool> VerifyHashAsync(
         string filePath, string expectedHash, CancellationToken ct)
     {
-        try
-        {
-            await using var fs = File.OpenRead(filePath);
-            var hashBytes = await SHA256.HashDataAsync(fs, ct);
-            var actualHash = Convert.ToHexString(hashBytes);
-            return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
+        await using var fs = File.OpenRead(filePath);
+        var hashBytes = await SHA256.HashDataAsync(fs, ct);
+        var actualHash = Convert.ToHexString(hashBytes);
+        return string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

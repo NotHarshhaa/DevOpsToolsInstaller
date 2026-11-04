@@ -249,8 +249,8 @@ public static class StorageManagerService
         try
         {
             var info = new FileInfo(path);
-            info.Delete();
             bytes = info.Length;
+            info.Delete();
             return true;
         }
         catch

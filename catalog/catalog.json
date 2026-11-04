@@ -1694,5 +1694,91 @@
     "previousVersions": [
       "20240203-110809-5046fc22"
     ]
+  },
+  {
+    "id": "powershell",
+    "name": "PowerShell 7",
+    "category": "Editors and Terminals",
+    "description": "Modern cross-platform automation shell and scripting language (pwsh) with remoting, modules and parallel pipelines",
+    "iconGlyph": "",
+    "kind": "installer",
+    "version": "7.6.9",
+    "homepage": "https://github.com/PowerShell/PowerShell",
+    "downloadUrl": "https://github.com/PowerShell/PowerShell/releases/download/v7.6.9/PowerShell-7.6.9-win-x64.msi",
+    "fileName": "PowerShell-7.6.9-win-x64.msi",
+    "sha256": "",
+    "launchArgs": "",
+    "versionTemplate": "https://github.com/PowerShell/PowerShell/releases/download/v{version}/PowerShell-{version}-win-x64.msi",
+    "fileNameTemplate": "PowerShell-{version}-win-x64.msi",
+    "previousVersions": [
+      "7.5.13",
+      "7.4.22"
+    ]
+  },
+  {
+    "id": "golang",
+    "name": "Go",
+    "category": "Languages & Runtimes",
+    "description": "Official Go programming language toolchain — compiler, runtime and standard library for building fast, statically-typed services",
+    "iconGlyph": "",
+    "kind": "installer",
+    "version": "1.27.3",
+    "homepage": "https://go.dev/",
+    "downloadUrl": "https://go.dev/dl/go1.27.3.windows-amd64.msi",
+    "fileName": "go1.27.3.windows-amd64.msi",
+    "sha256": "",
+    "launchArgs": "",
+    "versionTemplate": "https://go.dev/dl/go{version}.windows-amd64.msi",
+    "fileNameTemplate": "go{version}.windows-amd64.msi",
+    "previousVersions": []
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js LTS",
+    "category": "Languages & Runtimes",
+    "description": "Long-Term-Support JavaScript runtime built on Chrome's V8 engine, bundled with npm for build tooling and scripting",
+    "iconGlyph": "",
+    "kind": "installer",
+    "version": "26.13.0",
+    "homepage": "https://nodejs.org/",
+    "downloadUrl": "https://nodejs.org/dist/v26.13.0/node-v26.13.0-x64.msi",
+    "fileName": "node-v26.13.0-x64.msi",
+    "sha256": "",
+    "launchArgs": "",
+    "versionTemplate": "https://nodejs.org/dist/v{version}/node-v{version}-x64.msi",
+    "fileNameTemplate": "node-v{version}-x64.msi",
+    "previousVersions": []
+  },
+  {
+    "id": "python",
+    "name": "Python 3",
+    "category": "Languages & Runtimes",
+    "description": "Official Python 3 interpreter and pip for automation, scripting and tooling (user-scope install with PATH enabled)",
+    "iconGlyph": "",
+    "kind": "installer",
+    "version": "3.14.2",
+    "homepage": "https://www.python.org/",
+    "downloadUrl": "https://www.python.org/ftp/python/3.14.2/python-3.14.2-amd64.exe",
+    "fileName": "python-3.14.2-amd64.exe",
+    "sha256": "",
+    "launchArgs": "InstallAllUsers=0 PrependPath=1 Include_test=0",
+    "versionTemplate": "https://www.python.org/ftp/python/{version}/python-{version}-amd64.exe",
+    "fileNameTemplate": "python-{version}-amd64.exe",
+    "previousVersions": []
+  },
+  {
+    "id": "rust",
+    "name": "Rust (rustup)",
+    "category": "Languages & Runtimes",
+    "description": "Official Rust installer (rustup) — manages the Rust toolchain, cargo and clippy; completes in an interactive console",
+    "iconGlyph": "",
+    "kind": "installer",
+    "version": "1.29.3",
+    "homepage": "https://rustup.rs/",
+    "downloadUrl": "https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe",
+    "fileName": "rustup-init.exe",
+    "sha256": "",
+    "launchArgs": "",
+    "previousVersions": []
   }
 ]

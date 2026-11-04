@@ -1,5 +1,7 @@
 using System.Text.Json;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -16,9 +18,7 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class UpdatePreferenceService
 {
-    private static readonly string FilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "update-preferences.json");
+    private static readonly string FilePath = DevOpsToolsInstaller.Helpers.AppPaths.UpdatePreferencesFile;
 
     private static readonly object Gate = new();
 

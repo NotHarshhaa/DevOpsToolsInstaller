@@ -177,22 +177,33 @@ public static class GitSshSetupService
         }
 
         var comment = string.IsNullOrWhiteSpace(emailComment) ? "devops-workstation" : emailComment.Trim();
-        var passArg = string.IsNullOrEmpty(passphrase) ? "-N \"\"" : $"-N \"{passphrase}\"";
         var bitsArg = safeAlgo == "rsa" ? "-b 4096" : "";
-
-        var args = $"-t {safeAlgo} {bitsArg} -C \"{comment}\" -f \"{privPath}\" {passArg}";
 
         try
         {
+            // ArgumentList avoids manual quoting: a passphrase, key name or
+            // comment containing quotes would otherwise break the command line.
             var psi = new ProcessStartInfo
             {
                 FileName = "ssh-keygen.exe",
-                Arguments = args,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 CreateNoWindow = true
             };
+            psi.ArgumentList.Add("-t");
+            psi.ArgumentList.Add(safeAlgo);
+            if (bitsArg.Length > 0)
+            {
+                psi.ArgumentList.Add("-b");
+                psi.ArgumentList.Add("4096");
+            }
+            psi.ArgumentList.Add("-C");
+            psi.ArgumentList.Add(comment);
+            psi.ArgumentList.Add("-f");
+            psi.ArgumentList.Add(privPath);
+            psi.ArgumentList.Add("-N");
+            psi.ArgumentList.Add(passphrase ?? string.Empty);
 
             using var proc = Process.Start(psi);
             if (proc is null) return new SshKeyGenResult(false, privPath, pubPath, "", "Failed to start ssh-keygen.exe");
@@ -409,13 +420,18 @@ Write-Host "Windows OpenSSH Agent is now enabled and running." -ForegroundColor 
 
     private static async Task RunGitSetAsync(string key, string val)
     {
+        // ArgumentList keeps user-supplied values (user.name, user.email, …)
+        // intact even when they contain quotes or spaces.
         var psi = new ProcessStartInfo
         {
             FileName = "git.exe",
-            Arguments = $"config --global {key} \"{val}\"",
             UseShellExecute = false,
             CreateNoWindow = true
         };
+        psi.ArgumentList.Add("config");
+        psi.ArgumentList.Add("--global");
+        psi.ArgumentList.Add(key);
+        psi.ArgumentList.Add(val);
         using var proc = Process.Start(psi);
         if (proc != null) await proc.WaitForExitAsync();
     }

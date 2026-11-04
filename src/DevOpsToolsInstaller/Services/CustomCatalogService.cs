@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>
@@ -18,9 +20,7 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class CustomCatalogService
 {
-    private static readonly string StorageFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "custom_tools.json");
+    private static readonly string StorageFilePath = DevOpsToolsInstaller.Helpers.AppPaths.CustomToolsFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

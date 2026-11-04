@@ -9,6 +9,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>One installed side-by-side version on disk.</summary>
@@ -55,9 +57,7 @@ public static class VersionSwitcherService
     private static readonly string VersionsBaseFolder = Path.Combine(
         ArtifactService.ToolsRoot, "versions");
 
-    private static readonly string ActiveVersionsFile = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "active-versions.json");
+    private static readonly string ActiveVersionsFile = DevOpsToolsInstaller.Helpers.AppPaths.ActiveVersionsFile;
 
     private static readonly object Gate = new();
 
@@ -175,7 +175,41 @@ public static class VersionSwitcherService
             ActivityLogService.Warn(tool.Name, $"Could not enumerate side-by-side versions: {ex.Message}");
         }
 
-        return list.OrderByDescending(v => v.Version).ToList();
+        return list.OrderByDescending(v => v.Version, NaturalVersionComparer.Instance).ToList();
+    }
+
+    /// <summary>
+    /// Orders version strings numerically per dot-separated segment so
+    /// "1.10.0" sorts after "1.9.0" (a plain lexical sort gets this wrong).
+    /// </summary>
+    private sealed class NaturalVersionComparer : IComparer<string>
+    {
+        public static readonly NaturalVersionComparer Instance = new();
+
+        public int Compare(string? x, string? y)
+        {
+            if (ReferenceEquals(x, y)) return 0;
+            if (x is null) return -1;
+            if (y is null) return 1;
+
+            var xs = x.TrimStart('v', 'V').Split('.');
+            var ys = y.TrimStart('v', 'V').Split('.');
+            for (int i = 0; i < Math.Max(xs.Length, ys.Length); i++)
+            {
+                var xSeg = i < xs.Length ? xs[i] : "0";
+                var ySeg = i < ys.Length ? ys[i] : "0";
+                if (int.TryParse(xSeg, out var xi) && int.TryParse(ySeg, out var yi))
+                {
+                    if (xi != yi) return xi.CompareTo(yi);
+                }
+                else
+                {
+                    var cmp = string.Compare(xSeg, ySeg, StringComparison.OrdinalIgnoreCase);
+                    if (cmp != 0) return cmp;
+                }
+            }
+            return 0;
+        }
     }
 
     /// <summary>
@@ -232,6 +266,11 @@ public static class VersionSwitcherService
                         ActivityLogService.Info(tool.Name, $"Extracted and stored side-by-side version v{cleanVer} at {destFile}");
                         return destFile;
                     }
+                    // No executable inside the archive — storing the raw archive
+                    // bytes as <tool>.exe would poison the side-by-side store and
+                    // eventually Tools\bin. Fail loudly instead.
+                    throw new IOException(
+                        $"Archive for {tool.Name} v{cleanVer} contains no executable.");
                 }
                 finally
                 {
@@ -254,8 +293,17 @@ public static class VersionSwitcherService
                         Arguments = $"-xf \"{sourceFilePath}\" -C \"{tempExtract}\"",
                         UseShellExecute = false,
                         CreateNoWindow = true
-                    });
-                    proc?.WaitForExit(30000);
+                    }) ?? throw new IOException("Failed to start tar.exe for version extraction.");
+
+                    if (!proc.WaitForExit(60000))
+                    {
+                        try { proc.Kill(entireProcessTree: true); } catch { }
+                        throw new IOException("tar.exe timed out while extracting the version archive.");
+                    }
+                    if (proc.ExitCode != 0)
+                    {
+                        throw new IOException($"tar.exe exited with code {proc.ExitCode} while extracting the version archive.");
+                    }
 
                     var exes = Directory.GetFiles(tempExtract, "*.exe", SearchOption.AllDirectories);
                     var match = exes.FirstOrDefault(e => Path.GetFileName(e).Equals(exeName, StringComparison.OrdinalIgnoreCase))
@@ -266,6 +314,8 @@ public static class VersionSwitcherService
                         ActivityLogService.Info(tool.Name, $"Extracted and stored side-by-side version v{cleanVer} at {destFile}");
                         return destFile;
                     }
+                    throw new IOException(
+                        $"Archive for {tool.Name} v{cleanVer} contains no executable.");
                 }
                 finally
                 {
@@ -383,6 +433,12 @@ public static class VersionSwitcherService
 
             InstallHistoryService.Record(HistoryAction.Update, tool.Id, tool.Name, cleanVer, "version-switch");
             ActivityLogService.Success(tool.Name, $"Switched active version to v{cleanVer}");
+
+            // The versioned URL/FileName applied by SetVersion for this download
+            // must not leak into the shared catalog tool — otherwise every later
+            // "latest" install of this tool targets the switched version. The
+            // active version is tracked independently in active-versions.json.
+            tool.ResetVersion();
 
             ToastService.Show(
                 $"{tool.Name} Switched",

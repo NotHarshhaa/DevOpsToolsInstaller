@@ -148,42 +148,48 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
     /// Only plain data is produced here: the flags are applied to the models back
     /// on the UI thread so bindings never update from a background thread.
     /// </summary>
+    private bool _isScanning;
+
     private async Task ScanInstalledToolsAsync()
     {
         var mw = App.MainWindowInstance;
         if (mw is null) return;
+        if (_isScanning) return; // refresh click + F5 can overlap — one scan at a time
+        _isScanning = true;
 
-        // Show the loading overlay while the catalog hydrates and the
-        // workstation scan runs, so the table doesn't appear empty.
-        InstalledLoading.Visibility = Visibility.Visible;
-        InstalledList.Visibility = Visibility.Collapsed;
-        EmptyState.Visibility = Visibility.Collapsed;
-
-        StatusText.Text = "Scanning installed tools…";
-        await mw.EnsureCatalogLoadedAsync();
-
-        var dlFolder = DownloadService.DefaultDownloadsFolder;
-
-        var detected = await Task.Run(() =>
+        try
         {
-            var results = new List<InstalledScanRow>();
-            foreach (var tool in mw.Tools)
+            // Show the loading overlay while the catalog hydrates and the
+            // workstation scan runs, so the table doesn't appear empty.
+            InstalledLoading.Visibility = Visibility.Visible;
+            InstalledList.Visibility = Visibility.Collapsed;
+            EmptyState.Visibility = Visibility.Collapsed;
+
+            StatusText.Text = "Scanning installed tools…";
+            await mw.EnsureCatalogLoadedAsync();
+
+            var dlFolder = DownloadService.DefaultDownloadsFolder;
+
+            var detected = await Task.Run(() =>
             {
-                if (!UninstallService.IsInstalled(tool, dlFolder)) continue;
+                var results = new List<InstalledScanRow>();
+                foreach (var tool in mw.Tools)
+                {
+                    if (!UninstallService.IsInstalled(tool, dlFolder)) continue;
 
-                // Installers keep their real version in the registry; everything
-                // else is resolved later by probing the CLI itself.
-                var registeredVersion = tool.Kind == ArtifactKind.Installer
-                    ? UninstallService.GetInstalledVersion(tool)
-                    : null;
+                    // Installers keep their real version in the registry; everything
+                    // else is resolved later by probing the CLI itself.
+                    var registeredVersion = tool.Kind == ArtifactKind.Installer
+                        ? UninstallService.GetInstalledVersion(tool)
+                        : null;
 
-                results.Add(new InstalledScanRow(
-                    tool,
-                    registeredVersion,
-                    CliHealthService.IsToolOnPath(tool)));
-            }
-            return results;
-        });
+                    results.Add(new InstalledScanRow(
+                        tool,
+                        registeredVersion,
+                        CliHealthService.IsToolOnPath(tool)));
+                }
+                return results;
+            });
 
         _allInstalledTools = new List<ToolDefinition>(detected.Count);
         foreach (var row in detected)
@@ -280,6 +286,11 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
             }
             catch { }
         }, token);
+        }
+        finally
+        {
+            _isScanning = false;
+        }
     }
 
     // ── List state: filter, sort, empty states ──────────────────────────
@@ -1003,6 +1014,8 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
         await dialog.ShowAsync();
     }
 
+    private bool _isRunningHealthChecks;
+
     private async void RunAllHealthChecks_Click(object sender, RoutedEventArgs e)
     {
         if (_allInstalledTools.Count == 0)
@@ -1010,7 +1023,21 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
             StatusText.Text = "No installed tools to check.";
             return;
         }
+        if (_isRunningHealthChecks) return; // a second click would interleave probes mid-flight
+        _isRunningHealthChecks = true;
 
+        try
+        {
+            await RunAllHealthChecksCoreAsync();
+        }
+        finally
+        {
+            _isRunningHealthChecks = false;
+        }
+    }
+
+    private async Task RunAllHealthChecksCoreAsync()
+    {
         StatusText.Text = $"Running health checks on {_allInstalledTools.Count} tools…";
         int healthyCount = 0;
         ResetLatencySamples();
@@ -1281,11 +1308,7 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
 
     private void OpenToolsFolder_Click(object sender, RoutedEventArgs e)
     {
-        var toolsFolder = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "DevOpsToolsInstaller", "Tools");
-        if (!Directory.Exists(toolsFolder))
-            Directory.CreateDirectory(toolsFolder);
+        var toolsFolder = Helpers.AppPaths.EnsureFolder(Helpers.AppPaths.ToolsFolder);
 
         Process.Start(new ProcessStartInfo
         {
@@ -1293,6 +1316,24 @@ public sealed partial class InstalledPage : Page, IRefreshablePage
             Arguments = toolsFolder,
             UseShellExecute = true
         });
+    }
+
+    private void CopyMarkdown_Click(object sender, RoutedEventArgs e)
+    {
+        var tools = _allInstalledTools.Count > 0
+            ? _allInstalledTools
+            : App.MainWindowInstance?.Tools.Where(t => t.IsInstalled).ToList() ?? new List<ToolDefinition>();
+        if (tools.Count == 0)
+        {
+            StatusText.Text = "No installed tools to copy yet.";
+            return;
+        }
+
+        var markdown = Helpers.MarkdownExport.ToolsTable(tools, "Installed DevOps Tools");
+        var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dataPackage.SetText(markdown);
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        StatusText.Text = $"Copied {tools.Count} tool(s) as a Markdown table to the clipboard.";
     }
 
     private async void ExportReport_Click(object sender, RoutedEventArgs e)

@@ -1,7 +1,7 @@
 # DevOpsToolsInstaller
 
 <p align="center">
-  <em>Provision a complete DevOps workstation on Windows in minutes — 90 official tools, curated stacks,<br/>resumable downloads, headless automation, and a security-first pipeline. Zero silent installs, zero bundled binaries, zero telemetry.</em>
+  <em>Provision a complete DevOps workstation on Windows in minutes — 95 official tools, curated stacks,<br/>resumable downloads, headless automation, and a security-first pipeline. Zero silent installs, zero bundled binaries, zero telemetry.</em>
 </p>
 
 <p align="center">
@@ -39,11 +39,14 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 | | |
 | :--- | :--- |
 | 🪟 **Truly native Windows 11** | Mica Alt backdrop, Fluent `CommandBar` toolbars, your **own system accent color**, `InfoBadge` update counters, Segoe Fluent Icons — no custom theme hacks. |
-| 📦 **90 official tools, 12 curated stacks** | Direct-from-vendor artifacts with role-based presets (Kubernetes, DevSecOps, Cloud, IaC, Observability, Terminal). |
+| 📦 **95 official tools, 12 curated stacks** | Direct-from-vendor artifacts with role-based presets (Kubernetes, DevSecOps, Cloud, IaC, Observability, Terminal). |
 | 🧱 **Custom Stack Builder** | 2-column composer: drag tool cards into "My Stack", reorder, inspect live download size estimates, save presets, and export/import `.json`. |
 | 📋 **Project Manifest & CI Lockfile** | Team reproducible toolsets via `devtools.json` & `devtools.lock.json` — 1-click bootstrap or CI drift check (`--check`). |
 | 🔀 **Side-by-Side Versions & Switcher** | Keep multiple CLI versions (e.g. `kubectl 1.29` & `1.31`, `terraform 1.8` & `1.9`) installed together and switch per-project (like `tfenv` or `nvm`). |
 | 💻 **New-PC Workstation Migration** | Back up and restore toolsets and configs (`.gitconfig`, PowerShell profile, Windows Terminal settings, VS Code extensions, SSH config). |
+| 💾 **Settings Backup & Restore** | Export the full app configuration (settings, favorites, pins, hooks, custom stacks/tools) to one JSON bundle and restore it on any machine — proxy password excluded unless you opt in. |
+| 📥 **DevContainer Import** | Point at an existing `.devcontainer/devcontainer.json` and map its features & extensions back to installable catalog tools — the reverse of the DevContainer generator. |
+| 📝 **Copy-as-Markdown** | Share any selection, stack, or installed tool list as a Markdown table (Name · Category · Version · Status) from the catalog, stacks, or installed pages. |
 | ☁️ **Cloud & Contexts Dashboard** | Monitor local AWS, Azure, and GCP login states, and switch active Kubernetes contexts in 1 click (like `kubectx`). |
 | 🏢 **Teams & Enterprise Feeds** | Subscribe to private company tool catalogs with corporate approval badges, and enforce enterprise IT security policies. |
 | 📦 **Air-Gapped Offline Bundles** | Export complete stacks to a USB drive with self-contained installer scripts (`install-offline.ps1` & `.cmd`) and Intune deployment scripts. |
@@ -73,7 +76,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 - [How It Works](#how-it-works)
 - [Application Tour & Navigation](#application-tour--navigation)
 - [Headless CLI Mode](#headless-cli-mode)
-- [Tool Categories (90 Tools)](#tool-categories-90-tools)
+- [Tool Categories (95 Tools)](#tool-categories-95-tools)
 - [Curated Stacks & Custom Stack Builder](#curated-stacks--custom-stack-builder)
 - [Project Manifest & CI Lockfile (devtools.json)](#project-manifest--ci-lockfile-devtoolsjson)
 - [Side-by-Side Versions & Switcher](#side-by-side-versions--switcher)
@@ -116,7 +119,7 @@ A high-performance, native Windows 11 desktop application (WinUI 3 + Mica Alt) d
 Setting up a new DevOps workstation usually means the same tedious routine: open a dozen browser tabs, chase down vendor download URLs, verify versions, extract archives, configure PATH variables, and run each setup by hand.
 
 **DevOpsToolsInstaller** unifies this workflow into a single, beautifully designed workstation control plane:
-- Browse an extensible catalog of **90 official developer and DevOps tools**.
+- Browse an extensible catalog of **95 official developer and DevOps tools**.
 - Choose role-based **Curated Stacks** for rapid 1-click provisioning or catalog filtering.
 - Select previous release versions directly from tool cards.
 - Install from a **script or terminal** with headless CLI commands and CI-friendly exit codes.
@@ -139,7 +142,7 @@ Setting up a new DevOps workstation usually means the same tedious routine: open
 ```
 ┌─────────────────────────┐   Signed Catalog (ECDSA P-256)   ┌────────────────────────┐
 │  DevOps Tools Catalog   │  ──────── verified ───────────►  │   Official Artifact    │
-│  (90 Tools / 12 Stacks) │        HTTPS-only fetch          │  (.msi, .exe, .zip)   │
+│  (95 Tools / 12 Stacks) │        HTTPS-only fetch          │  (.msi, .exe, .zip)   │
 └─────────────────────────┘                                  └───────────┬────────────┘
                                                                          │
                                                 Cryptographic Checks     ▼
@@ -168,7 +171,7 @@ The application uses the Windows 11 **Mica Alt** translucent canvas, **your syst
 
 - **🏠 Home (`HomePage`)**: Workstation dashboard with live metrics (installed tools, updates available, active downloads, PATH health), an **Active Downloads** strip with per-tool progress, curated stack cards with install progress, an **Updates Available** section with one-click "Update all", and a Popular & Essential tools list with 1-click install.
 - **📦 Tool Catalog (`CatalogPage`)**:
-  - **90 Cataloged Tools**: Multi-category browsing with official vector SVG logos.
+  - **95 Cataloged Tools**: Multi-category browsing with official vector SVG logos.
   - **Native `CommandBar` toolbar**: Sort, downloaded-only filter, presets, select/clear, profile import/export — with Fluent hover states and automatic overflow.
   - **Multi-Version Selector**: Switch between the latest version or specific previous releases with dynamic URL resolution.
   - **Category Filter Chips + Favorites (★)**: Instant filtering; star preferred tools.
@@ -246,7 +249,7 @@ Everything the UI does is scriptable. Point it at a fresh machine, a rebuild scr
 
 ```text
 PS> DevOpsToolsInstaller.exe --list
-DevOps Tools Installer v3.0.0 — 90 tools available
+DevOps Tools Installer v3.0.0 — 95 tools available
 
   act                      act                          CI/CD and Version Control
   dagger                   Dagger                       CI/CD and Version Control
@@ -360,9 +363,9 @@ PS> DevOpsToolsInstaller.exe --cloud-status
 
 ---
 
-## Tool Categories (90 Tools)
+## Tool Categories (95 Tools)
 
-The catalog organizes 90 essential tools across 12 distinct domains:
+The catalog organizes 95 essential tools across 13 distinct domains:
 
 1. **Cloud Provider CLIs**: AWS CLI, Azure CLI, Google Cloud CLI, OCI CLI, AWS SAM CLI, eksctl, Azure Functions Core Tools.
 2. **Containerization & Runtimes**: Docker Desktop, Podman Desktop, Lazydocker, Dive, Kind, Minikube.
@@ -374,8 +377,9 @@ The catalog organizes 90 essential tools across 12 distinct domains:
 8. **Networking & Tunneling**: ngrok, Cloudflare Tunnel (`cloudflared`), Tailscale, Wireshark, Nmap, ctop.
 9. **Database & Data DevOps**: Flyway CLI, Liquibase, pgcli, mycli, usql, Redis CLI.
 10. **Monitoring & Observability**: Prometheus, Grafana, k6 (load testing), Vector, LogCLI.
-11. **Developer Editors & Terminals**: Visual Studio Code, Windows Terminal, PyCharm Community, Cursor, Neovim.
-12. **Core Utilities & Performance**: jq, yq, Postman, curl, HTTPie, Starship, fzf, ripgrep, bat, fd, eza, zoxide, Delta, PuTTY, WinSCP, 7-Zip.
+11. **Developer Editors & Terminals**: Visual Studio Code, Windows Terminal, PyCharm Community, Cursor, Neovim, PowerShell 7.
+12. **Languages & Runtimes**: Go, Node.js LTS, Python 3, Rust (rustup).
+13. **Core Utilities & Performance**: jq, yq, Postman, curl, HTTPie, Starship, fzf, ripgrep, bat, fd, eza, zoxide, Delta, PuTTY, WinSCP, 7-Zip.
 
 *(Full specifications live in [`catalog/catalog.json`](catalog/catalog.json).)*
 

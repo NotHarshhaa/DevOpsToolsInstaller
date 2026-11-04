@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>Kind of change recorded in the workstation install history.</summary>
@@ -51,9 +53,7 @@ public sealed class InstallHistoryEvent
 /// </summary>
 public static class InstallHistoryService
 {
-    private static readonly string StorageFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "history.jsonl");
+    private static readonly string StorageFilePath = DevOpsToolsInstaller.Helpers.AppPaths.HistoryFile;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {

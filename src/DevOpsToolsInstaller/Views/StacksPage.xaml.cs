@@ -354,9 +354,24 @@ public sealed partial class StacksPage : Page, IRefreshablePage
 
     // ── Presets Filtering ───────────────────────────────────────────────────
 
+    // Search is debounced like every other page — filtering the full card-model
+    // list on every keystroke stutters while typing.
+    private Microsoft.UI.Dispatching.DispatcherQueueTimer? _searchDebounceTimer;
+
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        ApplyFilter();
+        if (_searchDebounceTimer is null)
+        {
+            _searchDebounceTimer = DispatcherQueue.CreateTimer();
+            _searchDebounceTimer.Interval = TimeSpan.FromMilliseconds(150);
+            _searchDebounceTimer.Tick += (s, e) =>
+            {
+                _searchDebounceTimer!.Stop();
+                ApplyFilter();
+            };
+        }
+        _searchDebounceTimer.Stop();
+        _searchDebounceTimer.Start();
     }
 
     private void CategorySegmented_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -691,6 +706,28 @@ public sealed partial class StacksPage : Page, IRefreshablePage
         StartStackDownload(toDownload, _detailCard.Name);
     }
 
+    private void DetailCopyMarkdown_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null || _detailCard is null || _detailTools.Count == 0)
+        {
+            StatusText.Text = "Open a stack first to copy it as Markdown.";
+            return;
+        }
+
+        var toolsById = mw.Tools.ToDictionary(t => t.Id, t => t, StringComparer.OrdinalIgnoreCase);
+        var tools = _detailTools
+            .Where(row => toolsById.ContainsKey(row.Id))
+            .Select(row => toolsById[row.Id])
+            .ToList();
+        if (tools.Count == 0) return;
+
+        var dataPackage = new Windows.ApplicationModel.DataTransfer.DataPackage();
+        dataPackage.SetText(Helpers.MarkdownExport.ToolsTable(tools, _detailCard.Name));
+        Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(dataPackage);
+        StatusText.Text = $"Copied '{_detailCard.Name}' ({tools.Count} tools) as a Markdown table to the clipboard.";
+    }
+
     private void ToolLogo_ImageFailed(object sender, ExceptionRoutedEventArgs e)
     {
         if (sender is not Image image) return;
@@ -750,12 +787,30 @@ public sealed partial class StacksPage : Page, IRefreshablePage
         if (targetBundle == null) return;
 
         // Find the tools in this bundle that still need to be downloaded.
+        // Status is only flipped to Downloading inside the background batch, so
+        // a rapid second click would otherwise enqueue the same tools twice.
         var toDownload = ResolvePendingTools(mw, targetBundle.Tools);
 
         if (toDownload.Count == 0)
         {
             StatusText.Text = $"All tools in {targetBundle.Name} are already installed.";
             return;
+        }
+
+        // Mark as scheduled immediately so ResolvePendingTools excludes them on
+        // a quick re-click before the background batch flips the status.
+        foreach (var tool in toDownload)
+        {
+            if (DownloadSchedulerService.IsOffPeakActive)
+            {
+                tool.Status = ToolStatus.Scheduled;
+                tool.Progress = 0;
+            }
+            else
+            {
+                tool.Status = ToolStatus.Downloading;
+                tool.Progress = 0;
+            }
         }
 
         StartStackDownload(toDownload, targetBundle.Name);
@@ -792,7 +847,9 @@ public sealed partial class StacksPage : Page, IRefreshablePage
 
         foreach (var tool in toDownload)
         {
-            tool.IsSelected = true;
+            // Note: deliberately NOT setting tool.IsSelected — mutating the
+            // global catalog selection as an install side-effect leaves the
+            // Catalog page's floating selection bar active with no explanation.
             if (!mw.DownloadQueue.Contains(tool))
             {
                 mw.DownloadQueue.Add(tool);
@@ -1240,6 +1297,137 @@ public sealed partial class StacksPage : Page, IRefreshablePage
                 ShowInfoBar(InfoBarSeverity.Success, "Import Successful",
                     $"Successfully imported '{stack.Name}' with {stack.Tools.Count} tool(s).");
             }
+        }
+        catch (Exception ex)
+        {
+            ShowInfoBar(InfoBarSeverity.Error, "Import Failed", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Picks tools from an existing .devcontainer/devcontainer.json (the
+    /// reverse of the DevContainer export): parses features and extensions,
+    /// matches them against the catalog, and lets the user select which
+    /// matched tools to take into the catalog selection.
+    /// </summary>
+    private async void ImportDevContainer_Click(object sender, RoutedEventArgs e)
+    {
+        var mw = App.MainWindowInstance;
+        if (mw is null) return;
+
+        try
+        {
+            if (App.MainWindowInstance is null) return;
+            var openPicker = new FileOpenPicker();
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(mw);
+            WinRT.Interop.InitializeWithWindow.Initialize(openPicker, hwnd);
+
+            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            openPicker.FileTypeFilter.Add(".json");
+
+            var file = await openPicker.PickSingleFileAsync();
+            if (file is null) return;
+
+            var json = await Windows.Storage.FileIO.ReadTextAsync(file);
+            var result = DevContainerImportService.ParseJson(json, mw.Tools);
+
+            if (!result.Parsed)
+            {
+                ShowInfoBar(InfoBarSeverity.Error, "Import Failed", result.Error ?? "Could not parse the devcontainer configuration.");
+                return;
+            }
+
+            if (result.Matches.Count == 0)
+            {
+                var unmatchedText = result.UnmatchedFeatures.Count + result.UnmatchedExtensions.Count > 0
+                    ? $" Unrecognized entries: {string.Join(", ", result.UnmatchedFeatures.Take(4).Concat(result.UnmatchedExtensions.Take(4)).Take(8))}"
+                    : "";
+                ShowInfoBar(InfoBarSeverity.Warning, "No Matching Tools",
+                    $"'{result.ContainerName}' does not map to any catalog tool.{unmatchedText}");
+                return;
+            }
+
+            // Build the selection dialog.
+            var list = new StackPanel { Spacing = 6 };
+            var checkboxes = new List<(CheckBox Box, DevContainerMatch Match)>();
+            foreach (var match in result.Matches)
+            {
+                var box = new CheckBox
+                {
+                    Content = new StackPanel
+                    {
+                        Orientation = Orientation.Vertical,
+                        Children =
+                        {
+                            new TextBlock { Text = match.ToolName, FontWeight = Microsoft.UI.Text.FontWeights.SemiBold },
+                            new TextBlock
+                            {
+                                Text = $"{match.Source}: {match.SourceDetail}",
+                                FontSize = 11,
+                                Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                                TextTrimming = TextTrimming.CharacterEllipsis
+                            }
+                        }
+                    },
+                    IsChecked = true,
+                    Margin = new Thickness(0, 0, 0, 4)
+                };
+                checkboxes.Add((box, match));
+                list.Children.Add(box);
+            }
+
+            var extras = new List<string>();
+            if (result.UnmatchedFeatures.Count > 0)
+                extras.Add($"Features with no catalog equivalent: {string.Join(", ", result.UnmatchedFeatures.Take(5))}" +
+                           (result.UnmatchedFeatures.Count > 5 ? $" (+{result.UnmatchedFeatures.Count - 5} more)" : ""));
+            if (result.UnmatchedExtensions.Count > 0)
+                extras.Add($"Extensions with no catalog equivalent: {string.Join(", ", result.UnmatchedExtensions.Take(5))}" +
+                           (result.UnmatchedExtensions.Count > 5 ? $" (+{result.UnmatchedExtensions.Count - 5} more)" : ""));
+
+            var scroll = new ScrollViewer
+            {
+                MaxHeight = 320,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = list
+            };
+            var content = new StackPanel { Spacing = 10 };
+            content.Children.Add(scroll);
+            if (extras.Count > 0)
+            {
+                content.Children.Add(new TextBlock
+                {
+                    Text = string.Join("\n", extras),
+                    FontSize = 11,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                });
+            }
+
+            var dialog = new ContentDialog
+            {
+                Title = $"Import from '{result.ContainerName}'",
+                Content = content,
+                PrimaryButtonText = "Select in Catalog",
+                CloseButtonText = "Cancel",
+                DefaultButton = ContentDialogButton.Primary,
+                XamlRoot = this.XamlRoot
+            };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary) return;
+
+            int selected = 0;
+            foreach (var (box, match) in checkboxes)
+            {
+                if (box.IsChecked != true) continue;
+                var tool = mw.Tools.FirstOrDefault(t => t.Id.Equals(match.ToolId, StringComparison.OrdinalIgnoreCase));
+                if (tool is null) continue;
+                tool.IsSelected = true;
+                selected++;
+            }
+
+            ToastService.Show("Devcontainer Imported",
+                $"{selected} tool(s) from '{result.ContainerName}' selected in the catalog.");
+            mw.NavigateTo("Catalog");
         }
         catch (Exception ex)
         {

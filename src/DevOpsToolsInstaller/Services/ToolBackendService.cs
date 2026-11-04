@@ -9,13 +9,30 @@ namespace DevOpsToolsInstaller.Services;
 /// </summary>
 public static class ToolBackendService
 {
-    private static readonly Lazy<bool> _isWinget = new(() => CheckCommandExists("winget.exe"));
-    private static readonly Lazy<bool> _isScoop = new(() => CheckCommandExists("scoop.cmd") || File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "scoop", "shims", "scoop.cmd")));
-    private static readonly Lazy<bool> _isChoco = new(() => CheckCommandExists("choco.exe") || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ChocolateyInstall")));
+    // Backend availability is cached briefly so a freshly installed winget/scoop
+    // is picked up during the session without probing the PATH on every call.
+    private static readonly TimeSpan AvailabilityTtl = TimeSpan.FromMinutes(10);
+    private static (bool Value, DateTimeOffset CheckedAt) _isWinget;
+    private static (bool Value, DateTimeOffset CheckedAt) _isScoop;
+    private static (bool Value, DateTimeOffset CheckedAt) _isChoco;
 
-    public static bool IsWingetAvailable => _isWinget.Value;
-    public static bool IsScoopAvailable => _isScoop.Value;
-    public static bool IsChocolateyAvailable => _isChoco.Value;
+    public static bool IsWingetAvailable => GetCached(ref _isWinget, () => CheckCommandExists("winget.exe"));
+    public static bool IsScoopAvailable => GetCached(ref _isScoop, () =>
+        CheckCommandExists("scoop.cmd") || File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "scoop", "shims", "scoop.cmd")));
+    public static bool IsChocolateyAvailable => GetCached(ref _isChoco, () =>
+        CheckCommandExists("choco.exe") || !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ChocolateyInstall")));
+
+    private static bool GetCached(ref (bool Value, DateTimeOffset CheckedAt) slot, Func<bool> probe)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (slot.CheckedAt != default && now - slot.CheckedAt < AvailabilityTtl)
+        {
+            return slot.Value;
+        }
+        var value = probe();
+        slot = (value, now);
+        return value;
+    }
 
     public static bool IsBackendAvailable(ToolBackend backend) => backend switch
     {
@@ -212,7 +229,19 @@ public static class ToolBackendService
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-            await process.WaitForExitAsync(ct);
+            try
+            {
+                await process.WaitForExitAsync(ct);
+            }
+            catch (OperationCanceledException)
+            {
+                // The caller cancelled — don't leave the package manager running.
+                try { process.Kill(entireProcessTree: true); } catch { /* already exited */ }
+                throw;
+            }
+            // Give async stream handlers a moment to flush their final lines
+            // before reading the exit code.
+            process.WaitForExit();
 
             if (process.ExitCode == 0)
             {

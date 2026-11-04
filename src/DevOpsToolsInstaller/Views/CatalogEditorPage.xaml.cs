@@ -729,12 +729,7 @@ public sealed partial class CatalogEditorPage : Page, IRefreshablePage
         try
         {
             var tools = await mw.CatalogSvc.LoadCatalogAsync();
-            mw.Tools.Clear();
-            foreach (var t in tools)
-            {
-                t.IsFavorite = FavoritesService.IsFavorite(t.Id);
-                mw.Tools.Add(t);
-            }
+            await mw.ReplaceCatalogToolsAsync(tools);
         }
         catch
         {

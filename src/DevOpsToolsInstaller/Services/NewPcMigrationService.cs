@@ -319,7 +319,7 @@ public static class NewPcMigrationService
                     {
                         // Strip version suffix if present: publisher.name-1.2.3 -> publisher.name
                         var dashIdx = name.LastIndexOf('-');
-                        if (dashIdx > 0 && char.IsDigit(name[dashIdx + 1]))
+                        if (dashIdx > 0 && dashIdx < name.Length - 1 && char.IsDigit(name[dashIdx + 1]))
                         {
                             name = name[..dashIdx];
                         }

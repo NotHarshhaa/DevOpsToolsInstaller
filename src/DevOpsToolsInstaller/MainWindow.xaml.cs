@@ -112,6 +112,53 @@ public sealed partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Replaces the shared catalog with a freshly loaded one while preserving
+    /// user state that lives on the old instances: favorites, downloaded status
+    /// (from disk), catalog selections, and detected versions. Bare
+    /// Clear()/Add() swaps drop all of this and leave other pages holding
+    /// orphaned models, so every catalog-reload path must go through here.
+    /// </summary>
+    public async Task ReplaceCatalogToolsAsync(IReadOnlyList<ToolDefinition> tools)
+    {
+        var dlFolder = DownloadService.DefaultDownloadsFolder;
+
+        // Snapshot state by id from the current instances (must run on the UI
+        // thread — the caller already is, since Tools is UI-bound).
+        var oldState = Tools.ToDictionary(
+            t => t.Id,
+            t => (t.IsFavorite, t.IsSelected, t.Status, t.Progress, t.DetectedVersion),
+            StringComparer.OrdinalIgnoreCase);
+
+        Tools.Clear();
+        foreach (var tool in tools)
+        {
+            if (oldState.TryGetValue(tool.Id, out var state))
+            {
+                tool.IsFavorite = state.Item1;
+                tool.IsSelected = state.Item2;
+                if (state.Item3 == ToolStatus.Downloaded || DownloadService.IsAlreadyDownloaded(tool, dlFolder))
+                {
+                    tool.Status = ToolStatus.Downloaded;
+                    tool.Progress = 100;
+                }
+                if (!string.IsNullOrWhiteSpace(state.Item5))
+                {
+                    tool.DetectedVersion = state.Item5;
+                }
+            }
+            else if (DownloadService.IsAlreadyDownloaded(tool, dlFolder))
+            {
+                tool.Status = ToolStatus.Downloaded;
+                tool.Progress = 100;
+            }
+
+            tool.IsFavorite = tool.IsFavorite || FavoritesService.IsFavorite(tool.Id);
+            Tools.Add(tool);
+        }
+        await Task.CompletedTask;
+    }
+
+    /// <summary>
     /// Selects all tools belonging to the specified bundle and unselects others.
     /// Returns the number of tools selected.
     /// </summary>
@@ -244,11 +291,20 @@ public sealed partial class MainWindow : Window
 
         Activated += async (s, e) =>
         {
-            if (e.WindowActivationState != WindowActivationState.Deactivated && !_onboardingStarted)
+            // async void: an exception here would go straight to the global
+            // unhandled handler and tear down a healthy window.
+            try
             {
-                _onboardingStarted = true;
-                SaveWindowState();
-                await RunOnboardingIfFirstRunAsync();
+                if (e.WindowActivationState != WindowActivationState.Deactivated && !_onboardingStarted)
+                {
+                    _onboardingStarted = true;
+                    SaveWindowState();
+                    await RunOnboardingIfFirstRunAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                ActivityLogService.Error("Onboarding", $"First-run onboarding failed: {ex.Message}");
             }
         };
 
@@ -648,6 +704,7 @@ public sealed partial class MainWindow : Window
                 int.TryParse(parts[2], out var w) && int.TryParse(parts[3], out var h) &&
                 w > 200 && h > 200)
             {
+                (x, y) = ClampToVisibleArea(x, y, w, h);
                 AppWindow.Move(new Windows.Graphics.PointInt32(x, y));
                 AppWindow.Resize(new Windows.Graphics.SizeInt32(w, h));
                 return;
@@ -660,6 +717,38 @@ public sealed partial class MainWindow : Window
 
         AppWindow?.Resize(new Windows.Graphics.SizeInt32(1280, 820));
     }
+
+    /// <summary>
+    /// Keeps a restored window on-screen. After a monitor change (dock/undock,
+    /// remote session), a saved position can point at coordinates that no
+    /// monitor covers, leaving the window unreachable.
+    /// </summary>
+    private (int X, int Y) ClampToVisibleArea(int x, int y, int w, int h)
+    {
+        try
+        {
+            // Virtual screen = union of all monitors (SM_XVIRTUALSCREEN et al.).
+            int vx = GetSystemMetrics(76);
+            int vy = GetSystemMetrics(77);
+            int vw = GetSystemMetrics(78);
+            int vh = GetSystemMetrics(79);
+            if (vw <= 0 || vh <= 0) return (x, y);
+
+            // At least 120x60 px of the title bar area must remain visible.
+            const int minVisible = 120;
+            const int minVertical = 60;
+            x = Math.Clamp(x, vx - w + minVisible, vx + vw - minVisible);
+            y = Math.Clamp(y, vy, vy + vh - minVertical);
+        }
+        catch
+        {
+            // Best-effort clamping only.
+        }
+        return (x, y);
+    }
+
+    [System.Runtime.InteropServices.LibraryImport("user32.dll")]
+    private static partial int GetSystemMetrics(int nIndex);
 
     private void SaveWindowState()
     {
@@ -826,7 +915,14 @@ public sealed partial class MainWindow : Window
             new("Manage storage & download cache", "\uE7B3", () =>
             {
                 if (ContentFrame.XamlRoot is not null)
-                    _ = DevOpsToolsInstaller.Controls.StorageManagerDialog.ShowAsync(ContentFrame.XamlRoot);
+                {
+                    // WinUI throws if another ContentDialog is already open —
+                    // surfaced instead of lost as an unobserved task exception.
+                    _ = DevOpsToolsInstaller.Controls.StorageManagerDialog
+                        .ShowAsync(ContentFrame.XamlRoot)
+                        .ContinueWith(t => { /* dialog already open / dismissed — nothing to do */ },
+                            TaskContinuationOptions.OnlyOnFaulted);
+                }
             }),
             new("Capture workstation snapshot", "\uE7C3", () => NavigateTo("Profiles")),
             new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
@@ -1005,10 +1101,13 @@ public sealed partial class MainWindow : Window
             await EnsureCatalogLoadedAsync();
 
             var dlFolder = DownloadService.DefaultDownloadsFolder;
+            // Snapshot the UI-bound collection on the UI thread first — a feed
+            // sync can Clear()/Add() it while the background enumeration runs.
+            var snapshot = Tools.ToList();
             var installed = await Task.Run(() =>
             {
                 var list = new System.Collections.Generic.List<ToolDefinition>();
-                foreach (var tool in Tools)
+                foreach (var tool in snapshot)
                 {
                     if (UninstallService.IsInstalled(tool, dlFolder) || tool.Status == ToolStatus.Downloaded)
                     {

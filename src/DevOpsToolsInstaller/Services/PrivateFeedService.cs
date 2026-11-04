@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 public sealed record FeedSyncResult(CatalogFeed Feed, bool Success, int ToolsLoaded, string Message);
@@ -12,9 +14,7 @@ public sealed record FeedSyncResult(CatalogFeed Feed, bool Success, int ToolsLoa
 /// </summary>
 public static class PrivateFeedService
 {
-    private static readonly string StorageFolder = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller");
+    private static readonly string StorageFolder = DevOpsToolsInstaller.Helpers.AppPaths.Root;
 
     private static readonly string FeedsFilePath = Path.Combine(StorageFolder, "feeds.json");
 

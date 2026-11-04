@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using DevOpsToolsInstaller.Models;
 
+using DevOpsToolsInstaller.Helpers;
+
 namespace DevOpsToolsInstaller.Services;
 
 /// <summary>One tool captured inside a snapshot.</summary>
@@ -52,9 +54,7 @@ public sealed record SnapshotDiff(
 /// </summary>
 public static class SnapshotService
 {
-    private static readonly string SnapshotsFolder = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "DevOpsToolsInstaller", "snapshots");
+    private static readonly string SnapshotsFolder = DevOpsToolsInstaller.Helpers.AppPaths.SnapshotsFolder;
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
