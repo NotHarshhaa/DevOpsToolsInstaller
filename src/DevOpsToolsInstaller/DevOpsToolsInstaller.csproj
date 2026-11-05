@@ -18,9 +18,9 @@
     <ApplicationTitle>DevOps Tools Installer</ApplicationTitle>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <AssemblyName>DevOpsToolsInstaller</AssemblyName>
-    <Version>3.1.2</Version>
-    <AssemblyVersion>3.1.2.0</AssemblyVersion>
-    <FileVersion>3.1.2.0</FileVersion>
+    <Version>3.1.3</Version>
+    <AssemblyVersion>3.1.3.0</AssemblyVersion>
+    <FileVersion>3.1.3.0</FileVersion>
   </PropertyGroup>
 
   <!-- ── Win32 app manifest: DPI awareness + long-path support ───────

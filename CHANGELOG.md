@@ -9,7 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.3] - 2026-11-05
+
 ### Added
+- **Windows 11 Fluent 2 & trending modern UI upgrades**:
+  - **Semantic translucent pill badges**: Replaced flat monotone gray tags with modern tinted pill tags (`CornerRadius="10"`, `Padding="7,2"`) featuring soft semi-transparent backdrops, complementary micro-borders, and crisp text for `Success` (mint/emerald), `Warning` (amber), `Accent` (azure), `Purple` (violet), and `Neutral` (slate) across Dark and Light themes.
+  - **Pill category chips**: Filter chips modernized from rectangular boxes to sleek pill buttons (`CornerRadius="14"`, `Padding="14,6"`).
+  - **Fluent 2 card corner radii & elevation**: Standardized 10px–12px corner radii across all card surfaces (`CardStyle`, `ToolCardStyle`, `QuickActionCardStyle`, `FeatureCardStyle`, `StatCardStyle`).
+  - **Dev Home & widget-style metric tiles**: Added rounded badge icon containers (`30×30px`, `CornerRadius="8"`) with dedicated background and foreground brushes for Installed Tools, Updates Available, Active Downloads, and Workstation Health.
+  - **Raycast / Linear-style Command Palette (`Ctrl+K`)**: Upgraded command palette with rich XAML item templates featuring glyph icon containers, bold titles, categorized pill badges, instant suggestions, and dual title/category search.
+  - **TitleBar chrome polish**: Modernized global search box with pill corners (`CornerRadius="8"`, `Width="320"`), pill download indicator (`CornerRadius="14"`), and rounded action buttons.
+  - **Friendly empty states**: Upgraded placeholder iconography with accent-tinted squircle containers (`CornerRadius="18"`).
+  - **Dynamic tool status badges**: Contextual badge styles and colors on Tool Detail, Catalog, and Installed pages reflecting installed, downloaded, or catalog-available states.
+
 - **5 new catalog tools — catalog is now 95 tools**: **PowerShell 7** (pwsh, GitHub-releases pinned MSI with version template), **Go** (official MSI from go.dev), **Node.js LTS** (official x64 MSI), **Python 3** (official amd64 installer, user-scope with PATH pre-enabled) and **Rust** (rustup-init from static.rust-lang.org). A new *Languages & Runtimes* category groups the SDKs, and the Doctor's "Install PowerShell 7" fix action plus the DevContainer feature mapping are now live for them (`catalog/catalog.json`).
 - **Settings backup & restore (`Services/SettingsBackupService.cs`)**: the complete app configuration — settings, favorites, update pins, hooks, custom stacks and custom tools — exports to a single versioned `.json` bundle and restores on any machine, complementing the New-PC migration with full app-config portability. The proxy password is a secret: it is **excluded by default** and only embedded with an explicit opt-in checkbox (with a plain-text warning). *Settings → Backup & restore* gained Export/Import with file pickers; the headless CLI gained `--export-settings <file> [--include-secrets]` and `--import-settings <file>`. Import validates the bundle schema/version, never writes outside the app's data folder, and is blocked when corporate IT policy locks settings.
 - **Import tools from devcontainer.json (`Services/DevContainerImportService.cs`)**: the reverse of the DevContainer generator — pick any `.devcontainer/devcontainer.json` on the *Stacks* page and its `features` (ghcr.io/devcontainers/*, community features) and VS Code extensions are mapped back to catalog tools. A dialog lists every match with its source (checkbox-selected by default) plus the features/extensions that have no catalog equivalent, and accepting lands the selection in the catalog ready to download. The parser tolerates JSONC (comments + trailing commas).

@@ -4,7 +4,7 @@
 ; =====================================================================
 
 #ifndef AppVersion
-  #define AppVersion "3.1.2"
+  #define AppVersion "3.1.3"
 #endif
 
 #ifndef SourceDir

@@ -1,5 +1,5 @@
 param(
-    [string]$Tag = "v3.1.2",
+    [string]$Tag = "v3.1.3",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -38,39 +38,49 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Release
 
 Welcome to the **__TAG__** release of **DevOps Tools Installer**!
-This release fixes **blurry text in Store installs** and continues the **Live Version History (install any of the last 5 releases)**, **Microsoft Store Update Support**, a **Live Signed Catalog**, and the **Rebuilt Website with the Full Tool Catalog**.
+This release introduces a major **Windows 11 Fluent 2 & Trending Modern UI Overhaul** alongside an all-new **Environment & Setup Suite (WSL, PATH, SSH)**, **Multi-Cloud Connections Dashboard**, **SBOM & Compliance Export (CycloneDX & SPDX)**, **Storage & Download Cache Manager**, and **Catalog expansion to 95+ tools**.
 
 ---
 
 ### ✨ What's New & Highlights in __TAG__
 
-#### 🔍 Crystal-Clear Text on Every Display (DPI fix)
-- **Native-Scale Rendering in Store Installs**: Microsoft Store (MSIX) packages previously shipped a DPI-unaware executable, so Windows bitmap-stretched the entire window — making every line of text and every control soft and fuzzy on 125 %/150 % display scaling. The Win32 manifest declaring **PerMonitorV2** awareness is now embedded into every build, packaged and unpackaged alike.
-- **Full-Resolution DirectWrite Everywhere**: all sections — catalog cards, settings, doctor, downloads, titles, badges — now render text on the pixel grid at the monitor's native scale.
+#### 🎨 Windows 11 Fluent 2 & Trending Modern UI Design
+- **Harmonious Translucent Pill Badges**: Replaced flat monotone gray tags with modern tinted pill tags (`CornerRadius="10"`, `Padding="7,2"`) featuring soft semi-transparent backdrops, complementary micro-borders, and crisp typography for `Success` (mint/emerald), `Warning` (amber), `Accent` (azure), `Purple` (violet), and `Neutral` (slate) across Dark and Light themes.
+- **Pill Category Chips**: Filter chips modernized from rectangular boxes to sleek pill buttons (`CornerRadius="14"`, `Padding="14,6"`).
+- **Fluent 2 Card Corner Radii & Elevation**: Standardized 10px–12px corner radii across all card surfaces (`CardStyle`, `ToolCardStyle`, `QuickActionCardStyle`, `FeatureCardStyle`, `StatCardStyle`).
+- **Dev Home / Widget Style Metric Dashboard**: Added stylish rounded badge icon containers (`30×30px`, `CornerRadius="8"`) with dedicated background and foreground brushes for Installed Tools, Updates Available, Active Downloads, and Workstation Health.
+- **Raycast / Linear-Style Command Palette (`Ctrl+K`)**: Upgraded command palette with rich XAML item templates featuring glyph icon containers, bold titles, categorized pill badges, instant suggestions, and dual title/category search.
+- **TitleBar Chrome Polish**: Modernized global search box with pill corners (`CornerRadius="8"`, `Width="320"`), pill download indicator (`CornerRadius="14"`), and rounded action buttons.
+- **Friendly Empty States**: Upgraded placeholder iconography with accent-tinted squircle containers (`CornerRadius="18"`).
+- **Dynamic Tool Status Badges**: Contextual badge styles and colors on Tool Detail, Catalog, and Installed pages reflecting installed, downloaded, or catalog-available states.
 
-#### 🕘 Live Version History — Install Older Releases
-- **Last 5 GitHub Releases, Live**: the per-tool version picker now queries the vendor's GitHub Releases API and lists the five most recent releases with publish date and pre-release markers.
-- **Exact Artifact Matching**: the release asset matching Windows and your CPU architecture (ARM64-aware) is selected and installed with its real download URL and file name, so renamed artifacts no longer 404.
-- **Vendor-CDN Coverage**: helm, kind, minikube and dbeaver — whose catalog URLs point at their own CDN — get the same live list through verified GitHub mirrors, and versioned CDNs that only advertise a `latest` channel now resolve to the pinned release.
-- **Honest Version Targeting**: vendors that serve a single always-latest link (AWS CLI, aka.ms redirects, Docker Desktop, Postman, VS Code) are now flagged in the picker instead of silently downloading the newest release while claiming to pin an old one.
+#### 💻 Workstation Environment & Setup Suite
+- **WSL Distribution Inspector**: Inspect installed distributions, default WSL version, running status, and health directly in-app.
+- **Visual PATH Manager**: Review User and Machine PATH entries, identify duplicates and broken references, and resolve conflicts with one click.
+- **SSH Key Management & Backup**: Generate, inspect, and safely back up SSH keys for GitHub, GitLab, and custom Git remotes.
+- **Git & Shell Profile Setup**: Manage Git identities and generate PowerShell and terminal shell completion scripts.
 
-#### 🛒 Microsoft Store Update Support
-- **Store-Aware Update Checks**: Store-installed builds now query the Microsoft Store for updates instead of GitHub Releases — the “Unable to reach GitHub Releases” error is gone for Store installs.
-- **In-App Store Update Prompt**: pending package updates surface in the update banner with the Store's own install prompt, falling back to opening the product page.
-- **Deadlock-Free Store Queries**: all read-only Store queries run on a dedicated MTA thread, avoiding the known `StoreContext` UI-thread deadlock.
+#### ☁️ Cloud Connections & Kubernetes Dashboard
+- **Multi-Cloud Authentication Status**: Automatic login detection and credential status for AWS CLI, Azure CLI, and Google Cloud SDK.
+- **Interactive Kubernetes Contexts**: Discover and switch active kubectl contexts and namespaces directly from the UI.
 
-#### 📥 Downloads That Tell The Truth
-- **Visible Transfer ETA**: download rows now show a live estimate (`~42 s`) alongside throughput, backed by a proper `HasEta` flag instead of a string-to-bool binding that hid it.
-- **Segmented Status Filter & Hydration Rings**: a Fluent segmented control filters the queue, and Profiles, Installed and Stacks show progress rings while data loads.
+#### 📦 SBOM & Enterprise Compliance Export
+- **CycloneDX 1.5 & SPDX 2.3**: One-click and headless CLI export (`--sbom <file> [--sbom-format spdx]`) generating standardized Software Bill of Materials for vulnerability scanning and enterprise auditing.
+- **Comprehensive Component Metadata**: Includes detected versions, download provenance, SHA-256 checksums, package URLs (`pkg:generic`), and licenses.
 
-#### 🔐 A Live, Signed Catalog
-- **Correct Remote Branch**: the catalog is fetched from the repository's default branch via `/HEAD/`, so the app finally loads the live, signature-verified catalog instead of falling back to the embedded snapshot.
-- **Reliable Catalog Refresh Bot**: the refresh script no longer crashes on tools without version history and now bumps `releases/latest` channels too — the bot's PRs finally carry real version updates.
-- **Catalog → Site Export**: `web/assets/catalog.json` and the 90 vendor logos are generated from the signed catalog, so the website can never drift from what the app installs.
+#### 💾 Storage & Download Cache Manager
+- **Disk Usage Breakdown**: Interactive visualization of completed vendor artifacts, partial downloads, and audit logs.
+- **In-Flight Safe Cleanup**: Clean old or stale artifacts without interrupting active downloads, plus opt-in scheduled auto-cleaning.
+- **Headless CLI Commands**: Manage workstation disk space headlessly with `--storage` and `--clean-downloads [partial|old|all]`.
 
-#### 🌐 A Rebuilt Website
-- **Tool Catalog Page**: all 90 tools with real vendor logos, live versions, category filters, search and the 12 curated stacks.
-- **Product Tour**: all 10 application screens as a floating, lazily-loaded WebP gallery, plus a live stats band, an endless logo marquee and an interactive Stack Explorer.
+#### ⚙️ Settings Portability & DevContainer Import
+- **Settings Backup & Restore**: Export and restore settings, custom stacks, and tool pins to a portable JSON bundle (`--export-settings`, `--import-settings`) with secrets isolation.
+- **devcontainer.json Import**: Map features and VS Code extensions from existing project repositories directly to catalog tools.
+
+#### 🛠️ Catalog Expansion (95+ Official Tools)
+- **New Languages & Runtimes**: PowerShell 7, Go, Node.js LTS, Python 3, and Rust with automated health checks.
+- **Copy as Markdown**: Instant markdown table export from the catalog, stacks, and installed tools for READMEs and documentation.
+- **In-App Notification Center & Active Download Pill**: Live event feed and title bar progress ring.
 
 ---
 
