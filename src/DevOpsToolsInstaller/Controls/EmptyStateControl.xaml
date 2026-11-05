@@ -8,14 +8,14 @@
          optional call-to-action button. Pages toggle Visibility based on whether
          their backing collection is empty. -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                MaxWidth="460" Spacing="10" Padding="24,32">
-        <Border Width="60" Height="60" CornerRadius="30"
+                MaxWidth="480" Spacing="12" Padding="24,32">
+        <Border Width="64" Height="64" CornerRadius="18"
                 HorizontalAlignment="Center"
-                Background="{ThemeResource ControlFillColorSecondaryBrush}"
+                Background="{ThemeResource CustomAccentSubtleBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
             <FontIcon x:Name="IconGlyph" Glyph="&#xE7C3;" FontSize="26"
-                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                      Foreground="{ThemeResource CustomAccentPrimaryBrush}"
                       HorizontalAlignment="Center" VerticalAlignment="Center" />
         </Border>
 

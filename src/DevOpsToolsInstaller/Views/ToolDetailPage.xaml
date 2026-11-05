@@ -109,10 +109,10 @@
                             <Border Style="{StaticResource BadgeStyle}">
                                 <TextBlock x:Name="HeroVersion" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
-                            <Border x:Name="HeroCorporateBadge" Style="{StaticResource BadgeStyle}" Background="{ThemeResource AccentFillColorDefaultBrush}" Visibility="Collapsed">
+                            <Border x:Name="HeroCorporateBadge" Style="{StaticResource AccentBadgeStyle}" Visibility="Collapsed">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
-                                    <FontIcon Glyph="&#xE72E;" FontSize="10" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
-                                    <TextBlock x:Name="HeroCorporateText" Text="Company Approved" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" />
+                                    <FontIcon Glyph="&#xE72E;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
+                                    <TextBlock x:Name="HeroCorporateText" Text="Company Approved" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

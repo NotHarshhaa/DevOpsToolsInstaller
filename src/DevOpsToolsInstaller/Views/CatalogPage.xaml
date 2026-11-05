@@ -170,23 +170,23 @@
                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                             </Border>
 
-                            <Border Style="{StaticResource BadgeStyle}"
+                            <Border Style="{StaticResource WarningBadgeStyle}"
                                     Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE72C;" FontSize="10"
-                                              Foreground="{ThemeResource SystemFillColorCautionBrush}" />
-                                    <TextBlock Text="Update available" FontSize="11"
-                                               Foreground="{ThemeResource SystemFillColorCautionBrush}" />
+                                              Foreground="{ThemeResource CustomWarningBadgeTextBrush}" />
+                                    <TextBlock Text="Update available" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource CustomWarningBadgeTextBrush}" />
                                 </StackPanel>
                             </Border>
 
-                            <Border Style="{StaticResource BadgeStyle}"
+                            <Border Style="{StaticResource SuccessBadgeStyle}"
                                     Visibility="{Binding IsDownloadedOrInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <FontIcon Glyph="&#xE73E;" FontSize="10"
-                                              Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                    <TextBlock Text="{Binding InstalledVersionLabel}" FontSize="11"
-                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                              Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
+                                    <TextBlock Text="{Binding InstalledVersionLabel}" FontSize="11" FontWeight="SemiBold"
+                                               Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
@@ -496,12 +496,12 @@
                                         <TextBlock x:Name="PaneKind" FontSize="11"
                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
                                     </Border>
-                                    <Border x:Name="PaneInstalledBadge" Style="{StaticResource BadgeStyle}" Visibility="Collapsed">
+                                    <Border x:Name="PaneInstalledBadge" Style="{StaticResource SuccessBadgeStyle}" Visibility="Collapsed">
                                         <StackPanel Orientation="Horizontal" Spacing="4">
                                             <FontIcon Glyph="&#xE73E;" FontSize="10"
-                                                      Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
-                                            <TextBlock x:Name="PaneInstalledText" FontSize="11"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                                      Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
+                                            <TextBlock x:Name="PaneInstalledText" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource CustomSuccessBadgeTextBrush}" />
                                         </StackPanel>
                                     </Border>
                                     <Button x:Name="PaneFavoriteButton" Background="Transparent" BorderThickness="0"

@@ -44,9 +44,10 @@
             <controls:TitleBar.Content>
                 <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                     <AutoSuggestBox x:Name="NavSearchBox"
-                                    Width="300"
+                                    Width="320"
+                                    CornerRadius="8"
                                     QueryIcon="Find"
-                                    PlaceholderText="Search tools... (Ctrl+K)"
+                                    PlaceholderText="Search tools, commands... (Ctrl+K)"
                                     QuerySubmitted="NavSearchBox_QuerySubmitted"
                                     TextChanged="NavSearchBox_TextChanged"
                                     VerticalAlignment="Center"
@@ -54,8 +55,8 @@
                     <Button x:Name="DownloadPillButton"
                             Click="DownloadPill_Click"
                             Visibility="Collapsed"
-                            Padding="10,4"
-                            CornerRadius="12"
+                            Padding="12,4"
+                            CornerRadius="14"
                             ToolTipService.ToolTip="Active download — click to open the Downloads page"
                             AutomationProperties.Name="Active download progress">
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
@@ -70,7 +71,8 @@
                     </Button>
                     <Button x:Name="NotificationBellButton"
                             Click="NotificationBell_Click"
-                            Padding="6,4"
+                            Padding="8,5"
+                            CornerRadius="8"
                             ToolTipService.ToolTip="Notifications"
                             AutomationProperties.Name="Notification center">
                         <Grid>
@@ -155,6 +157,8 @@
                     </Button>
                     <Button x:Name="LogDrawerToggleBtn"
                             Click="LogDrawerToggleBtn_Click"
+                            Padding="10,5"
+                            CornerRadius="8"
                             ToolTipService.ToolTip="Toggle live log drawer (Ctrl+`)"
                             AutomationProperties.Name="Toggle live activity log drawer"
                             VerticalAlignment="Center">

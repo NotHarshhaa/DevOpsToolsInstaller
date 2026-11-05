@@ -126,11 +126,11 @@
                                 <!-- Top row: App Name & Version badge -->
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
                                     <TextBlock Text="DevOps Tools Installer" Style="{StaticResource PageTitleStyle}" />
-                                    <Border Style="{StaticResource BadgeStyle}" VerticalAlignment="Center" Padding="8,3">
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                    <Border Style="{StaticResource AccentBadgeStyle}" VerticalAlignment="Center" Padding="8,3">
+                                        <StackPanel Orientation="Horizontal" Spacing="5">
                                             <FontIcon Glyph="&#xE770;" FontSize="10" Foreground="{ThemeResource CustomAccentPrimaryBrush}" />
-                                            <TextBlock x:Name="HeroVersionChipText" Text="v3.1.0 • WinUI 3" FontSize="11" FontWeight="Medium"
-                                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                                            <TextBlock x:Name="HeroVersionChipText" Text="v3.1.2 • WinUI 3" FontSize="11" FontWeight="SemiBold"
+                                                       Foreground="{ThemeResource CustomAccentBadgeTextBrush}" />
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -374,8 +374,10 @@
                                         <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
-                                        <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
-                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
+                                        <Border Width="30" Height="30" CornerRadius="8" Background="{ThemeResource StatIconGreenBrush}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE73E;" FontSize="13" Foreground="{ThemeResource StatIconGreenFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>
                                     <Grid Grid.Row="1" ColumnSpacing="12">
                                         <TextBlock Text="{Binding InstalledCount}"
@@ -412,15 +414,10 @@
                                         <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
-                                        <FontIcon Glyph="&#xE895;" FontSize="14"
-                                                  Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                                  HorizontalAlignment="Left"
-                                                  Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        <FontIcon Glyph="&#xE895;" FontSize="14"
-                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                  HorizontalAlignment="Left"
-                                                  Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
+                                        <Border Width="30" Height="30" CornerRadius="8" Background="{ThemeResource StatIconAmberBrush}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE895;" FontSize="13" Foreground="{ThemeResource StatIconAmberFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>
                                     <Grid Grid.Row="1" ColumnSpacing="12">
                                         <TextBlock Text="{Binding UpdateCount}"
@@ -471,8 +468,10 @@
                                         <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
-                                        <FontIcon Glyph="&#xE896;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left" />
-                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
+                                        <Border Width="30" Height="30" CornerRadius="8" Background="{ThemeResource StatIconBlueBrush}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE896;" FontSize="13" Foreground="{ThemeResource StatIconBlueFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>
                                     <Grid Grid.Row="1" ColumnSpacing="12">
                                         <TextBlock Text="{Binding ActiveDownloadsCount}"
@@ -511,11 +510,10 @@
                                         <RowDefinition Height="28" />
                                     </Grid.RowDefinitions>
                                     <Grid Grid.Row="0">
-                                        <FontIcon Glyph="&#xE756;" FontSize="14" Foreground="{ThemeResource TextFillColorSecondaryBrush}" HorizontalAlignment="Left"
-                                                  Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}}" />
-                                        <FontIcon Glyph="&#xE7BA;" FontSize="14" Foreground="{ThemeResource SystemFillColorCautionBrush}" HorizontalAlignment="Left"
-                                                  Visibility="{Binding IsPathHealthy, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Invert}" />
-                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" />
+                                        <Border Width="30" Height="30" CornerRadius="8" Background="{ThemeResource StatIconPurpleBrush}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                            <FontIcon Glyph="&#xE9D9;" FontSize="13" Foreground="{ThemeResource StatIconPurpleFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <FontIcon Glyph="&#xE76C;" FontSize="11" Foreground="{ThemeResource TextFillColorTertiaryBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                                     </Grid>
 
                                     <TextBlock Grid.Row="1" Text="{Binding PathStatus}"

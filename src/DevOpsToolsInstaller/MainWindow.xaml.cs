@@ -767,7 +767,7 @@ public sealed partial class MainWindow : Window
 
     // ── Ctrl+K command palette ───────────────────────────────────────────
 
-    private sealed record PaletteCommand(string Title, string Glyph, Action Run);
+    private sealed record PaletteCommand(string Title, string Glyph, string Category, Action Run);
 
     private void CommandPalette_Invoked(
         Microsoft.UI.Xaml.Input.KeyboardAccelerator sender,
@@ -831,28 +831,70 @@ public sealed partial class MainWindow : Window
 
         var search = new AutoSuggestBox
         {
-            PlaceholderText = "Type a page, tool, or action...",
+            PlaceholderText = "Type a page, action, or tool name... (e.g. Doctor, Stacks)",
             QueryIcon = new FontIcon { Glyph = "\uE721" },
             VerticalAlignment = VerticalAlignment.Center,
+            CornerRadius = new CornerRadius(8),
             Margin = new Thickness(0, 8, 0, 0)
+        };
+
+        const string itemTemplateXaml = @"
+<DataTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation"">
+    <Grid Padding=""6,5"" ColumnSpacing=""12"">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width=""Auto"" />
+            <ColumnDefinition Width=""*"" />
+            <ColumnDefinition Width=""Auto"" />
+        </Grid.ColumnDefinitions>
+        <Border Grid.Column=""0"" Width=""28"" Height=""28"" CornerRadius=""6""
+                Background=""{ThemeResource ControlFillColorSecondaryBrush}""
+                VerticalAlignment=""Center"">
+            <FontIcon Glyph=""{Binding Glyph}"" FontSize=""13""
+                      Foreground=""{ThemeResource CustomAccentPrimaryBrush}""
+                      HorizontalAlignment=""Center"" VerticalAlignment=""Center"" />
+        </Border>
+        <TextBlock Grid.Column=""1"" Text=""{Binding Title}""
+                   VerticalAlignment=""Center"" FontWeight=""Medium"" FontSize=""13"" />
+        <Border Grid.Column=""2"" CornerRadius=""10"" Padding=""8,2""
+                Background=""{ThemeResource CustomNeutralBadgeBackgroundBrush}""
+                BorderBrush=""{ThemeResource CustomNeutralBadgeBorderBrush}""
+                BorderThickness=""1"" VerticalAlignment=""Center"">
+            <TextBlock Text=""{Binding Category}"" FontSize=""10"" FontWeight=""SemiBold""
+                       Foreground=""{ThemeResource CustomNeutralBadgeTextBrush}"" />
+        </Border>
+    </Grid>
+</DataTemplate>";
+
+        try
+        {
+            search.ItemTemplate = (DataTemplate)Microsoft.UI.Xaml.Markup.XamlReader.Load(itemTemplateXaml);
+        }
+        catch { /* fallback to default string rendering */ }
+
+        search.SuggestionChosen += (s, e) =>
+        {
+            if (e.SelectedItem is PaletteCommand cmd)
+            {
+                s.Text = cmd.Title;
+            }
         };
 
         var hint = new TextBlock
         {
-            Text = "Enter runs the highlighted command. Pages, tools (install), and update checks are all here.",
+            Text = "Press Enter to execute the selected command. Tools, diagnostic checks, and page navigation are all available.",
             TextWrapping = TextWrapping.Wrap,
             FontSize = 11,
             Opacity = 0.7,
             Margin = new Thickness(0, 10, 0, 0)
         };
 
-        var panel = new StackPanel { Spacing = 4, MinWidth = 460 };
+        var panel = new StackPanel { Spacing = 4, MinWidth = 480 };
         panel.Children.Add(search);
         panel.Children.Add(hint);
 
         var dialog = new ContentDialog
         {
-            Title = "Quick actions  (Ctrl+K)",
+            Title = "Command Palette",
             Content = panel,
             CloseButtonText = "Close",
             DefaultButton = ContentDialogButton.Primary,
@@ -860,6 +902,8 @@ public sealed partial class MainWindow : Window
         };
 
         PaletteCommand? chosen = null;
+
+        search.ItemsSource = BuildPaletteCommands(string.Empty).Take(8).ToList();
 
         search.TextChanged += (s, e) =>
         {
@@ -896,51 +940,48 @@ public sealed partial class MainWindow : Window
 
         var commands = new System.Collections.Generic.List<PaletteCommand>
         {
-            new("Go to Home", "\uE80F", () => NavigateTo("Home")),
-            new("Go to Tool Catalog", "\uE8F1", () => NavigateTo("Catalog")),
-            new("Go to Stacks", "\uE71D", () => NavigateTo("Stacks")),
-            new("Go to Downloads", "\uE896", () => NavigateTo("Downloads")),
-            new("Go to Installed", "\uE73E", () => NavigateTo("Installed")),
-            new("Go to Doctor (Diagnostics)", "\uE9D9", () => NavigateTo("Doctor")),
-            new("Go to Cloud & Contexts", "\uE753", () => NavigateTo("Cloud")),
-            new("Go to Profiles & History", "\uE77B", () => NavigateTo("Profiles")),
-            new("Go to Environment & Setup (WSL, PATH, Git, Terminal)", "\uE756", () => NavigateTo("Environment")),
-            new("Edit Custom Tools", "\uE70F", () => NavigateTo("CatalogEditor")),
-            new("Refresh current page (F5)", "\uE72C", () =>
+            new("Go to Home", "\uE80F", "Navigation", () => NavigateTo("Home")),
+            new("Browse Tool Catalog", "\uE8F1", "Catalog", () => NavigateTo("Catalog")),
+            new("Explore Stacks", "\uE71D", "Stacks", () => NavigateTo("Stacks")),
+            new("View Downloads", "\uE896", "Downloads", () => NavigateTo("Downloads")),
+            new("Installed Tools & Updates", "\uE73E", "Installed", () => NavigateTo("Installed")),
+            new("Run Workstation Doctor", "\uE9D9", "Diagnostics", () => NavigateTo("Doctor")),
+            new("Cloud & Contexts", "\uE753", "Navigation", () => NavigateTo("Cloud")),
+            new("Profiles & History", "\uE77B", "Profiles", () => NavigateTo("Profiles")),
+            new("Environment & Setup (WSL, PATH, Git)", "\uE756", "Environment", () => NavigateTo("Environment")),
+            new("Edit Custom Tools", "\uE70F", "Tools", () => NavigateTo("CatalogEditor")),
+            new("Refresh Current View (F5)", "\uE72C", "Action", () =>
             {
                 if (ContentFrame.Content is IRefreshablePage p) p.RefreshView();
             }),
-            new("Open downloads folder", "\uE838", () =>
+            new("Open Downloads Folder", "\uE838", "Action", () =>
                 LauncherService.OpenDownloadsFolder(DownloadService.DefaultDownloadsFolder)),
-            new("Manage storage & download cache", "\uE7B3", () =>
+            new("Manage Storage & Cache", "\uE7B3", "Action", () =>
             {
                 if (ContentFrame.XamlRoot is not null)
                 {
-                    // WinUI throws if another ContentDialog is already open —
-                    // surfaced instead of lost as an unobserved task exception.
                     _ = DevOpsToolsInstaller.Controls.StorageManagerDialog
                         .ShowAsync(ContentFrame.XamlRoot)
-                        .ContinueWith(t => { /* dialog already open / dismissed — nothing to do */ },
-                            TaskContinuationOptions.OnlyOnFaulted);
+                        .ContinueWith(t => { }, TaskContinuationOptions.OnlyOnFaulted);
                 }
             }),
-            new("Capture workstation snapshot", "\uE7C3", () => NavigateTo("Profiles")),
-            new("Toggle Live Logs (Ctrl+`)", "\uE756", () => BottomLogDrawer.Toggle(animate: true)),
-            new("Go to Settings", "\uE713", () => NavigateTo("Settings")),
-            new("Go to About", "\uE946", () => NavigateTo("About")),
-            new("Check for tool updates", "\uE895", () => NavigateTo("Installed")),
+            new("Capture Workstation Snapshot", "\uE7C3", "Profiles", () => NavigateTo("Profiles")),
+            new("Toggle Live Activity Logs (Ctrl+`)", "\uE756", "View", () => BottomLogDrawer.Toggle(animate: true)),
+            new("Settings & Preferences", "\uE713", "Settings", () => NavigateTo("Settings")),
+            new("About DevOps Tools Installer", "\uE946", "Help", () => NavigateTo("About")),
+            new("Check For Tool Updates", "\uE895", "Updates", () => NavigateTo("Installed")),
         };
 
         foreach (var tool in Tools)
         {
             if (match(tool.Name) && tool.Status != ToolStatus.Downloaded && tool.Status != ToolStatus.Downloading)
             {
-                commands.Add(new PaletteCommand($"Install {tool.Name}", "\uE896",
+                commands.Add(new PaletteCommand($"Install {tool.Name}", "\uE896", "Install",
                     () => ToolActions.RunInBackground(tool, installAfter: true)));
             }
         }
 
-        return commands.Where(c => match(c.Title));
+        return commands.Where(c => match(c.Title) || match(c.Category));
     }
 
     // ── First-run onboarding (TeachingTips, 3 steps max) ─────────────────

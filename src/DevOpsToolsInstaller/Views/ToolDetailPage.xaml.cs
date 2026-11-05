@@ -335,18 +335,28 @@ public sealed partial class ToolDetailPage : Page
             detail = string.IsNullOrWhiteSpace(Tool.DetectedVersion)
                 ? "Present on this machine"
                 : $"Detected version {Tool.DetectedVersion}";
-            brush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorSuccessBrush"];
+            if (Application.Current.Resources.TryGetValue("SuccessBadgeStyle", out var s) && s is Style ss)
+                StatusBadge.Style = ss;
+            if (Application.Current.Resources.TryGetValue("CustomSuccessBadgeTextBrush", out var b) && b is Microsoft.UI.Xaml.Media.Brush bb)
+                brush = bb;
         }
         else if (Tool.Status == ToolStatus.Downloaded)
         {
             label = "Downloaded";
             detail = "Ready to install";
-            brush = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["SystemFillColorCautionBrush"];
+            if (Application.Current.Resources.TryGetValue("AccentBadgeStyle", out var s) && s is Style ss)
+                StatusBadge.Style = ss;
+            if (Application.Current.Resources.TryGetValue("CustomAccentBadgeTextBrush", out var b) && b is Microsoft.UI.Xaml.Media.Brush bb)
+                brush = bb;
         }
         else
         {
             label = "Not installed";
             detail = "Available in the catalog";
+            if (Application.Current.Resources.TryGetValue("BadgeStyle", out var s) && s is Style ss)
+                StatusBadge.Style = ss;
+            if (Application.Current.Resources.TryGetValue("CustomNeutralBadgeTextBrush", out var b) && b is Microsoft.UI.Xaml.Media.Brush bb)
+                brush = bb;
         }
 
         StatusBadgeText.Text = label;
