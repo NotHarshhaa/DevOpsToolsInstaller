@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-23T10:32:13Z",
-  "toolCount": 90,
+  "generatedAt": "2026-11-09T12:28:47Z",
+  "toolCount": 95,
   "stackCount": 12,
   "categories": [
     "CI/CD and Version Control",
@@ -10,6 +10,7 @@
     "Editors and Terminals",
     "Infrastructure as Code",
     "Kubernetes",
+    "Languages & Runtimes",
     "Monitoring and Observability",
     "Networking",
     "Policy & Compliance",
@@ -916,6 +917,56 @@
       "description": "GPU-accelerated cross-platform terminal emulator and multiplexer with Lua configuration",
       "homepage": "https://wezfurlong.org/wezterm/",
       "logo": "assets/logos/wezterm.svg"
+    },
+    {
+      "id": "powershell",
+      "name": "PowerShell 7",
+      "category": "Editors and Terminals",
+      "version": "7.6.9",
+      "kind": "installer",
+      "description": "Modern cross-platform automation shell and scripting language (pwsh) with remoting, modules and parallel pipelines",
+      "homepage": "https://github.com/PowerShell/PowerShell",
+      "logo": null
+    },
+    {
+      "id": "golang",
+      "name": "Go",
+      "category": "Languages & Runtimes",
+      "version": "1.27.3",
+      "kind": "installer",
+      "description": "Official Go programming language toolchain — compiler, runtime and standard library for building fast, statically-typed services",
+      "homepage": "https://go.dev/",
+      "logo": null
+    },
+    {
+      "id": "nodejs",
+      "name": "Node.js LTS",
+      "category": "Languages & Runtimes",
+      "version": "26.13.0",
+      "kind": "installer",
+      "description": "Long-Term-Support JavaScript runtime built on Chrome's V8 engine, bundled with npm for build tooling and scripting",
+      "homepage": "https://nodejs.org/",
+      "logo": null
+    },
+    {
+      "id": "python",
+      "name": "Python 3",
+      "category": "Languages & Runtimes",
+      "version": "3.14.2",
+      "kind": "installer",
+      "description": "Official Python 3 interpreter and pip for automation, scripting and tooling (user-scope install with PATH enabled)",
+      "homepage": "https://www.python.org/",
+      "logo": null
+    },
+    {
+      "id": "rust",
+      "name": "Rust (rustup)",
+      "category": "Languages & Runtimes",
+      "version": "1.29.3",
+      "kind": "installer",
+      "description": "Official Rust installer (rustup) — manages the Rust toolchain, cargo and clippy; completes in an interactive console",
+      "homepage": "https://rustup.rs/",
+      "logo": null
     }
   ],
   "stacks": [
