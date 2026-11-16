@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/NotHarshhaa/DevOpsToolsInstaller/releases/latest"><img alt="Release" src="https://img.shields.io/badge/release-v3.1.3-blue?logo=github" /></a>
+  <a href="https://github.com/microsoft/winget-pkgs/tree/master/manifests/n/NotHarshhaa/DevOpsToolsInstaller"><img alt="WinGet Package" src="https://img.shields.io/badge/winget-NotHarshhaa.DevOpsToolsInstaller-0078D6?logo=windows&logoColor=white" /></a>
   <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG"><img alt="Microsoft Store" src="https://img.shields.io/badge/Microsoft_Store-Get_it_here-0078D6?logo=windows&logoColor=white" /></a>
   <img alt="Build" src="https://github.com/NotHarshhaa/DevOpsToolsInstaller/actions/workflows/release.yml/badge.svg" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D6?logo=windows" />
@@ -21,6 +22,11 @@
   <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG">
     <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" width="190"/>
   </a>
+</p>
+
+<p align="center">
+  <strong>Install via Windows Package Manager (WinGet):</strong><br/>
+  <code>winget install NotHarshhaa.DevOpsToolsInstaller</code>
 </p>
 
 <p align="center">
@@ -854,24 +860,38 @@ DevOpsToolsInstaller includes an integrated, zero-friction updater:
 
 DevOpsToolsInstaller is available across multiple official distribution channels:
 
-### 🏪 Option 1: Microsoft Store (Official & Automatic Updates)
+### ⚡ Option 1: Windows Package Manager (WinGet Community Repository) — Official & Recommended
+Install directly from your terminal (PowerShell, Windows Terminal, or CMD) via the official Microsoft WinGet community repository:
+
+```powershell
+# Install via official Package Identifier
+winget install NotHarshhaa.DevOpsToolsInstaller
+
+# Or install using the friendly moniker
+winget install devops-tools-installer
+```
+
+> [!TIP]
+> - **Upgrade**: Keep DevOps Tools Installer updated to the latest release:
+>   ```powershell
+>   winget upgrade NotHarshhaa.DevOpsToolsInstaller
+>   ```
+> - **Inspect**: View package manifest details, version history, and release information:
+>   ```powershell
+>   winget show NotHarshhaa.DevOpsToolsInstaller
+>   ```
+
+### 🏪 Option 2: Microsoft Store (Official & Automatic Updates)
 Get it directly from the Microsoft Store with seamless automatic background updates:
 
 <a href="https://apps.microsoft.com/detail/9PJL0VR3H7VG">
   <img src="https://get.microsoft.com/images/en-us%20dark.svg" alt="Get it from Microsoft Store" width="180"/>
 </a>
 
-Or install directly from the terminal via WinGet:
+Or install directly from the terminal via WinGet Store ID:
 ```powershell
 winget install 9PJL0VR3H7VG
 ```
-
-### ⚡ Option 2: Windows Package Manager (WinGet Community Repository)
-Install directly from your terminal using native Windows Package Manager:
-```powershell
-winget install DevOpsToolsInstaller
-```
-*(or explicitly by package ID: `winget install --id NotHarshhaa.DevOpsToolsInstaller`)*
 
 ### 🧙 Option 3: Windows Setup Wizard (Recommended for Standalone Setup)
 Download **`DevOpsToolsInstaller_x64_Setup.exe`**:

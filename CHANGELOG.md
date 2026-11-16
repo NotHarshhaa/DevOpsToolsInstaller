@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Official WinGet Community Package**: Documented official Windows Package Manager distribution instructions (`winget install NotHarshhaa.DevOpsToolsInstaller`) following review, approval, and merge in `microsoft/winget-pkgs#438034`.
+
 ## [3.1.3] - 2026-11-05
 
 ### Added
