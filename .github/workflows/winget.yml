@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release tag (e.g. v3.1.3, or leave empty for latest release)'
+        description: 'Release tag (e.g. v3.1.4, or leave empty for latest release)'
         required: false
         default: ''
 
@@ -35,7 +35,7 @@ jobs:
             # Fall back to latest release tag via GitHub CLI
             $tag = & gh release view --repo "${{ github.repository }}" --json tagName -q ".tagName"
             if (-not $tag) {
-              $tag = "v3.1.3"
+              $tag = "v3.1.4"
             }
           }
           

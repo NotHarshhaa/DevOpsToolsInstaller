@@ -1,5 +1,5 @@
-param(
-    [string]$Tag = "v3.1.3",
+﻿param(
+    [string]$Tag = "v3.1.4",
     [string]$AssetsDir = "release_assets",
     [string]$OutputFile = "release_notes.md"
 )
@@ -38,49 +38,37 @@ $template = @'
 # 🚀 DevOps Tools Installer __TAG__ Release
 
 Welcome to the **__TAG__** release of **DevOps Tools Installer**!
-This release introduces a major **Windows 11 Fluent 2 & Trending Modern UI Overhaul** alongside an all-new **Environment & Setup Suite (WSL, PATH, SSH)**, **Multi-Cloud Connections Dashboard**, **SBOM & Compliance Export (CycloneDX & SPDX)**, **Storage & Download Cache Manager**, and **Catalog expansion to 95+ tools**.
+This release brings **Official Windows Package Manager (WinGet) Community Repository integration**, an all-new **Windows Developer Mode Diagnostics & Unprivileged Symlink Suite**, **Expanded CLI Shadowing Detection for Modern Runtimes**, **Dynamic Category Discovery with Dedicated Languages & Runtimes Filtering**, **Command Palette (`Ctrl+K`) Deep-Linking & Smart Actions**, **Robust CLI Health Probes & Version Normalization**, and **Automated WinGet Publishing CI/CD Pipelines**.
 
 ---
 
 ### ✨ What's New & Highlights in __TAG__
 
-#### 🎨 Windows 11 Fluent 2 & Trending Modern UI Design
-- **Harmonious Translucent Pill Badges**: Replaced flat monotone gray tags with modern tinted pill tags (`CornerRadius="10"`, `Padding="7,2"`) featuring soft semi-transparent backdrops, complementary micro-borders, and crisp typography for `Success` (mint/emerald), `Warning` (amber), `Accent` (azure), `Purple` (violet), and `Neutral` (slate) across Dark and Light themes.
-- **Pill Category Chips**: Filter chips modernized from rectangular boxes to sleek pill buttons (`CornerRadius="14"`, `Padding="14,6"`).
-- **Fluent 2 Card Corner Radii & Elevation**: Standardized 10px–12px corner radii across all card surfaces (`CardStyle`, `ToolCardStyle`, `QuickActionCardStyle`, `FeatureCardStyle`, `StatCardStyle`).
-- **Dev Home / Widget Style Metric Dashboard**: Added stylish rounded badge icon containers (`30×30px`, `CornerRadius="8"`) with dedicated background and foreground brushes for Installed Tools, Updates Available, Active Downloads, and Workstation Health.
-- **Raycast / Linear-Style Command Palette (`Ctrl+K`)**: Upgraded command palette with rich XAML item templates featuring glyph icon containers, bold titles, categorized pill badges, instant suggestions, and dual title/category search.
-- **TitleBar Chrome Polish**: Modernized global search box with pill corners (`CornerRadius="8"`, `Width="320"`), pill download indicator (`CornerRadius="14"`), and rounded action buttons.
-- **Friendly Empty States**: Upgraded placeholder iconography with accent-tinted squircle containers (`CornerRadius="18"`).
-- **Dynamic Tool Status Badges**: Contextual badge styles and colors on Tool Detail, Catalog, and Installed pages reflecting installed, downloaded, or catalog-available states.
+#### 📦 Official WinGet Community Package & Automated CI/CD
+- **Live on Windows Package Manager**: DevOps Tools Installer is now officially distributed via the Microsoft WinGet Community Repository (`microsoft/winget-pkgs#438034`). Install or update in a single command:
+  ```powershell
+  winget install NotHarshhaa.DevOpsToolsInstaller
+  # Or shorthand:
+  winget install DevOpsToolsInstaller
+  ```
+- **Automated WinGet Release Pipeline**: Modernized `.github/workflows/winget.yml` using `vedantmgoyal9/winget-releaser@v2` with automated release tag resolution and automatic dispatch on new GitHub releases.
 
-#### 💻 Workstation Environment & Setup Suite
-- **WSL Distribution Inspector**: Inspect installed distributions, default WSL version, running status, and health directly in-app.
-- **Visual PATH Manager**: Review User and Machine PATH entries, identify duplicates and broken references, and resolve conflicts with one click.
-- **SSH Key Management & Backup**: Generate, inspect, and safely back up SSH keys for GitHub, GitLab, and custom Git remotes.
-- **Git & Shell Profile Setup**: Manage Git identities and generate PowerShell and terminal shell completion scripts.
+#### 🩺 Workstation Doctor: Developer Mode & Runtime Shadowing
+- **Windows Developer Mode Verification**: Workstation Doctor now verifies whether Windows Developer Mode is active (`AllowDevelopmentWithoutDevLicense`), which grants unprivileged symlink creation required by Git, npm, pnpm, cargo, and Terraform tooling. Provides clear instructions and fix commands when disabled.
+- **Enhanced CLI Binary Shadowing Detection**: Doctor's shadowing analyzer now actively tracks `pwsh.exe`, `go.exe`, `node.exe`, and `python.exe` across process PATH to alert when conflicting runtimes mask each other (e.g. across Scoop, Chocolatey, WinGet, and AppData).
+- **Resilient Version Comparison**: Replaced fragile `System.Version` parsing with a regex-based `CleanVersion` extractor (`\b(\d+(\.\d+){1,3})\b`), preventing version-parsing crashes on multi-segment or prefixed versions (such as `2.56.0.3.windows.1` or `go1.22.5`).
 
-#### ☁️ Cloud Connections & Kubernetes Dashboard
-- **Multi-Cloud Authentication Status**: Automatic login detection and credential status for AWS CLI, Azure CLI, and Google Cloud SDK.
-- **Interactive Kubernetes Contexts**: Discover and switch active kubectl contexts and namespaces directly from the UI.
+#### 🎛️ Catalog & Command Palette (`Ctrl+K`) Polish
+- **Dynamic Category Discovery & Chips**: Catalog category filter chips dynamically discover and generate chips for custom or private feed categories alongside built-in categories. Added the dedicated "Languages & Runtimes" category chip to filter Go, Node.js, Python, PowerShell 7, and Rust.
+- **Command Palette Deep-Linking & Smart Actions**:
+  - Differentiates between installed, uninstalled, and update-pending tools: installed tools offer "View {Tool} (Installed)" opening their detail pane directly; tools with updates offer "Update {Tool} to v{Version}".
+  - Fast utility actions: "Switch Theme (Dark / Light)", "Switch Kubernetes Context (kubectx)", "Run CLI Health Checks", "Fix PATH Duplicates & Dead Entries", and "New-PC Migration Wizard".
 
-#### 📦 SBOM & Enterprise Compliance Export
-- **CycloneDX 1.5 & SPDX 2.3**: One-click and headless CLI export (`--sbom <file> [--sbom-format spdx]`) generating standardized Software Bill of Materials for vulnerability scanning and enterprise auditing.
-- **Comprehensive Component Metadata**: Includes detected versions, download provenance, SHA-256 checksums, package URLs (`pkg:generic`), and licenses.
-
-#### 💾 Storage & Download Cache Manager
-- **Disk Usage Breakdown**: Interactive visualization of completed vendor artifacts, partial downloads, and audit logs.
-- **In-Flight Safe Cleanup**: Clean old or stale artifacts without interrupting active downloads, plus opt-in scheduled auto-cleaning.
-- **Headless CLI Commands**: Manage workstation disk space headlessly with `--storage` and `--clean-downloads [partial|old|all]`.
-
-#### ⚙️ Settings Portability & DevContainer Import
-- **Settings Backup & Restore**: Export and restore settings, custom stacks, and tool pins to a portable JSON bundle (`--export-settings`, `--import-settings`) with secrets isolation.
-- **devcontainer.json Import**: Map features and VS Code extensions from existing project repositories directly to catalog tools.
-
-#### 🛠️ Catalog Expansion (95+ Official Tools)
-- **New Languages & Runtimes**: PowerShell 7, Go, Node.js LTS, Python 3, and Rust with automated health checks.
-- **Copy as Markdown**: Instant markdown table export from the catalog, stacks, and installed tools for READMEs and documentation.
-- **In-App Notification Center & Active Download Pill**: Live event feed and title bar progress ring.
+#### 🔍 CLI Health Probes & Registry Lifecycle Management
+- **Explicit CLI Health Mapping**: Added CLI health probe commands and executables for `golang` (`go.exe`), `nodejs` (`node.exe`), `powershell` (`pwsh.exe`), `python` (`python.exe`), `rust` (`rustc.exe`), `ansible`, `dbeaver`, `postman`, `sublime-text`, `notepad-plus-plus`, `intellij-idea-community`, `pycharm-community`, `visual-studio-community`, and `putty`.
+- **Multi-Line & Go Semver Header Parsing**: Upgraded `ExtractVersion` to parse up to 5 multi-line banner lines and recognize `go1.X.Y` prefixes alongside standard semver strings.
+- **Expanded Registry Alias Detection**: Extended `UninstallService` aliases for Node.js, Go, Python, PowerShell 7, Rust, IDEs, and container desktops (`docker-desktop`, `podman-desktop`, `rancher-desktop`), resolving install state, installed version, and uninstallation pathways.
+- **Semantic Severity Notification Badging**: TitleBar notification flyout icons dynamically resolve theme-aware semantic brushes (`Success`, `Warning`, `Error`, `Update`).
 
 ---
 
