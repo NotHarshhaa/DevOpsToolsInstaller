@@ -63,6 +63,7 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         ("Networking", "Networking"),
         ("Policy & Compliance", "Policy & Compliance"),
         ("Database & Data", "Database & Data"),
+        ("Languages & Runtimes", "Languages & Runtimes"),
         ("Editors & Terminals", "Editors and Terminals"),
         ("Utilities", "Utilities"),
     };
@@ -439,8 +440,11 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
         CategoryChipPanel.Children.Clear();
         _categoryChipButtons.Clear();
 
+        var knownTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var (label, tag) in CategoryDefinitions)
         {
+            knownTags.Add(tag);
             var chip = new Button
             {
                 Content = label,
@@ -452,6 +456,33 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
             CategoryChipPanel.Children.Add(chip);
             _categoryChipButtons.Add(chip);
+        }
+
+        // Dynamically add any additional custom/private feed categories
+        var mw = App.MainWindowInstance;
+        if (mw != null && mw.Tools.Count > 0)
+        {
+            var extraCategories = mw.Tools
+                .Select(t => t.Category)
+                .Where(c => !string.IsNullOrWhiteSpace(c) && !knownTags.Contains(c))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(c => c, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var extraCat in extraCategories)
+            {
+                knownTags.Add(extraCat);
+                var chip = new Button
+                {
+                    Content = extraCat,
+                    Tag = extraCat,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                chip.Click += CategoryChip_Click;
+                AutomationProperties.SetName(chip, $"{extraCat} category filter");
+
+                CategoryChipPanel.Children.Add(chip);
+                _categoryChipButtons.Add(chip);
+            }
         }
 
         UpdateChipSelection();
@@ -789,6 +820,9 @@ public sealed partial class CatalogPage : Page, IRefreshablePage
 
         return null;
     }
+
+    /// <summary>Opens the right-hand inspection drawer for the specified tool.</summary>
+    public void OpenDetailPaneFor(ToolDefinition tool) => OpenDetailPane(tool, null);
 
     private void OpenDetailPane(ToolDefinition tool, FrameworkElement? source)
     {

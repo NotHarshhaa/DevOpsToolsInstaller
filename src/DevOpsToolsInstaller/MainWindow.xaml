@@ -124,7 +124,7 @@
                                                             </Grid.ColumnDefinitions>
                                                             <FontIcon Grid.Column="0" Glyph="{x:Bind Glyph}" FontSize="13"
                                                                       VerticalAlignment="Center"
-                                                                      Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}" />
+                                                                      Foreground="{x:Bind ForegroundBrush, Mode=OneTime}" />
                                                             <TextBlock Grid.Column="1" Text="{x:Bind Title}"
                                                                        Style="{StaticResource BodyStrongTextBlockStyle}"
                                                                        TextTrimming="CharacterEllipsis"

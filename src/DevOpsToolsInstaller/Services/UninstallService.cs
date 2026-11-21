@@ -321,6 +321,26 @@ public static class UninstallService
             // but a bare "Python 3.x" display name is NOT Ansible — require the name to
             // actually mention Ansible (or an Ansible-oriented distribution).
             "ansible" => displayName.Contains("Ansible", StringComparison.OrdinalIgnoreCase),
+            "golang" => displayName.Contains("Go Programming Language", StringComparison.OrdinalIgnoreCase)
+                     || displayName.Equals("Go", StringComparison.OrdinalIgnoreCase),
+            "nodejs" => displayName.StartsWith("Node.js", StringComparison.OrdinalIgnoreCase),
+            "powershell" => displayName.StartsWith("PowerShell 7", StringComparison.OrdinalIgnoreCase)
+                         || displayName.Contains("PowerShell-7", StringComparison.OrdinalIgnoreCase),
+            "python" => displayName.StartsWith("Python 3", StringComparison.OrdinalIgnoreCase),
+            "rust" => displayName.Contains("Rust", StringComparison.OrdinalIgnoreCase)
+                   || displayName.Contains("rustup", StringComparison.OrdinalIgnoreCase),
+            "dbeaver" => displayName.Contains("DBeaver", StringComparison.OrdinalIgnoreCase),
+            "postman" => displayName.StartsWith("Postman", StringComparison.OrdinalIgnoreCase),
+            "insomnia" => displayName.StartsWith("Insomnia", StringComparison.OrdinalIgnoreCase),
+            "notepad-plus-plus" => displayName.Contains("Notepad++", StringComparison.OrdinalIgnoreCase),
+            "sublime-text" => displayName.Contains("Sublime Text", StringComparison.OrdinalIgnoreCase),
+            "intellij-idea-community" => displayName.Contains("IntelliJ IDEA Community", StringComparison.OrdinalIgnoreCase),
+            "pycharm-community" => displayName.Contains("PyCharm Community", StringComparison.OrdinalIgnoreCase),
+            "visual-studio-community" => displayName.Contains("Visual Studio Community", StringComparison.OrdinalIgnoreCase),
+            "putty" => displayName.StartsWith("PuTTY", StringComparison.OrdinalIgnoreCase),
+            "docker-desktop" => displayName.Contains("Docker Desktop", StringComparison.OrdinalIgnoreCase),
+            "podman-desktop" => displayName.Contains("Podman Desktop", StringComparison.OrdinalIgnoreCase),
+            "rancher-desktop" => displayName.Contains("Rancher Desktop", StringComparison.OrdinalIgnoreCase),
             _ => false
         };
     }

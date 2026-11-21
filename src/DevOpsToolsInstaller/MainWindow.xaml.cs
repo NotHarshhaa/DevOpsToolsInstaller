@@ -970,14 +970,45 @@ public sealed partial class MainWindow : Window
             new("Settings & Preferences", "\uE713", "Settings", () => NavigateTo("Settings")),
             new("About DevOps Tools Installer", "\uE946", "Help", () => NavigateTo("About")),
             new("Check For Tool Updates", "\uE895", "Updates", () => NavigateTo("Installed")),
+            new("Switch Theme (Dark / Light)", "\uE771", "Preferences", () =>
+            {
+                var next = SettingsService.Theme == AppTheme.Dark ? AppTheme.Light : AppTheme.Dark;
+                SettingsService.Theme = next;
+                SettingsService.SaveSettings();
+                ApplyTheme(next);
+            }),
+            new("Switch Kubernetes Context (kubectx)", "\uE753", "Cloud", () => NavigateTo("Cloud")),
+            new("Run CLI Health Checks", "\uE9D9", "Diagnostics", () => NavigateTo("Installed")),
+            new("Fix PATH Duplicates & Dead Entries", "\uE90F", "Diagnostics", () => NavigateTo("Doctor")),
+            new("New-PC Migration Wizard", "\uE8B7", "Profiles", () => NavigateTo("Profiles")),
         };
 
         foreach (var tool in Tools)
         {
-            if (match(tool.Name) && tool.Status != ToolStatus.Downloaded && tool.Status != ToolStatus.Downloading)
+            if (match(tool.Name) || match(tool.Category) || match(tool.Id))
             {
-                commands.Add(new PaletteCommand($"Install {tool.Name}", "\uE896", "Install",
-                    () => ToolActions.RunInBackground(tool, installAfter: true)));
+                if (tool.HasUpdate)
+                {
+                    commands.Add(new PaletteCommand($"Update {tool.Name} to v{tool.Version}", "\uE895", "Update",
+                        () => ToolActions.RunInBackground(tool, installAfter: true)));
+                }
+                else if (tool.Status != ToolStatus.Downloaded && tool.Status != ToolStatus.Downloading)
+                {
+                    commands.Add(new PaletteCommand($"Install {tool.Name}", "\uE896", "Install",
+                        () => ToolActions.RunInBackground(tool, installAfter: true)));
+                }
+                else
+                {
+                    commands.Add(new PaletteCommand($"View {tool.Name} (Installed)", "\uE73E", "Installed",
+                        () =>
+                        {
+                            NavigateTo("Catalog");
+                            if (ContentFrame.Content is CatalogPage cp)
+                            {
+                                cp.OpenDetailPaneFor(tool);
+                            }
+                        }));
+                }
             }
         }
 

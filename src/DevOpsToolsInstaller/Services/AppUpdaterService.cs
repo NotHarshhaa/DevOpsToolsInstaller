@@ -68,7 +68,7 @@ public static class AppUpdaterService
         get
         {
             var v = Assembly.GetExecutingAssembly().GetName().Version;
-            return v != null ? $"{v.Major}.{v.Minor}.{v.Build}" : "3.1.2";
+            return v != null ? $"{v.Major}.{v.Minor}.{v.Build}" : "3.1.3";
         }
     }
 

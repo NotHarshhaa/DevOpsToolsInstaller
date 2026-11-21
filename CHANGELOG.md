@@ -11,6 +11,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Official WinGet Community Package**: Documented official Windows Package Manager distribution instructions (`winget install NotHarshhaa.DevOpsToolsInstaller`) following review, approval, and merge in `microsoft/winget-pkgs#438034`.
+- **Windows Developer Mode Diagnostics**: Workstation Doctor now verifies whether Windows Developer Mode is active (`AllowDevelopmentWithoutDevLicense`), which grants unprivileged symlink creation for Git, npm, pnpm, cargo, and Terraform tooling. Provides clear instructions and fix commands when disabled.
+- **Enhanced CLI Shadowing & Runtime Discovery**: Doctor's CLI binary shadowing checks now monitor `pwsh.exe`, `go.exe`, `node.exe`, and `python.exe` on process PATH to alert when multiple conflicting runtimes mask each other.
+- **Dynamic Category Discovery & Chips**: Catalog category filters dynamically load and discover custom or private feed categories alongside built-in categories, ensuring newly introduced categories like *Languages & Runtimes* and corporate feeds are immediately filterable.
+- **Comprehensive Command Palette Actions (`Ctrl+K`)**:
+  - Direct actions for installed tools ("View {Tool} (Installed)") which opens their detail inspector.
+  - One-click update trigger ("Update {Tool} to v{Version}") for tools with pending upgrades.
+  - Instant utility actions: "Switch Theme (Dark / Light)", "Switch Kubernetes Context (kubectx)", "Run CLI Health Checks", "Fix PATH Duplicates & Dead Entries", and "New-PC Migration Wizard".
+
+### Fixed
+- **Languages & Runtimes Catalog Filter Chip Missing**: `CatalogPage.xaml.cs` omitted `Languages & Runtimes` from `CategoryDefinitions`, preventing users from filtering for Go, Node.js, Python, PowerShell 7, and Rust.
+- **CLI Health Probes for Major Tools**: `CliHealthService.ToolCliMap` now maps `golang` (`go.exe`), `nodejs` (`node.exe`), `powershell` (`pwsh.exe`), `python` (`python.exe`), `rust` (`rustc.exe`), `ansible`, `dbeaver`, `postman`, `sublime-text`, `notepad-plus-plus`, `intellij-idea-community`, `pycharm-community`, and `putty`, preventing failed fallbacks to non-existent executables (`golang.exe`, `nodejs.exe`, `rust.exe`) or legacy PowerShell 5.1.
+- **Go and Multi-Line CLI Version Extraction**: `CliHealthService.ExtractVersion` regex now handles `go1.22.x` syntax and multi-line version output banners without failing or truncating raw outputs.
+- **Windows Uninstall Registry Detection for Official Installers**: `UninstallService.MatchesKnownAlias` now recognizes `Node.js` (catalog `nodejs`), `Go Programming Language` (catalog `golang`), `PowerShell 7` (catalog `powershell`), `Python 3`, `Rust (rustup)`, `DBeaver`, `Postman`, `Insomnia`, `Notepad++`, `Sublime Text`, `IntelliJ IDEA`, `PyCharm`, `Visual Studio Community`, and `Docker / Podman / Rancher Desktop`, enabling accurate detection, installed version tracking, and uninstallation.
+- **Doctor Outdated Version Normalization**: `DoctorService.CheckOutdatedToolsAsync` now normalizes and extracts version segments with `CleanVersion` before parsing with `System.Version`, preventing multi-part versions (e.g. `2.56.0.3.windows.1`), prefixes, and metadata from failing silently.
+- **Notification Flyout Semantic Severity Tinting**: TitleBar notification flyout icons are now dynamically styled with their respective semantic brushes (`Success`, `Warning`, `Error`, `Update`, `Info`) instead of using a static blue accent brush for all event severities.
 
 ## [3.1.3] - 2026-11-05
 

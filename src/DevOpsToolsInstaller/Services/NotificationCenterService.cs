@@ -46,6 +46,19 @@ public sealed class NotificationItem
         _ => "TextFillColorSecondaryBrush",
     };
 
+    public Microsoft.UI.Xaml.Media.Brush ForegroundBrush
+    {
+        get
+        {
+            var key = KindBrushKey;
+            if (Microsoft.UI.Xaml.Application.Current.Resources.TryGetValue(key, out var res) && res is Microsoft.UI.Xaml.Media.Brush brush)
+            {
+                return brush;
+            }
+            return (Microsoft.UI.Xaml.Media.Brush)Microsoft.UI.Xaml.Application.Current.Resources["AccentTextFillColorPrimaryBrush"];
+        }
+    }
+
     public string TimeLabel
     {
         get

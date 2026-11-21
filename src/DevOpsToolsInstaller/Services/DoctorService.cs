@@ -106,7 +106,11 @@ public static class DoctorService
         "aws.exe",
         "az.cmd",
         "trivy.exe",
-        "git.exe"
+        "git.exe",
+        "pwsh.exe",
+        "go.exe",
+        "node.exe",
+        "python.exe"
     };
 
     private static DoctorReport? _lastReport;
@@ -431,6 +435,45 @@ public static class DoctorService
                 LearnMoreUrl = "https://learn.microsoft.com/windows/package-manager/winget/"
             });
         }
+
+        // Windows Developer Mode check (allows unprivileged symlinks for git, npm, pnpm, terraform)
+        bool devModeEnabled = false;
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock");
+            if (key?.GetValue("AllowDevelopmentWithoutDevLicense") is int val && val == 1)
+            {
+                devModeEnabled = true;
+            }
+        }
+        catch { }
+
+        if (devModeEnabled)
+        {
+            results.Add(new DoctorCheckResult
+            {
+                Id = "prereq-devmode",
+                Category = "Prerequisites & System Capabilities",
+                Title = "Windows Developer Mode",
+                Status = DoctorStatus.Passed,
+                Explanation = "Developer Mode is active. Unprivileged symlink creation is enabled for Git, Node, and Go tooling."
+            });
+        }
+        else
+        {
+            results.Add(new DoctorCheckResult
+            {
+                Id = "prereq-devmode",
+                Category = "Prerequisites & System Capabilities",
+                Title = "Windows Developer Mode",
+                Status = DoctorStatus.Warning,
+                Explanation = "Developer Mode is off. Creating symbolic links in Git, npm, pnpm, and Terraform may require administrative elevation.",
+                HasLearnMore = true,
+                LearnMoreTitle = "Enable Developer Mode",
+                LearnMoreDetails = "Open Windows Settings > System > For developers, then enable 'Developer Mode', or run PowerShell as Administrator:\nreg add 'HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock' /v AllowDevelopmentWithoutDevLicense /t REG_DWORD /d 1 /f",
+                LearnMoreUrl = "https://learn.microsoft.com/windows/apps/get-started/developer-mode-features-and-debugging"
+            });
+        }
     }
 
     private static void CheckCliBinaryShadowing(List<DoctorCheckResult> results)
@@ -537,8 +580,8 @@ public static class DoctorService
                 var probe = await CliHealthService.ProbeToolAsync(tool, timeoutSeconds: 3, ct: ct);
                 if (probe.Success && !string.IsNullOrWhiteSpace(probe.DetectedVersion))
                 {
-                    var detected = probe.DetectedVersion.TrimStart('v', 'V');
-                    var target = tool.Version.TrimStart('v', 'V');
+                    var detected = CleanVersion(probe.DetectedVersion);
+                    var target = CleanVersion(tool.Version);
 
                     if (Version.TryParse(detected, out var dVer) &&
                         Version.TryParse(target, out var tVer) &&
@@ -634,5 +677,11 @@ public static class DoctorService
                 Details = $"Folder: {binFolder} ({binFileCount} CLI tool(s) found)"
             });
         }
+    }
+
+    private static string CleanVersion(string v)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(v, @"\b(\d+(\.\d+){1,3})\b");
+        return match.Success ? match.Groups[1].Value : v.Trim().TrimStart('v', 'V');
     }
 }

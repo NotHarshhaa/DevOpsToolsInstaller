@@ -130,7 +130,26 @@ public static class CliHealthService
             { "wezterm", ("wezterm.exe", "--version") },
             { "windows-terminal", ("wt.exe", "--version") },
             { "neovim", ("nvim.exe", "--version") },
-            { "vscode", ("code.cmd", "--version") }
+            { "vscode", ("code.cmd", "--version") },
+
+            // Languages & Runtimes
+            { "powershell", ("pwsh.exe", "-v") },
+            { "golang", ("go.exe", "version") },
+            { "nodejs", ("node.exe", "--version") },
+            { "python", ("python.exe", "--version") },
+            { "rust", ("rustc.exe", "--version") },
+            { "ansible", ("ansible.exe", "--version") },
+
+            // GUI Tools, IDEs & Utilities
+            { "dbeaver", ("dbeaver.exe", "--version") },
+            { "postman", ("postman.exe", "--version") },
+            { "insomnia", ("Insomnia.exe", "--version") },
+            { "notepad-plus-plus", ("notepad++.exe", "-v") },
+            { "sublime-text", ("subl.exe", "--version") },
+            { "intellij-idea-community", ("idea64.exe", "--version") },
+            { "pycharm-community", ("pycharm64.exe", "--version") },
+            { "visual-studio-community", ("vs_community.exe", "--version") },
+            { "putty", ("putty.exe", "--version") }
         };
 
     /// <summary>
@@ -341,20 +360,25 @@ public static class CliHealthService
 
     /// <summary>
     /// Parses a semantic version string from CLI version output.
+    /// Handles Go ("go1.22.5"), Python ("Python 3.14.2"), Git ("2.56.0.3.windows.1"),
+    /// PowerShell, and multi-line banners.
     /// </summary>
     public static string? ExtractVersion(string rawOutput)
     {
         if (string.IsNullOrWhiteSpace(rawOutput)) return null;
 
-        var firstLine = rawOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "";
-
-        // Look for semver pattern v?X.Y.Z
-        var match = Regex.Match(firstLine, @"\bv?(\d+\.\d+(\.\d+)?(-[a-zA-Z0-9\.\-_]+)?)\b");
-        if (match.Success)
+        var lines = rawOutput.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var line in lines.Take(5))
         {
-            return match.Groups[1].Value.TrimStart('v', 'V');
+            // Look for semver pattern with optional 'v' or 'go' prefix
+            var match = Regex.Match(line, @"\b(?:v|go)?(\d+\.\d+(?:\.\d+)*(?:-[a-zA-Z0-9\.\-_]+)?)\b", RegexOptions.IgnoreCase);
+            if (match.Success)
+            {
+                return match.Groups[1].Value.TrimStart('v', 'V');
+            }
         }
 
+        var firstLine = lines.FirstOrDefault() ?? string.Empty;
         return firstLine.Length > 30 ? firstLine[..30] + "…" : firstLine;
     }
 }
