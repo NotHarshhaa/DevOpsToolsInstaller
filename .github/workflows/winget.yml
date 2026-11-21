@@ -42,6 +42,22 @@ jobs:
           Write-Host "Publishing WinGet package for release tag: $tag"
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
+          Write-Host "Waiting for release assets to be uploaded to tag $tag..."
+          $assetFound = $false
+          for ($i = 0; $i -lt 30; $i++) {
+            $assets = & gh release view $tag --repo "${{ github.repository }}" --json assets -q ".assets[].name" 2>$null
+            if ($assets -match "DevOpsToolsInstaller_x64_Setup\.exe") {
+              Write-Host "Found matching release asset DevOpsToolsInstaller_x64_Setup.exe on $tag." -ForegroundColor Green
+              $assetFound = $true
+              break
+            }
+            Write-Host "Waiting for DevOpsToolsInstaller_x64_Setup.exe to finish uploading... (attempt $($i + 1)/30)"
+            Start-Sleep -Seconds 15
+          }
+          if (-not $assetFound) {
+            Write-Error "Timed out waiting for DevOpsToolsInstaller_x64_Setup.exe on release $tag."
+          }
+
       - name: Submit package to Windows Package Manager Community Repository
         uses: vedantmgoyal9/winget-releaser@v2
         with:
