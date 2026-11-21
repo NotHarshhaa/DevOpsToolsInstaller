@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Windows Uninstall Registry Detection for Official Installers**: `UninstallService.MatchesKnownAlias` now recognizes `Node.js` (catalog `nodejs`), `Go Programming Language` (catalog `golang`), `PowerShell 7` (catalog `powershell`), `Python 3`, `Rust (rustup)`, `DBeaver`, `Postman`, `Insomnia`, `Notepad++`, `Sublime Text`, `IntelliJ IDEA`, `PyCharm`, `Visual Studio Community`, and `Docker / Podman / Rancher Desktop`, enabling accurate detection, installed version tracking, and uninstallation.
 - **Doctor Outdated Version Normalization**: `DoctorService.CheckOutdatedToolsAsync` now normalizes and extracts version segments with `CleanVersion` before parsing with `System.Version`, preventing multi-part versions (e.g. `2.56.0.3.windows.1`), prefixes, and metadata from failing silently.
 - **Notification Flyout Semantic Severity Tinting**: TitleBar notification flyout icons are now dynamically styled with their respective semantic brushes (`Success`, `Warning`, `Error`, `Update`, `Info`) instead of using a static blue accent brush for all event severities.
+- **WinGet Release Workflow Automation**: Upgraded `.github/workflows/winget.yml` to canonical `vedantmgoyal9/winget-releaser@v2`, added dynamic release tag resolution with fallback to the latest GitHub release via GitHub CLI, and enabled `release: types: [published]` triggers so future versions publish to WinGet automatically.
 
 ## [3.1.3] - 2026-11-05
 

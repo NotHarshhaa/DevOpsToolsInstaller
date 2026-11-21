@@ -1,12 +1,14 @@
 name: Publish to WinGet
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       version:
         description: 'Release tag (e.g. v3.1.3, or leave empty for latest release)'
         required: false
-        default: 'v3.1.3'
+        default: ''
 
 jobs:
   winget:
@@ -16,10 +18,34 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Resolve Release Tag
+        id: resolve_tag
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN || secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          $inputTag = "${{ github.event.inputs.version }}"
+          $releaseEventTag = "${{ github.event.release.tag_name }}"
+          
+          if (-not [string]::IsNullOrWhiteSpace($inputTag)) {
+            $tag = $inputTag
+          } elseif (-not [string]::IsNullOrWhiteSpace($releaseEventTag)) {
+            $tag = $releaseEventTag
+          } else {
+            # Fall back to latest release tag via GitHub CLI
+            $tag = & gh release view --repo "${{ github.repository }}" --json tagName -q ".tagName"
+            if (-not $tag) {
+              $tag = "v3.1.3"
+            }
+          }
+          
+          Write-Host "Publishing WinGet package for release tag: $tag"
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
       - name: Submit package to Windows Package Manager Community Repository
-        uses: vedantmgoyal2009/winget-releaser@v2
+        uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: NotHarshhaa.DevOpsToolsInstaller
           installers-regex: 'DevOpsToolsInstaller_x64_Setup\.exe$'
           token: ${{ secrets.WINGET_TOKEN || secrets.GH_TOKEN }}
-          release-tag: ${{ github.event.inputs.version }}
+          release-tag: ${{ steps.resolve_tag.outputs.tag }}
